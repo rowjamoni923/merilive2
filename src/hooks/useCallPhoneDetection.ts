@@ -82,7 +82,6 @@ export function useCallPhoneDetection({
           // Send alert to admin
           const violatorId = userId;
           const { data: alertData } = await supabase.functions.invoke('admin-phone-alert', {
-            body: {
               userId: violatorId,
               detectedContent: detection.matches.join(', '),
               contextType: 'video_call',

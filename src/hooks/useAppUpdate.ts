@@ -386,16 +386,10 @@ export const useAppUpdate = () => {
         const availableComparable = toComparableCode(availableVersionCode, availableVersionName);
         const info: AppUpdateInfo = {
           updateAvailable: true,
-          forceUpdate: false,
-          currentVersion: CURRENT_VERSION_NAME,
-          availableVersion: availableVersionName,
-          currentVersionCode: CURRENT_VERSION_CODE,
           availableVersionCode,
           currentComparable,
           availableComparable,
           minimumComparable: 0,
-          updateMessage: 'New update available! Update now to get new features and bug fixes.',
-          playStoreUrl: 'https://play.google.com/store/apps/details?id=com.merilive.app',
         };
         setUpdateInfo(info);
         setShowUpdateModal(!shouldSuppressPrompt(info));
@@ -476,17 +470,8 @@ export const useAppUpdate = () => {
     const currentComparable = toComparableCode(override.currentVersionCode ?? 1, override.currentVersion ?? '0.0.0');
     const availableComparable = toComparableCode(override.availableVersionCode ?? 999999, override.availableVersion ?? '99.99.99');
     const info: AppUpdateInfo = {
-      updateAvailable: true,
-      forceUpdate: !!override.forceUpdate,
-      currentVersion: override.currentVersion ?? '0.0.0',
-      availableVersion: override.availableVersion ?? '99.99.99',
-      currentVersionCode: override.currentVersionCode ?? 1,
-      availableVersionCode: override.availableVersionCode ?? 999999,
       currentComparable,
       availableComparable,
-      minimumComparable: override.forceUpdate ? availableComparable : 0,
-      updateMessage: override.updateMessage ?? '[TEST MODE] Simulated update — verify modal + dismiss + store-open flow.',
-      playStoreUrl: override.playStoreUrl ?? 'https://play.google.com/store/apps/details?id=com.merilive.app',
     };
     setUpdateInfo(info);
     setShowUpdateModal(forceShow ? true : !shouldSuppressPrompt(info));

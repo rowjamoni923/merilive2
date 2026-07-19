@@ -54,7 +54,6 @@ export const resolveProfileVerificationState = async (profile: VerifiableProfile
   const hostFacePassed = approvedHostApplication?.face_verification_status === 'passed' || Boolean(approvedHostApplication?.face_verification_image_url);
 
   return {
-    isFaceVerified: alreadyFaceVerified || Boolean(approvedSubmission) || hostFacePassed,
     faceVerificationImage:
       profile.face_verification_image ??
       approvedSubmission?.face_image_url ??

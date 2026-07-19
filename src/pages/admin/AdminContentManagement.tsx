@@ -45,10 +45,6 @@ export default function AdminContentManagement() {
     ]);
 
     setStats({
-      activeStreams: streamsRes.count || 0,
-      totalRecordings: recordingsRes.count || 0,
-      pendingReels: reelsRes.count || 0,
-      activeBanners: bannersRes.count || 0
     });
   };
 

@@ -186,7 +186,6 @@ export default function AdminGameSettings() {
     if (!error && data) {
       const gamesWithPresets = data.map(game => ({
         ...game,
-        preset_bets: game.preset_bets ? 
           (typeof game.preset_bets === 'string' ? JSON.parse(game.preset_bets) : game.preset_bets) 
           : DEFAULT_PRESET_BETS
       })) as GameSetting[];
@@ -216,28 +215,10 @@ export default function AdminGameSettings() {
     const { error } = await supabase
       .from('game_settings')
       .update({
-        game_name: game.game_name,
-        game_emoji: game.game_emoji,
-        game_color: game.game_color,
-        description: game.description,
-        win_probability: game.win_probability,
-        house_edge: game.house_edge,
-        min_bet: game.min_bet,
-        max_bet: game.max_bet,
-        max_multiplier: game.max_multiplier,
-        is_active: game.is_active,
-        is_featured: game.is_featured,
-        preset_bets: game.preset_bets,
-        category: game.category,
         jackpot_percentage: game.jackpot_percentage || 0,
         jackpot_multiplier: game.jackpot_multiplier || 100,
         min_win_probability: game.min_win_probability || 5,
         max_win_probability: game.max_win_probability || 95,
-        game_url: game.game_url || null,
-        logo_url: game.logo_url || null,
-        game_type: game.game_type || 'native',
-        iframe_width: game.iframe_width || 400,
-        iframe_height: game.iframe_height || 600,
         rules: (game.rules || {}) as any,
       })
       .eq('id', game.id);
@@ -263,26 +244,6 @@ export default function AdminGameSettings() {
     const { error } = await supabase
       .from('game_settings')
       .insert({
-        game_id: newGame.game_id,
-        game_name: newGame.game_name,
-        game_emoji: newGame.game_emoji || '🎮',
-        game_color: newGame.game_color || 'from-purple-500 to-pink-500',
-        description: newGame.description || '',
-        min_bet: newGame.min_bet || 1000,
-        max_bet: newGame.max_bet || 1000000,
-        win_probability: newGame.win_probability || 50,
-        house_edge: newGame.house_edge || 5,
-        max_multiplier: newGame.max_multiplier || 10,
-        is_active: newGame.is_active ?? true,
-        is_featured: newGame.is_featured ?? false,
-        display_order: games.length,
-        preset_bets: newGame.preset_bets || [5000, 10000, 20000, 50000, 100000],
-        category: newGame.category || 'casino',
-        game_url: newGame.game_url || null,
-        logo_url: newGame.logo_url || null,
-        game_type: newGame.game_type || 'native',
-        iframe_width: newGame.iframe_width || 400,
-        iframe_height: newGame.iframe_height || 600,
       });
 
     if (error) {
@@ -291,26 +252,6 @@ export default function AdminGameSettings() {
       toast.success('Game added successfully!');
       setShowAddDialog(false);
       setNewGame({
-        game_id: '',
-        game_name: '',
-        game_emoji: '🎮',
-        game_color: 'from-purple-500 to-pink-500',
-        description: '',
-        min_bet: 1000,
-        max_bet: 1000000,
-        win_probability: 50,
-        house_edge: 5,
-        max_multiplier: 10,
-        is_active: true,
-        is_featured: false,
-        display_order: 0,
-        preset_bets: [5000, 10000, 20000, 50000, 100000],
-        category: 'casino',
-        game_type: 'native',
-        game_url: '',
-        logo_url: '',
-        iframe_width: 400,
-        iframe_height: 600,
       });
       fetchGames();
     }
@@ -353,8 +294,6 @@ export default function AdminGameSettings() {
     const gameIds = categoryGames.map(g => g.game_id);
     const categoryStats = stats.filter(s => gameIds.includes(s.game_id));
     return {
-      bets: categoryStats.reduce((a, s) => a + (s.total_bets || 0), 0),
-      profit: categoryStats.reduce((a, s) => a + (s.house_profit || 0), 0),
       activeGames: categoryGames.filter(g => g.is_active).length,
       totalGames: categoryGames.length
     };
@@ -931,7 +870,6 @@ export default function AdminGameSettings() {
                                     newMultipliers[idx] = { ...mult, multiplier: parseFloat(e.target.value) || 2 };
                                     setEditingGame({
                                       ...editingGame,
-                                      rules: { ...editingGame.rules, bet_multipliers: newMultipliers }
                                     });
                                   }}
                                   className="h-7 w-16 text-xs text-center"
@@ -956,7 +894,6 @@ export default function AdminGameSettings() {
                               const defaults = getDefaultMultipliers(editingGame.game_id);
                               setEditingGame({
                                 ...editingGame,
-                                rules: { ...editingGame.rules, bet_multipliers: defaults }
                               });
                             }}
                           >

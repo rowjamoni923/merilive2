@@ -59,10 +59,6 @@ export function useInAppUpdate() {
 
       if (info.flexible && dismissedFor !== info.versionCode) {
         toast({
-          title: "Update available",
-          description: "Download the latest MeriLive in the background.",
-          duration: 12000,
-          action: (
             <Button
               size="sm"
               onClick={async () => {

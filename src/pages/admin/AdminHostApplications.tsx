@@ -274,11 +274,6 @@ export default function AdminHostApplications() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
-        _submission_id: application.id,
-        _action: 'reject',
-        _reason: reason.trim(),
-        _approve_as: 'user',
-        _set_gender: null,
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Rejection failed');
@@ -307,11 +302,6 @@ export default function AdminHostApplications() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
-        _submission_id: selectedApplication.id,
-        _action: 'reject',
-        _reason: rejectionReason.trim() || 'Rejected by admin',
-        _approve_as: 'host',
-        _set_gender: null,
       });
       if (error) throw error;
 
@@ -346,9 +336,6 @@ export default function AdminHostApplications() {
     try {
       const { data, error } = await supabase.rpc('admin_force_verify_and_approve_host', {
         _user_id: profile.id,
-        _approve_as: role,
-        _set_gender: role === 'host' ? 'female' : 'male',
-        _reason: 'Admin direct approval (no submission)',
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Approval failed');
@@ -371,7 +358,6 @@ export default function AdminHostApplications() {
     if (!guardStart(`qreject-${profile.id}`)) return;
     try {
       const { error } = await supabase.rpc('admin_set_host_status', {
-        _user_id: profile.id,
         _make_host: false,
       });
       if (error) throw error;
@@ -390,7 +376,6 @@ export default function AdminHostApplications() {
     if (!guardStart(`review-${app.id}`)) return;
     try {
       const { data, error } = await supabase.rpc('admin_mark_face_submission_under_review', {
-        _submission_id: app.id,
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || "Review start failed");
@@ -984,9 +969,6 @@ export default function AdminHostApplications() {
                           onClick={() => handleApprove('user')}
                           className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
                           style={{
-                            background: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(37,99,235,0.3) 50%, rgba(29,78,216,0.2) 100%)',
-                            border: '2px solid rgba(59,130,246,0.4)',
-                            boxShadow: '0 0 30px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
                           }}
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

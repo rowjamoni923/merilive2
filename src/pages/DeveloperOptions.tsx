@@ -72,8 +72,6 @@ export default function DeveloperOptions() {
     resetAllNativeFlags();
     setFlags(getAllNativeFlags());
     toast({
-      title: "All flags reset",
-      description: "Every native flag is now OFF (web mode).",
     });
   };
 

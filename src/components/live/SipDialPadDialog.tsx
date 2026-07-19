@@ -90,7 +90,6 @@ export function SipDialPadDialog({ open, onClose, scope, id, sipParticipants }: 
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'radial-gradient(60% 40% at 20% 10%, rgba(236,72,153,0.18) 0%, transparent 60%), radial-gradient(50% 40% at 80% 90%, rgba(168,85,247,0.18) 0%, transparent 60%)',
             }}
           />
 
@@ -100,8 +99,6 @@ export function SipDialPadDialog({ open, onClose, scope, id, sipParticipants }: 
               <div
                 className="w-10 h-10 rounded-2xl flex items-center justify-center"
                 style={{
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  boxShadow: '0 6px 16px -2px rgba(16,185,129,0.55), 0 0 0 1px rgba(255,255,255,0.18) inset',
                 }}
               >
                 <Phone className="w-5 h-5 text-white" />
@@ -136,9 +133,7 @@ export function SipDialPadDialog({ open, onClose, scope, id, sipParticipants }: 
             <div
               className="h-12 rounded-2xl flex items-center justify-between px-4"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
                 border: '1px solid rgba(255,255,255,0.08)',
-                boxShadow: '0 1px 0 rgba(255,255,255,0.06) inset',
               }}
             >
               <div className="text-xl tracking-[0.18em] tabular-nums text-white/95 font-semibold truncate">
@@ -174,11 +169,8 @@ export function SipDialPadDialog({ open, onClose, scope, id, sipParticipants }: 
                   disabled={!hasSip}
                   className="relative h-14 rounded-2xl flex flex-col items-center justify-center disabled:opacity-40 disabled:pointer-events-none"
                   style={{
-                    background: isLit
                       ? 'linear-gradient(135deg, rgba(236,72,153,0.55) 0%, rgba(168,85,247,0.45) 100%)'
                       : 'linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
-                    border: `1px solid ${isLit ? 'rgba(236,72,153,0.55)' : 'rgba(255,255,255,0.08)'}`,
-                    boxShadow: isLit
                       ? '0 0 0 1px rgba(255,255,255,0.18) inset, 0 8px 20px -4px rgba(236,72,153,0.55)'
                       : '0 1px 0 rgba(255,255,255,0.08) inset, 0 4px 12px -4px rgba(0,0,0,0.5)',
                   }}
@@ -205,8 +197,6 @@ export function SipDialPadDialog({ open, onClose, scope, id, sipParticipants }: 
               disabled={!buffer || !hasSip}
               className="relative w-full h-11 rounded-2xl flex items-center justify-center gap-2 overflow-hidden disabled:opacity-40 disabled:pointer-events-none"
               style={{
-                background: 'linear-gradient(95deg, #ec4899 0%, #c026d3 50%, #a855f7 100%)',
-                boxShadow: '0 6px 20px -4px rgba(192,38,211,0.55), 0 0 0 1px rgba(255,255,255,0.14) inset',
                 animation: buffer && hasSip ? 'giftSendBreathe 2.4s ease-in-out infinite' : undefined,
               }}
             >

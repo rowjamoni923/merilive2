@@ -31,7 +31,7 @@ export interface ViewerProfile {
   name: string;
   avatar: string;
   level?: number;
-  coins?: number;
+  diamonds?: number;
   beans?: number;
   isFollowing?: boolean;
   isVIP?: boolean;
@@ -81,13 +81,10 @@ const FloatingParticles = () => {
           className="absolute text-xs"
           style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
           animate={{
-            y: [0, -30, 0],
             opacity: [0, 1, 0],
             scale: [0.5, 1, 0.5],
           }}
           transition={{
-            duration: particle.duration,
-            delay: particle.delay,
             repeat: Infinity,
             ease: "easeInOut",
           }}
@@ -206,7 +203,6 @@ export const PremiumViewerProfileCard = ({
                 <motion.div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: "linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%)",
                     backgroundSize: "200% 200%",
                   }}
                   animate={{
@@ -255,9 +251,6 @@ export const PremiumViewerProfileCard = ({
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ 
                         delay: 0.15, 
-                        type: "spring",
-                        stiffness: 260,
-                        damping: 20
                       }}
                       className="relative mb-3"
                       onClick={() => onViewProfile?.(viewer.id)}
@@ -531,7 +524,6 @@ export const PremiumViewerProfileCard = ({
                         <motion.div
                           className="absolute inset-0"
                           animate={{
-                            background: [
                               "radial-gradient(circle at 0% 50%, rgba(236, 72, 153, 0.2) 0%, transparent 50%)",
                               "radial-gradient(circle at 100% 50%, rgba(236, 72, 153, 0.2) 0%, transparent 50%)",
                               "radial-gradient(circle at 0% 50%, rgba(236, 72, 153, 0.2) 0%, transparent 50%)",

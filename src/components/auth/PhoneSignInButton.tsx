@@ -86,7 +86,6 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
        // Try API 2: ipwho.is (free, no rate limit)
        try {
          const response = await fetch('https://ipwho.is/', {
-           signal: AbortSignal.timeout(4000)
          });
          if (response.ok) {
            const data = await response.json();
@@ -107,7 +106,6 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
        // Try API 3: freeipapi.com
        try {
          const response = await fetch('https://freeipapi.com/api/json', {
-           signal: AbortSignal.timeout(4000)
          });
          if (response.ok) {
            const data = await response.json();
@@ -152,9 +150,6 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
   const handleSendOtp = async () => {
     if (!phoneNumber || phoneNumber.length < 6) {
       toast({
-        title: "Error",
-        description: "Please enter a valid phone number",
-        variant: "destructive",
       });
       return;
     }
@@ -196,9 +191,6 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
    const handleNameSubmit = () => {
      if (!displayName.trim()) {
        toast({
-         title: "Error",
-         description: "Please enter your name",
-         variant: "destructive",
        });
        return;
      }
@@ -208,9 +200,6 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
    const handleVerifyOtp = async () => {
      if (otpCode.length !== 6) {
        toast({
-         title: "Error",
-         description: "Please enter the 6-digit code",
-         variant: "destructive",
        });
        return;
      }

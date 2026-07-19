@@ -61,11 +61,6 @@ const AdminVehicleEntrances = () => {
 
       const mapped: VehicleEntranceItem[] = (data || []).map((item: any) => ({
         id: item.id,
-        level: item.level_required,
-        name: item.name,
-        animation_url: item.animation_url,
-        preview_url: item.preview_url,
-        is_active: item.is_active,
         created_at: item.created_at
       }));
 
@@ -130,13 +125,6 @@ const AdminVehicleEntrances = () => {
   const openAddDialog = () => {
     setEditingItem(null);
     setFormData({
-      level: 20,
-      name: '',
-      animation_url: '',
-      animation_format: null,
-      animation_config_url: null,
-      preview_url: '',
-      is_active: true
     });
     setDialogOpen(true);
   };
@@ -144,13 +132,6 @@ const AdminVehicleEntrances = () => {
   const openEditDialog = (item: VehicleEntranceItem) => {
     setEditingItem(item);
     setFormData({
-      level: item.level,
-      name: item.name,
-      animation_url: item.animation_url || '',
-      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
-      animation_config_url: (item as any).animation_config_url ?? null,
-      preview_url: item.preview_url || '',
-      is_active: item.is_active
     });
     setDialogOpen(true);
   };
@@ -164,14 +145,8 @@ const AdminVehicleEntrances = () => {
     setSaving(true);
     try {
       const payload: any = {
-        name: formData.name,
         level_required: formData.level,
         image_url: formData.preview_url || formData.animation_url || '',
-        animation_url: formData.animation_url || null,
-        animation_format: formData.animation_format,
-        animation_config_url: formData.animation_config_url,
-        preview_url: formData.preview_url || null,
-        is_active: formData.is_active,
         display_order: formData.level,
       };
 
@@ -359,15 +334,9 @@ const AdminVehicleEntrances = () => {
               label="Full-Screen Animation * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
               folder="vehicle-entrances"
               value={{
-                animation_url: formData.animation_url,
-                animation_format: formData.animation_format,
-                animation_config_url: formData.animation_config_url,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
-                animation_url: v.animation_url,
-                animation_format: v.animation_format,
-                animation_config_url: v.animation_config_url,
               }))}
             />
 

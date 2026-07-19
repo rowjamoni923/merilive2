@@ -289,7 +289,6 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                     style={{
                       background:
                         'radial-gradient(circle at 30% 25%, #ffd1ea 0%, #ec4899 35%, #a855f7 70%, #6366f1 100%)',
-                      boxShadow: lowEnd
                         ? '0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.35)'
                         : '0 10px 26px rgba(168,85,247,0.55), 0 4px 10px rgba(236,72,153,0.35), 0 0 0 5px #fffdf8, 0 0 0 6px rgba(201,168,76,0.40)',
                     }}
@@ -383,8 +382,6 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                       key={unreadCounts.total}
                       className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-white text-[8px] font-bold rounded-full flex items-center justify-center z-20"
                       style={{
-                        background: 'linear-gradient(135deg,#ef4444,#ec4899)',
-                        boxShadow: '0 2px 6px rgba(239,68,68,0.5), 0 0 0 2px #fffdf8',
                       }}
                     >
                       {formatBadgeCount(unreadCounts.total)}
@@ -402,9 +399,6 @@ export const BottomNavigation = ({ onTabChange }: BottomNavigationProps) => {
                       ? {
                           background:
                             'linear-gradient(90deg,#ec4899 0%,#a855f7 100%)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          backgroundClip: 'text',
                         }
                       : undefined
                   }

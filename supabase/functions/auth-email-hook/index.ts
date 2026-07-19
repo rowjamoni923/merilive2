@@ -56,24 +56,15 @@ const SAMPLE_DATA: Record<string, object> = {
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   magiclink: {
-    siteName: SITE_NAME,
-    confirmationUrl: SAMPLE_PROJECT_URL,
   },
   recovery: {
-    siteName: SITE_NAME,
-    confirmationUrl: SAMPLE_PROJECT_URL,
   },
   invite: {
-    siteName: SITE_NAME,
-    siteUrl: SAMPLE_PROJECT_URL,
-    confirmationUrl: SAMPLE_PROJECT_URL,
   },
   email_change: {
-    siteName: SITE_NAME,
     oldEmail: SAMPLE_EMAIL,
     email: SAMPLE_EMAIL,
     newEmail: SAMPLE_EMAIL,
-    confirmationUrl: SAMPLE_PROJECT_URL,
   },
   reauthentication: {
     token: '123456',
@@ -107,8 +98,6 @@ async function handlePreview(req: Request): Promise<Response> {
     type = body.type
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
-      status: 400,
-      headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
@@ -116,8 +105,6 @@ async function handlePreview(req: Request): Promise<Response> {
 
   if (!EmailTemplate) {
     return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
-      status: 400,
-      headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
@@ -125,8 +112,6 @@ async function handlePreview(req: Request): Promise<Response> {
   const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
 
   return new Response(html, {
-    status: 200,
-    headers: { ...previewCorsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
   })
 }
 
@@ -187,8 +172,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     return new Response(
       JSON.stringify({ error: 'Invalid webhook payload' }),
       {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -198,8 +181,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     return new Response(
       JSON.stringify({ error: `Unsupported payload version: ${payload.version}` }),
       {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -249,14 +230,12 @@ async function handleWebhook(req: Request): Promise<Response> {
     message_id: messageId,
     template_name: emailType,
     recipient_email: payload.data.email,
-    status: 'pending',
   })
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
     queue_name: 'auth_emails',
     payload: {
       run_id,
-      message_id: messageId,
       to: payload.data.email,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
@@ -272,15 +251,9 @@ async function handleWebhook(req: Request): Promise<Response> {
   if (enqueueError) {
     console.error('Failed to enqueue auth email', { error: enqueueError, run_id, emailType })
     await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: emailType,
-      recipient_email: payload.data.email,
-      status: 'failed',
       error_message: 'Failed to enqueue email',
     })
     return new Response(JSON.stringify({ error: 'Failed to enqueue email' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 

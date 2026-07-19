@@ -33,38 +33,30 @@ const GAME_RULES: Record<string, { title: string; rules: string[]; tips: string[
     ]
   },
   'teen_patti': {
-    title: 'Teen Patti',
-    rules: [
       'Three hands (A, B, C) are dealt with 3 cards each',
       'Select one or more hands to bet on',
       'The hand with the highest score wins',
       'Winners get 2x their bet amount',
       'You can bet on multiple hands in the same round'
     ],
-    tips: [
       'Betting on multiple hands increases your chances',
       'Watch the timer - bets close when time runs out',
       'Trail (Three of a kind) is the highest hand'
     ],
-    multipliers: [
       { label: 'Win', value: '2x' }
     ]
   },
   'ferris-wheel': {
-    title: 'Ferris Wheel',
-    rules: [
       'Select one or more food items on the wheel',
       'The wheel spins and lands on a random item',
       'If your selected item wins, you get the multiplier',
       'Higher multipliers have lower probability',
       'You can bet on multiple items'
     ],
-    tips: [
       'Items with higher multipliers win less often',
       'Spread your bets for better chances',
       'Watch for patterns in previous rounds'
     ],
-    multipliers: [
       { label: 'Grapes/Carrot/Strawberry/Cupcake', value: '5x' },
       { label: 'Apple', value: '10x' },
       { label: 'Fries', value: '15x' },
@@ -73,20 +65,16 @@ const GAME_RULES: Record<string, { title: string; rules: string[]; tips: string[
     ]
   },
   'ferris_wheel': {
-    title: 'Ferris Wheel',
-    rules: [
       'Select one or more food items on the wheel',
       'The wheel spins and lands on a random item',
       'If your selected item wins, you get the multiplier',
       'Higher multipliers have lower probability',
       'You can bet on multiple items'
     ],
-    tips: [
       'Items with higher multipliers win less often',
       'Spread your bets for better chances',
       'Watch for patterns in previous rounds'
     ],
-    multipliers: [
       { label: 'Grapes/Carrot/Strawberry/Cupcake', value: '5x' },
       { label: 'Apple', value: '10x' },
       { label: 'Fries', value: '15x' },
@@ -95,20 +83,16 @@ const GAME_RULES: Record<string, { title: string; rules: string[]; tips: string[
     ]
   },
   'roulette': {
-    title: 'Roulette',
-    rules: [
       'Place bets on colors, numbers, or ranges',
       'The wheel spins and the ball lands on a number',
       'Red/Black, Even/Odd, Low/High pay 2x',
       'Single number bets pay 36x',
       'Green (0) loses for all color/range bets'
     ],
-    tips: [
       'Color bets are safest with 2x payout',
       'Single numbers have highest risk but 36x reward',
       'Avoid betting when timer is low'
     ],
-    multipliers: [
       { label: 'Red/Black', value: '2x' },
       { label: 'Even/Odd', value: '2x' },
       { label: 'Low (1-18)/High (19-36)', value: '2x' },

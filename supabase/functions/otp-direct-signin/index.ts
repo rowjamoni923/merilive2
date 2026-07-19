@@ -40,7 +40,6 @@ async function createMagicSession(supabaseAdmin: any, email: string) {
   if (!tokenHashFromLink) throw new Error("Failed to create sign-in token");
 
   const { data: verifiedData, error: verifyError } = await supabaseAdmin.auth.verifyOtp({
-    type: "magiclink",
     token_hash: tokenHashFromLink,
   });
   if (verifyError || !verifiedData?.session) {
@@ -123,8 +122,6 @@ serve(async (req) => {
 
       const metadata: Record<string, unknown> = {
         full_name: displayName,
-        display_name: displayName,
-        device_id: deviceId || undefined,
       };
       if (channel === "phone") {
         metadata.phone_number = tokenIdentifier;
@@ -177,7 +174,6 @@ serve(async (req) => {
     if (!tokenHashFromLink) throw new Error("Failed to create sign-in token");
 
     const { data: verifiedData, error: verifyError } = await supabaseAdmin.auth.verifyOtp({
-      type: "magiclink",
       token_hash: tokenHashFromLink,
     });
     if (verifyError || !verifiedData?.session) {

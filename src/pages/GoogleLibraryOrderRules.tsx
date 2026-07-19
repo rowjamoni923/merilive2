@@ -194,9 +194,7 @@ const GoogleLibraryOrderRules = () => {
           onClick={() => navigate(-1)}
           className="relative w-9 h-9 rounded-full flex items-center justify-center text-white"
           style={{
-            background: "rgba(255,255,255,0.18)",
             backdropFilter: "blur(8px)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15), 0 4px 10px -2px rgba(0,0,0,0.25)",
             border: "1px solid rgba(255,255,255,0.25)",
           }}
         >
@@ -251,8 +249,6 @@ const GoogleLibraryOrderRules = () => {
                   <div
                     className="rounded-xl overflow-hidden"
                     style={{
-                      border: "1px solid rgba(226,232,240,0.9)",
-                      boxShadow: "0 4px 12px -4px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
                     }}
                   >
                     <div className="grid grid-cols-2 bg-gradient-to-b from-slate-50 to-slate-100/60 px-4 py-2.5 border-b border-slate-200">
@@ -290,9 +286,6 @@ const GoogleLibraryOrderRules = () => {
                   <div
                     className="flex items-start gap-2.5 rounded-xl px-3.5 py-2.5"
                     style={{
-                      background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
-                      border: "1px solid rgba(147,197,253,0.6)",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                     }}
                   >
                     <Clock className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
@@ -322,15 +315,11 @@ const GoogleLibraryOrderRules = () => {
                       whileHover={{ y: -1 }}
                       className="relative rounded-xl p-3 flex items-center gap-3 bg-white"
                       style={{
-                        border: "1px solid rgba(226,232,240,0.9)",
-                        boxShadow: `0 6px 14px -6px ${t.accent}, inset 0 1px 0 rgba(255,255,255,0.95)`,
                       }}
                     >
                       <div
                         className="relative w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
                         style={{
-                          background: t.orb,
-                          boxShadow: `0 4px 10px -2px ${t.accent}, inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.18)`,
                         }}
                       >
                         <div className="absolute inset-x-1 top-1 h-1.5 rounded-full bg-white/40 blur-[2px]" />
@@ -374,9 +363,6 @@ const GoogleLibraryOrderRules = () => {
                       transition={{ delay: i * 0.04 }}
                       className="flex items-start gap-3 rounded-lg px-3 py-2.5"
                       style={{
-                        background: "linear-gradient(135deg, #fefce8 0%, #ffffff 100%)",
-                        border: "1px solid rgba(254,240,138,0.7)",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                       }}
                     >
                       <div className="text-yellow-600 mt-0.5 shrink-0">{rule.icon}</div>
@@ -393,16 +379,12 @@ const GoogleLibraryOrderRules = () => {
                 onClick={() => setShowSupportDialog(true)}
                 className="relative w-full rounded-2xl overflow-hidden p-4 flex items-center gap-3 bg-white"
                 style={{
-                  border: "1px solid rgba(167,243,208,0.7)",
-                  boxShadow: "0 14px 30px -10px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.95)",
                 }}
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
                 <div
                   className="relative w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-white"
                   style={{
-                    background: orbGreen,
-                    boxShadow: "0 6px 14px -2px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.2)",
                   }}
                 >
                   <div className="absolute inset-x-1 top-1 h-1.5 rounded-full bg-white/40 blur-[2px]" />
@@ -415,8 +397,6 @@ const GoogleLibraryOrderRules = () => {
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center"
                   style={{
-                    background: "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 4px rgba(16,185,129,0.2)",
                   }}
                 >
                   <Send className="w-4 h-4 text-emerald-700" />
@@ -437,8 +417,6 @@ const GoogleLibraryOrderRules = () => {
         <DialogContent
           className="bg-white border-0 text-slate-900 max-w-[380px] rounded-2xl p-0 overflow-hidden [&>button]:hidden"
           style={{
-            boxShadow: "0 30px 60px -20px rgba(16,185,129,0.35), 0 14px 30px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.95)",
-            border: "1px solid rgba(167,243,208,0.6)",
           }}
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
@@ -454,8 +432,6 @@ const GoogleLibraryOrderRules = () => {
                 <div
                   className="relative w-20 h-20 rounded-full flex items-center justify-center text-white"
                   style={{
-                    background: orbGreen,
-                    boxShadow: "0 10px 24px -4px rgba(16,185,129,0.55), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -2px 6px rgba(0,0,0,0.2)",
                   }}
                 >
                   <div className="absolute inset-x-2 top-2 h-2 rounded-full bg-white/40 blur-[3px]" />
@@ -471,8 +447,6 @@ const GoogleLibraryOrderRules = () => {
                     <div
                       className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white"
                       style={{
-                        background: orbGreen,
-                        boxShadow: "0 4px 10px -2px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.18)",
                       }}
                     >
                       <div className="absolute inset-x-1 top-1 h-1.5 rounded-full bg-white/40 blur-[2px]" />
@@ -502,13 +476,8 @@ const GoogleLibraryOrderRules = () => {
                         style={
                           isSelected
                             ? {
-                                background: cat.orb,
-                                boxShadow: "0 8px 18px -4px rgba(15,23,42,0.3), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.2)",
-                                border: "1px solid rgba(255,255,255,0.35)",
                               }
                             : {
-                                border: "1px solid rgba(226,232,240,0.9)",
-                                boxShadow: "0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
                               }
                         }
                       >
@@ -555,8 +524,6 @@ const GoogleLibraryOrderRules = () => {
                     disabled={!selectedCategory || !subject.trim() || submitting}
                     className="relative w-full h-12 text-white font-bold rounded-xl overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     style={{
-                      background: orbGreen,
-                      boxShadow: "0 10px 22px -6px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.2)",
                     }}
                   >
                     <div className="pointer-events-none absolute inset-x-2 top-1 h-2 rounded-full bg-white/40 blur-[2px]" />

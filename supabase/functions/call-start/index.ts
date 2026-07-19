@@ -3,7 +3,7 @@
  * Phase 3B Step 2 — Pre-call balance gate.
  *
  * Called by the Android/web client BEFORE initiating a private call.
- * Verifies the caller has at least MIN_PREPAY_MINUTES worth of coins,
+ * Verifies the caller has at least MIN_PREPAY_MINUTES worth of diamonds,
  * and freezes the rate snapshot on the private_calls row.
  *
  * Body: { call_id: string }
@@ -40,7 +40,6 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader) {
       return new Response(JSON.stringify({ ok: false, reason: "unauthenticated" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -51,7 +50,6 @@ serve(async (req) => {
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
     if (authErr || !user) {
       return new Response(JSON.stringify({ ok: false, reason: "unauthenticated" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -59,12 +57,10 @@ serve(async (req) => {
     const callId: string | undefined = body?.call_id;
     if (!callId || typeof callId !== "string") {
       return new Response(JSON.stringify({ ok: false, reason: "missing_call_id" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
     });
 
     // Fetch call
@@ -77,17 +73,14 @@ serve(async (req) => {
     if (callErr) {
       console.error("[call-start] call fetch err", callErr);
       return new Response(JSON.stringify({ ok: false, reason: "db_error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!call) {
       return new Response(JSON.stringify({ ok: false, reason: "call_not_found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (call.caller_id !== user.id) {
       return new Response(JSON.stringify({ ok: false, reason: "forbidden" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -102,12 +95,10 @@ serve(async (req) => {
     if (hostProfErr) {
       console.error("[call-start] host profile fetch err", hostProfErr);
       return new Response(JSON.stringify({ ok: false, reason: "db_error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!hostProfile || hostProfile.is_host !== true || hostProfile.is_face_verified !== true) {
       return new Response(JSON.stringify({ ok: false, reason: "host_not_verified" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -141,18 +132,13 @@ serve(async (req) => {
           reason: "billing_not_configured",
           detail: "Call pricing is not configured by admin. Please contact support.",
         }), {
-          status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       viewerRate = Math.max(Number(call.diamonds_per_minute ?? 0) || 0, 0);
       if (!viewerRate) {
         return new Response(JSON.stringify({
-          ok: false,
-          reason: "billing_not_configured",
-          detail: "Per-minute rate is not configured by admin.",
         }), {
-          status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       hostRate = Math.floor((viewerRate * commissionPct) / 100);
@@ -173,7 +159,7 @@ serve(async (req) => {
     const minRequired = viewerRate * MIN_PREPAY_MINUTES;
 
     // Check balance
-    // Check balance — Pillar C: spend authority spans coins OR diamonds
+    // Check balance — Pillar C: spend authority spans diamonds OR diamonds
     // (whichever is higher), matching random-call-enqueue and billing-tick.
     const { data: profile, error: profErr } = await admin
       .from("profiles")
@@ -184,38 +170,26 @@ serve(async (req) => {
     if (profErr || !profile) {
       console.error("[call-start] profile fetch err", profErr);
       return new Response(JSON.stringify({ ok: false, reason: "profile_not_found" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const balance = Math.max(Number(profile.diamonds ?? 0), Number(profile.diamonds ?? 0));
     if (balance < minRequired) {
       return new Response(JSON.stringify({
-        ok: false,
-        reason: "insufficient_balance",
         min_required: minRequired,
         balance,
-        viewer_rate_per_min: viewerRate,
       }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify({
-      ok: true,
-      viewer_rate_per_min: viewerRate,
-      host_rate_per_min: hostRate,
-      platform_cut_percent: platformPct,
-      min_required: minRequired,
       min_prepay_minutes: MIN_PREPAY_MINUTES,
       balance,
     }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("[call-start] uncaught", e);
     return new Response(JSON.stringify({ ok: false, reason: "internal_error", message: e instanceof Error ? e.message : String(e) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

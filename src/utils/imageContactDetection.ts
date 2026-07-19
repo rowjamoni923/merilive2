@@ -44,10 +44,6 @@ export async function scanImageForContactInfo(
 
     if (data?.detected) {
       return {
-        detected: true,
-        violationNumber: data.violationNumber,
-        beansDeducted: data.beansDeducted,
-        isBanned: data.isBanned,
       };
     }
 

@@ -130,22 +130,16 @@ serve(async (req) => {
     const { data: userRes, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userRes?.user?.id) {
       return new Response(JSON.stringify({ error: "invalid session" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { frames } = await req.json() as { frames?: string[] };
     if (!Array.isArray(frames) || frames.length === 0) {
       return new Response(JSON.stringify({ error: "frames[] required (base64 JPEG)" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (frames.length > 12) {
       return new Response(JSON.stringify({ error: "too many frames (max 12)" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -156,7 +150,6 @@ serve(async (req) => {
       console.error("[moderate-reel-rekognition] AWS credentials missing");
       // Fail-open: do not block legitimate uploads if AWS unconfigured.
       return new Response(JSON.stringify({ isSafe: true, reason: "moderation unavailable", skipped: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -194,13 +187,11 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ isSafe: true, labels: allLabels }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("[moderate-reel-rekognition] fatal:", e);
     // Fail-open on internal error so legitimate uploads aren't blocked
     return new Response(JSON.stringify({ isSafe: true, error: (e as Error).message, skipped: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

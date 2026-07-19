@@ -37,12 +37,8 @@ export interface ThermalBatteryPlugin {
     listenerFunc: (snap: ThermalSnapshot) => void,
   ): Promise<PluginListenerHandle>;
   addListener(
-    eventName: 'batteryChange',
-    listenerFunc: (snap: BatterySnapshot) => void,
   ): Promise<PluginListenerHandle>;
   addListener(
-    eventName: 'powerSaveChange',
-    listenerFunc: (snap: { powerSaveMode: boolean }) => void,
   ): Promise<PluginListenerHandle>;
 }
 
@@ -68,7 +64,6 @@ export const ThermalBattery = registerPlugin<ThermalBatteryPlugin>('ThermalBatte
     },
     async getDeviceCapabilities(): Promise<DeviceCapabilities> {
       return {
-        isLowRamDevice: false,
         memoryClassMb: 0,
         largeMemoryClassMb: 0,
         sdkInt: 0,

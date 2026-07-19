@@ -107,8 +107,6 @@ Deno.serve(async (req) => {
     const { data: userResult, error: userErr } = await authClient.auth.getUser(jwt)
     if (userErr || !userResult?.user?.id) {
       return new Response(JSON.stringify({ error: 'invalid token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
     const authedUserId = userResult.user.id
@@ -179,13 +177,10 @@ Deno.serve(async (req) => {
             socket.send(JSON.stringify({
               type: 'room-joined',
               roomId: message.roomId,
-              participants: getParticipantsList(message.roomId),
               yourSeat: availableSeat,
               isHost,
             }))
             broadcastToRoom(message.roomId, {
-              type: 'user-joined',
-              userId: authedUserId,
               participant: info,
               participantCount: room.participants.size,
             }, authedUserId)
@@ -194,8 +189,6 @@ Deno.serve(async (req) => {
           case 'chat': {
             if (currentRoomId && partyRooms.get(currentRoomId)?.participants.has(authedUserId)) {
               broadcastToRoom(currentRoomId, {
-                type: 'chat',
-                userId: authedUserId,
                 message: String(message.payload?.message ?? '').slice(0, 500),
                 timestamp: Date.now(),
               })
@@ -205,11 +198,9 @@ Deno.serve(async (req) => {
           case 'gift': {
             if (currentRoomId && partyRooms.get(currentRoomId)?.participants.has(authedUserId)) {
               broadcastToRoom(currentRoomId, {
-                type: 'gift',
                 senderId: authedUserId,
                 receiverId: message.payload?.receiverId,
                 gift: message.payload?.gift,
-                timestamp: Date.now(),
               })
             }
             break
@@ -217,10 +208,7 @@ Deno.serve(async (req) => {
           case 'reaction': {
             if (currentRoomId && partyRooms.get(currentRoomId)?.participants.has(authedUserId)) {
               broadcastToRoom(currentRoomId, {
-                type: 'reaction',
-                userId: authedUserId,
                 reaction: message.payload?.reaction,
-                timestamp: Date.now(),
               })
             }
             break
@@ -233,10 +221,6 @@ Deno.serve(async (req) => {
               if (message.type === 'audio-state') me.info.isMuted = !!message.payload?.isMuted
               else me.info.hasVideo = !!message.payload?.hasVideo
               broadcastToRoom(currentRoomId!, {
-                type: message.type === 'audio-state' ? 'audio-state-changed' : 'video-state-changed',
-                userId: authedUserId,
-                isMuted: me.info.isMuted,
-                hasVideo: me.info.hasVideo,
               })
             }
             break
@@ -252,10 +236,6 @@ Deno.serve(async (req) => {
                 me.info.role = message.payload.role
               }
               broadcastToRoom(currentRoomId!, {
-                type: 'seat-updated',
-                userId: authedUserId,
-                seatPosition: me.info.seatPosition,
-                role: me.info.role,
               })
             }
             break
@@ -299,7 +279,5 @@ Deno.serve(async (req) => {
 
   // No public REST surface anymore (was leaking participant lists).
   return new Response(JSON.stringify({ error: 'Not found' }), {
-    status: 404,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 })

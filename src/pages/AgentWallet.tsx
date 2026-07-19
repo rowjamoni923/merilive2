@@ -101,11 +101,6 @@ const AgentWallet = () => {
     const userBeans = profileRes.data?.beans || 0;
 
     setWalletCache({
-      diamondBalance: agencyDiamonds + helperWallet + userDiamonds,
-      agencyDiamondBalance: agencyDiamonds,
-      helperWalletBalance: helperWallet,
-      profileCoins: userDiamonds,
-      beansBalance: userBeans,
     });
   };
 
@@ -166,9 +161,6 @@ const AgentWallet = () => {
 
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to search user",
-        variant: "destructive",
       });
       setIsSearching(false);
       return;
@@ -178,9 +170,6 @@ const AgentWallet = () => {
       setSearchResults(data as FoundUser[]);
     } else {
       toast({
-        title: "Not Found",
-        description: "No user found with this ID",
-        variant: "destructive",
       });
     }
     setIsSearching(false);
@@ -196,34 +185,25 @@ const AgentWallet = () => {
     
     if (!amount || amount < 10000) {
       toast({
-        title: "Error",
-        description: "Minimum 10,000 Diamonds required",
-        variant: "destructive",
       });
       return;
     }
 
     if (amount > diamondBalance) {
       toast({
-        title: "Error",
-        description: "Insufficient balance",
-        variant: "destructive",
       });
       return;
     }
 
     if (!foundUser) {
       toast({
-        title: "Error",
-        description: "Please search and select a user first",
-        variant: "destructive",
       });
       return;
     }
 
     setIsProcessing(true);
 
-    // Use tiered transfer RPC (agency → helper wallet → personal coins)
+    // Use tiered transfer RPC (agency → helper wallet → personal diamonds)
     const { data: result, error } = await supabase
       .rpc("helper_transfer_diamonds_to_user", {
         _sender_id: (await supabase.auth.getSession()).data.session?.user?.id,
@@ -235,17 +215,12 @@ const AgentWallet = () => {
     const transferResult = result as any;
     if (error || (transferResult && !transferResult.success)) {
       toast({
-        title: "Error",
-        description: transferResult?.error || error?.message || "Transfer failed",
-        variant: "destructive",
       });
       setIsProcessing(false);
       return;
     }
     
     toast({
-      title: "Success!",
-      description: `${amount.toLocaleString()} diamonds sent to ${foundUser.display_name || foundUser.username}`,
     });
     
     // Refresh real balances from DB
@@ -267,18 +242,12 @@ const AgentWallet = () => {
     
     if (!amount || amount < 10000) {
       toast({
-        title: "Error",
-        description: "Minimum 10,000 beans required",
-        variant: "destructive",
       });
       return;
     }
 
     if (amount > beansBalance) {
       toast({
-        title: "Error",
-        description: "Insufficient beans balance",
-        variant: "destructive",
       });
       return;
     }
@@ -308,9 +277,6 @@ const AgentWallet = () => {
     const exchangeResult = result as any;
     if (error || (exchangeResult && !exchangeResult.success)) {
       toast({
-        title: "Error",
-        description: exchangeResult?.error || error?.message || "Exchange failed",
-        variant: "destructive",
       });
       setIsProcessing(false);
       return;
@@ -320,8 +286,6 @@ const AgentWallet = () => {
     await refreshBalances(user.id);
     
     toast({
-      title: "Success!",
-      description: `${amount.toLocaleString()} beans converted to ${diamondsReward.toLocaleString()} Diamonds`,
     });
     
     setIsProcessing(false);

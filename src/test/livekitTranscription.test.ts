@@ -116,15 +116,12 @@ describe('Pkg116 livekitTranscription', () => {
     })).toEqual({ ok: false, error: 'non_final_segment' });
 
     expect(await persistTranscriptionSegment({
-      scope: 'live', scopeId: 'x', roomName: 'r', text: '   ', isFinal: true,
     })).toEqual({ ok: false, error: 'empty_text' });
   });
 
   it('persistTranscriptionSegment writes final segment', async () => {
     const res = await persistTranscriptionSegment({
-      scope: 'call', scopeId: 'c1', roomName: 'call_c1',
       participantIdentity: 'u1', segmentId: 'seg1',
-      text: 'final line', language: 'en', isFinal: true,
     });
     expect(res).toEqual({ ok: true });
   });

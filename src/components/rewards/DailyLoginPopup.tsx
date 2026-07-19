@@ -112,7 +112,6 @@ const DailyLoginPopup = () => {
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(254,243,224,0.7))",
                   border: "1px solid rgba(180,83,9,0.18)",
-                  boxShadow: "0 2px 6px rgba(120,53,15,0.10), inset 0 1px 0 rgba(255,255,255,0.9)",
                   backdropFilter: "blur(10px)",
                 }}
               >
@@ -130,8 +129,6 @@ const DailyLoginPopup = () => {
                   style={{
                     background:
                       "linear-gradient(180deg, #fff7d6, #fde68a)",
-                    border: "1px solid rgba(180,83,9,0.30)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(180,83,9,0.08)",
                   }}
                 >
                   <Sparkles className="w-3 h-3 text-amber-700" />
@@ -179,16 +176,9 @@ const DailyLoginPopup = () => {
                       className="absolute left-1/2 top-[42%] z-20"
                       animate={{
                         x: [(i - 2.5) * 3, (i - 2.5) * 26],
-                        y: [0, -36 - (i % 3) * 8],
-                        opacity: [0, 1, 0],
-                        scale: [0.4, 1, 0.4],
                         rotate: [0, (i - 2.5) * 25],
                       }}
                       transition={{
-                        duration: 2.4,
-                        repeat: Infinity,
-                        delay: i * 0.32,
-                        ease: "easeOut",
                       }}
                     >
                       <Diamond3DIcon size={i % 2 ? 14 : 18} />
@@ -221,8 +211,6 @@ const DailyLoginPopup = () => {
                     style={{
                       background:
                         "linear-gradient(180deg, #fef3c7, #fde68a)",
-                      border: "1px solid rgba(180,83,9,0.28)",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                     }}
                   >
                     DAY {currentDay} / 7
@@ -232,8 +220,6 @@ const DailyLoginPopup = () => {
                     style={{
                       background:
                         "linear-gradient(180deg, #ffedd5, #fed7aa)",
-                      border: "1px solid rgba(194,65,12,0.28)",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
                     }}
                   >
                     <Flame className="w-3 h-3 text-orange-600" />
@@ -266,12 +252,10 @@ const DailyLoginPopup = () => {
                           : isClaimed
                           ? "linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%)"
                           : "linear-gradient(180deg, #ffffff 0%, #fff8ec 100%)",
-                        border: isToday
                           ? "1px solid rgba(180,83,9,0.45)"
                           : isClaimed
                           ? "1px solid rgba(5,150,105,0.35)"
                           : "1px solid rgba(180,83,9,0.15)",
-                        boxShadow: isToday
                           ? "0 8px 22px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.7)"
                           : "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 6px rgba(180,83,9,0.06)",
                       }}
@@ -358,7 +342,6 @@ const DailyLoginPopup = () => {
                   style={{
                     background:
                       "linear-gradient(135deg, #fff7d6 0%, #fef3c7 55%, #ffedd5 100%)",
-                    border: "1px solid rgba(180,83,9,0.25)",
                     boxShadow:
                       "inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px -12px rgba(120,53,15,0.18)",
                   }}
@@ -384,8 +367,6 @@ const DailyLoginPopup = () => {
                           style={{
                             background:
                               "linear-gradient(180deg, #ffffff, #fef3c7)",
-                            border: "1px solid rgba(180,83,9,0.28)",
-                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(180,83,9,0.08)",
                           }}
                         >
                           <Diamond3DIcon size={20} />
@@ -399,8 +380,6 @@ const DailyLoginPopup = () => {
                             style={{
                               background:
                                 "linear-gradient(180deg, #ffffff, #cffafe)",
-                              border: "1px solid rgba(8,145,178,0.30)",
-                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(8,145,178,0.08)",
                             }}
                           >
                             <Gem className="w-4 h-4 text-cyan-600" />
@@ -478,7 +457,6 @@ const DailyLoginPopup = () => {
                       <span
                         className="relative z-10 flex items-center justify-center gap-2 uppercase"
                         style={{
-                          color: "#3b1e05",
                           textShadow: "0 1px 0 rgba(255,255,255,0.45)",
                         }}
                       >

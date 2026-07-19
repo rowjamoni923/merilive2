@@ -55,7 +55,7 @@ export interface UnifiedChatMessage {
     giftName: string;
     giftIcon: string;
     count: number;
-    coins: number;
+    diamonds: number;
   };
 }
 

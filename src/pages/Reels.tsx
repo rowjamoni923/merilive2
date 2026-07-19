@@ -86,7 +86,6 @@ interface Reel {
   beans_earned: number;
   created_at: string;
   user: {
-    id: string;
     app_uid?: string | null;
     display_name: string | null;
     avatar_url: string | null;
@@ -108,7 +107,6 @@ interface Comment {
   content: string;
   created_at: string;
   user: {
-    id: string;
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
@@ -445,7 +443,6 @@ const Reels = () => {
     try {
       await navigator.share({
         title: reel.caption || 'Check out this reel!',
-        url: shareUrl
       });
       
       if (currentUserId) {
@@ -490,7 +487,6 @@ const Reels = () => {
     const content = newComment.trim();
     const optimisticId = `temp-comment-${Date.now()}`;
     const optimisticComment: Comment = {
-      id: optimisticId,
       content,
       created_at: new Date().toISOString(),
       user: currentUserProfile || { id: currentUserId, display_name: 'You', avatar_url: null, user_level: null },
@@ -708,7 +704,7 @@ const Reels = () => {
       senderName: 'You',
       giftColor: 'from-pink-500 to-purple-500',
       count,
-      coins: gift.diamonds,
+      diamonds: gift.diamonds,
       isOwnGift: true,
     });
 
@@ -716,7 +712,6 @@ const Reels = () => {
       const result = await sendGift({
         giftId: gift.id,
         gift,
-        senderId: sendingUserId,
         receiverId: currentReel.user_id,
         quantity: count,
         context: 'reel',
@@ -1052,8 +1047,6 @@ const Reels = () => {
                         onClick={() => {
                           if (isHost) {
                             const soundData: Sound = {
-                              id: currentReel.sound_id || currentReel.id,
-                              title: currentReel.sound_title || currentReel.music_title || 'Original Sound',
                               artist: currentReel.sound_artist || currentReel.music_artist || currentReel.user?.display_name || 'Unknown',
                               audio_url: currentReel.sound_audio_url || currentReel.video_url,
                               duration_seconds: 60,
@@ -1386,8 +1379,6 @@ const Reels = () => {
                             setReportReason(reason);
                             try {
                               const { error } = await supabase.from("reel_reports").insert({
-                                user_id: currentUserId,
-                                reel_id: currentReel.id,
                                 reason,
                               });
                               if (error) throw error;

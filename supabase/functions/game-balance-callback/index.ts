@@ -93,7 +93,6 @@ serve(async (req) => {
     const ok = await verifyHmac(hmacSecret, rawBody, sig, ts);
     if (!ok) {
       return new Response(JSON.stringify({
-        success: false, code: 401, message: 'Invalid signature', status: 0,
       }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -110,23 +109,19 @@ serve(async (req) => {
     ]);
     if (!allowedActions.has(action)) {
       return new Response(JSON.stringify({
-        success: false, code: 400, message: 'Unknown action', status: 0,
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
     if (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000_000) {
       return new Response(JSON.stringify({
-        success: false, code: 400, message: 'Invalid amount', status: 0,
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (!token) {
       return new Response(JSON.stringify({
-        success: false,
         code: 401,
         message: 'Token required',
         status: 0,
       }), {
-        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -144,41 +139,25 @@ serve(async (req) => {
     if (error) {
       console.error('[GameCallback] RPC error:', error);
       return new Response(JSON.stringify({ 
-        success: false, 
-        code: 500, 
-        message: error.message,
-        status: 0 
       }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Format response to match common game provider expectations
     const response = {
       ...data,
-      status: data?.success ? 1 : 0,
-      code: data?.code || (data?.success ? 200 : 400),
       msg: data?.error || 'ok',
     };
 
     console.log(`[GameCallback] ${action} | token=${token.substring(0, 8)}... | result:`, response);
 
     return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (e) {
     console.error('[GameCallback] Error:', e);
     return new Response(JSON.stringify({ 
-      success: false, 
-      status: 0, 
-      code: 500, 
-      message: e.message 
     }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

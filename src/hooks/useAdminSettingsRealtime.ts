@@ -39,7 +39,7 @@ export interface Gift {
 
 export interface DiamondPackage {
   id: string;
-  coins: number; // DB column name - represents diamonds
+  diamonds: number; // DB column name - represents diamonds
   base_diamonds: number;
   price_usd: number;
   bonus_percentage: number | null;
@@ -246,14 +246,6 @@ const initializeRealtimeSubscription = () => {
     const detail = (e as CustomEvent).detail;
     const table = detail?.table;
     const refreshMap: Record<string, (() => Promise<void> | void)> = {
-      banners: refreshBanners,
-      gifts: refreshGifts,
-      diamond_packages: refreshDiamondPackages,
-      currency_rates: refreshCurrencyRates,
-      branding_settings: refreshBranding,
-      game_settings: refreshGameSettings,
-      app_settings: refreshAppSettings,
-      topup_payment_methods: refreshPaymentMethods,
     };
       if (table && refreshMap[table]) {
         await guardedRefresh(table, async () => { await refreshMap[table](); });
@@ -318,7 +310,7 @@ const refreshDiamondPackages = async () => {
 
     return {
       ...pkg,
-      coins: normalizedCoins,
+      diamonds: normalizedCoins,
       base_diamonds: normalizedBaseCoins,
       bonus_percentage: normalizedBonusPercentage,
       price_usd: Number(pkg.price_usd ?? 0),

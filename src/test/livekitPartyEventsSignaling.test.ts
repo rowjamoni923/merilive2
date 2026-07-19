@@ -104,13 +104,10 @@ describe('Pkg80 livekitPartyEventsSignaling', () => {
     window.addEventListener('livekit-party-event', listener);
 
     const env = buildEnvelope('party', 'seat_action', {
-      type: 'seat_action',
-      roomId: 'party-1',
       action: 'approved',
       requester_id: 'user-2',
       seat_position: 3,
       request_id: 'req-xyz',
-      timestamp: Date.now(),
     }, 'host-1');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'host-1' });
 
@@ -128,12 +125,6 @@ describe('Pkg80 livekitPartyEventsSignaling', () => {
     window.addEventListener('livekit-party-event', listener);
 
     const env = buildEnvelope('party', 'seat_action', {
-      type: 'seat_action',
-      roomId: 'party-OTHER',
-      action: 'rejected',
-      requester_id: 'user-2',
-      request_id: 'req-x',
-      timestamp: Date.now(),
     }, 'host-x');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'host-x' });
 
@@ -164,12 +155,6 @@ describe('Pkg80 livekitPartyEventsSignaling', () => {
     window.addEventListener('livekit-party-event', listener);
 
     const env = buildEnvelope('party', 'seat_action', {
-      type: 'participant_joined', // mismatched
-      roomId: 'party-1',
-      userId: 'u',
-      userName: 'x',
-      userLevel: 1,
-      timestamp: Date.now(),
     }, 'x');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'x' });
 
@@ -190,13 +175,7 @@ describe('Pkg80 livekitPartyEventsSignaling', () => {
     registerPartyEventsRoom('party-1', room as any);
 
     const ok = await publishPartyEvent('party-1', {
-      type: 'seat_action',
-      roomId: 'party-1',
-      action: 'new_request',
-      requester_id: 'user-2',
-      seat_position: 4,
       requester_name: 'Alice',
-      timestamp: Date.now(),
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();
@@ -207,12 +186,6 @@ describe('Pkg80 livekitPartyEventsSignaling', () => {
 
   it('publishPartyEvent returns false when room is unknown', async () => {
     const ok = await publishPartyEvent('does-not-exist', {
-      type: 'seat_action',
-      roomId: 'does-not-exist',
-      action: 'rejected',
-      requester_id: 'u',
-      request_id: 'r',
-      timestamp: Date.now(),
     });
     expect(ok).toBe(false);
   });
@@ -222,12 +195,6 @@ describe('Pkg80 livekitPartyEventsSignaling', () => {
     (room as any).state = 'disconnected';
     registerPartyEventsRoom('party-2', room as any);
     const ok = await publishPartyEvent('party-2', {
-      type: 'participant_joined',
-      roomId: 'party-2',
-      userId: 'u',
-      userName: 'x',
-      userLevel: 1,
-      timestamp: Date.now(),
     });
     expect(ok).toBe(false);
   });

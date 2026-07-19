@@ -347,14 +347,11 @@ const flushBatchSignQueue = () => {
   for (let i = 0; i < uniqueItems.length; i += ADMIN_SIGN_BATCH_SIZE) chunks.push(uniqueItems.slice(i, i + ADMIN_SIGN_BATCH_SIZE));
 
   Promise.all(chunks.map((chunk) => fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-    method: 'POST',
-    headers: {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'x-admin-token': adminToken,
     },
-    body: JSON.stringify({ items: chunk.map((item) => ({ bucket: item.bucket, path: item.path, expiresIn: 60 * 60 })) }),
   }).then((resp) => resp.ok ? resp.json() : null).catch(() => null)))
     .then((payloads: Array<AdminBatchSignResponse | null>) => {
       const signedByKey = new Map<string, string>();
@@ -466,7 +463,6 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
       value: raw,
       defaultBucket,
       candidates: candidates.map((candidate) => `${candidate.bucket}/${candidate.path}`),
-      hasAdminToken: Boolean(resolveStoredAdminToken()),
     });
   }
 
@@ -516,7 +512,6 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
  * the async resolver.
  */
 export const tryResolvePublicAdminStorageUrlSync = (
-  value?: string | null,
   defaultBucket = "face-verification",
 ): string | null => {
   if (!value) return null;

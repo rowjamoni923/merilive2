@@ -222,23 +222,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
     userId: gameWinMatchV3[6],
     avatarUrl: gameWinMatchV3[7] || undefined,
   } : gameWinMatchNew ? {
-    emoji: gameWinMatchNew[1],
-    gameName: gameWinMatchNew[2],
-    gameKey: gameWinMatchNew[2].toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_'),
-    amount: gameWinMatchNew[3],
-    userName: gameWinMatchNew[4],
-    userLevel: parseInt(gameWinMatchNew[5]),
-    userId: undefined as string | undefined,
-    avatarUrl: undefined as string | undefined,
   } : gameWinMatchOld ? {
-    emoji: gameWinMatchOld[1],
-    gameName: gameWinMatchOld[2],
-    gameKey: gameWinMatchOld[2].toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_'),
-    amount: gameWinMatchOld[3],
-    userName: message.user,
-    userLevel: message.userLevel || 1,
-    userId: undefined as string | undefined,
-    avatarUrl: undefined as string | undefined,
   } : null;
 
   // Get game logo from Admin Panel (game_settings table)

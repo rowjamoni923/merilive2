@@ -121,8 +121,6 @@ const executeBatch = async () => {
       uncachedIds.forEach(id => {
         if (!foundIds.has(id)) {
           userFrameInfoCache.set(id, {
-            data: { frame_id: null, equipped_frame_id: null },
-            timestamp: now,
           });
         }
       });

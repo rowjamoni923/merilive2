@@ -162,11 +162,7 @@ Deno.serve(async (req) => {
               .upsert({
                 id: newUser.user.id,
                 display_name: profile.display_name,
-                gender: profile.gender,
                 avatar_url: profile.avatar_url,
-                device_id: deviceId,
-                app_uid: profile.app_uid,
-                email: guestEmail,
               }, { onConflict: "id" });
             
             if (upsertError) {

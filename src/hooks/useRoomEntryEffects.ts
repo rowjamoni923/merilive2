@@ -30,7 +30,6 @@ export interface EntryEffectState {
   entryNameBarInfo: {
     userName: string;
     userLevel: number;
-    avatarUrl?: string;
     animationUrl?: string; // Optional - gradient fallback if empty
   } | null;
 
@@ -38,19 +37,12 @@ export interface EntryEffectState {
   showVehicleAnimation: boolean;
   vehicleUserInfo: {
     userId?: string;
-    displayName: string;
-    avatarUrl?: string;
-    level: number;
     vehicleAnimationUrl: string;
   } | null;
   
   // Join message for chat
   latestJoinMessage: {
     id: string;
-    userId: string;
-    userName: string;
-    userLevel: number;
-    avatarUrl?: string;
     timestamp: Date;
   } | null;
 }
@@ -172,36 +164,24 @@ export function useRoomEntryEffects(currentUserId: string | null) {
     setState(prev => ({
       ...prev,
       // Entrance Animation - ONLY show if user has VALID equipped animation URL
-      showEntranceAnimation: hasValidEntranceUrl,
-      entranceUserId: hasValidEntranceUrl ? userId : null,
-      entranceUserInfo: hasValidEntranceUrl ? {
         displayName: userName,
         avatarUrl,
         level: userLevel,
         customEntranceUrl: entranceAnimationUrl,
-        entranceSoundUrl: entranceSoundUrl,
       } : null,
       // Entry Name Bar - ALWAYS show for ALL joining users
       // If user has equipped animation (SVGA/GIF/Image), it plays as background
       // If not, shows gradient fallback with user info
-      showEntryNameBar: true,
-      entryNameBarInfo: {
         userName,
         userLevel,
         avatarUrl,
         animationUrl: hasValidNameBarUrl ? entryNameBarUrl! : '',
       },
       // Vehicle Animation - ONLY show if user has VALID equipped vehicle URL
-      showVehicleAnimation: hasValidVehicleUrl,
-      vehicleUserInfo: hasValidVehicleUrl ? {
         userId,
-        displayName: userName,
         avatarUrl,
-        level: userLevel,
-        vehicleAnimationUrl: vehicleAnimationUrl!,
       } : null,
       // Join message - always show in chat
-      latestJoinMessage: joinMessage,
     }));
   }, [currentUserId, fetchUserEntryEffects]);
 
@@ -211,9 +191,6 @@ export function useRoomEntryEffects(currentUserId: string | null) {
   const closeEntranceAnimation = useCallback(() => {
     setState(prev => ({
       ...prev,
-      showEntranceAnimation: false,
-      entranceUserId: null,
-      entranceUserInfo: null,
     }));
   }, []);
 
@@ -223,8 +200,6 @@ export function useRoomEntryEffects(currentUserId: string | null) {
   const closeEntryNameBar = useCallback(() => {
     setState(prev => ({
       ...prev,
-      showEntryNameBar: false,
-      entryNameBarInfo: null,
     }));
   }, []);
 
@@ -234,8 +209,6 @@ export function useRoomEntryEffects(currentUserId: string | null) {
   const closeVehicleAnimation = useCallback(() => {
     setState(prev => ({
       ...prev,
-      showVehicleAnimation: false,
-      vehicleUserInfo: null,
     }));
   }, []);
 
@@ -245,7 +218,6 @@ export function useRoomEntryEffects(currentUserId: string | null) {
   const clearJoinMessage = useCallback(() => {
     setState(prev => ({
       ...prev,
-      latestJoinMessage: null,
     }));
   }, []);
 

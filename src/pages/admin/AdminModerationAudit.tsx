@@ -108,8 +108,6 @@ export default function AdminModerationAudit() {
   });
 
   const { data: stats } = useQuery({
-    queryKey: ["admin-moderation-audit-stats"],
-    queryFn: async () => {
       const { data, error } = await supabase.rpc(
         "admin_moderation_audit_stats" as any
       );
@@ -137,12 +135,8 @@ export default function AdminModerationAudit() {
         value: stats?.by_action?.INSERT ?? 0,
       },
       {
-        label: "Updated (7d)",
-        value: stats?.by_action?.UPDATE ?? 0,
       },
       {
-        label: "Deleted (7d)",
-        value: stats?.by_action?.DELETE ?? 0,
       },
     ],
     [stats]

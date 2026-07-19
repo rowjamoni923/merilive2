@@ -95,7 +95,7 @@ export function useLiveGameRound({
   useEffect(() => { onWinRef.current = onWin; }, [onWin]);
   useEffect(() => { onLossRef.current = onLoss; }, [onLoss]);
 
-  // Games that handle their own result processing (coins update)
+  // Games that handle their own result processing (diamonds update)
   // These games have their own card dealing/wheel spinning logic and timer
   // IMPORTANT: Define this BEFORE startGameLoop which depends on it
   const selfManagedGames = ['teen_patti', 'teen-patti', 'ferris_wheel', 'ferris-wheel', 'roulette', 'lucky_number', 'rocket_race'];
@@ -199,8 +199,6 @@ export function useLiveGameRound({
             const result = generateResult();
             return {
               ...prev,
-              phase: 'playing',
-              timeLeft: 0,
               result
             };
           }
@@ -307,7 +305,7 @@ export function useLiveGameRound({
           if (totalWin > 0) {
             setLastWinAmount(totalWin);
             onWinRef.current?.(totalWin);
-            toast.success(`🎉 You won ${totalWin.toLocaleString()} coins!`);
+            toast.success(`🎉 You won ${totalWin.toLocaleString()} diamonds!`);
           } else if (totalLoss > 0 && myBets.length > 0) {
             setLastLossAmount(totalLoss);
             onLossRef.current?.(totalLoss);
@@ -331,11 +329,6 @@ export function useLiveGameRound({
         setLastLossAmount(0);
         
         setClientState({
-          roundNumber: clientState.roundNumber + 1,
-          phase: 'betting',
-          timeLeft: bettingSeconds,
-          bettingEndAt: Date.now() + bettingSeconds * 1000,
-          result: null
         });
       }, 2000);
       
@@ -364,7 +357,6 @@ export function useLiveGameRound({
       betting_end_at: new Date(bettingEndAtMs).toISOString(),
       game_start_at: null,
       game_end_at: null,
-      result: clientState.result,
       total_bets: bets.length,
       total_bet_amount: bets.reduce((sum, b) => sum + b.bet_amount, 0),
       total_players: new Set(bets.map(b => b.user_id)).size,
@@ -394,7 +386,6 @@ export function useLiveGameRound({
 
     // OPTIMISTIC: Create bet immediately for instant UI feedback
     const newBet: LiveGameBet = {
-      id: `bet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       round_id: `client-${gameId}-${clientState.roundNumber}`,
       user_id: user.id,
       bet_amount: betAmount,
@@ -404,7 +395,6 @@ export function useLiveGameRound({
       multiplier: 1,
       is_winner: false,
       is_processed: false,
-      created_at: new Date().toISOString()
     };
 
     // INSTANT: Add to local state immediately (optimistic update)
@@ -414,7 +404,7 @@ export function useLiveGameRound({
     // PARALLEL: Run profile fetch and coin deduction concurrently
     // Use Promise.all for maximum speed
     try {
-      // First get current coins (use maybeSingle to avoid throwing when row not found / RLS)
+      // First get current diamonds (use maybeSingle to avoid throwing when row not found / RLS)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('diamonds')
@@ -433,10 +423,10 @@ export function useLiveGameRound({
         // Rollback optimistic update
         setBets(prev => prev.filter(b => b.id !== newBet.id));
         setMyBets(prev => prev.filter(b => b.id !== newBet.id));
-        return { success: false, error: 'Not enough coins' };
+        return { success: false, error: 'Not enough diamonds' };
       }
 
-      // PARALLEL: Atomic deduct coins and save bet history simultaneously
+      // PARALLEL: Atomic deduct diamonds and save bet history simultaneously
       const [updateResult, betInsertResult] = await Promise.all([
         // Atomic coin deduction (race-condition safe)
         supabase.rpc('deduct_diamonds', { p_user_id: user.id, p_amount: betAmount }),
@@ -445,18 +435,11 @@ export function useLiveGameRound({
         supabase
           .from('game_bets')
           .insert({
-            user_id: user.id,
-            game_id: gameId,
-            bet_amount: betAmount,
-            bet_type: betType || 'bet',
-            bet_value: betValue || null,
-            is_winner: null,
-            win_amount: null
           })
       ]);
       
       if (updateResult.error) {
-        console.error('[placeBet] ❌ Failed to deduct coins:', updateResult.error);
+        console.error('[placeBet] ❌ Failed to deduct diamonds:', updateResult.error);
         // Rollback optimistic update
         setBets(prev => prev.filter(b => b.id !== newBet.id));
         setMyBets(prev => prev.filter(b => b.id !== newBet.id));
@@ -483,7 +466,6 @@ export function useLiveGameRound({
   // Process round result (auto-called by game loop)
   const processResult = useCallback(async (
     winningValue: string,
-    result: any = {}
   ) => {
     // Process winners from current bets
     const { data: { user } } = await supabase.auth.getUser();
@@ -500,12 +482,6 @@ export function useLiveGameRound({
     if (totalWin > 0) {
       // Credit winnings using process_game_win (allows self-crediting)
       const { data: winResult, error: winError } = await supabase.rpc('process_game_win', {
-        p_user_id: user.id,
-        p_amount: Math.floor(totalWin),
-        p_game_id: gameId,
-        p_game_name: gameId,
-        p_multiplier: null,
-        p_is_jackpot: false,
       });
       
       if (!winError) {
@@ -545,11 +521,6 @@ export function useLiveGameRound({
   // Create new round (client-side)
   const createRound = useCallback(async () => {
     setClientState({
-      roundNumber: clientState.roundNumber + 1,
-      phase: 'betting',
-      timeLeft: bettingSeconds,
-      bettingEndAt: Date.now() + bettingSeconds * 1000,
-      result: null
     });
     return `client-${gameId}-${clientState.roundNumber + 1}`;
   }, [clientState.roundNumber, bettingSeconds, gameId]);

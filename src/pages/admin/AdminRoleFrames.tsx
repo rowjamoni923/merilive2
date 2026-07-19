@@ -213,9 +213,7 @@ const AdminRoleFrames = () => {
     // Map component fields to DB column names (frame_name → name)
     const dbPayload: any = {
       name: frameForm.frame_name,
-      frame_url: frameForm.frame_url,
       role_type: frameForm.role_type,
-      animation_type: frameForm.animation_type || 'svga',
       description: frameForm.description || null,
       is_active: frameForm.is_active ?? true,
       is_default: frameForm.is_default ?? false,
@@ -316,7 +314,6 @@ const AdminRoleFrames = () => {
         .insert([{
           user_id: selectedUser.id,
           frame_id: selectedFrameForAssign,
-          role_type: assignRoleType,
           notes: `Manually assigned`
         }]);
 
@@ -649,18 +646,10 @@ const AdminRoleFrames = () => {
               bucket="animations"
               folder="role-frames/unified"
               value={{
-                animation_url: (frameForm as any).animation_url || frameForm.frame_url || '',
-                animation_format: ((frameForm as any).animation_format ?? null) as AnimationFormat | null,
-                animation_config_url: (frameForm as any).animation_config_url || null,
               }}
               onChange={(v) => setFrameForm(prev => ({
                 ...prev,
-                animation_url: v.animation_url,
-                animation_format: v.animation_format,
-                animation_config_url: v.animation_config_url || '',
                 // Keep legacy frame_url + animation_type in sync so existing players keep working
-                frame_url: v.animation_url || prev.frame_url,
-                animation_type: v.animation_format === 'lottie' ? 'lottie'
                   : v.animation_format === 'svga' ? 'svga'
                   : v.animation_format === 'vap' ? 'vap'
                   : v.animation_format === 'gif' ? 'gif'

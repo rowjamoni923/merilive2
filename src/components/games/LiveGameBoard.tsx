@@ -279,7 +279,6 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     const uId = userIdRef.current;
     if (rId && uId && winAmount > 0) {
       await sendGameWinNotification({
-        roomId: rId,
         userId: uId,
         gameName,
         winAmount,

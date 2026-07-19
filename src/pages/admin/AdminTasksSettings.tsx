@@ -121,7 +121,6 @@ const AdminTasksSettings = () => {
           max_hours_per_day: Number(first.max_hours_per_day) || rows.length,
           eligible_days: Number(first.eligible_days) || 1,
           daily_reset_offset_minutes: Number(first.daily_reset_offset_minutes) || 0,
-          is_active: !!first.is_active,
         });
       }
     } catch (error) {
@@ -149,11 +148,6 @@ const AdminTasksSettings = () => {
       const next = [...current];
       for (let h = current.length + 1; h <= target; h++) {
         next.push({
-          id: `new-${h}-${Date.now()}`,
-          hour_number: h,
-          target_minutes: last?.target_minutes ?? 60,
-          bonus_beans: last?.bonus_beans ?? 10000,
-          beans_per_hour: last?.bonus_beans ?? 10000,
         });
       }
       return next;
@@ -189,14 +183,6 @@ const AdminTasksSettings = () => {
           supabase
             .from('new_host_live_bonus_settings' as any)
             .update({
-              hour_number: row.hour_number,
-              target_minutes: Math.max(1, Math.min(60, Number(row.target_minutes) || 60)),
-              bonus_beans: Math.max(0, Number(row.bonus_beans) || 0),
-              beans_per_hour: Math.max(0, Number(row.bonus_beans) || 0),
-              max_hours_per_day: maxHours,
-              eligible_days: eligibleDays,
-              daily_reset_offset_minutes: resetOffset,
-              is_active: active,
             })
             .eq('id', row.id)
         )
@@ -207,17 +193,9 @@ const AdminTasksSettings = () => {
       // Insert new rows
       if (toInsert.length > 0) {
         const insertPayload = toInsert.map((row) => ({
-          hour_number: row.hour_number,
           day_number: 1,
-          target_minutes: Math.max(1, Math.min(60, Number(row.target_minutes) || 60)),
-          bonus_beans: Math.max(0, Number(row.bonus_beans) || 0),
-          beans_per_hour: Math.max(0, Number(row.bonus_beans) || 0),
           bonus_amount: Math.max(0, Number(row.bonus_beans) || 0),
-          max_hours_per_day: maxHours,
-          eligible_days: eligibleDays,
           eligible_program_days: eligibleDays,
-          daily_reset_offset_minutes: resetOffset,
-          is_active: active,
         }));
         const { error: insErr } = await supabase
           .from('new_host_live_bonus_settings' as any)
@@ -267,19 +245,6 @@ const AdminTasksSettings = () => {
         toast.success('Task updated');
       } else {
         const insertData = {
-          title: formData.title || '',
-          description: formData.description || '',
-          task_type: formData.task_type || 'daily',
-          requirement_type: formData.requirement_type || 'first_live',
-          requirement_value: formData.requirement_value || 1,
-          reward_beans: formData.reward_beans || 0,
-          reward_diamonds: formData.reward_diamonds || 0,
-          icon_name: formData.icon_name || 'star',
-          icon_color: formData.icon_color || '#FFB800',
-          display_order: formData.display_order || 0,
-          is_active: formData.is_active ?? true,
-          target_audience: formData.target_audience || 'all',
-          duration_hours: formData.duration_hours || 24
         };
         const { error: insertError } = await supabase
           .from('daily_tasks')
@@ -329,19 +294,6 @@ const AdminTasksSettings = () => {
 
   const resetForm = () => {
     setFormData({
-      title: '',
-      description: '',
-      task_type: 'daily',
-      requirement_type: 'first_live',
-      requirement_value: 1,
-      reward_beans: 50,
-      reward_diamonds: 10,
-      icon_name: 'star',
-      icon_color: '#FFB800',
-      display_order: tasks.length,
-      is_active: true,
-      target_audience: 'all',
-      duration_hours: 24
     });
   };
 

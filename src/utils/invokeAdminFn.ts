@@ -31,10 +31,6 @@ export async function invokeAdminFn<T = unknown>(
   } catch (e) {
     const err = e instanceof Error ? e : new Error(String(e));
     recordAdminError({
-      kind: 'edge',
-      label: `fn:${name}`,
-      message: err.message,
-      detail: err.stack?.slice(0, 1000),
     });
     return { data: null, error: err };
   }

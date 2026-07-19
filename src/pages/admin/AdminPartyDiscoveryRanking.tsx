@@ -46,30 +46,8 @@ const PRESETS: Record<Exclude<PresetKey, "custom">, RankingConfig> = {
     peak_hours: [18, 19, 20, 21, 22, 23],
   },
   strict_competitive: {
-    participant_weight: 12,
-    host_online_boost: 5,
-    recency_boost_10m: 14,
-    recency_boost_30m: 8,
-    recency_boost_120m: 4,
-    growth_boost_enabled: true,
-    growth_delta_threshold: 3,
-    growth_boost_amount: 24,
-    peak_hour_boost_enabled: true,
-    peak_hour_boost_amount: 10,
-    peak_hours: [17, 18, 19, 20, 21, 22, 23],
   },
   new_room_friendly: {
-    participant_weight: 8,
-    host_online_boost: 10,
-    recency_boost_10m: 26,
-    recency_boost_30m: 16,
-    recency_boost_120m: 9,
-    growth_boost_enabled: true,
-    growth_delta_threshold: 1,
-    growth_boost_amount: 14,
-    peak_hour_boost_enabled: true,
-    peak_hour_boost_amount: 6,
-    peak_hours: [18, 19, 20, 21, 22],
   },
 };
 
@@ -80,14 +58,8 @@ const PRESET_LABELS: Record<Exclude<PresetKey, "custom">, { name: string; desc: 
     tone: "from-amber-400 to-yellow-500",
   },
   strict_competitive: {
-    name: "Strict Competitive",
-    desc: "Bigger rooms win. Heavier peak-hour & growth boosts.",
-    tone: "from-rose-400 to-red-500",
   },
   new_room_friendly: {
-    name: "New Room Friendly",
-    desc: "Surfaces fresh & small rooms — easier discovery for newcomers.",
-    tone: "from-emerald-400 to-teal-500",
   },
 };
 
@@ -187,9 +159,6 @@ const AdminPartyDiscoveryRanking = () => {
       toast.success("Discovery ranking saved");
     } catch (error) {
       recordAdminError({
-        kind: "other",
-        label: "AdminPartyDiscoveryRanking.save",
-        message: formatAdminError(error),
       });
       toast.error("Failed to save");
     } finally {

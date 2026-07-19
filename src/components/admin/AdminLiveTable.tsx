@@ -123,7 +123,6 @@ export function AdminLiveTable<T extends Record<string, any>>({
                   transition={{
                     duration: 0.3,
                     ease: 'easeOut',
-                    backgroundColor: { duration: 2, delay: 0.3 },
                   }}
                   layout="position"
                 >

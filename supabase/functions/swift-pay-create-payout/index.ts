@@ -111,9 +111,6 @@ Deno.serve(async (req) => {
           ? details.swift_pay_payout as Record<string, unknown>
           : {}),
         status: "initiating",
-        pay_currency: payCurrency,
-        pay_address: payAddress,
-        pay_network: payNetwork,
         amount_usd: netUsd,
         at: new Date().toISOString(),
       },
@@ -122,7 +119,6 @@ Deno.serve(async (req) => {
     const { data: reserved, error: reserveErr } = await admin
       .from("agency_withdrawals")
       .update({
-        status: "processing",
         payment_details: initiatingDetails,
       })
       .eq("id", w.id)
@@ -191,8 +187,6 @@ Deno.serve(async (req) => {
       console.error("[swift-pay-create-payout] gateway error", payoutRes.status, parsed);
       // Stamp the failure but don't roll back the withdrawal (admin can retry / process manually)
       await admin.from("agency_withdrawals").update({
-        status: "pending",
-        payment_details: { ...initiatingDetails, swift_pay_payout: { ...initiatingDetails.swift_pay_payout, error: parsed, status: "failed", at: new Date().toISOString() } },
       }).eq("id", w.id);
       return json({ error: parsed?.error ?? "gateway_error", details: parsed, gateway_status: payoutRes.status }, 502);
     }
@@ -208,20 +202,12 @@ Deno.serve(async (req) => {
     const settledStatuses = ["sent", "finished", "completed", "approved"];
 
     await admin.from("agency_withdrawals").update({
-      status: settledStatuses.includes(String(status).toLowerCase()) ? "approved" : "pending",
-      payment_details: {
         ...initiatingDetails,
-        swift_pay_payout: {
           payment_id: paymentId,
           payout_id: paymentId,
           swift_withdrawal_id: parsed?.withdrawal_id ?? null,
           status,
-          pay_currency: payCurrency,
-          pay_address: payAddress,
-          pay_network: payNetwork,
-          amount_usd: netUsd,
           raw: parsed,
-          at: new Date().toISOString(),
         },
       },
     }).eq("id", w.id);

@@ -166,8 +166,5 @@ export function getRemoteTrackInfo(
   const pub = getRemotePub(scope, id, identity, source);
   if (!pub) return null;
   return {
-    subscribed: pub.isSubscribed,
-    enabled: pub.isEnabled,
-    videoQuality: (pub as any).videoQuality,
   };
 }

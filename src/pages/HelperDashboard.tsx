@@ -192,7 +192,6 @@ const HelperDashboard = () => {
     app_uid: string | null;
   } | null>(null);
   const [searchedAgency, setSearchedAgency] = useState<{
-    id: string;
     name: string | null;
     agency_code: string | null;
     wallet_balance: number | null;
@@ -202,19 +201,13 @@ const HelperDashboard = () => {
 
   // Transfer history state
   const [transferHistory, setTransferHistory] = useState<Array<{
-    id: string;
     amount: number;
     sender_type: string;
     note: string;
     created_at: string;
     receiver?: {
-      display_name: string;
-      avatar_url: string;
-      app_uid?: string;
     };
     agency?: {
-      name: string;
-      agency_code: string;
     };
   }>>([]);
   const [showTransferHistory, setShowTransferHistory] = useState(false);
@@ -525,8 +518,6 @@ const HelperDashboard = () => {
         // Enrich transfers
         const enrichedTransfers = transfers.map(t => ({
           ...t,
-          receiver: t.sender_type === 'trader_to_user' ? usersMap[t.receiver_id] : undefined,
-          agency: t.sender_type === 'trader_to_agency' ? agenciesMap[t.receiver_id] : undefined
         }));
 
         setTransferHistory(enrichedTransfers);
@@ -618,8 +609,6 @@ const HelperDashboard = () => {
       if (error) throw error;
 
       toast({ 
-        title: "Application Submitted! ✅", 
-        description: `Your upgrade request for Level ${selectedUpgradeLevel.level_number} is being reviewed` 
       });
       
       // Reset form
@@ -732,22 +721,11 @@ const HelperDashboard = () => {
       const { error } = await supabase
         .from('helper_topup_requests' as any)
         .insert({
-          helper_id: helperData.id,
-          user_id: helperData.user_id,
-          amount_usd: usdAmount,
-          diamond_amount: diamonds,
-          payment_method: topupPaymentMethod,
-          payment_proof_url: proofUrl,
-          transaction_id: topupTransactionId.trim(),
-          notes: topupNote || null,
-          status: 'pending'
         });
 
       if (error) throw error;
 
       toast({ 
-        title: "Top-up Request Submitted! ✅",
-        description: `Your request for ${formatDiamonds(diamonds)} 💎 ($${usdAmount.toLocaleString()}) is being processed` 
       });
       
       // Reset form
@@ -804,7 +782,6 @@ const HelperDashboard = () => {
     try {
       const normalizedQuery = transferSearchQuery.trim().toUpperCase();
       const { data: ownerRows, error: ownerSearchError } = await supabase.rpc('search_user_by_app_uid', {
-        _app_uid: normalizedQuery
       });
       if (ownerSearchError) throw ownerSearchError;
 
@@ -830,12 +807,6 @@ const HelperDashboard = () => {
           .then(({ data }) => data) : null);
         
         setSearchedAgency({
-          id: data.id,
-          name: data.name,
-          agency_code: data.agency_code,
-          wallet_balance: data.diamond_balance || 0,
-          owner_id: data.owner_id,
-          owner_name: owner?.display_name || 'Unknown'
         });
       } else {
         toast({ title: "Not Found", description: "No agency found with this owner UID", variant: "destructive" });
@@ -854,9 +825,6 @@ const HelperDashboard = () => {
     // Check face verification requirement
     if (!userFaceVerified) {
       toast({ 
-        title: "Face Verification Required!", 
-        description: "You must complete face verification to transfer beans.", 
-        variant: "destructive" 
       });
       navigate('/face-verification');
       return;
@@ -870,8 +838,8 @@ const HelperDashboard = () => {
     
     setTransferProcessing(true);
     try {
-      // Use tiered deduction RPC: agency → helper wallet → profile coins
-      // CRITICAL: Use 'agency_to_user' so RPC tries agency balance first, then helper wallet, then personal coins
+      // Use tiered deduction RPC: agency → helper wallet → profile diamonds
+      // CRITICAL: Use 'agency_to_user' so RPC tries agency balance first, then helper wallet, then personal diamonds
       const { data: result, error } = await supabase
         .rpc('helper_transfer_diamonds_to_user', {
           _sender_id: helperData.user_id,
@@ -887,8 +855,6 @@ const HelperDashboard = () => {
       }
 
       toast({ 
-        title: "Transfer Successful! ✅", 
-        description: `${amount.toLocaleString()} 💎 sent to ${searchedUser.display_name}` 
       });
 
       // Refresh helper data + agency balance
@@ -931,13 +897,10 @@ const HelperDashboard = () => {
     
     setTransferProcessing(true);
     try {
-      // Use atomic agency-to-agency transfer RPC (tiered deduction: agency → helper wallet → profile coins)
+      // Use atomic agency-to-agency transfer RPC (tiered deduction: agency → helper wallet → profile diamonds)
       const { data: result, error } = await supabase
         .rpc('helper_transfer_diamonds_to_agency', {
-          _sender_id: helperData.user_id,
           _target_agency_id: searchedAgency.id,
-          _amount: amount,
-          _sender_type: 'agency_to_agency'
         });
 
       if (error) throw error;
@@ -947,8 +910,6 @@ const HelperDashboard = () => {
       }
 
       toast({ 
-        title: "Transfer Successful! ✅", 
-        description: `${amount.toLocaleString()} 💎 sent to ${searchedAgency.name}` 
       });
 
       // Refresh helper data + agency balance
@@ -988,7 +949,6 @@ const HelperDashboard = () => {
       const { data: result, error } = await supabase
         .rpc('helper_transfer_diamonds_to_self', {
           _user_id: helperData.user_id,
-          _amount: amount,
         });
 
       if (error) throw error;
@@ -998,8 +958,6 @@ const HelperDashboard = () => {
       }
 
       toast({ 
-        title: "Self Recharge Successful! ✅", 
-        description: `${amount.toLocaleString()} 💎 added to your account` 
       });
 
       // Update local state from RPC response
@@ -1261,15 +1219,12 @@ const HelperDashboard = () => {
               className="relative h-2 rounded-full overflow-hidden"
               style={{
                 background: "rgba(146,64,14,0.10)",
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(251,191,36,0.12)",
               }}
             >
               <div
                 className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-1000 ease-out"
                 style={{
                   width: `${levelProgress}%`,
-                  background: "linear-gradient(90deg, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
-                  boxShadow: "0 0 14px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45)",
                 }}
               />
             </div>
@@ -1359,17 +1314,13 @@ const HelperDashboard = () => {
                 onClick={() => navigate('/level5-helper-dashboard')}
                 className="rounded-2xl p-3.5 cursor-pointer overflow-hidden active:scale-[0.99] transition-transform"
                 style={{
-                  background: "linear-gradient(135deg, rgba(168,85,247,0.22), rgba(236,72,153,0.16))",
                   border: "1px solid rgba(168,85,247,0.40)",
-                  boxShadow: "0 14px 30px -16px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.10)",
                 }}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
                     style={{
-                      background: "linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%)",
-                      boxShadow: "0 6px 14px -6px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.45)",
                     }}
                   >
                     <Banknote className="w-5 h-5 text-white" />
@@ -1647,17 +1598,12 @@ const HelperDashboard = () => {
             <div
               className="relative rounded-2xl p-3.5 overflow-hidden"
               style={{
-                background: "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(6,78,59,0.04))",
-                border: "1px solid rgba(16,185,129,0.28)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 22px -16px rgba(16,185,129,0.4)",
               }}
             >
               <div className="flex items-center gap-2.5 mb-2.5">
                 <div
                   className="grid place-items-center w-8 h-8 rounded-xl"
                   style={{
-                    background: "linear-gradient(180deg, #34d399 0%, #059669 100%)",
-                    boxShadow: "0 6px 14px -6px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.4)",
                   }}
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
@@ -1677,8 +1623,6 @@ const HelperDashboard = () => {
                   onChange={(e) => setWhatsappNumber(e.target.value)}
                   className="flex-1 rounded-xl px-3 py-2 text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none transition-colors bg-white"
                   style={{
-                    border: "1px solid rgba(16,185,129,0.30)",
-                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.05)",
                   }}
                 />
                 <button
@@ -1686,8 +1630,6 @@ const HelperDashboard = () => {
                   disabled={savingWhatsapp || !whatsappNumber.trim()}
                   className="px-4 py-2 rounded-xl text-white text-xs font-black tracking-wider uppercase disabled:opacity-50 active:scale-95 transition-transform"
                   style={{
-                    background: "linear-gradient(180deg, #6ee7b7 0%, #10b981 50%, #047857 100%)",
-                    boxShadow: "0 8px 18px -8px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(6,78,59,0.55)",
                   }}
                 >
                   {savingWhatsapp ? "..." : "Save"}
@@ -1903,8 +1845,8 @@ const HelperDashboard = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          const coins = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
-                          if (!coins || coins < 500000) {
+                          const diamonds = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
+                          if (!diamonds || diamonds < 500000) {
                             toast({ title: "Select amount", description: "Choose a package or enter a custom amount (min 5,00,000)", variant: "destructive" });
                             return;
                           }
@@ -1935,8 +1877,8 @@ const HelperDashboard = () => {
                   helperId={helperId}
                   helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
                   helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
-                  onCredited={(coins) => {
-                    setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
+                  onCredited={(diamonds) => {
+                    setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + diamonds } : prev);
                     setShowTopupForm(false);
                     setSelectedDiamondPackage(null);
                     setCustomDiamondAmount('');
@@ -2081,20 +2023,9 @@ const HelperDashboard = () => {
               const { error } = await supabase
                 .from('helper_upgrade_requests' as any)
                 .insert({
-                  helper_id: helperData.id,
-                  user_id: helperData.user_id,
-                  requested_level: selectedUpgradeLevel.level_number,
-                  amount_usd: selectedUpgradeLevel.upgrade_cost_usd,
-                  payment_method: 'crypto_auto',
-                  payment_proof_url: null,
-                  transaction_id: topupId ?? null,
-                  notes: 'Auto-verified via MeriCash crypto gateway',
-                  status: 'pending',
                 });
               if (error) throw error;
               toast({
-                title: "Payment Confirmed! ✅",
-                description: `Your Level ${selectedUpgradeLevel.level_number} application has been auto-submitted.`,
               });
               setShowUpgradeCryptoModal(false);
               setShowUpgradeModal(false);
@@ -2184,8 +2115,6 @@ const HelperDashboard = () => {
                     setHelperData((prev: any) => ({ ...prev, payroll_status: 'pending', payroll_applied_at: new Date().toISOString() }));
                     
                     toast({ 
-                      title: "Application Submitted! ✅", 
-                      description: "Your payroll access request is pending admin approval" 
                     });
                     
                     setShowPayrollModal(false);

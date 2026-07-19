@@ -457,8 +457,6 @@ class PlayStoreBillingSDK {
           );
           results.push({
             success: verifyResult.success,
-            orderId: p.orderId,
-            purchaseToken: p.purchaseToken,
             productId: p.productId,
             error: verifyResult.error,
           });
@@ -497,10 +495,10 @@ class PlayStoreBillingSDK {
     }
   }
 
-  getProductIdForCoins(coins: number): string | null {
-    const product = PLAY_STORE_PRODUCTS[coins];
+  getProductIdForCoins(diamonds: number): string | null {
+    const product = PLAY_STORE_PRODUCTS[diamonds];
     if (product) return product.productId;
-    console.warn(`[PlayStoreBilling] No product for ${coins} coins`);
+    console.warn(`[PlayStoreBilling] No product for ${diamonds} diamonds`);
     return null;
   }
 }

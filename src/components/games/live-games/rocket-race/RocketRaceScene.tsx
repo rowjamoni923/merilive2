@@ -143,12 +143,10 @@ function SpaceEnvironment() {
   // Nebula clouds positions
   const nebulaClouds = useMemo(() => {
     return Array.from({ length: 8 }, (_, i) => ({
-      position: [
         (Math.random() - 0.5) * 30,
         (Math.random() - 0.5) * 25,
         -15 - Math.random() * 10
       ] as [number, number, number],
-      scale: 3 + Math.random() * 5,
       color: ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#22c55e'][Math.floor(Math.random() * 5)]
     }));
   }, []);
@@ -156,13 +154,10 @@ function SpaceEnvironment() {
   // Distant stars (galaxies)
   const distantGalaxies = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) => ({
-      position: [
         (Math.random() - 0.5) * 40,
         (Math.random() - 0.5) * 30,
         -25 - Math.random() * 10
       ] as [number, number, number],
-      scale: 0.5 + Math.random() * 1,
-      rotation: Math.random() * Math.PI * 2
     }));
   }, []);
 

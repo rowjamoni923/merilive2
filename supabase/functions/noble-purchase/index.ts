@@ -26,8 +26,6 @@ Deno.serve(async (req) => {
     const { noble_card_id, auto_renew = false } = await req.json();
     if (!noble_card_id) {
       return new Response(JSON.stringify({ error: "noble_card_id required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -39,19 +37,14 @@ Deno.serve(async (req) => {
     if (error) {
       console.error("[noble-purchase] RPC error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("[noble-purchase] Error:", e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

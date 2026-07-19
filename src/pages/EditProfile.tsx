@@ -339,7 +339,6 @@ const EditProfile = () => {
       syncProfileState({ ...profile, avatar_url: publicUrl });
       try {
         window.dispatchEvent(new CustomEvent("app-sync", {
-          detail: { topic: "profiles", eventType: "UPDATE", payload: { id: authUid, avatar_url: publicUrl } },
         }));
       } catch {}
       sonnerToast.success("Profile picture updated!");
@@ -519,7 +518,6 @@ const EditProfile = () => {
     setEmailLinking(true);
     try {
       const { data, error } = await supabase.functions.invoke("link-email-to-account", {
-        body: { email, password: linkPassword, otp: linkOtp },
       });
       // Even on non-2xx, try to read a real error message from the response body
       if (error) {
@@ -832,7 +830,6 @@ const EditProfile = () => {
                               syncProfileState(data as ProfileData);
                               try {
                                 window.dispatchEvent(new CustomEvent("app-sync", {
-                                  detail: { topic: "profiles", eventType: "UPDATE", payload: data },
                                 }));
                               } catch {}
                             }
@@ -867,7 +864,6 @@ const EditProfile = () => {
                               syncProfileState(data as ProfileData);
                               try {
                                 window.dispatchEvent(new CustomEvent("app-sync", {
-                                  detail: { topic: "profiles", eventType: "UPDATE", payload: data },
                                 }));
                               } catch {}
                             }

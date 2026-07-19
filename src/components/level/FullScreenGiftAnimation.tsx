@@ -406,8 +406,6 @@ const FullScreenGiftAnimation = ({
       <motion.div 
         className="text-8xl md:text-9xl"
         animate={{ 
-          y: [-10, 10, -10],
-          scale: [1, 1.1, 1]
         }}
         transition={{ duration: 2, repeat: Infinity }}
       >
@@ -450,13 +448,9 @@ const FullScreenGiftAnimation = ({
                 key={i}
                 className="absolute"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `-20px`,
                 }}
                 animate={{
-                  y: ['0vh', '120vh'],
                   x: [0, (Math.random() - 0.5) * 200],
-                  rotate: [0, 360 * (Math.random() > 0.5 ? 1 : -1)],
                   opacity: [0.9, 0],
                 }}
                 transition={{
@@ -478,7 +472,6 @@ const FullScreenGiftAnimation = ({
                   <div 
                     className="w-3 h-3 rounded-full opacity-80"
                     style={{
-                      backgroundColor: ['#A855F7', '#EC4899', '#8B5CF6'][i % 3]
                     }} 
                   />
                 )}
@@ -497,8 +490,6 @@ const FullScreenGiftAnimation = ({
               }}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ 
-                scale: [0, 3, 4],
-                opacity: [0, 0.8, 0]
               }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
             />
@@ -526,8 +517,6 @@ const FullScreenGiftAnimation = ({
                   isMythic ? "bg-amber-400/25" : isLegendary ? "bg-pink-500/20" : "bg-purple-500/15"
                 )}
                 animate={{
-                  scale: [1, 1.15, 1],
-                  opacity: [0.35, 0.6, 0.35]
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
@@ -665,7 +654,7 @@ const FullScreenGiftAnimation = ({
               transition={{ duration: 1, repeat: Infinity }}
             >
               <span>💰</span>
-              <span>{(gift.diamond_value * quantity).toLocaleString()} coins</span>
+              <span>{(gift.diamond_value * quantity).toLocaleString()} diamonds</span>
             </motion.p>
           </motion.div>
 
@@ -677,21 +666,11 @@ const FullScreenGiftAnimation = ({
                   key={`firework-${i}`}
                   className="absolute w-3 h-3 rounded-full"
                   style={{
-                    backgroundColor: ['#FFD700', '#FF6B6B', '#A855F7', '#4ECDC4'][i % 4],
-                    left: '50%',
-                    top: '40%',
                   }}
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{
-                    x: [0, Math.cos(i * 22.5 * Math.PI / 180) * 250],
-                    y: [0, Math.sin(i * 22.5 * Math.PI / 180) * 250],
-                    opacity: [1, 0],
-                    scale: [0.5, 2, 0],
                   }}
                   transition={{
-                    duration: 1.5,
-                    delay: 0.5 + (i % 4) * 0.1,
-                    repeat: Infinity,
                     repeatDelay: 2,
                   }}
                 />

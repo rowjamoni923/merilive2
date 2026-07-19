@@ -100,9 +100,6 @@ describe('Pkg75 livekitPartySignaling', () => {
     window.addEventListener('livekit-party-closed', listener);
 
     const env = buildEnvelope('party', 'room_closed', {
-      roomId: 'party-OTHER',
-      hostId: 'host-x',
-      closedAt: new Date().toISOString(),
     }, 'host-x');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'host-x' });
 
@@ -139,8 +136,6 @@ describe('Pkg75 livekitPartySignaling', () => {
     registerPartyRoom('party-1', room as any);
 
     const ok = await publishPartyClosed('party-1', {
-      hostId: 'host-1',
-      closedAt: new Date().toISOString(),
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();
@@ -151,8 +146,6 @@ describe('Pkg75 livekitPartySignaling', () => {
 
   it('publishPartyClosed returns false when room is unknown', async () => {
     const ok = await publishPartyClosed('does-not-exist', {
-      hostId: 'me',
-      closedAt: new Date().toISOString(),
     });
     expect(ok).toBe(false);
   });
@@ -162,8 +155,6 @@ describe('Pkg75 livekitPartySignaling', () => {
     (room as any).state = 'disconnected';
     registerPartyRoom('party-2', room as any);
     const ok = await publishPartyClosed('party-2', {
-      hostId: 'me',
-      closedAt: new Date().toISOString(),
     });
     expect(ok).toBe(false);
   });

@@ -46,7 +46,6 @@ Deno.serve(async (req) => {
     envelope = await req.json();
   } catch {
     return new Response(JSON.stringify({ error: 'invalid_json' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -54,7 +53,6 @@ Deno.serve(async (req) => {
   if (!msg?.data) {
     // Pub/Sub verification pings can arrive with empty data — ack them.
     return new Response(JSON.stringify({ ok: true, empty: true }), {
-      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -65,7 +63,6 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error('[rtdn] failed to decode data', e);
     return new Response(JSON.stringify({ error: 'bad_payload' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -107,7 +104,6 @@ Deno.serve(async (req) => {
     console.error('[rtdn] insert error', insertErr);
     // Return 200 anyway so Pub/Sub does not retry-storm on a persistent DB fault.
     return new Response(JSON.stringify({ ok: false, error: insertErr.message }), {
-      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
@@ -147,7 +143,6 @@ Deno.serve(async (req) => {
     const { error: voidErr } = await admin
       .from('recharge_transactions')
       .update({
-        status: 'refunded',
         reversed_at: new Date().toISOString(),
         reversal_reason: `Google Play voided purchase${voided.refundType != null ? ` · refundType ${voided.refundType}` : ''}`,
         notes: 'Google Play RTDN voided purchase notification received. Review before any balance deduction.',
@@ -165,6 +160,5 @@ Deno.serve(async (req) => {
     .eq('id', inserted?.id);
 
   return new Response(JSON.stringify({ ok: true, id: inserted?.id, type: notification_type, process_error }), {
-    status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 });

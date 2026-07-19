@@ -22,8 +22,6 @@ export default function AgencyActivationBanner({ agencyId }: Props) {
     body_md: `Activate **${REQUIRED_HOSTS} hosts** within 30 days of creation, or the agency will be automatically closed.`,
   });
   const closedBanner = useManagedBanner("agency_closed_notice", {
-    title: "Agency Closed",
-    body_md: `This agency did not activate ${REQUIRED_HOSTS} hosts within the 30-day window and has been automatically closed. Please contact support if you believe this is a mistake.`,
   });
 
 

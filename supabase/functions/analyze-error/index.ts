@@ -88,7 +88,6 @@ Please provide analysis and fix suggestions.`;
         analysis: aiResponse 
       }), 
       { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
       }
     );
 
@@ -100,7 +99,6 @@ Please provide analysis and fix suggestions.`;
       }), 
       { 
         status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
       }
     );
   }

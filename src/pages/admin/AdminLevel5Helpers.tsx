@@ -43,7 +43,6 @@ interface Level5Helper {
     display_name: string;
     avatar_url: string;
     app_uid: string;
-    country_code: string | null;
     country_flag: string | null;
     country_name: string | null;
   };
@@ -77,7 +76,6 @@ interface WithdrawalRequest {
     agency_code: string;
   };
   host?: {
-    display_name: string;
   };
 }
 
@@ -255,11 +253,6 @@ const AdminLevel5Helpers = () => {
     ]);
 
     setStats({
-      totalHelpers: helpersResult.count || 0,
-      pendingWithdrawals: pendingResult.count || 0,
-      completedToday: completedResult.count || 0,
-      totalDiamondsAwarded: (diamondsResult.data || []).reduce((sum, r) => sum + (r.diamond_reward || 0), 0),
-      pendingPayroll: payrollPendingResult.count || 0
     });
   };
 
@@ -283,11 +276,6 @@ const AdminLevel5Helpers = () => {
       const dayData = (data || []).filter(d => format(new Date(d.created_at), 'yyyy-MM-dd') === dateStr);
       
       return {
-        date: format(date, 'MMM dd'),
-        approved: dayData.filter(d => d.status === 'approved').length,
-        pending: dayData.filter(d => ['pending', 'paid', 'screenshot_submitted'].includes(d.status)).length,
-        rejected: dayData.filter(d => d.status === 'rejected').length,
-        usdTotal: dayData.filter(d => d.status === 'approved').reduce((sum, d) => sum + (d.usd_amount || 0), 0)
       };
     });
 
@@ -333,8 +321,6 @@ const AdminLevel5Helpers = () => {
       const { error } = await supabase
         .from('topup_helpers')
         .update({
-          payroll_enabled: false,
-          payroll_status: 'rejected'
         })
         .eq('id', helper.id);
 
@@ -342,11 +328,6 @@ const AdminLevel5Helpers = () => {
 
       // Send notification
       await supabase.from('helper_notifications').insert({
-        helper_id: helper.id,
-        type: 'payroll_rejected',
-        title: '❌ Payroll Access Rejected',
-        message: reason || 'Your payroll access application was rejected',
-        data: { rejected_at: new Date().toISOString() }
       });
 
       toast({ title: "Rejected", description: "Payroll access denied" });
@@ -404,10 +385,6 @@ const AdminLevel5Helpers = () => {
     setProcessing(true);
     try {
       const { data, error } = await supabase.rpc('admin_process_helper_withdrawal_request' as any, {
-        _request_id: selectedWithdrawal.id,
-        _status: 'rejected',
-        _diamond_reward: null,
-        _admin_notes: adminNotes || 'Rejected by admin',
       });
       const result = data as any;
       if (error || !result?.success) throw new Error(result?.error || error?.message || 'Rejection failed');
@@ -467,11 +444,8 @@ const AdminLevel5Helpers = () => {
 
   const getStatusBadge = (status: string) => {
     const configs: Record<string, { color: string; label: string }> = {
-      pending: { color: "bg-yellow-500", label: "Pending" },
       paid: { color: "bg-blue-500", label: "Paid" },
       screenshot_submitted: { color: "bg-purple-500", label: "Review Required" },
-      approved: { color: "bg-green-500", label: "Approved" },
-      rejected: { color: "bg-red-500", label: "Rejected" }
     };
     return configs[status] || configs.pending;
   };
@@ -719,10 +693,6 @@ const AdminLevel5Helpers = () => {
                   <Tooltip 
                     formatter={(value: number) => [`$${value.toFixed(2)}`, 'USD Volume']}
                     contentStyle={{ 
-                      backgroundColor: 'hsl(var(--background))', 
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      fontSize: '12px'
                     }}
                   />
                   <Area 
@@ -886,14 +856,11 @@ const AdminLevel5Helpers = () => {
                                   const { error } = await supabase
                                     .from('topup_helpers')
                                     .update({ 
-                                      payroll_enabled: checked,
-                                      payroll_status: checked ? 'approved' : 'rejected'
                                     })
                                     .eq('user_id', app.user_id);
                                   if (error) throw error;
                                   
                                   toast({ 
-                                    title: checked ? "Payroll Enabled" : "Payroll Disabled", 
                                     description: `Payroll access ${checked ? 'enabled' : 'disabled'} for ${app.user?.display_name}` 
                                   });
                                   loadData();

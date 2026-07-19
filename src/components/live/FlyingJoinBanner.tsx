@@ -68,9 +68,6 @@ const FlyingJoinBannerInner = memo(({ notification, onComplete }: FlyingJoinBann
             scale: 1,
           }}
           exit={{ 
-            x: 400, 
-            opacity: 0, 
-            scale: 0.9,
           }}
           transition={{
             type: "spring",

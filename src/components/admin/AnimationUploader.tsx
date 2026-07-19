@@ -276,9 +276,7 @@ export const AnimationUploader: React.FC<Props> = ({
           onValueChange={(v) =>
             onChange({
               ...value,
-              animation_format: v as AnimationFormat,
               // Clear config when switching away from VAP
-              animation_config_url: v === 'vap' ? value.animation_config_url : null,
             })
           }
         >

@@ -109,8 +109,6 @@ const JoinAgency = () => {
         // If approved, redirect
         if (request.status === 'active') {
           toast({
-            title: "✅ Request Approved!",
-            description: `You have been approved to join ${request.agency_name}`,
           });
           navigate("/agency");
           return;
@@ -138,9 +136,6 @@ const JoinAgency = () => {
     
     if (!code) {
       toast({
-        title: "Error",
-        description: "Please enter an agency code",
-        variant: "destructive",
       });
       return;
     }
@@ -151,7 +146,6 @@ const JoinAgency = () => {
 
     try {
       const { data, error } = await supabase.rpc('get_agency_by_code', {
-        agency_code: code
       });
 
       if (data && data.length > 0) {
@@ -159,16 +153,12 @@ const JoinAgency = () => {
         setFoundAgency({
           id: agencyData.id,
           name: agencyData.name,
-          agency_code: code,
           level: agencyData.level || "A1",
           total_hosts: agencyData.total_hosts || 0
         });
       } else {
         setAgencyNotFound(true);
         toast({
-          title: "Agency Not Found",
-          description: "Please enter a valid agency code",
-          variant: "destructive",
         });
       }
     } catch (error) {
@@ -191,7 +181,6 @@ const JoinAgency = () => {
       const isSubAgentRef = /^SA[A-Z0-9]{4,}$/.test(subAgentRef) ? subAgentRef : null;
 
       const { data, error } = await supabase.rpc('join_agency', {
-        _host_id: currentUser.id,
         _agency_code: foundAgency.agency_code,
         _joined_via: isSubAgentRef ? 'sub_agent_link' : 'code',
         _referral_code: isSubAgentRef,
@@ -201,8 +190,6 @@ const JoinAgency = () => {
 
       if (data) {
         toast({
-          title: "✅ Request Sent!",
-          description: `Your request has been sent to ${foundAgency.name}. Please wait for approval.`,
         });
         
         // Notification is already sent by the join_agency RPC (SECURITY DEFINER)
@@ -210,13 +197,6 @@ const JoinAgency = () => {
         
         // Set pending request to show waiting state
         setPendingRequest({
-          agency_id: foundAgency.id,
-          agency_name: foundAgency.name,
-          agency_code: foundAgency.agency_code,
-          agency_level: foundAgency.level,
-          agency_logo_url: null,
-          status: 'pending',
-          requested_at: new Date().toISOString()
         });
         setFoundAgency(null);
       } else {
@@ -226,9 +206,6 @@ const JoinAgency = () => {
       // Supabase wraps RAISE EXCEPTION in error.message or error.details
       const msg = error?.message || error?.details || "Failed to send request";
       toast({
-        title: "Cannot Join Agency",
-        description: msg,
-        variant: "destructive",
       });
     } finally {
       setJoining(false);
@@ -240,22 +217,16 @@ const JoinAgency = () => {
 
     try {
       const { data, error } = await supabase.rpc('cancel_agency_request', {
-        _host_id: currentUser.id
       });
 
       if (error) throw error;
 
       toast({
-        title: "Request Cancelled",
-        description: "Your join request has been cancelled",
       });
 
       setPendingRequest(null);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error?.message || "Failed to cancel request",
-        variant: "destructive",
       });
     }
   };

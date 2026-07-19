@@ -73,8 +73,6 @@ export function useOptimisticAction<T = void, R = any>(options: OptimisticAction
       const desc = options.errorMessage || error?.message || "Something went wrong. Please try again.";
       
       toast({
-        title: "Action Failed",
-        description: desc,
         variant: "destructive",
       });
 

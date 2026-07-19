@@ -228,8 +228,6 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
         <motion.div
           initial={{ scale: 0, rotate: -30 }}
           animate={{
-            scale: [0, 1.2, 1],
-            rotate: [0, 15, 0],
           }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="drop-shadow-2xl"
@@ -247,10 +245,8 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
               className="absolute text-4xl"
               initial={{ scale: 0, x: 0, y: 0 }}
               animate={{
-                scale: [0, 1.5, 0.8, 0],
                 x: Math.cos(angle) * distance,
                 y: Math.sin(angle) * distance,
-                rotate: [0, 180, 360],
               }}
               transition={{
                 duration: 1.5,
@@ -273,21 +269,11 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
             left: `${10 + Math.random() * 80}%`,
           }}
           initial={{
-            y: window.innerHeight + 50,
-            x: 0,
-            scale: 0.5 + Math.random() * 0.5,
-            rotate: Math.random() * 60 - 30,
           }}
           animate={{
-            y: -100,
-            x: Math.random() * 100 - 50,
-            rotate: Math.random() * 360,
             opacity: [0, 1, 1, 0],
           }}
           transition={{
-            duration: 2.5 + Math.random() * 1,
-            delay: i * 0.15,
-            ease: "easeOut",
           }}
         >
           {emoji}
@@ -301,9 +287,6 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, animationFormat, anima
           className="absolute left-1/2 top-1/2 w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500"
           initial={{ scale: 0, x: 0, y: 0 }}
           animate={{
-            scale: [0, 1.5, 0],
-            x: Math.cos((i / 8) * Math.PI * 2) * 150,
-            y: Math.sin((i / 8) * Math.PI * 2) * 150,
           }}
           transition={{ duration: 0.8, delay: 0.3 }}
         />

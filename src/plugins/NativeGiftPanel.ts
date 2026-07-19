@@ -3,7 +3,7 @@ import { registerPlugin } from '@capacitor/core';
 export interface GiftItem {
   id: string;
   name: string;
-  coins: number;
+  diamonds: number;
   icon_url?: string | null;
   category: string;
 }

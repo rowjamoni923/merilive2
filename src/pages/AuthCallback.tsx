@@ -134,8 +134,6 @@ const AuthCallback = () => {
                   .from("profiles")
                   .insert({ 
                     id: session.user.id,
-                    gender: pending.gender,
-                    display_name: pending.displayName,
                     ...(deviceId && { device_id: deviceId }),
                   });
               }

@@ -78,8 +78,6 @@ const EmptySeat = ({
             transition={{ duration: 2.5, repeat: Infinity }}
             className="w-5 h-5 rounded-full"
             style={{
-              background: "linear-gradient(135deg, rgba(168,85,247,0.4), rgba(236,72,153,0.3))",
-              boxShadow: "0 0 12px rgba(168,85,247,0.25)",
             }}
           />
         )}
@@ -142,9 +140,6 @@ const OccupiedSeat = ({
               transition={{ duration: 1.6, repeat: Infinity, delay: 0.2 }}
               className="absolute rounded-full -z-20"
               style={{
-                inset: isHostSeat ? "-14px" : "-10px",
-                background: "linear-gradient(135deg, rgba(52,211,153,0.15), rgba(34,211,238,0.15))",
-                filter: "blur(14px)",
               }}
             />
           </>
@@ -243,7 +238,6 @@ const OccupiedSeat = ({
           <div
             className="flex items-center gap-0.5 mt-0.5 px-1.5 py-[1px] rounded-full"
             style={{
-              background: "rgba(0,0,0,0.45)",
               backdropFilter: "blur(4px)",
             }}
           >

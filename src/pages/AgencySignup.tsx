@@ -143,7 +143,6 @@ const AgencySignup = () => {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
         body: {
           action: 'send',
-          userId: foundUser.id,
           purpose: 'agency_verification',
           context: formData.agencyName.trim() || 'Agency Registration'
         }
@@ -168,7 +167,6 @@ const AgencySignup = () => {
     setVerifyingAppOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
-        body: { action: 'verify', userId: foundUser.id, code: appOtp, purpose: 'agency_verification' }
       });
 
       if (error) throw new Error(await getFunctionErrorMessage(error, "App OTP verification failed"));
@@ -250,7 +248,6 @@ const AgencySignup = () => {
     setSendingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-email-otp', {
-        body: { email: formData.email.trim().toLowerCase(), purpose: 'verify', context: 'agency_signup' }
       });
 
       if (error) throw error;
@@ -274,10 +271,7 @@ const AgencySignup = () => {
     setVerifyingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke('verify-email-otp', {
-        body: { 
-          email: formData.email.trim().toLowerCase(), 
           otp: emailOtp,
-          purpose: 'verify' 
         }
       });
 
@@ -366,8 +360,6 @@ const AgencySignup = () => {
 
       // Send notification
       await supabase.functions.invoke('send-app-notification', {
-        body: {
-          userId: foundUser!.id,
           templateKey: 'agency_approved',
           variables: { agency_name: formData.agencyName.trim(), agency_code: agencyCode },
           type: 'agency_approved'
@@ -407,8 +399,6 @@ const AgencySignup = () => {
         <div
           className="mx-4 mt-4 rounded-3xl p-6 text-white relative overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg,#7c3aed 0%,#6366f1 50%,#3b82f6 100%)',
-            boxShadow: '0 18px 40px -12px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)',
           }}
         >
           <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/15 blur-3xl pointer-events-none" />

@@ -202,7 +202,6 @@ export function useNativeLiveKitEvents(
           (e: any) => {
             try {
               window.dispatchEvent(new CustomEvent('lk:live-host-grace-start', {
-                detail: { endsAtMs: e?.endsAtMs, graceMs: e?.graceMs },
               }));
             } catch { /* noop */ }
           },
@@ -215,7 +214,6 @@ export function useNativeLiveKitEvents(
           (e: any) => {
             try {
               window.dispatchEvent(new CustomEvent('lk:live-host-grace-end', {
-                detail: { reason: e?.reason },
               }));
             } catch { /* noop */ }
           },
@@ -244,7 +242,6 @@ export function useNativeLiveKitEvents(
                 levels[s.identity] = typeof s.audioLevel === 'number' ? s.audioLevel : 0;
               }
               window.dispatchEvent(new CustomEvent('livekit-active-speakers', {
-                detail: { scope: b.scope, id: b.id, identities, levels },
               }));
             } catch { /* noop */ }
           },
@@ -264,7 +261,6 @@ export function useNativeLiveKitEvents(
             const b = getBridge(); if (!b) return;
             try {
               window.dispatchEvent(new CustomEvent('livekit-participant-metadata', {
-                detail: {
                   scope: b.scope,
                   id: b.id,
                   identity: e?.identity ?? '',
@@ -285,11 +281,7 @@ export function useNativeLiveKitEvents(
             try {
               const raw: string = e?.metadata ?? '';
               window.dispatchEvent(new CustomEvent('livekit-room-metadata', {
-                detail: {
-                  scope: b.scope,
-                  id: b.id,
                   raw,
-                  metadata: safeParseJson(raw),
                 },
               }));
             } catch { /* noop */ }
@@ -304,7 +296,6 @@ export function useNativeLiveKitEvents(
             const b = getBridge(); if (!b) return;
             try {
               const segs = (e?.segments ?? []).map((s: any) => ({
-                id: s.id,
                 text: s.text,
                 language: s.language,
                 final: !!s.final,
@@ -314,11 +305,7 @@ export function useNativeLiveKitEvents(
                 endTime: typeof s.lastReceivedTime === 'number' ? s.lastReceivedTime : undefined,
               }));
               window.dispatchEvent(new CustomEvent('livekit-transcription', {
-                detail: {
-                  scope: b.scope,
-                  id: b.id,
                   roomName: b.id,
-                  identity: e?.participantIdentity || undefined,
                   segments: segs,
                 },
               }));
@@ -337,11 +324,7 @@ export function useNativeLiveKitEvents(
             const b = getBridge(); if (!b) return;
             try {
               window.dispatchEvent(new CustomEvent('livekit-participant-name', {
-                detail: {
-                  scope: b.scope,
-                  id: b.id,
                   sid: e?.sid ?? '',
-                  identity: e?.identity ?? '',
                   name: e?.name ?? '',
                 },
               }));
@@ -359,7 +342,6 @@ export function useNativeLiveKitEvents(
           (e: any) => {
             try {
               window.dispatchEvent(new CustomEvent('lk:token-expired', {
-                detail: { reason: e?.reason ?? 'token-expired' },
               }));
             } catch { /* noop */ }
           },
@@ -374,7 +356,6 @@ export function useNativeLiveKitEvents(
           (e: any) => {
             try {
               window.dispatchEvent(new CustomEvent('lk:local-vad-changed', {
-                detail: { speaking: !!e?.speaking, level: typeof e?.level === 'number' ? e.level : 0 },
               }));
             } catch { /* noop */ }
           },
@@ -388,7 +369,6 @@ export function useNativeLiveKitEvents(
           (e: any) => {
             try {
               window.dispatchEvent(new CustomEvent('lk:seat-audio-levels', {
-                detail: { levels: e?.levels ?? {} },
               }));
             } catch { /* noop */ }
           },
@@ -403,7 +383,6 @@ export function useNativeLiveKitEvents(
           (e: any) => {
             try {
               window.dispatchEvent(new CustomEvent('lk:audio-route-blocked', {
-                detail: { reason: e?.reason, requested: e?.requested, fallback: e?.fallback },
               }));
             } catch { /* noop */ }
           },

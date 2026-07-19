@@ -30,8 +30,6 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -43,8 +41,6 @@ Deno.serve(async (req) => {
 
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -60,23 +56,17 @@ Deno.serve(async (req) => {
     const rawQuantity = Number(body?.quantity ?? 1)
     if (!Number.isInteger(rawQuantity) || rawQuantity < 1 || rawQuantity > 999) {
       return new Response(JSON.stringify({ error: 'Invalid gift quantity' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
     const quantity = rawQuantity
 
     if (!receiverId || !giftId) {
       return new Response(JSON.stringify({ error: 'receiverId and giftId are required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
     if (receiverId === user.id) {
       return new Response(JSON.stringify({ error: 'Cannot send gift to yourself' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -84,7 +74,6 @@ Deno.serve(async (req) => {
     // Falls back to service key only if anon key is unavailable in env
     const userSupabase = createClient(supabaseUrl, anonKey ?? serviceKey, {
       global: {
-        headers: {
           Authorization: authHeader,
         },
       },
@@ -104,16 +93,12 @@ Deno.serve(async (req) => {
 
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
     const result = data as any
     if (!result?.success) {
       return new Response(JSON.stringify({ error: result?.error || 'Gift failed' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -147,11 +132,8 @@ Deno.serve(async (req) => {
         if (battle?.id) {
           await adminSupabase.rpc('bill_pk_gift', {
             p_battle_id: battle.id,
-            p_sender_id: user.id,
             p_target_host_id: receiverId,
-            p_gift_id: giftId,
             p_diamond_amount: diamondsSpent,
-            p_stream_id: streamId ?? null,
           })
         }
       } catch (pkErr) {
@@ -176,15 +158,11 @@ Deno.serve(async (req) => {
         pkScore: null,
       }),
       {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
 
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error?.message || 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 })

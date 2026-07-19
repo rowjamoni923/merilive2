@@ -140,7 +140,7 @@ const Rewards = () => {
                 <Crown className="w-5 h-5 text-amber-400" />
                 <span className="text-sm font-bold text-amber-400">{firstRechargeMultiplier}x FIRST RECHARGE BONUS</span>
               </div>
-              <p className="text-xs text-slate-600">Get {firstRechargeMultiplier}x coins on your first recharge!</p>
+              <p className="text-xs text-slate-600">Get {firstRechargeMultiplier}x diamonds on your first recharge!</p>
             </div>
             <ChevronRight className="w-5 h-5 text-amber-400" />
           </div>

@@ -283,7 +283,6 @@ const handler = async (req: Request): Promise<Response> => {
             `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
             {
               method: "POST",
-              headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${accessToken}`,
               },

@@ -132,11 +132,6 @@ const AdminAppUpdateLogs = () => {
 
       const rows = (data || []) as Pick<CheckLog, "outcome" | "force_update" | "modal_shown">[];
       setStats({
-        total: rows.length,
-        shown: rows.filter((r) => r.modal_shown).length,
-        forced: rows.filter((r) => r.force_update).length,
-        storeOpened: rows.filter((r) => r.outcome === "store_opened").length,
-        updated: rows.filter((r) => r.outcome === "updated").length,
       });
     } catch (err) {
       console.error("[AdminAppUpdateLogs] stats error:", err);
@@ -411,7 +406,6 @@ const AdminAppUpdateLogs = () => {
                         {selected.server_version_name ?? "?"}
                       </div>
                       <div className="text-xs text-slate-500">
-                        code: {selected.server_version_code ?? "?"}
                       </div>
                       <div className="text-xs text-blue-600 mt-1">comparable: {srv}</div>
                     </div>

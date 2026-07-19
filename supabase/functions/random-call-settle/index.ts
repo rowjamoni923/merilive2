@@ -35,7 +35,6 @@ Deno.serve(async (req) => {
       const { data: ud } = await supabase.auth.getUser(token);
       if (!ud?.user) {
         return new Response(JSON.stringify({ error: "unauthorized" }), {
-          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const { data: sess } = await supabase
@@ -45,7 +44,6 @@ Deno.serve(async (req) => {
         .single();
       if (!sess || (sess.caller_id !== ud.user.id && sess.host_id !== ud.user.id)) {
         return new Response(JSON.stringify({ error: "not_participant" }), {
-          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (sess.settled) {
@@ -63,16 +61,13 @@ Deno.serve(async (req) => {
 
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e?.message ?? e) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

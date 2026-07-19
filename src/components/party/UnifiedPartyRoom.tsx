@@ -236,8 +236,6 @@ const ShootingStar = ({ delay }: { delay: number }) => {
       transition={{ duration: 2.5, delay, repeat: Infinity, repeatDelay: stable.repeatDelay }}
       className="absolute w-[2px] h-16 bg-gradient-to-b from-white via-white/80 to-transparent rotate-[45deg] pointer-events-none"
       style={{
-        left: stable.left,
-        top: stable.top,
         boxShadow: '0 0 6px 2px rgba(255,255,255,0.3)'
       }}
     />
@@ -833,7 +831,6 @@ export function UnifiedPartyRoom({
           .map((pv: any) => {
             const profile = profileMap.get(pv.user_id);
             return {
-              id: profile?.id || pv.user_id,
               displayName: profile?.display_name || profile?.app_uid || "Anonymous",
               avatarUrl: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
               level: getRequiredDisplayLevel(profile),
@@ -944,10 +941,6 @@ export function UnifiedPartyRoom({
       if (triggerCallback) {
         triggeredEntryAnimationsRef.current.add(animationKey);
         triggerCallback({
-          userId: data.userId,
-          displayName: data.userName,
-          avatarUrl: data.userAvatar,
-          level: data.userLevel,
           entranceUrl,
           entryNameBarUrl,
           vehicleAnimationUrl: vehicleUrl,
@@ -994,14 +987,10 @@ export function UnifiedPartyRoom({
         const unifiedMsgs: RoomChatMessage[] = data.map((m: any) => {
           const profile = profileMap.get(m.user_id);
           return {
-            id: m.id,
-            userId: m.user_id,
             user: profile?.display_name || 'User',
             initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
             message: m.content,
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
-            userLevel: getRequiredDisplayLevel(profile),
-            userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url,
             isHost: profile?.is_host || (m.user_id === hostIdRef.current),
             isNewUser: false,
             type: m.message_type || 'text',
@@ -1045,18 +1034,6 @@ export function UnifiedPartyRoom({
 
       const msgType = (data.messageType || 'text') as RoomChatMessage['type'];
       const unifiedMsg: RoomChatMessage = {
-        id: data.messageId,
-        userId: data.userId,
-        user: data.displayName || 'User',
-        initial: (data.displayName || 'U').charAt(0).toUpperCase(),
-        message: data.message,
-        color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
-        userLevel: data.userLevel || 1,
-        userAvatar: data.avatarUrl,
-        isHost: data.isHost || (data.userId === hostIdRef.current),
-        isNewUser: false,
-        type: msgType,
-        bubbleUrl: null,
       };
 
       // REPLACE-OR-APPEND dedupe — same logic as old postgres_changes handler.
@@ -1114,18 +1091,6 @@ export function UnifiedPartyRoom({
 
         const msgType = (row.message_type || 'text') as RoomChatMessage['type'];
         const unifiedMsg: RoomChatMessage = {
-          id: row.id,
-          userId: row.user_id,
-          user: profile?.display_name || 'User',
-          initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
-          message: row.content,
-          color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
-          userLevel: getRequiredDisplayLevel(profile),
-          userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
-          isHost: !!profile?.is_host || (row.user_id === hostIdRef.current),
-          isNewUser: false,
-          type: msgType,
-          bubbleUrl: null,
         };
         setPremiumMessages(prev => {
           if (prev.some(m => m.id === row.id)) return prev;
@@ -1172,17 +1137,6 @@ export function UnifiedPartyRoom({
       selfUserId: currentUserId ?? null,
       onEmit: (out) => {
         const joinChatMsg: RoomChatMessage = {
-          id: `join-${out.id}`,
-          userId: out.primary.userId,
-          user: out.primary.userName,
-          initial: out.primary.userName.charAt(0).toUpperCase(),
-          message: formatJoinMessage(out),
-          color: 'emerald',
-          userLevel: out.primary.userLevel,
-          userAvatar: out.primary.avatarUrl,
-          isHost: false,
-          isNewUser: false,
-          type: 'join',
         };
         setPremiumMessages(prev => {
           if (prev.some(m => m.id === joinChatMsg.id)) return prev;
@@ -1209,36 +1163,16 @@ export function UnifiedPartyRoom({
       // Flying banner / entry animation: handled by direct participant
       // subscription (above) — keep 1:1, never coalesce.
       addJoinNotification({
-        userId: jm.userId,
-        userName: jm.userName,
-        userLevel: jm.userLevel,
-        userAvatar: jm.avatarUrl,
       });
 
       if (jm.type === 'join') {
         // Push into burst-coalescer; it will emit either a single
         // "joined ✨" row or a coalesced "and N others joined ✨" row.
         joinCoalescerRef.current?.push({
-          id: jm.id,
-          userId: jm.userId,
-          userName: jm.userName,
-          userLevel: jm.userLevel,
-          avatarUrl: jm.avatarUrl,
         });
       } else {
         // Leave messages stay 1:1 (rare + low signal to coalesce).
         const leaveChatMsg: RoomChatMessage = {
-          id: `join-${jm.id}`,
-          userId: jm.userId,
-          user: jm.userName,
-          initial: jm.userName.charAt(0).toUpperCase(),
-          message: 'left the room',
-          color: 'emerald',
-          userLevel: jm.userLevel,
-          userAvatar: jm.avatarUrl,
-          isHost: false,
-          isNewUser: false,
-          type: 'join',
         };
         setPremiumMessages(prev => {
           if (prev.some(m => m.id === leaveChatMsg.id)) return prev;
@@ -1294,17 +1228,6 @@ export function UnifiedPartyRoom({
       return;
     }
     const optimisticMessage: RoomChatMessage = {
-      id: tempId,
-      userId: sendingUserId,
-      user: senderName,
-      initial: senderName.charAt(0).toUpperCase(),
-      message: outboundMessage,
-      userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
-      userAvatar: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
-      isHost: isHost,
-      type: 'text',
-      timestamp: new Date(),
-      bubbleUrl: ownBubble,
     };
 
     // Add to local state immediately (instant feedback)
@@ -1353,12 +1276,7 @@ export function UnifiedPartyRoom({
       // remains the moderation/audit/late-join history source.
       void publishChatMessage('party', sendingRoomId, {
         messageId: data.id,
-        userId: sendingUserId,
-        displayName: senderName,
-        avatarUrl: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
-        userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
         isHost,
-        message: outboundMessage,
         messageType: 'chat',
       });
 
@@ -1572,7 +1490,6 @@ export function UnifiedPartyRoom({
                 <div 
                   className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded text-[6px] font-bold text-white shadow-sm"
                   style={{
-                    background: (v.level || 1) >= 50 
                       ? 'linear-gradient(135deg, #f59e0b, #ef4444)' 
                       : (v.level || 1) >= 30 
                         ? 'linear-gradient(135deg, #fbbf24, #f97316)' 
@@ -1590,7 +1507,6 @@ export function UnifiedPartyRoom({
             <div className="flex items-center gap-[3px] bg-black/40 px-2 py-0.5 rounded-full ml-1">
               <div className="w-[5px] h-[5px] rounded-full" 
                 style={{ 
-                  background: connectionState === ConnectionState.Connected ? '#4ade80' : '#facc15', 
                   boxShadow: connectionState === ConnectionState.Connected ? '0 0 6px #4ade80' : '0 0 6px #facc15' 
                 }} 
               />
@@ -1800,9 +1716,7 @@ export function UnifiedPartyRoom({
             animate={{ y: 0, opacity: 1 }}
             className="absolute left-2 right-2 z-50 live-game-dock overflow-hidden"
             style={{ 
-              bottom: '64px',
               // Use dynamic viewport for mobile URL-bar safety
-              maxHeight: 'calc(100dvh - 300px)'
             }}
           >
             {/* Game Content */}
@@ -1889,9 +1803,7 @@ export function UnifiedPartyRoom({
               placeholder="Say something..."
               className="w-full h-10 rounded-full text-white placeholder:text-white/55 pr-10 text-[13px] pl-4 focus:outline-none border transition-colors"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.65), rgba(20,15,35,0.75))',
                 borderColor: 'rgba(255,255,255,0.18)',
-                boxShadow: '0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(14px)',
               }}
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.form?.requestSubmit()}
@@ -1902,8 +1814,6 @@ export function UnifiedPartyRoom({
               aria-label="Send message"
               className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-40 transition-[filter] duration-100 active:brightness-90 focus:outline-none"
               style={{
-                background: chatInput.trim() ? 'linear-gradient(135deg, #ec4899, #f43f5e)' : 'rgba(255,255,255,0.08)',
-                boxShadow: chatInput.trim() ? '0 2px 10px rgba(236,72,153,0.45)' : 'none',
                 transform: 'translate3d(0,-50%,0)',
                 willChange: 'filter',
               }}
@@ -2027,12 +1937,7 @@ export function UnifiedPartyRoom({
         isOpen={showViewerPanel}
         onClose={() => setShowViewerPanel(false)}
         viewers={(realtimeViewers.length > 0 ? realtimeViewers : viewers.length > 0 ? viewers : topViewers.map((v, i) => ({
-          id: v.id || `viewer-${i}`,
-          displayName: v.displayName || `Viewer ${i + 1}`,
-          avatarUrl: v.avatarUrl,
-          level: v.level,
           countryFlag: '🌍',
-          frameId: v.frameId || undefined
         })))}
         applicants={seatRequests}
         isHost={isHost}

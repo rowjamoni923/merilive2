@@ -66,7 +66,6 @@ Deno.serve(async (req) => {
       const { data, error } = await admin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true,
       });
       if (error || !data?.user) {
         return new Response(JSON.stringify({ error: error?.message || "Create failed" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -80,8 +79,6 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

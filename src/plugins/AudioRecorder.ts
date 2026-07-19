@@ -26,8 +26,6 @@ export interface AudioRecorderPluginNative {
     cb: (e: { reason: string }) => void
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
   addListener(
-    eventName: "audioRecorderAmplitude",
-    cb: (e: { amplitude: number }) => void
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
 }
 

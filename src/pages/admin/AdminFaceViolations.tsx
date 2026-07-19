@@ -71,7 +71,6 @@ const AdminFaceViolations = () => {
     if (!adminId) { toast.error("Not signed in"); return; }
     try {
       await supabase.rpc("admin_update_face_violation", {
-        _admin_id: adminId,
         _violation_id: violation.id,
         _status: 'live_ban',
       });
@@ -89,9 +88,6 @@ const AdminFaceViolations = () => {
     if (!adminId) { toast.error("Not signed in"); return; }
     try {
       await supabase.rpc("admin_update_face_violation", {
-        _admin_id: adminId,
-        _violation_id: violation.id,
-        _status: 'warning',
       });
       toast.success('Review completed');
       fetchViolations();

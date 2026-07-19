@@ -94,27 +94,12 @@ export function AdminRealtimeSyncIndicator() {
         };
       case "idle":
         return {
-          dot: "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]",
-          ring: "ring-amber-400/30",
-          icon: <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />,
-          label: "Idle",
-          textCls: "text-amber-300",
         };
       case "error":
         return {
-          dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse",
-          ring: "ring-rose-500/40",
-          icon: <XCircle className="w-3.5 h-3.5 text-rose-400" />,
-          label: "Offline",
-          textCls: "text-rose-300",
         };
       default:
         return {
-          dot: "bg-slate-500 animate-pulse",
-          ring: "ring-slate-500/20",
-          icon: <Activity className="w-3.5 h-3.5 text-slate-400" />,
-          label: "Connecting…",
-          textCls: "text-slate-400",
         };
     }
   })();

@@ -170,15 +170,15 @@ export const PKBattleActive = ({
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
-      const coins = detail.totalDiamonds || (detail.giftCoins || 0) * (detail.count || 1);
-      if (!coins) return;
+      const diamonds = detail.totalDiamonds || (detail.giftCoins || 0) * (detail.count || 1);
+      if (!diamonds) return;
       if (challengerId && detail.receiverId === challengerId) {
         const base = pendingChallengerRef.current ?? latestChallengerScoreRef.current;
-        pendingChallengerRef.current = base + coins;
+        pendingChallengerRef.current = base + diamonds;
         scheduleFlush();
       } else if (opponentId && detail.receiverId === opponentId) {
         const base = pendingOpponentRef.current ?? latestOpponentScoreRef.current;
-        pendingOpponentRef.current = base + coins;
+        pendingOpponentRef.current = base + diamonds;
         scheduleFlush();
       }
     };
@@ -254,7 +254,6 @@ export const PKBattleActive = ({
     currentUserId: currentUserId ?? null,
     challengerId,
     opponentId,
-    status: battleEnded ? "ended" : serverStartedAt ? "active" : "pending",
     timeLeft,
     winnerUserId,
     finalStatus,
@@ -365,10 +364,8 @@ export const PKBattleActive = ({
           <motion.div
             className="flex items-center gap-1 rounded-full px-2 py-0.5"
             style={{
-              background: timeUrgent
                 ? "linear-gradient(135deg, rgba(239,68,68,0.5), rgba(220,38,38,0.4))"
                 : "rgba(0,0,0,0.35)",
-              border: timeUrgent ? "1px solid rgba(252,165,165,0.5)" : "1px solid rgba(255,255,255,0.08)",
               boxShadow: timeUrgent ? "0 0 14px rgba(239,68,68,0.5)" : "none",
             }}
             animate={timeUrgent ? { scale: [1, 1.06, 1] } : {}}
@@ -397,8 +394,6 @@ export const PKBattleActive = ({
                 <motion.div
                   className={`${compact ? "w-9 h-9" : "w-12 h-12"} rounded-full overflow-hidden`}
                   style={{
-                    border: challengerWinning ? "2px solid #fbbf24" : "2px solid #ec4899",
-                    boxShadow: challengerWinning
                       ? "0 0 0 3px rgba(251,191,36,0.35), 0 0 18px rgba(251,191,36,0.6), inset 0 1px 0 rgba(255,255,255,0.2)"
                       : "0 0 0 2px rgba(236,72,153,0.35), 0 0 14px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
                   }}
@@ -423,8 +418,6 @@ export const PKBattleActive = ({
                 <div
                   className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded text-[6px] font-extrabold text-black"
                   style={{
-                    background: "linear-gradient(135deg, #fbbf24, #d97706)",
-                    boxShadow: "0 0 8px rgba(251,191,36,0.5), inset 0 1px 0 rgba(255,255,255,0.4)",
                   }}
                 >
                   Lv{challengerLevel}
@@ -454,7 +447,6 @@ export const PKBattleActive = ({
             <motion.div
               className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
               style={{
-                background: "linear-gradient(135deg, #ec4899, #a855f7)",
                 boxShadow:
                   "0 0 0 2px rgba(255,255,255,0.18), 0 0 18px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
               }}
@@ -475,8 +467,6 @@ export const PKBattleActive = ({
                 <motion.div
                   className={`${compact ? "w-9 h-9" : "w-12 h-12"} rounded-full overflow-hidden`}
                   style={{
-                    border: opponentWinning ? "2px solid #fbbf24" : "2px solid #a855f7",
-                    boxShadow: opponentWinning
                       ? "0 0 0 3px rgba(251,191,36,0.35), 0 0 18px rgba(251,191,36,0.6), inset 0 1px 0 rgba(255,255,255,0.2)"
                       : "0 0 0 2px rgba(168,85,247,0.35), 0 0 14px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
                   }}
@@ -501,8 +491,6 @@ export const PKBattleActive = ({
                 <div
                   className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded text-[6px] font-extrabold text-black"
                   style={{
-                    background: "linear-gradient(135deg, #fbbf24, #d97706)",
-                    boxShadow: "0 0 8px rgba(251,191,36,0.5), inset 0 1px 0 rgba(255,255,255,0.4)",
                   }}
                 >
                   Lv{opponentLevel}
@@ -533,15 +521,11 @@ export const PKBattleActive = ({
           <div
             className="relative mt-3 h-2.5 rounded-full overflow-hidden flex"
             style={{
-              background: "rgba(0,0,0,0.4)",
-              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
             }}
           >
             <motion.div
               className="h-full relative"
               style={{
-                background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
-                boxShadow: "0 0 10px rgba(236,72,153,0.7)",
               }}
               initial={{ width: "50%" }}
               animate={{ width: `${challengerPercent}%` }}
@@ -552,15 +536,12 @@ export const PKBattleActive = ({
                 style={{
                   background:
                     "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                  animation: "giftSendShine 2.6s ease-in-out infinite",
                 }}
               />
             </motion.div>
             <motion.div
               className="h-full relative"
               style={{
-                background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
-                boxShadow: "0 0 10px rgba(168,85,247,0.7)",
               }}
               initial={{ width: "50%" }}
               animate={{ width: `${opponentPercent}%` }}
@@ -571,7 +552,6 @@ export const PKBattleActive = ({
                 style={{
                   background:
                     "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
-                  animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
                 }}
               />
             </motion.div>
@@ -580,8 +560,6 @@ export const PKBattleActive = ({
               className="pointer-events-none absolute top-0 bottom-0 w-px"
               style={{
                 left: `${challengerPercent}%`,
-                background: "rgba(255,255,255,0.8)",
-                boxShadow: "0 0 6px rgba(255,255,255,0.9)",
                 transform: "translateX(-0.5px)",
               }}
             />
@@ -601,11 +579,8 @@ export const PKBattleActive = ({
               style={{
                 background:
                   "linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(76,29,149,0.92) 100%)",
-                border: "1px solid rgba(251,191,36,0.45)",
                 boxShadow:
                   "0 14px 36px -10px rgba(251,191,36,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
-                backdropFilter: "blur(14px) saturate(140%)",
-                WebkitBackdropFilter: "blur(14px) saturate(140%)",
               }}
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -645,9 +620,6 @@ export const PKBattleActive = ({
                 <div
                   className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
                   style={{
-                    background: "linear-gradient(135deg, rgba(251,191,36,0.25), rgba(217,119,6,0.25))",
-                    border: "1px solid rgba(251,191,36,0.55)",
-                    boxShadow: "0 0 12px rgba(251,191,36,0.35)",
                   }}
                 >
                   <Crown className="w-3.5 h-3.5 text-amber-300" />
@@ -659,9 +631,6 @@ export const PKBattleActive = ({
                 <motion.div
                   className="flex items-center gap-1 px-2 py-1 rounded-full shrink-0"
                   style={{
-                    background: "linear-gradient(135deg, rgba(239,68,68,0.35), rgba(220,38,38,0.25))",
-                    border: "1px solid rgba(252,165,165,0.5)",
-                    boxShadow: "0 0 12px rgba(239,68,68,0.45)",
                   }}
                   animate={{ scale: [1, 1.04, 1] }}
                   transition={{ duration: 1.2, repeat: Infinity }}

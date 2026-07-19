@@ -54,7 +54,6 @@ export const MeriLiveLoader = ({
             className="w-2 h-2 rounded-full bg-primary"
             style={{
               animation: "meri-dot-bounce 1.2s ease-in-out infinite",
-              animationDelay: `${i * 0.18}s`,
             }}
           />
         ))}
@@ -87,7 +86,6 @@ export const MeriLiveLoader = ({
           50%      { opacity: 0.7; transform: scale(1.15); }
         }
         .animate-meri-pulse-slow {
-          animation: meri-pulse-slow 4s ease-in-out infinite;
         }
       `}</style>
     </div>

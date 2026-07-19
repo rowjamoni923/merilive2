@@ -104,9 +104,6 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
     // 2. User message
     {
       const r = await svc("/rest/v1/support_messages", {
-        method: "POST",
-        headers: { Prefer: "return=representation" },
-        body: JSON.stringify({
           ticket_id: ticketId, sender_id: userId, sender_type: "user",
           content: "I paid but didn't get diamonds (E2E)",
         }),
@@ -119,10 +116,6 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
     // 3. Admin text reply
     {
       const r = await svc("/rest/v1/support_messages", {
-        method: "POST",
-        body: JSON.stringify({
-          ticket_id: ticketId, sender_id: null, sender_type: "admin",
-          content: "Hi, looking into it (E2E)", support_admin_name: "E2E Tester",
         }),
       });
       assert(r.ok, `admin reply failed ${r.status}`); await r.text();
@@ -131,10 +124,6 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
     // 4. Admin image attachment reply
     {
       const r = await svc("/rest/v1/support_messages", {
-        method: "POST",
-        body: JSON.stringify({
-          ticket_id: ticketId, sender_id: null, sender_type: "admin",
-          content: "[image]", attachment_url: "https://example.com/proof.png",
           attachment_type: "image",
         }),
       });
@@ -204,13 +193,10 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
     // 11. Purchase recovery via admin-verify-purchase edge function
     {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-verify-purchase`, {
-        method: "POST",
-        headers: {
           "Content-Type": "application/json",
           apikey: ANON_KEY,
           "x-admin-token": token,
         },
-        body: JSON.stringify({
           userId, diamondAmount: 1,
           reason: "Support ticket E2E recovery",
           googleOrderId: orderId,
@@ -223,9 +209,6 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
 
       // Idempotency: second call must be rejected as duplicate
       const dup = await fetch(`${SUPABASE_URL}/functions/v1/admin-verify-purchase`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: ANON_KEY, "x-admin-token": token },
-        body: JSON.stringify({ userId, diamondAmount: 1, googleOrderId: orderId }),
       });
       const dupTxt = await dup.text();
       assertEquals(dup.status, 409, `expected duplicate 409, got ${dup.status}: ${dupTxt}`);

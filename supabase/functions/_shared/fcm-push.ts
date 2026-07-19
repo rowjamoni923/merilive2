@@ -110,7 +110,6 @@ export async function dispatchHighPriorityData(
           `https://fcm.googleapis.com/v1/projects/${creds.project_id}/messages:send`,
           {
             method: "POST",
-            headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
             },

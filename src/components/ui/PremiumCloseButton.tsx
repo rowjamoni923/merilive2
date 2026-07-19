@@ -41,15 +41,11 @@ const variantStyles: Record<Variant, React.CSSProperties> = {
   glass: {
     background:
       "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,245,250,0.9))",
-    border: "1px solid rgba(0,0,0,0.08)",
     boxShadow:
       "0 4px 14px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
   },
   solid: {
     background: "linear-gradient(135deg, rgba(0,0,0,0.7), rgba(20,15,35,0.8))",
-    border: "1px solid rgba(255,255,255,0.12)",
     boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
   },
 };

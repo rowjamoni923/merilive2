@@ -170,9 +170,6 @@ export function IncomingCallModal({
               transition={{ delay: 0.12, type: 'spring', damping: 20, stiffness: 240 }}
               className="flex flex-col items-center mt-10"
               style={{
-                transform: `translate3d(${tilt.x}px, ${tilt.y}px, 0)`,
-                transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-                willChange: 'transform',
               }}
             >
               <div className="relative">
@@ -257,7 +254,6 @@ export function IncomingCallModal({
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
                   style={{
-                    background: 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #b91c1c 100%)',
                     boxShadow:
                       '0 10px 28px -6px rgba(239,68,68,0.65), 0 4px 12px -2px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.3)',
                     border: '1px solid rgba(252,165,165,0.45)',
@@ -290,7 +286,6 @@ export function IncomingCallModal({
                         'radial-gradient(120% 120% at 30% 20%, #86efac 0%, #22c55e 45%, #15803d 100%)',
                       boxShadow:
                         '0 12px 32px -6px rgba(34,197,94,0.65), 0 4px 12px -2px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(0,0,0,0.3)',
-                      border: '1px solid rgba(134,239,172,0.5)',
                     }}
                   >
                     <Phone className="w-8 h-8 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />

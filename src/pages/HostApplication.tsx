@@ -110,9 +110,6 @@ const HostApplication = () => {
 
         if (profileData?.is_host) {
           toast({
-            title: "Error",
-            description: "This user is already registered as a host",
-            variant: "destructive",
           });
           setUserNotFound(true);
         } else {
@@ -142,9 +139,6 @@ const HostApplication = () => {
   const sendAppVerificationCode = async () => {
     if (!foundUser) {
       toast({
-        title: "Error",
-        description: "Please search for a user first",
-        variant: "destructive",
       });
       return;
     }
@@ -170,8 +164,6 @@ const HostApplication = () => {
       if (error) throw error;
 
       toast({
-        title: "✅ Code Sent to App",
-        description: `Verification code sent to ${foundUser.display_name || 'User'}'s app`,
       });
       setAppCodeSent(true);
       setStep('verification');
@@ -179,9 +171,6 @@ const HostApplication = () => {
       console.error('Notification error:', error);
       recordClientError({ label: "HostApplication.code", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Error",
-        description: error.message || "Failed to send verification code",
-        variant: "destructive",
       });
     } finally {
       setSendingAppCode(false);
@@ -194,14 +183,9 @@ const HostApplication = () => {
       setAppVerified(true);
       setVerificationStep(2);
       toast({
-        title: "✅ App Verification Successful!",
-        description: "Now verify your email",
       });
     } else {
       toast({
-        title: "Wrong Code",
-        description: "Please enter the correct app verification code",
-        variant: "destructive",
       });
     }
   };
@@ -210,9 +194,6 @@ const HostApplication = () => {
   const sendEmailVerificationCode = async () => {
     if (!email.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter an email address",
-        variant: "destructive",
       });
       return;
     }
@@ -223,28 +204,20 @@ const HostApplication = () => {
 
     try {
       const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: {
           email: email.trim(),
-          code: code,
           agencyName: foundUser?.display_name || 'Host Application',
-          type: 'email'
         }
       });
 
       if (error) throw error;
 
       toast({
-        title: "✅ Code Sent to Email",
-        description: `Verification code sent to ${email}`,
       });
       setEmailCodeSent(true);
     } catch (error: any) {
       console.error('Email error:', error);
       recordClientError({ label: "HostApplication.code", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Error",
-        description: error.message || "Failed to send verification email",
-        variant: "destructive",
       });
     } finally {
       setSendingEmailCode(false);
@@ -256,14 +229,9 @@ const HostApplication = () => {
     if (emailCode === generatedEmailCode) {
       setEmailVerified(true);
       toast({
-        title: "✅ Email Verification Successful!",
-        description: "You can now submit your application",
       });
     } else {
       toast({
-        title: "Wrong Code",
-        description: "Please enter the correct verification code",
-        variant: "destructive",
       });
     }
   };
@@ -272,18 +240,12 @@ const HostApplication = () => {
   const handleSubmit = async () => {
     if (!appVerified || !emailVerified) {
       toast({
-        title: "Error",
-        description: "Please complete both verification steps",
-        variant: "destructive",
       });
       return;
     }
 
     if (!agreeTerms) {
       toast({
-        title: "Error",
-        description: "Please agree to the terms and conditions",
-        variant: "destructive",
       });
       return;
     }
@@ -295,7 +257,6 @@ const HostApplication = () => {
       const { error } = await supabase
         .from("profiles")
         .update({
-          is_host: true,
           host_status: 'approved'
         })
         .eq("id", foundUser!.id);
@@ -304,27 +265,16 @@ const HostApplication = () => {
 
       // Send success notification
       await supabase.functions.invoke('send-app-notification', {
-        body: {
-          userId: foundUser!.id,
-          templateKey: 'welcome_message',
-          variables: {
-            display_name: foundUser!.display_name || 'Host'
           },
-          type: 'host_approved'
         }
       });
 
       setStep('success');
       toast({
-        title: "🎉 Congratulations!",
-        description: "Host registration successful",
       });
 
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit application",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

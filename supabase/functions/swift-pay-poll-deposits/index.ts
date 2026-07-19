@@ -145,9 +145,6 @@ Deno.serve(async (req) => {
       const isPaid = bal.total_deposited >= neededTotal - 0.01;
       const snapshot = {
         checked_at: nowIso,
-        status_code: bal.status_code,
-        balance: bal.balance,
-        total_deposited: bal.total_deposited,
         expected_usd: expectedUsd,
         prior_used_usd: usedUsd,
         needed_total_usd: neededTotal,
@@ -177,7 +174,7 @@ Deno.serve(async (req) => {
       let creditRes: any = null;
 
       // Bug #2: credit-time campaign re-validation. Industry anchor = payment-confirm time, not init time.
-      // If the campaign expired/became ineligible between init and credit, credit only the BASE coins
+      // If the campaign expired/became ineligible between init and credit, credit only the BASE diamonds
       // (skip bonus_diamonds) so the user still receives their paid value without an unearned bonus.
       let creditDiamonds = row.diamonds_amount;
       let campaignReeval: any = null;
@@ -209,7 +206,6 @@ Deno.serve(async (req) => {
         creditRes = data;
       } else {
         const { data, error } = await admin.rpc("safe_credit_diamonds", {
-          p_user_id: row.user_id,
           p_amount: creditDiamonds,
           p_gateway: "swift_pay",
           p_order_id: row.id,
@@ -223,15 +219,12 @@ Deno.serve(async (req) => {
 
       if (creditErr) {
         await admin.from("swift_pay_topups").update({
-          status: "failed",
-          error_message: creditErr.message,
         }).eq("id", row.id);
         results.push({ id: row.id, error: creditErr.message });
         continue;
       }
 
       await admin.from("swift_pay_topups").update({
-        status: "credited",
         credited_at: nowIso,
       }).eq("id", row.id);
       priorPaidUsdCache.set(row.external_user_id, usedUsd + expectedUsd);
@@ -254,7 +247,7 @@ Deno.serve(async (req) => {
       }
 
       credited++;
-      results.push({ id: row.id, credited: true, coins: creditDiamonds, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
+      results.push({ id: row.id, credited: true, diamonds: creditDiamonds, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
     } catch (e) {
       console.error("[swift-pay-poll-deposits] row error", row.id, e);
       results.push({ id: row.id, error: (e as Error).message });

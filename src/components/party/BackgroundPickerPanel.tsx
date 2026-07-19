@@ -227,7 +227,6 @@ export function BackgroundPickerPanel({
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: "radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.40) 100%)",
           }}
         />
 
@@ -243,8 +242,6 @@ export function BackgroundPickerPanel({
             <div
               className="flex items-center gap-1 px-2 py-1 rounded-full border border-amber-400/40"
               style={{
-                background: "linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.55))",
-                boxShadow: "0 4px 12px -2px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.10)",
               }}
             >
               <Diamond3DIcon size={12} />
@@ -260,7 +257,6 @@ export function BackgroundPickerPanel({
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: "linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.22) 50%, transparent 58%)",
                 animation: "giftSendShine 2.6s ease-in-out infinite",
               }}
             />
@@ -274,7 +270,6 @@ export function BackgroundPickerPanel({
                   accent === "amber"
                     ? "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)"
                     : "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)",
-                boxShadow: `0 4px 12px -2px ${tone.glow}, inset 0 1px 0 rgba(255,255,255,0.4)`,
               }}
             >
               <Check className="w-3 h-3 text-white" strokeWidth={3} />
@@ -292,8 +287,6 @@ export function BackgroundPickerPanel({
           <div
             className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold text-emerald-50"
             style={{
-              background: "linear-gradient(135deg, rgba(16,185,129,0.85), rgba(5,150,105,0.85))",
-              boxShadow: "0 2px 6px -1px rgba(16,185,129,0.55)",
             }}
           >
             OWNED
@@ -327,7 +320,6 @@ export function BackgroundPickerPanel({
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
             className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] overflow-hidden max-h-[85dvh] border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)] flex flex-col"
             style={{
-              background: "linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)",
               backdropFilter: "blur(24px)",
               WebkitBackdropFilter: "blur(24px)",
             }}
@@ -347,8 +339,6 @@ export function BackgroundPickerPanel({
                 <div
                   className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden shrink-0"
                   style={{
-                    background: "linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)",
-                    boxShadow: "0 6px 18px -4px rgba(59,130,246,0.55), inset 0 1px 0 rgba(255,255,255,0.35)",
                   }}
                 >
                   <Sparkles className="w-5 h-5 text-white relative z-10" />
@@ -357,7 +347,6 @@ export function BackgroundPickerPanel({
                     style={{
                       background:
                         "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.45) 50%, transparent 60%)",
-                      animation: "giftSendShine 3.2s ease-in-out infinite",
                     }}
                   />
                 </div>
@@ -365,7 +354,6 @@ export function BackgroundPickerPanel({
                   <h3
                     className="text-lg font-bold leading-tight truncate"
                     style={{
-                      background: "linear-gradient(90deg, #ffffff, #cffafe 60%, #67e8f9)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
@@ -382,9 +370,6 @@ export function BackgroundPickerPanel({
                 <div
                   className="hidden xs:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
                   style={{
-                    background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(217,119,6,0.10))",
-                    border: "1px solid rgba(251,191,36,0.30)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
                   }}
                 >
                   <Diamond3DIcon size={12} />
@@ -408,8 +393,6 @@ export function BackgroundPickerPanel({
                 <div
                   className="flex items-center gap-2 px-3 py-2 rounded-xl"
                   style={{
-                    background: "linear-gradient(135deg, rgba(251,191,36,0.10), rgba(251,191,36,0.05))",
-                    border: "1px solid rgba(251,191,36,0.20)",
                   }}
                 >
                   <ShieldAlert className="w-4 h-4 text-amber-300 shrink-0" />
@@ -446,8 +429,6 @@ export function BackgroundPickerPanel({
                   <div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
                     style={{
-                      background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
-                      border: "1px solid rgba(255,255,255,0.08)",
                     }}
                   >
                     <ImageOff className="w-7 h-7 text-white/40" />
@@ -470,7 +451,6 @@ export function BackgroundPickerPanel({
                       style={{
                         background:
                           "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
                       }}
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -503,10 +483,6 @@ export function BackgroundPickerPanel({
                         <h4
                           className="text-[11px] font-semibold uppercase tracking-wider"
                           style={{
-                            background: "linear-gradient(90deg, #fde68a, #fbbf24)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
                           }}
                         >
                           Premium Backgrounds
@@ -554,8 +530,6 @@ export function BackgroundPickerPanel({
                   transition={{ type: "spring", damping: 26, stiffness: 320 }}
                   className="w-full max-w-sm rounded-3xl overflow-hidden border border-white/10"
                   style={{
-                    background: "linear-gradient(180deg, rgba(28,20,48,0.98) 0%, rgba(14,10,28,0.99) 100%)",
-                    boxShadow: "0 30px 80px -10px rgba(0,0,0,0.7), 0 0 40px rgba(251,191,36,0.10)",
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -593,8 +567,6 @@ export function BackgroundPickerPanel({
                       <div
                         className="rounded-xl p-3 text-center"
                         style={{
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.08)",
                         }}
                       >
                         <p className="text-white/55 text-[10px] uppercase tracking-wider mb-1">Price</p>
@@ -608,8 +580,6 @@ export function BackgroundPickerPanel({
                       <div
                         className="rounded-xl p-3 text-center"
                         style={{
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.08)",
                         }}
                       >
                         <p className="text-white/55 text-[10px] uppercase tracking-wider mb-1">Balance</p>
@@ -640,7 +610,6 @@ export function BackgroundPickerPanel({
                         }}
                         className="w-full py-3 rounded-full font-bold text-white transition-all active:scale-95"
                         style={{
-                          background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
                           boxShadow:
                             "0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.30)",
                         }}
@@ -653,7 +622,6 @@ export function BackgroundPickerPanel({
                         disabled={purchasing}
                         className="w-full py-3 rounded-full font-bold text-white transition-all active:scale-95 disabled:opacity-60"
                         style={{
-                          background: "linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)",
                           boxShadow:
                             "0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.25)",
                         }}

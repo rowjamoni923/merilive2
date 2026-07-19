@@ -229,9 +229,6 @@ serve(async (req) => {
     const isRestrictedHost = userProfile.is_host === true && userProfile.is_agency_owner !== true && !helperProfile;
     if (!isRestrictedHost) {
       return jsonResponse({
-        detected: false,
-        skipped: true,
-        reason: userProfile.is_agency_owner === true ? "sender_is_agency_owner" : helperProfile ? "sender_is_helper" : "sender_not_host",
       });
     }
 
@@ -255,16 +252,12 @@ serve(async (req) => {
     } catch (err) {
       console.error("[live-voice-moderate] transcription failed:", err);
       return jsonResponse({
-        detected: false,
-        skipped: true,
-        reason: "transcription_failed",
       });
     }
 
     const result = detectContactInTranscript(transcript);
     if (!result.detected) {
       return jsonResponse({
-        detected: false,
         transcript_length: transcript.length,
       });
     }
@@ -302,12 +295,8 @@ serve(async (req) => {
     }
 
     return jsonResponse({
-      detected: true,
-      matches: result.matches,
-      confidence: result.confidence,
       context,
       is_host: userProfile.is_host === true,
-      beans_deducted: Number((violationResult as any)?.beans_deducted || 0),
       violation_number: Number((violationResult as any)?.violation_number || 0),
     });
   } catch (err) {

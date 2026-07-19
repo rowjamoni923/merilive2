@@ -97,7 +97,6 @@ export default function AdminPendingApprovals() {
   const reject = async (id: string) => {
     setBusyId(id);
     const { data, error } = await adminSupabase.rpc("admin_reject_pending_action", {
-      _id: id, _notes: notesById[id] || null,
     });
     setBusyId(null);
     if (error) { toast.error(error.message); return; }

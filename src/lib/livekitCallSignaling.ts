@@ -96,7 +96,6 @@ function makeHandler(callId: string) {
         callId,
         acceptedBy: p.acceptedBy || env.s || 'unknown',
         at: p.at,
-        sender: participant?.identity,
       };
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
@@ -133,11 +132,9 @@ function dispatchCallEnvelope(callId: string, payload: Uint8Array, participantId
     const p = (env.p ?? {}) as Partial<CallAcceptedPayload>;
     if (p.callId && p.callId !== callId) return;
     window.dispatchEvent(new CustomEvent<CallAcceptedDetail>('livekit-call-accepted', {
-      detail: {
         callId,
         acceptedBy: p.acceptedBy || env.s || 'unknown',
         at: p.at,
-        sender: participantIdentity,
       },
     }));
   }
@@ -270,7 +267,6 @@ export async function publishCallAccepted(
     if (!entry && nativeRegistry.has(callId)) {
       const env = buildEnvelope('call', 'call_accepted', {
         callId,
-        at: Date.now(),
         ...payload,
       }, payload.acceptedBy);
       const ok = await nativeLiveKitController.sendData(encodeEnvelope(env), { reliable: true, topic: 'call' });

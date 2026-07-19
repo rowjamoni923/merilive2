@@ -222,18 +222,11 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
           transition={{ duration: 0.08 }}
           className="pointer-events-none"
           style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
-            zIndex: 99999,
             overflow: 'visible',
           }}
         >
           <div
             style={{
-              position: 'absolute',
-              top: '50%', left: '50%',
-              width: '100%', height: '100%',
               transform: 'translate(-50%, -50%) scale(1.6)',
               transformOrigin: 'center center',
             }}
@@ -270,23 +263,10 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
         transition={{ duration: 0.1 }}
         className="pointer-events-none"
         style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
-          zIndex: 99999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            top: '50%', left: '50%',
-            width: '100%', height: '100%',
-            transform: 'translate(-50%, -50%) scale(1.2)',
-            transformOrigin: 'center center',
           }}
         >
           <EntryAnimationFrame
@@ -314,10 +294,6 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
     <div 
       className="pointer-events-none overflow-hidden"
       style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
-        width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
-        zIndex: 100000,
         margin: 0, padding: 0,
       }}
     >
@@ -340,9 +316,6 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             style={{
-              position: 'fixed',
-              top: 0, left: 0,
-              width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh',
               background: entry.animationType === 'vehicle'
                 ? 'radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(20,10,5,0.55) 100%)'
                 : 'radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(15,5,30,0.5) 100%)',

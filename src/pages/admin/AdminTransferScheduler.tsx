@@ -66,7 +66,6 @@ const AdminTransferScheduler = () => {
     timezone: 'Asia/Dhaka'
   });
   const [commissionSchedule, setCommissionSchedule] = useState<CommissionSchedule>({
-    is_active: true,
     delay_hours_after_transfer: 1,
     next_run_at: null,
     last_run_at: null,
@@ -140,11 +139,6 @@ const AdminTransferScheduler = () => {
       if (data?.setting_value) {
         const value = parseSettingValue<CommissionSchedule>(data.setting_value) as CommissionSchedule;
         setCommissionSchedule({
-          is_active: value.is_active ?? true,
-          delay_hours_after_transfer: value.delay_hours_after_transfer ?? 1,
-          next_run_at: value.next_run_at ?? null,
-          last_run_at: value.last_run_at ?? null,
-          last_result: value.last_result ?? null,
         });
       }
     } catch (error) {
@@ -172,9 +166,6 @@ const AdminTransferScheduler = () => {
       const result = data?.result || {};
       await saveCommissionSchedule({
         ...commissionSchedule,
-        last_run_at: new Date().toISOString(),
-        next_run_at: null,
-        last_result: result,
       });
       toast.success(
         `Commission distributed: ${result.transfers_processed ?? 0} transfers, ${formatNumber(result.own_commission_total ?? 0)} agency + ${formatNumber(result.upper_bonus_total ?? 0)} upper bonus`
@@ -223,7 +214,6 @@ const AdminTransferScheduler = () => {
             processed_at: new Date(key).toISOString(),
             total_transfers: val.count,
             total_amount: val.total,
-            status: val.status
           }))
           .slice(0, 20);
 
@@ -280,7 +270,6 @@ const AdminTransferScheduler = () => {
       } else {
         grouped.set(key, {
           name: d.agency_name || 'Unknown Agency',
-          total: Number(d.amount) || 0,
           hosts: [d]
         });
       }
@@ -298,11 +287,6 @@ const AdminTransferScheduler = () => {
       const base: Record<string, unknown> = latest && typeof latest === 'object' ? { ...latest } : {};
 
       const editable = {
-        is_active: newSchedule.is_active,
-        schedule_day_of_week: newSchedule.schedule_day_of_week,
-        schedule_hour: newSchedule.schedule_hour,
-        schedule_minute: newSchedule.schedule_minute,
-        timezone: newSchedule.timezone,
       };
 
       // Always recompute next_transfer_at from the (potentially updated) knobs.
@@ -356,7 +340,6 @@ const AdminTransferScheduler = () => {
     setProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke('agency-weekly-transfer', {
-        body: { manual: true, timezone: schedule.timezone }
       });
 
       if (error) throw error;
@@ -364,17 +347,11 @@ const AdminTransferScheduler = () => {
       // Update last transfer time
       const newSchedule = {
         ...schedule,
-        last_transfer_at: new Date().toISOString()
       };
       await saveSchedule(newSchedule);
 
       // Add to history
       const newHistory: TransferHistory = {
-        id: crypto.randomUUID(),
-        processed_at: new Date().toISOString(),
-        total_transfers: data?.result?.total_transfers || 0,
-        total_amount: data?.result?.total_amount || 0,
-        status: 'completed'
       };
 
       const updatedHistory = [newHistory, ...history].slice(0, 10);
@@ -400,7 +377,6 @@ const AdminTransferScheduler = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
-      timeZone: 'Asia/Dhaka',
       dateStyle: 'medium',
       timeStyle: 'short'
     });

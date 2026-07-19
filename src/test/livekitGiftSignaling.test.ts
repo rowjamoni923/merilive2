@@ -107,13 +107,11 @@ describe('Pkg76 livekitGiftSignaling', () => {
 
     // Wrong id
     let env = buildEnvelope('gift', 'gift_sent', {
-      scope: 'live', id: 'stream-OTHER', senderId: 's',
     }, 's');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 's' });
 
     // Wrong scope
     env = buildEnvelope('gift', 'gift_sent', {
-      scope: 'party', id: 'stream-1', senderId: 's',
     }, 's');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 's' });
 
@@ -144,7 +142,6 @@ describe('Pkg76 livekitGiftSignaling', () => {
     window.addEventListener('livekit-gift-sent', listener);
 
     const env = buildEnvelope('gift', 'gift_sent', {
-      scope: 'party', id: 'party-1', senderId: 's',
     }, 's');
     const bytes = encodeEnvelope(env);
     // Same envelope id arrives twice — dedupe should drop the second.
@@ -168,10 +165,6 @@ describe('Pkg76 livekitGiftSignaling', () => {
     registerGiftRoom('live', 'stream-1', room as any);
 
     const ok = await publishGiftSent('live', 'stream-1', {
-      senderId: 'sender-1',
-      giftName: 'Rose',
-      count: 1,
-      giftCoins: 10,
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();
@@ -182,7 +175,6 @@ describe('Pkg76 livekitGiftSignaling', () => {
 
   it('publishGiftSent returns false when (scope,id) is unknown', async () => {
     const ok = await publishGiftSent('live', 'does-not-exist', {
-      senderId: 'me',
     });
     expect(ok).toBe(false);
   });
@@ -192,7 +184,6 @@ describe('Pkg76 livekitGiftSignaling', () => {
     (room as any).state = 'disconnected';
     registerGiftRoom('party', 'party-2', room as any);
     const ok = await publishGiftSent('party', 'party-2', {
-      senderId: 'me',
     });
     expect(ok).toBe(false);
   });

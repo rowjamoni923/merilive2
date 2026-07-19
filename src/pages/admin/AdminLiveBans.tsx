@@ -170,15 +170,11 @@ export default function AdminLiveBans() {
             .select('id,display_name,avatar_url,app_uid')
             .in('id', userIds);
           (profs || []).forEach((p: any) => profileMap.set(p.id, {
-            display_name: p.display_name || '',
-            avatar_url: p.avatar_url || '',
-            app_uid: p.app_uid || (p.id ? p.id.slice(0, 8) : ''),
           }));
         }
 
         const mapped = (rows || []).map((row: any) => ({
           ...row,
-          profiles: profileMap.get(row.user_id) || undefined,
         }));
         setBans(mapped as unknown as LiveBan[]);
       } catch (fallbackErr: any) {
@@ -274,17 +270,9 @@ export default function AdminLiveBans() {
       }
 
       const { error } = await supabase.from('live_bans').insert({
-        user_id: targetId,
-        ban_reason: newBanReason || 'Manual ban by admin',
         reason: newBanReason || 'Manual ban by admin',
-        violation_type: newBanViolationType,
         ban_type: newBanDuration === 'permanent' ? 'permanent' : 'temporary',
-        ban_duration_hours: newBanDuration === 'permanent' ? null : parseInt(newBanDuration),
-        ban_start: new Date().toISOString(),
-        ban_end: banEnd,
         expires_at: banEnd,
-        is_active: true,
-        auto_banned: false,
       } as any);
       if (error) throw error;
 
@@ -317,9 +305,6 @@ export default function AdminLiveBans() {
         const { error } = await supabase
           .from('live_bans')
           .update({
-            is_active: false,
-            unbanned_by: userData.user?.id,
-            unbanned_at: new Date().toISOString(),
             unban_reason: unbanReason || 'Unbanned by admin',
           } as any)
           .eq('id', selectedBan.id);
@@ -649,10 +634,6 @@ export default function AdminLiveBans() {
                                           const { error } = await supabase
                                             .from('live_bans')
                                             .update({
-                                              is_active: false,
-                                              unbanned_by: userData.user?.id,
-                                              unbanned_at: new Date().toISOString(),
-                                              unban_reason: 'Quick unban by admin',
                                             })
                                             .eq('id', ban.id);
                                           

@@ -204,7 +204,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }, [profile?.display_name, profile?.username, currentUser?.user_metadata?.username, currentUser?.user_metadata?.full_name, currentUser?.user_metadata?.name]);
 
   const resolvedDiamondBalance = useMemo(() => {
-    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.diamonds ?? 0)); // DU-3: diamonds canonical; coins fallback until DU-5
+    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.diamonds ?? 0)); // DU-3: diamonds canonical; diamonds fallback until DU-5
     return balanceInitialized ? cachedBalance : profileBalance;
   }, [balanceInitialized, cachedBalance, profile?.diamonds, (profile as any)?.diamonds]);
 
@@ -243,13 +243,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [transferSearching, setTransferSearching] = useState(false);
   const [transferProcessing, setTransferProcessing] = useState(false);
   const [searchedUser, setSearchedUser] = useState<{
-    id: string;
     display_name: string | null;
     avatar_url: string | null;
     app_uid: string | null;
   } | null>(null);
   const [searchedAgency, setSearchedAgency] = useState<{
-    id: string;
     name: string | null;
     agency_code: string | null;
     diamond_balance: number | null;
@@ -346,47 +344,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       ]);
 
       const transferList = (transfersRes.data || []).map((r: any) => ({
-        id: r.id,
-        sender_id: r.sender_id,
-        receiver_id: r.receiver_id,
-        amount: Number(r.amount || 0),
-        transfer_type: r.transfer_type,
-        status: r.status,
-        notes: r.notes,
-        created_at: r.created_at,
-        direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
-        kind: 'transfer' as const,
-        currency: 'diamond' as const,
       }));
 
       const giftSentList = (giftsSentRes.data || []).map((g: any) => ({
-        id: `gs-${g.id}`,
-        sender_id: g.sender_id,
-        receiver_id: g.receiver_id,
-        amount: Number(g.diamond_amount || 0),
-        transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
-        status: 'completed',
-        notes: null,
-        created_at: g.created_at,
-        direction: 'sent' as const,
-        kind: 'gift' as const,
-        currency: 'diamond' as const,
       }));
 
       const giftRecvList = (giftsRecvRes.data || []).map((g: any) => {
         const beans = Number(g.receiver_beans || 0);
         return {
-          id: `gr-${g.id}`,
-          sender_id: g.sender_id,
-          receiver_id: g.receiver_id,
-          amount: beans > 0 ? beans : Number(g.diamond_amount || 0),
-          transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
-          status: 'completed',
-          notes: null,
-          direction: 'received' as const,
-          kind: 'gift' as const,
-          currency: (beans > 0 ? 'bean' : 'diamond') as 'bean' | 'diamond',
-          created_at: g.created_at,
         };
       });
 
@@ -409,52 +374,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 ? 'Trader → Agency'
                 : (r.description || 'Trader Wallet');
           return {
-            id: `ht-${r.id}`,
-            sender_id: isCredit ? '' : authUser.id,
-            receiver_id: isCredit ? authUser.id : '',
-            amount: Math.abs(amt),
-            transfer_type: label,
-            status: 'completed',
-            notes: r.description || null,
-            created_at: r.created_at,
-            direction: (isCredit ? 'received' : 'sent') as 'sent' | 'received',
-            kind: 'helper_ledger' as const,
-            currency: 'diamond' as const,
-            counterparty_name: isCredit ? 'Admin / Top-up' : (label.includes('Agency') ? 'Agency' : 'My Diamond Balance'),
           };
         });
 
       const traderLedgerList = (traderLedgerRes.data || [])
         .filter((r: any) => String(r.transfer_type || '').toLowerCase() === 'to_agency')
         .map((r: any) => ({
-          id: `tt-${r.id}`,
-          sender_id: r.user_id,
-          receiver_id: r.counterparty_agency_id || '',
-          amount: Number(r.amount || 0),
-          transfer_type: 'Trader → Agency',
-          status: r.status || 'completed',
-          notes: null,
-          created_at: r.created_at,
-          direction: 'sent' as const,
-          kind: 'trader_ledger' as const,
-          currency: 'diamond' as const,
-          counterparty_name: 'Agency',
         }));
 
       const agencyLedgerList = (((agencyLedgerRes as any).data) || [])
         .filter((r: any) => String(r.transaction_type || '').toLowerCase() === 'transfer_in')
         .map((r: any) => ({
-          id: `ad-${r.id}`,
-          sender_id: r.user_id || '',
-          receiver_id: authUser.id,
-          amount: Number(r.diamond_amount || 0),
-          transfer_type: 'Agency Top-up Received',
-          status: 'completed',
-          notes: r.description || null,
-          created_at: r.created_at,
-          direction: 'received' as const,
-          kind: 'agency_ledger' as const,
-          currency: 'diamond' as const,
         }));
 
       const list = [...transferList, ...giftSentList, ...giftRecvList, ...helperLedgerList, ...traderLedgerList, ...agencyLedgerList]
@@ -539,9 +469,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     if (latestAgencyResult.data) {
       setAgencyData({
-        id: latestAgencyResult.data.id,
-        name: latestAgencyResult.data.name,
-        diamond_balance: nextAgencyBalance,
         beans_balance: Number(latestAgencyResult.data.wallet_balance || 0),
       });
     } else if (shouldLoadAgency) {
@@ -549,11 +476,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     }
 
     return {
-      traderWallet: nextTraderWallet,
-      agencyBalance: nextAgencyBalance,
       personalCoins,
-      total: nextTraderWallet + nextAgencyBalance,
-      selfRechargeTotal: nextTraderWallet + nextAgencyBalance,
     };
   };
 
@@ -727,12 +650,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           const { error: createProfileError } = await supabase
             .from("profiles")
             .insert({
-              id: authUser.id,
-              display_name: displayName,
               username: authUser.email?.includes('@meri.local') ? null : authUser.email?.split('@')[0] || null,
-              avatar_url: avatarUrl,
               gender: authUser.user_metadata?.gender || 'male',
-              app_uid: appUid,
               last_seen: new Date().toISOString(),
             });
 
@@ -844,8 +763,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         const friendsCount = followerIds.filter(id => followingIds.has(id)).length;
 
         setStats({
-          followersCount: followersResult?.count || 0,
-          followingCount: followingResult?.count || 0,
           friendsCount
         });
 
@@ -858,10 +775,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           setBeans(personalBeans);
           setAgencyData({
-            id: agencyBeansResult.data.id,
-            name: (profileData.display_name || profileData.username || 'My') + "'s Agency",
-            beans_balance: rawAgencyBeans,
-            diamond_balance: agencyDiamonds,
           });
           console.log('[Profile] Agency owner personal beans:', personalBeans, 'Agency total beans:', rawAgencyBeans, 'Agency diamonds:', agencyDiamonds, 'Helper wallet:', helperWalletBalance, 'Total Trader Wallet:', agencyDiamonds + helperWalletBalance);
         } else {
@@ -912,10 +825,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 .maybeSingle();
               if (helperAgency) {
                 setAgencyData({
-                  id: helperAgency.id,
-                  name: helperAgency.name || 'Agency',
-                  diamond_balance: helperAgency.diamond_balance || 0,
-                  beans_balance: helperAgency.wallet_balance || 0,
                 });
               }
             }
@@ -1003,7 +912,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             // here — the signup trigger sets host_status='pending_face' for
             // every new female account before any submission exists, which
             // would otherwise flash a false "Under Review" banner on the very
-            // first realtime payload (coins/last_seen/anything).
+            // first realtime payload (diamonds/last_seen/anything).
             if (payload?.is_face_verified === true) {
               setFaceVerificationPending(false);
               setFaceVerificationStatus('approved');
@@ -1040,9 +949,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setFaceVerificationStatus('needs_retry');
               setFaceVerificationPending(false);
               toast({
-                title: 'Re-upload required',
-                description: 'Your photo, video and live scan do not match. Please retry the failing step.',
-                variant: 'destructive',
               });
               navigate('/face-verification');
             }
@@ -1066,8 +972,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           if (table === 'agencies' && payload?.owner_id === activeProfileId) {
             setAgencyData(prev => prev ? {
               ...prev,
-              diamond_balance: payload.diamond_balance ?? prev.diamond_balance,
-              beans_balance: payload.wallet_balance ?? prev.beans_balance,
             } : prev);
             // Activation/cancellation/reactivation by admin must instantly reflect
             // the Agency Dashboard menu item in the owner's profile menu.
@@ -1233,7 +1137,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     
     try {
       const { data: userDataRows, error: userError } = await supabase.rpc('search_user_by_app_uid', {
-        _app_uid: transferSearchQuery.trim().toUpperCase()
       });
 
       if (userError) throw userError;
@@ -1259,8 +1162,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       if (agencyData) {
         setSearchedAgency({
           ...agencyData,
-          owner_name: userData.display_name,
-          owner_uid: userData.app_uid
         });
       } else {
         toast({ title: "No Agency", description: "This user doesn't own any agency", variant: "destructive" });
@@ -1399,9 +1300,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       : `Your Trader Wallet balance is ${newBalance.toLocaleString()} 💎. If it drops below 300,000, your payment numbers will be automatically hidden from the Recharge page until your balance is restored above 300,000.`;
 
     toast({
-      title: warningTitle,
-      description: warningBody,
-      variant: "destructive",
       duration: 10000,
     });
 
@@ -1409,7 +1307,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       await supabase.from("notifications").insert({
         user_id: userId,
         type: "low_balance_warning",
-        title: warningTitle,
         message: warningBody,
         data: { wallet_balance: newBalance, threshold: HIDE_THRESHOLD, warning_threshold: WARN_THRESHOLD },
       });
@@ -1452,8 +1349,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       updateCachedBalance(result.new_coins);
 
       toast({
-        title: "Self Recharge Successful! ✅",
-        description: `${amount.toLocaleString()} 💎 added to your My Diamond Balance`,
       });
 
       // Check low balance warning on the single combined Trader Wallet balance.
@@ -1497,7 +1392,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const { data, error } = await supabase.rpc('helper_transfer_diamonds_to_user', {
         _sender_id: currentUser.id,
         _receiver_id: searchedUser.id,
-        _amount: amount,
         _sender_type: senderType
       });
       console.log('[UserTransfer] DEBUG: RPC response =', JSON.stringify(data), 'error =', error);
@@ -1513,7 +1407,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       if (result.user_deducted > 0) {
         const newPersonalBalance = Math.max(0, resolvedDiamondBalance - result.user_deducted);
         updateCachedBalance(newPersonalBalance);
-        setProfile((prev: any) => prev ? { ...prev, coins: newPersonalBalance } : prev);
+        setProfile((prev: any) => prev ? { ...prev, diamonds: newPersonalBalance } : prev);
       }
       if (result.agency_deducted > 0 && agencyData) {
         setAgencyData(prev => prev ? { ...prev, diamond_balance: (prev.diamond_balance || 0) - result.agency_deducted } : null);
@@ -1566,10 +1460,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       console.log('[AgencyTransfer] DEBUG: senderType =', senderType, 'targetAgencyId =', searchedAgency.id, 'amount =', amount);
       const { data, error } = await supabase.rpc('helper_transfer_diamonds_to_agency', {
-        _sender_id: currentUser.id,
         _target_agency_id: searchedAgency.id,
-        _amount: amount,
-        _sender_type: senderType
       });
       console.log('[AgencyTransfer] DEBUG: RPC response =', JSON.stringify(data), 'error =', error);
 
@@ -1589,8 +1480,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
 
       toast({ 
-        title: "Transfer Successful! ✅", 
-        description: `${amount.toLocaleString()} 💎 sent to ${searchedAgency.name}` 
       });
 
       // Check low balance warning on combined trader wallet balance
@@ -1785,9 +1674,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     if (error) {
       setHostAvailability(prev);
       toast({
-        title: "Failed to update status",
-        description: error.message || undefined,
-        variant: "destructive",
       });
       return;
     }
@@ -1796,8 +1682,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Hard-offline: kill presence + push user out of app
       try { await goOfflineManually(currentUser.id); } catch {}
       toast({
-        title: "You are now Offline",
-        description: "Calls and messages are blocked. You'll be back online when you re-open the app and tap Go Online.",
       });
       // Native: exit app; Web: navigate home so chat/call screens unmount
       setTimeout(async () => {
@@ -1813,8 +1697,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }, 1500);
     } else {
       toast({
-        title: "You are now Online",
-        description: "Users can see and call you",
       });
     }
   }, [currentUser?.id, hostAvailability, toast, navigate]);
@@ -1839,71 +1721,34 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     },
     // Messages always at top for all users
     { 
-      icon: MessageCircle, 
-      label: "Messages", 
-      path: "/chat", 
       badge: (globalUnread.messages + notificationCount) > 0 ? String(globalUnread.messages + notificationCount) : undefined,
-      iconBg: "bg-pink-100",
-      iconColor: "text-pink-500",
-      show: isOwnProfile
     },
     // Host Registration — for female candidates (unifies agency join + face verification)
     {
-      icon: Star,
-      label: "Host Registration",
-      path: "/host-verification",
-      rightText: faceVerificationUnderReview ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
       rightTextClass: faceVerificationUnderReview ? "text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full" : faceVerificationRejected ? "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full" : "text-pink-600",
       highlight: !faceVerificationUnderReview,
-      iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
-      iconColor: "text-display",
-      show: canApplyForHost,
-      onClick: faceVerificationUnderReview ? () => {
         toast({ title: "Under Review", description: "Your host application is being reviewed by our team. Please wait." });
       } : undefined,
     },
     // Face Verification — only for non-host-candidate users (males); females use Host Registration
     {
-      icon: UserCheck,
-      label: "Face Verification",
-      path: faceVerificationUnderReview ? "" : "/face-verification",
-      rightText: faceVerificationUnderReview ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Required",
-      rightTextClass: faceVerificationUnderReview ? "text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full" : faceVerificationRejected ? "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full" : "text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full",
-      highlight: !faceVerificationUnderReview,
-      iconBg: faceVerificationUnderReview ? "bg-yellow-50 border border-yellow-200" : "bg-amber-100",
-      iconColor: faceVerificationUnderReview ? "text-yellow-600" : "text-amber-500",
-      show: isOwnProfile && !isFaceVerified && !canApplyForHost, // hidden for females (they see Host Registration)
-      onClick: faceVerificationUnderReview ? () => {
         toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
       } : undefined,
     },
     {
-      icon: PhoneCall,
-      label: "Call Price Update",
       action: "call_price",
-      rightText: (() => {
         if (!callRateSettings) return "Loading...";
         const hostLevel = getEffectiveHostLevel((profile as any)?.host_level);
         const levelRates = callRateSettings?.level_rates || [];
         const levelRate = levelRates.find((lr: any) => lr.level === hostLevel);
         const diamondRate = resolveEffectiveCallRate({
-          settings: callRateSettings,
-          hostLevel: (profile as any)?.host_level,
-          customRate: (profile as any)?.call_rate_per_minute,
         }) || (levelRate?.rate || callRateSettings?.default_rate || 2000);
         const commissionPercent = callRateSettings?.host_commission_percent || 55;
         const beansPerMin = Math.floor(diamondRate * commissionPercent / 100);
         return `${beansPerMin} Beans/min`;
       })(),
-      highlight: true,
-      iconBg: "bg-gradient-to-r from-green-500 to-emerald-500",
-      iconColor: "text-display",
-      show: isOwnProfile && isFemale,
     },
     { 
-      icon: Crown, 
-      label: "My Level", 
-      path: "/level",
       extra: (
         <div className="flex items-center gap-2">
           <FloatingLevelIcon level={userLevel} size="sm" />
@@ -1913,118 +1758,40 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           <span className="text-sm text-muted-foreground">Lv{nextLevel}</span>
         </div>
       ),
-      iconBg: "bg-amber-100",
-      iconColor: "text-amber-500",
-      show: isOwnProfile
     },
     { 
-      icon: Gem, 
-      label: "VIP Membership", 
-      path: "/vip",
-      extra: userVIPTier > 0 ? (
         <VIPBadge tier={userVIPTier} size="sm" />
       ) : (
         <span className="text-xs text-purple-600">Upgrade Now</span>
       ),
-      iconBg: "bg-gradient-to-r from-purple-500 to-pink-500",
  iconColor:"text-display",
-      show: isOwnProfile
     },
     { 
-      icon: Phone, 
-      label: "Call History", 
-      path: "/call-history",
-      iconBg: "bg-emerald-50 border border-emerald-100",
-      iconColor: "text-emerald-600",
-      show: isOwnProfile && isFemale
     },
     { 
-      icon: Sparkles, 
-      label: "Shop", 
-      path: "/shop",
-      rightText: "Frames & Effects",
-      highlight: true,
-      iconBg: "bg-gradient-to-r from-purple-500 to-pink-500",
  iconColor:"text-display",
-      show: isOwnProfile
     },
     { 
-      icon: Wallet, 
-      label: "Host Dashboard",
-      path: "/host-dashboard",
-      rightText: "Earnings",
-      highlight: true,
-      iconBg: "bg-emerald-50 border border-emerald-100",
-      iconColor: "text-emerald-600",
-      show: isOwnProfile && isHost && !isFemale
     },
     { 
-      icon: Building2, 
-      label: isAgencyOwner ? "Agency Dashboard" : (isInActiveAgency ? "Agency Details" : "Join Agency"), 
-      path: isAgencyOwner ? "/agency-dashboard" : (isInActiveAgency ? "/agency-details" : "/join-agency"),
-      rightText: isAgencyOwner ? "My Agency" : (isInActiveAgency ? "My Agency" : "Apply"),
-      highlight: true,
-      iconBg: isAgencyOwner
         ? "bg-gradient-to-r from-purple-500 to-indigo-500"
         : (isInActiveAgency ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gradient-to-r from-pink-500 to-rose-500"),
       iconColor:"text-display",
-      show: isOwnProfile && isFemale // Female host persona — visible from sign-up; upgrades to Dashboard when she owns an agency
     },
     { 
-      icon: Building2, 
-      label: isAgencyOwner ? "Agency Dashboard" : "Agency Center", 
-      path: isAgencyOwner ? "/agency-dashboard" : "/agency",
-      rightText: isAgencyOwner ? "My Agency" : "Agent Rank",
-      highlight: true,
-      iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-50 border border-purple-100",
-      iconColor: isAgencyOwner ?"text-display" :"text-purple-600",
-      show: isOwnProfile && showAgencyCenter && !isFemale
     },
 
     { 
-      icon: Mail, 
-      label: "My Invitation", 
-      path: "/invitation",
-      rightText: "Get Rewards",
-      iconBg: "bg-purple-50 border border-purple-100",
-      iconColor: "text-purple-600",
-      show: isOwnProfile
     },
     { 
-      icon: ClipboardList, 
-      label: "My Tasks", 
-      path: "/tasks",
-      rightText: hasUnclaimedReward ? "New Reward" : "",
       hasNotification: hasUnclaimedReward,
-      iconBg: "bg-blue-50 border border-blue-100",
-      iconColor: "text-blue-600",
-      show: isOwnProfile
     },
     { 
-      icon: User, 
-      label: "My Profile", 
-      path: "/edit-profile",
-      iconBg: "bg-indigo-50 border border-indigo-100",
-      iconColor: "text-indigo-600",
-      show: isOwnProfile
     },
     { 
-      icon: Settings, 
-      label: "Settings", 
-      path: "/settings",
-      iconBg: "bg-slate-50 border border-slate-100",
-      iconColor: "text-muted-pro",
-      show: isOwnProfile
     },
     { 
-      icon: MessageCircle, 
-      label: "Priority Support", 
-      path: "/settings/customer-service",
-      rightText: "Level 6+",
-      highlight: true,
-      iconBg: "bg-gradient-to-r from-amber-500 to-orange-500",
  iconColor:"text-display",
-      show: isOwnProfile && userLevel >= 6
     },
   ].filter(item => item.show), [
     isOwnProfile, isFemale, isHost, isFaceVerified, isAgencyOwner, isInActiveAgency,
@@ -2084,13 +1851,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         const { error } = await supabase
           .from("profiles")
           .insert({
-            id: currentUser.id,
-            display_name: displayName,
-            username: currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0] || null,
-            avatar_url: avatarUrl,
-            app_uid: appUid,
-            gender: currentUser.user_metadata?.gender || 'male',
-            last_seen: new Date().toISOString(),
           });
 
         if (!error) {
@@ -2440,10 +2200,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     
                     if (agency) {
                       setAgencyData({
-                        id: agency.id,
-                        name: agency.name,
-                        diamond_balance: agency.diamond_balance || 0,
-                        beans_balance: agency.wallet_balance || 0
                       });
                       
                       invalidateAppSetting('agency_coin_exchange');
@@ -2451,9 +2207,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       
                       if (settingVal) {
                         setAgencyExchangeSettings({
-                          beans_to_diamonds_rate: Number(settingVal.beans_to_diamonds_rate) || 1,
-                          exchange_fee_percent: Number(settingVal.exchange_fee_percent ?? 25),
-                          min_exchange_amount: Number(settingVal.min_exchange_amount) || 100000
                         });
                       }
                       
@@ -2485,9 +2238,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       } else {
                         // Host is NOT in an agency - show join agency message
                         toast({
-                          title: "Join an Agency",
-                          description: "You need to join an agency before you can withdraw your salary. Please join an agency first.",
-                          variant: "destructive",
                         });
                         navigate("/join-agency");
                       }
@@ -3418,7 +3168,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 try {
                   // Use unified RPC - deducts from profiles.beans and credits agency diamond_balance
                   const { data: result, error: rpcError } = await supabase.rpc('exchange_user_beans_to_diamonds', {
-                    _user_id: currentUser.id,
                     _beans_amount: beansNum,
                     _diamonds_reward: exchangeDiamondsToGet,
                     _tier_id: null
@@ -3439,7 +3188,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   if (exchangeResult.destination === 'trader_wallet_agency') {
                     setAgencyData({ 
                       ...agencyData, 
-                      diamond_balance: (agencyData.diamond_balance || 0) + exchangeDiamondsToGet
                     });
                   }
                   
@@ -3451,8 +3199,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   });
                   
                   toast({ 
-                    title: "Exchange Successful! ✨", 
-                    description: `Converted ${beansNum.toLocaleString()} beans to ${exchangeDiamondsToGet.toLocaleString()} diamonds (Trader Wallet)` 
                   });
                   
                   setExchangeBeansAmount("");

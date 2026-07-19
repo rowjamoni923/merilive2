@@ -32,12 +32,6 @@ const partsInServerTz = (now: Date) => {
     return acc;
   }, {});
   return {
-    year: Number(parts.year),
-    month: Number(parts.month),
-    day: Number(parts.day),
-    hour: Number(parts.hour === "24" ? "0" : parts.hour),
-    minute: Number(parts.minute),
-    second: Number(parts.second),
   };
 };
 

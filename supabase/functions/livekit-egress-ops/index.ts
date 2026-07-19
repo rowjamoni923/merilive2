@@ -111,7 +111,6 @@ function summarizeEgress(e: any) {
     streamResults: Array.isArray(e?.streamResults)
       ? e.streamResults.map((s: any) => ({
           url: s?.url ?? null,
-          status: s?.status ?? null,
         }))
       : [],
     segmentResults: Array.isArray(e?.segmentResults)
@@ -203,8 +202,6 @@ Deno.serve(async (req) => {
       action,
       egressId,
       layout,
-      roomName: one?.roomName ?? undefined,
-      resultCount: 1,
     });
     return json(200, { ok: true, egress: one ? summarizeEgress(one) : null });
   } catch (e) {
@@ -213,7 +210,6 @@ Deno.serve(async (req) => {
       role,
       action,
       egressId: egressId || undefined,
-      roomName: roomName || undefined,
       layout: layout || undefined,
       error: msg.slice(0, 500),
     });

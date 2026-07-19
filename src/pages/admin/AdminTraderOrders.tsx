@@ -45,8 +45,6 @@ interface HelperOrder {
   processed_at: string | null;
   user?: { display_name: string; avatar_url: string; app_uid: string };
   helper?: { 
-    id: string;
-    user: { display_name: string; avatar_url: string; app_uid: string } 
   };
 }
 
@@ -106,11 +104,6 @@ const AdminTraderOrders = () => {
       const todayOrders = (data || []).filter(o => new Date(o.created_at).toDateString() === today);
       
       setStats({
-        total: (data || []).length,
-        pending: (data || []).filter(o => o.status === 'pending').length,
-        completed: (data || []).filter(o => o.status === 'completed').length,
-        cancelled: (data || []).filter(o => o.status === 'cancelled').length,
-        todayTotal: todayOrders.reduce((sum, o) => sum + o.amount_usd, 0)
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTraderOrders", message: formatAdminError(error) });
@@ -199,7 +192,6 @@ const AdminTraderOrders = () => {
                 { key: "user_country_code", label: "Country", weight: 0.7 },
               ]}
               meta={{
-                title: "Trader Orders Report",
                 subtitle: `${orders.length} orders`,
                 fileName: "trader-orders",
                 summary: [

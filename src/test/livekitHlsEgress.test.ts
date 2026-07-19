@@ -67,8 +67,6 @@ describe('Pkg126 livekitHlsEgress', () => {
   it('start surfaces alreadyRecording', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { egressId: 'EG_dup', alreadyRecording: true },
-      error: null,
     });
     const r = await startStreamHlsRecording('s1');
     expect(r?.alreadyRecording).toBe(true);
@@ -84,7 +82,6 @@ describe('Pkg126 livekitHlsEgress', () => {
     invokeMock.mockResolvedValue({ data: { ok: true }, error: null });
     expect(await stopStreamHlsRecording('EG_H1')).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-hls-egress', {
-      body: { action: 'stop', egressId: 'EG_H1' },
     });
   });
 

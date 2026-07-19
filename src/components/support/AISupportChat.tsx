@@ -310,9 +310,7 @@ const AISupportChat = ({
 
   const insertUserSupportMessage = async (params: {
     ticketId: string;
-    content: string;
     attachmentUrl?: string | null;
-    attachmentType?: "image" | "voice" | null;
     voiceTranscript?: string | null;
     translatedContent?: string | null;
     originalLanguage?: string | null;
@@ -323,7 +321,6 @@ const AISupportChat = ({
       ticket_id: params.ticketId,
       sender_id: userId,
       sender_type: "user",
-      content: params.content,
       attachment_url: params.attachmentUrl || null,
       attachment_type: params.attachmentType || null,
       voice_transcript: params.voiceTranscript || null,
@@ -353,23 +350,13 @@ const AISupportChat = ({
       if (!uploaded) throw new Error("Upload failed");
 
       const userMessage: Message = {
-        id: `user-${Date.now()}`,
-        role: "user",
-        content: "📷 Sent an image",
-        timestamp: new Date(),
-        attachmentUrl: uploaded.previewUrl,
         attachmentPath: uploaded.path,
-        attachmentType: "image",
       };
       setMessages(prev => [...prev, userMessage]);
 
       // If in live chat, send to DB
       if (phase === "live_chat" && liveChatTicketId) {
         await insertUserSupportMessage({
-          ticketId: liveChatTicketId,
-          content: "📷 Sent an image",
-          attachmentUrl: uploaded.path,
-          attachmentType: "image",
         });
       }
     } catch (error) {
@@ -421,9 +408,6 @@ const AISupportChat = ({
     }
     if (typeof window.isSecureContext !== "undefined" && !window.isSecureContext) {
       toast({
-        title: "Insecure connection",
-        description: "Voice recording requires HTTPS. Open the app from https://…",
-        variant: "destructive",
       });
       return;
     }
@@ -462,9 +446,6 @@ const AISupportChat = ({
           recordingIntervalRef.current = null;
         }
         toast({
-          title: "Recording error",
-          description: ev?.error?.message || "Recording stopped unexpectedly.",
-          variant: "destructive",
         });
       };
 
@@ -475,9 +456,6 @@ const AISupportChat = ({
         audioChunksRef.current = [];
         if (audioBlob.size < 500) {
           toast({
-            title: "Too short",
-            description: "Please hold and record for at least a second.",
-            variant: "destructive",
           });
           return;
         }
@@ -581,7 +559,6 @@ const AISupportChat = ({
       if (transcript) {
         try {
           const { data: transData } = await supabase.functions.invoke("translate", {
-            body: { text: transcript, targetLanguage: "Bengali" },
           });
           translatedTranscript = transData?.translatedText || "";
         } catch (e) {
@@ -591,27 +568,12 @@ const AISupportChat = ({
 
 
       const userMessage: Message = {
-        id: `user-${Date.now()}`,
-        role: "user",
-        content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
-        timestamp: new Date(),
-        attachmentUrl: uploaded.previewUrl,
-        attachmentPath: uploaded.path,
-        attachmentType: "voice",
-        voiceTranscript: transcript,
       };
       setMessages(prev => [...prev, userMessage]);
 
       // Save to DB if in live chat
       if (phase === "live_chat" && liveChatTicketId) {
         await insertUserSupportMessage({
-          ticketId: liveChatTicketId,
-          content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
-          attachmentUrl: uploaded.path,
-          attachmentType: "voice",
-          voiceTranscript: transcript,
-          translatedContent: translatedTranscript || null,
-          originalLanguage: "auto",
         });
       }
     } catch (error) {
@@ -625,10 +587,6 @@ const AISupportChat = ({
     setSelectedCategory(category.key);
     setPhase("describe");
     setMessages([{
-      id: "category-selected",
-      role: "assistant",
-      content: `${category.icon} **${category.label}** selected.\n\nPlease describe your issue in detail. You can also:\n- 📷 Send **screenshots** as proof\n- 🎤 Send a **voice message**\n\nThe more details you provide, the faster we can help! ✍️`,
-      timestamp: new Date(),
     }]);
   };
 
@@ -640,10 +598,6 @@ const AISupportChat = ({
 
     if (!options?.skipIntroMessage) {
       setMessages(prev => [...prev, {
-        id: `system-livechat-${Date.now()}`,
-        role: "system",
-        content: "🔄 Connecting you to our support team...",
-        timestamp: new Date(),
       }]);
     }
 
@@ -695,7 +649,6 @@ const AISupportChat = ({
 
           await insertUserSupportMessage({
             ticketId,
-            content: initialUserContext,
           });
           contextMessageInserted = true;
 
@@ -707,10 +660,6 @@ const AISupportChat = ({
           for (const attachMsg of attachmentMessages) {
             await insertUserSupportMessage({
               ticketId,
-              content: attachMsg.content,
-              attachmentUrl: attachMsg.attachmentPath || extractSupportAttachmentPath(attachMsg.attachmentUrl),
-              attachmentType: attachMsg.attachmentType === "voice" ? "voice" : "image",
-              voiceTranscript: attachMsg.voiceTranscript || null,
             });
           }
         }
@@ -721,7 +670,6 @@ const AISupportChat = ({
       if (options?.initialContext && !contextMessageInserted && userId) {
         await insertUserSupportMessage({
           ticketId,
-          content: options.initialContext,
         });
         contextMessageInserted = true;
       }
@@ -748,13 +696,6 @@ const AISupportChat = ({
       const conversationMessages = await Promise.all(((existingMsgs || []) as any[])
         .filter((msg) => msg.sender_type === "user" || msg.sender_type === "admin")
         .map(async (msg) => ({
-          id: msg.id,
-          role: msg.sender_type === "admin" ? "admin" : "user",
-          content: msg.sender_type === "admin" ? (msg.translated_content || msg.content) : msg.content,
-          timestamp: new Date(msg.created_at),
-          attachmentUrl: await getSupportAttachmentDisplayUrl(msg.attachment_url),
-          attachmentPath: extractSupportAttachmentPath(msg.attachment_url) || undefined,
-          attachmentType: msg.attachment_type,
         } as Message)));
 
       if (conversationMessages.length > 0) {
@@ -779,10 +720,6 @@ const AISupportChat = ({
     } catch (error) {
       console.error("Live chat activation error:", error);
       setMessages(prev => [...prev, {
-        id: `error-${Date.now()}`,
-        role: "system",
-        content: "❌ Failed to connect to live chat. Please try again.",
-        timestamp: new Date(),
       }]);
       setWaitingForAdmin(false);
       setPhase("ai_chat");
@@ -823,10 +760,6 @@ const AISupportChat = ({
       const tempId = `user-${Date.now()}`;
       const trimmed = messageText.trim();
       const userMessage: Message = {
-        id: tempId,
-        role: "user",
-        content: trimmed,
-        timestamp: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
       setInput("");
@@ -835,7 +768,6 @@ const AISupportChat = ({
       let translatedContent = "";
       try {
         const { data: transData } = await supabase.functions.invoke("translate", {
-          body: { text: trimmed, targetLanguage: "Bengali" },
         });
         translatedContent = transData?.translatedText || "";
       } catch (e) {
@@ -847,10 +779,6 @@ const AISupportChat = ({
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           await insertUserSupportMessage({
-            ticketId: liveChatTicketId,
-            content: trimmed,
-            translatedContent: translatedContent || null,
-            originalLanguage: "auto",
           });
           lastError = null;
           break;
@@ -867,9 +795,6 @@ const AISupportChat = ({
           ? { ...m, content: `${m.content}  ⚠️` }
           : m));
         toast({
-          title: "Message failed",
-          description: lastError.message || "Could not deliver your message. Please try again.",
-          variant: "destructive",
         });
       }
       return;
@@ -877,10 +802,6 @@ const AISupportChat = ({
 
     if (LIVE_CHAT_KEYWORDS.some(kw => lowerMsg.includes(kw))) {
       const userMessage: Message = {
-        id: `user-${Date.now()}`,
-        role: "user",
-        content: messageText.trim(),
-        timestamp: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
       setInput("");
@@ -893,10 +814,6 @@ const AISupportChat = ({
     if (phase === "describe") setPhase("ai_chat");
 
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: messageText.trim(),
-      timestamp: new Date(),
     };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
@@ -904,12 +821,9 @@ const AISupportChat = ({
 
     try {
       const conversationHistory = messages.map(m => ({
-        role: m.role === "admin" ? "assistant" : m.role === "system" ? "assistant" : m.role,
-        content: m.content,
       }));
 
       const response = await supabase.functions.invoke("support-chat", {
-        body: {
           messages: [...conversationHistory, { role: "user", content: messageText.trim() }],
           userLevel,
           isPremium,
@@ -931,10 +845,6 @@ const AISupportChat = ({
         const aiContent = response.data.response || "I apologize, I couldn't process your request.";
 
         const newMessages: Message[] = [{
-          id: `assistant-${Date.now()}`,
-          role: "assistant",
-          content: aiContent,
-          timestamp: new Date(),
         }];
 
         // Detect agency-related keywords and auto-send agency signup link
@@ -943,10 +853,6 @@ const AISupportChat = ({
         if (agencyKeywords.test(combinedText)) {
           const agencyLink = "https://merilive.com/agency-signup";
           newMessages.push({
-            id: `agency-link-${Date.now()}`,
-            role: "assistant",
-            content: `🏢 **Want to create an Agency?**\n\nClick the link below to sign up directly:\n\n👉 [Sign Up for Agency](${agencyLink})\n\nClicking the link will take you to the Agency Sign Up page.`,
-            timestamp: new Date(),
           });
         }
 
@@ -955,10 +861,6 @@ const AISupportChat = ({
     } catch (error: any) {
       console.error("Support chat error:", error);
       setMessages(prev => [...prev, {
-        id: `error-${Date.now()}`,
-        role: "assistant",
-        content: "I'm having trouble connecting. Please try again in a moment.",
-        timestamp: new Date(),
       }]);
     } finally {
       setIsLoading(false);

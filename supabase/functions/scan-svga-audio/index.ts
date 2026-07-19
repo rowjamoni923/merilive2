@@ -26,7 +26,6 @@ serve(async (req) => {
       try {
         // Fetch the SVGA file
         const resp = await fetch(url, { 
-          headers: { "Accept": "*/*" },
           signal: AbortSignal.timeout(30000),
         });
         
@@ -68,24 +67,18 @@ serve(async (req) => {
           hasAudioKey,
           hasEmbeddedAudio: audioFormats.length > 0,
           audioFormats,
-          status: "scanned",
         });
       } catch (e) {
         results.push({ 
-          name: url.split('/').pop()?.substring(0, 50), 
-          status: "error", 
           error: String(e).substring(0, 100) 
         });
       }
     }
 
     return new Response(JSON.stringify({ results, total: results.length }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
     });
   }
 });

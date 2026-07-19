@@ -273,7 +273,6 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
         setTimeout(async () => {
           try {
             await supabase.rpc('roulette_complete_session', {
-              p_session_id: currentSession.id
             });
             console.log('[Roulette] ✅ Session completed via RPC');
           } catch (e) {
@@ -367,8 +366,6 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
     // Server is the source of truth — do NOT pre-block with stale cached balance.
     // Atomically deduct diamonds; server validates amount and balance under row lock.
     const { data: deductResult, error: deductError } = await supabase.rpc('deduct_diamonds_atomic', {
-      p_user_id: userId,
-      p_amount: selectedChip
     });
 
     if (deductError || !deductResult) {
@@ -531,7 +528,6 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
       {/* Gold Bar Separator */}
       <div className="relative z-10">
         <div className="h-1 mx-4 rounded-full" style={{
-          background: "linear-gradient(to right, #6B4E10, #DAA520, #FFD700, #DAA520, #6B4E10)"
         }} />
       </div>
 

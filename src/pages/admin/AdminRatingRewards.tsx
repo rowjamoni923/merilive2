@@ -38,7 +38,6 @@ interface RatingClaim {
     gender: string | null;
   };
   reviewer?: {
-    display_name: string | null;
     email: string | null;
   };
 }
@@ -187,9 +186,6 @@ export default function AdminRatingRewards() {
 
         setHistoryData(await Promise.all(data.map(async (c) => ({
           ...c,
-          profile: profileMap[c.user_id] || null,
-          reviewer: c.reviewed_by ? reviewerMap[c.reviewed_by] || null : null,
-          screenshot_signed: await resolveAdminStorageImageUrl(c.screenshot_url, 'rating-screenshots'),
         }))));
       } else {
         setHistoryData([]);
@@ -298,8 +294,6 @@ export default function AdminRatingRewards() {
       setClaims(prev => prev.filter(c => c.id !== claimId));
 
       const { data, error } = await supabase.rpc('reject_rating_reward', {
-        p_claim_id: claimId,
-        p_admin_id: session.admin_id,
         p_reason: 'Screenshot does not show a valid 5-star rating',
       });
 

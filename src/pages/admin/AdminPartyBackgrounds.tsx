@@ -57,7 +57,7 @@ interface PartyBackground {
   category: string;
   is_premium: boolean;
   is_active: boolean;
-  price_diamonds: number; // DB uses diamonds not coins
+  price_diamonds: number; // DB uses diamonds not diamonds
   display_order: number;
   min_level?: number; // Minimum user level required (0 = no restriction)
   created_at: string;
@@ -142,15 +142,6 @@ const AdminPartyBackgrounds = () => {
 
       setBackgrounds(rows.map((bg: any) => ({
         id: bg.id,
-        name: bg.name,
-        image_url: bg.image_url,
-        gradient_css: bg.gradient_css,
-        category: bg.category || 'nature',
-        is_premium: bg.is_premium || false,
-        is_active: bg.is_active ?? true,
-        price_diamonds: bg.price_diamonds || 0,
-        display_order: bg.display_order || 1,
-        min_level: bg.min_level ?? 0,
         created_at: bg.created_at
       })));
     } catch (err) {
@@ -177,18 +168,6 @@ const AdminPartyBackgrounds = () => {
 
   const handleAdd = () => {
     setFormData({
-      name: "",
-      image_url: "",
-      gradient_css: "",
-      category: "nature",
-      is_premium: false,
-      is_active: true,
-      price_diamonds: 0,
-      display_order: backgrounds.length + 1,
-      min_level: 0,
-      animation_url: "",
-      animation_format: null,
-      animation_config_url: "",
     });
     setShowAddDialog(true);
   };
@@ -196,18 +175,6 @@ const AdminPartyBackgrounds = () => {
   const handleEdit = (bg: PartyBackground) => {
     setSelectedBackground(bg);
     setFormData({
-      name: bg.name,
-      image_url: bg.image_url || "",
-      gradient_css: bg.gradient_css || "",
-      category: bg.category,
-      is_premium: bg.is_premium,
-      is_active: bg.is_active,
-      price_diamonds: bg.price_diamonds,
-      display_order: bg.display_order,
-      min_level: bg.min_level ?? 0,
-      animation_url: (bg as any).animation_url || "",
-      animation_format: ((bg as any).animation_format ?? null) as AnimationFormat | null,
-      animation_config_url: (bg as any).animation_config_url || "",
     });
     setShowEditDialog(true);
   };
@@ -225,7 +192,6 @@ const AdminPartyBackgrounds = () => {
         return;
       }
       const { data, error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
-        _admin_id: session.admin_id,
         _id: null,
         _name: formData.name,
         _image_url: formData.image_url || null,
@@ -243,15 +209,10 @@ const AdminPartyBackgrounds = () => {
         // Pkg424 — persist pro-animation columns (RPC doesn't accept them)
         if (insertedId && (formData.animation_url || formData.animation_format || formData.animation_config_url)) {
           await supabase.from('party_room_backgrounds').update({
-            animation_url: formData.animation_url || null,
-            animation_format: formData.animation_format || null,
-            animation_config_url: formData.animation_config_url || null,
           }).eq('id', insertedId);
         }
         setBackgrounds(prev => [...prev, {
           ...(data as any),
-          category: (data as any).category || 'nature',
-          price_diamonds: (data as any).price_diamonds || 0,
         }]);
       }
       setShowAddDialog(false);
@@ -275,25 +236,11 @@ const AdminPartyBackgrounds = () => {
         return;
       }
       const { error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
-        _admin_id: session.admin_id,
-        _id: selectedBackground.id,
-        _name: formData.name,
-        _image_url: formData.image_url || null,
-        _gradient_css: formData.gradient_css || null,
-        _category: formData.category,
-        _is_premium: formData.is_premium,
-        _is_active: formData.is_active,
-        _price_diamonds: formData.price_diamonds,
-        _display_order: formData.display_order,
-        _min_level: formData.min_level,
       });
       if (error) throw error;
 
       // Pkg424 — persist pro-animation columns (RPC doesn't accept them)
       await supabase.from('party_room_backgrounds').update({
-        animation_url: formData.animation_url || null,
-        animation_format: formData.animation_format || null,
-        animation_config_url: formData.animation_config_url || null,
       }).eq('id', selectedBackground.id);
 
       setBackgrounds(prev => prev.map(bg => 
@@ -324,8 +271,6 @@ const AdminPartyBackgrounds = () => {
         .eq('background_id', id);
 
       const { data, error } = await adminSupabase.rpc('admin_delete_party_background' as any, {
-        _admin_id: session.admin_id,
-        _id: id,
       });
       if (error) throw error;
       if (!(data as any)?.success) throw new Error('Delete failed');
@@ -349,17 +294,6 @@ const AdminPartyBackgrounds = () => {
         return;
       }
       const { error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
-        _admin_id: session.admin_id,
-        _id: id,
-        _name: bg.name,
-        _image_url: bg.image_url,
-        _gradient_css: bg.gradient_css,
-        _category: bg.category,
-        _is_premium: bg.is_premium,
-        _is_active: !bg.is_active,
-        _price_diamonds: bg.price_diamonds,
-        _display_order: bg.display_order,
-        _min_level: bg.min_level ?? 0,
       });
       if (error) throw error;
       setBackgrounds(prev => prev.map(b =>
@@ -935,15 +869,9 @@ const AdminPartyBackgrounds = () => {
               bucket="party-backgrounds"
               folder="unified"
               value={{
-                animation_url: formData.animation_url,
-                animation_format: formData.animation_format,
-                animation_config_url: formData.animation_config_url || null,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
-                animation_url: v.animation_url,
-                animation_format: v.animation_format,
-                animation_config_url: v.animation_config_url || '',
               }))}
             />
           </div>
@@ -1099,15 +1027,9 @@ const AdminPartyBackgrounds = () => {
               bucket="party-backgrounds"
               folder="unified"
               value={{
-                animation_url: formData.animation_url,
-                animation_format: formData.animation_format,
-                animation_config_url: formData.animation_config_url || null,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
-                animation_url: v.animation_url,
-                animation_format: v.animation_format,
-                animation_config_url: v.animation_config_url || '',
               }))}
             />
           </div>

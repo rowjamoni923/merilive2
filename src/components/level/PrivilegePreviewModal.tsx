@@ -229,7 +229,6 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose, userI
                       : 'text-white shadow-lg hover:shadow-xl'
                   }`}
                   style={!isEquipped ? {
-                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)'
                   } : {}}
                   onClick={async () => {
                     if (!privilege || !userId) return;

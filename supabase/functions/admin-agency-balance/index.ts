@@ -42,23 +42,19 @@ serve(async (req) => {
 
     if (!agency_id || !field || amount === undefined || !action) {
       return new Response(JSON.stringify({ error: "agency_id, field, amount, and action (set/add/subtract) required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!ALLOWED_FIELDS.has(field)) {
       return new Response(JSON.stringify({ error: `Field '${field}' is not allowed` }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!ALLOWED_ACTIONS.has(action)) {
       return new Response(JSON.stringify({ error: `Action '${action}' is not allowed` }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt < 1 || amt > 999_999_999) {
       return new Response(JSON.stringify({ error: "amount must be a positive integer <= 999,999,999" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -71,7 +67,6 @@ serve(async (req) => {
 
     if (fetchErr || !agency) {
       return new Response(JSON.stringify({ error: "Agency not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -111,18 +106,12 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      agency_name: agency.name,
       field,
-      old_value: currentValue,
-      new_value: newValue,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
     console.error("[admin-agency-balance] error:", error);
     return new Response(JSON.stringify({ error: error?.message || "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

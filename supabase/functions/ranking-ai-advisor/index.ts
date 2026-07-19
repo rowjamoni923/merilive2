@@ -31,8 +31,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -43,8 +41,6 @@ serve(async (req) => {
 
     if (!context.trim()) {
       return new Response(JSON.stringify({ error: "context is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -72,7 +68,6 @@ Recommend the best preset for each surface and a one-word mode label.`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
@@ -89,19 +84,13 @@ Recommend the best preset for each surface and a one-word mode label.`;
               name: "recommend_ranking",
               description: "Return the recommended preset combination.",
               parameters: {
-                type: "object",
                 properties: {
                   home_preset: {
-                    type: "string",
                     enum: ["balanced_default", "strict_quality", "growth_mode"],
                   },
                   party_preset: {
-                    type: "string",
-                    enum: ["balanced_default", "strict_competitive", "new_room_friendly"],
                   },
                   mode: {
-                    type: "string",
-                    enum: ["default", "peak_campaign", "abuse_control", "custom"],
                   },
                   rationale: { type: "string" },
                 },
@@ -119,20 +108,14 @@ Recommend the best preset for each surface and a one-word mode label.`;
       const text = await aiResp.text();
       if (aiResp.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded, try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResp.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       console.error("AI gateway error:", aiResp.status, text);
       return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -148,19 +131,14 @@ Recommend the best preset for each surface and a one-word mode label.`;
 
     if (!parsed) {
       return new Response(JSON.stringify({ error: "AI did not return a structured recommendation" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("ranking-ai-advisor error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

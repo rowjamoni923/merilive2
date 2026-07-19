@@ -111,7 +111,6 @@ class NativeLiveKitController {
 
     recordCallDiag('error', 'attachLocal:exhausted', {
       lastResult, lastError: String((lastError as Error)?.message ?? lastError ?? ''),
-      scope: this.activeFeature ?? this.previewFeature,
     }, 'error');
     console.warn('[NativeLiveKitController] attachLocal incomplete after retries:', lastResult, lastError);
   }
@@ -259,16 +258,11 @@ class NativeLiveKitController {
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
         recordCallDiag('session', 'connect', {
-          scope: requestedFeature,
-          callType: opts.callType,
-          boundedSurfaces: payload.boundedSurfaces === true,
           surfaceMode: payload.boundedSurfaces ? 'bounded' : 'fullscreen',
           captureW: payload.captureWidth,
           captureH: payload.captureHeight,
-          maxBitrate: payload.maxBitrate,
         });
         recordCallDiag('surface-mode', payload.boundedSurfaces ? 'bounded' : 'fullscreen', {
-          scope: requestedFeature, callType: opts.callType,
         });
 
         if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
@@ -321,7 +315,7 @@ class NativeLiveKitController {
    * Phase I — update Bigo-style LIVE foreground notification. No-op on
    * web/iOS or when broadcastMode !== 'live'. Cheap; safe per realtime tick.
    */
-  async updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void> {
+  async updateLiveStats(opts: { viewerCount?: number; diamondCount?: number; title?: string }): Promise<void> {
     try { await NativeLiveKit.updateLiveStats(opts); }
     catch { /* not implemented on web/iOS */ }
   }
@@ -337,7 +331,7 @@ class NativeLiveKitController {
     }
     this.busy = true;
     try {
-      try { await this.updateLiveStats({ viewerCount: 0, coinCount: 0, title: '' }); } catch { /* noop */ }
+      try { await this.updateLiveStats({ viewerCount: 0, diamondCount: 0, title: '' }); } catch { /* noop */ }
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {
@@ -631,7 +625,6 @@ class NativeLiveKitController {
   }
 
   async setVirtualBackground(opts: {
-    mode: 'none' | 'blur' | 'image';
     blurRadius?: number;
     imagePath?: string;
   }): Promise<{ ok: boolean; segmenterReady: boolean; imageApplied: boolean }> {

@@ -107,9 +107,6 @@ describe('Pkg131 raise-hand', () => {
       fireMeta('live', 'r1', 'u-late', { raisedHand: true, raisedAt: 200 });
       fireMeta('live', 'r1', 'u-early', { raisedHand: true, raisedAt: 100 });
       fireMeta('live', 'r1', 'u-mid', {
-        raisedHand: true,
-        raisedAt: 150,
-        raiseReason: 'mic test',
       });
     });
     expect(result.current.map((h) => h.identity)).toEqual([

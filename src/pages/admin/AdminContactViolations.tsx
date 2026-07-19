@@ -70,7 +70,6 @@ interface Violation {
   review_notes: string | null;
   created_at: string;
   host?: {
-    id: string;
     display_name: string;
     avatar_url: string | null;
     is_blocked: boolean;

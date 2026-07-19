@@ -44,7 +44,6 @@ export function MandatoryPermissionsGate() {
     camera: false, microphone: false, location: false, notifications: false,
   });
   const [canPrompt, setCanPrompt] = useState<Status>({
-    camera: true, microphone: true, location: true, notifications: true,
   });
   const mounted = useRef(true);
 

@@ -41,9 +41,6 @@ export const AvatarUpload = ({
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Error",
-        description: "Image size must be less than 5MB",
-        variant: "destructive",
       });
       return;
     }
@@ -62,9 +59,6 @@ export const AvatarUpload = ({
       const authUid = session?.user?.id;
       if (!authUid) {
         toast({
-          title: "Upload Failed",
-          description: "Please sign in again to upload your photo",
-          variant: "destructive",
         });
         return;
       }
@@ -107,15 +101,10 @@ export const AvatarUpload = ({
 
       onUploadComplete(publicUrl);
       toast({
-        title: "Success!",
-        description: "Profile picture updated",
       });
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({
-        title: "Upload Failed",
-        description: isAuthSessionFailure(error) ? sessionExpiredUploadMessage : error.message || "Failed to upload image",
-        variant: "destructive",
       });
       setPreviewUrl(null);
     } finally {

@@ -70,7 +70,7 @@ interface UserProfile {
   is_online: boolean | null;
   is_blocked: boolean | null;
   blocked_reason: string | null;
-  coins: number | null;
+  diamonds: number | null;
   user_level: number | null;
   host_level: number | null;
   total_earnings: number | null;
@@ -193,7 +193,6 @@ export default function AdminUsers() {
       // isHost = current state; we toggle it
       const toHost = !isHost;
       const { error } = await supabase.rpc('admin_convert_user_role', {
-        _user_id: userId,
         _to_host: toHost,
       });
 
@@ -211,7 +210,6 @@ export default function AdminUsers() {
       const newVerified = !isVerified;
 
       const { data, error } = await supabase.rpc("admin_set_user_verification", {
-        _user_id: userId,
         _verified: newVerified,
       });
       if (error) throw error;
@@ -219,8 +217,6 @@ export default function AdminUsers() {
 
       // Also flip face verification + host_status so converted hosts become live-ready immediately
       const { data: faceData, error: faceError } = await supabase.rpc("admin_toggle_face_verification", {
-        _user_id: userId,
-        _verified: newVerified,
       });
       if (faceError) throw faceError;
       if ((faceData as any)?.success === false) throw new Error((faceData as any)?.error || "Face verification update failed");

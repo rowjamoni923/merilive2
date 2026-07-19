@@ -203,8 +203,6 @@ const AgencyHostManagement = () => {
 
     try {
       const { data, error } = await supabase.rpc('reject_host_request', {
-        _agency_id: agency.id,
-        _host_id: hostData.host_id,
         _rejector_id: currentUserId
       });
 
@@ -213,11 +211,6 @@ const AgencyHostManagement = () => {
       const result = typeof data === 'object' && data !== null ? data as { success?: boolean; error?: string } : null;
       if (result?.success) {
         supabase.functions.invoke('send-app-notification', {
-          body: {
-            userId: hostData.host_id,
-            templateKey: 'agency_request_rejected',
-            variables: { agency_name: agency.name },
-            type: 'agency'
           }
         }).catch(console.error);
 

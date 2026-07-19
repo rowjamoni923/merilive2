@@ -265,8 +265,6 @@ describe('Live stream — two-viewer seat integration', () => {
     );
     const b = render(
       React.createElement(LiveKitVideoPlayer, {
-        videoTrack: hostVideo as any,
-        mirror: false,
       }),
     );
 
@@ -323,9 +321,6 @@ describe('Live stream — two-viewer seat integration', () => {
       // Sanity counter-check: the buggy call WOULD have stopped it.
       const buggyCameraMst = makeMediaStreamTrack('video');
       const buggyLkTrack = {
-        kind: 'video' as const,
-        mediaStreamTrack: buggyCameraMst,
-        stop: vi.fn(),
       };
       unpublishTrack(buggyLkTrack); // default stopOnUnpublish = true
       expect(buggyCameraMst.readyState).toBe('ended');

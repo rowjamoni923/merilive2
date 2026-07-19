@@ -224,13 +224,10 @@ export function registerTextStreamHandler(
           ? await reader.readAll()
           : await drainAsyncIterableText(reader);
         const info: TextStreamInfo = {
-          id: reader.info?.id ?? '',
           topic: reader.info?.topic ?? topic,
-          senderIdentity: participantInfo?.identity ?? '',
           attachedStreamIds: reader.info?.attachedStreamIds,
           mimeType: reader.info?.mimeType,
           size: reader.info?.size,
-          attributes: reader.info?.attributes,
           timestamp: reader.info?.timestamp,
         };
         await handler({ info, text });
@@ -281,8 +278,6 @@ export async function sendText(
     return null;
   }
   const info = await entry.room.localParticipant.sendText(text, {
-    topic: opts.topic,
-    destinationIdentities: opts.destinationIdentities,
     attributes: opts.attributes,
   } as any);
   return info ? { id: (info as any).id } : null;

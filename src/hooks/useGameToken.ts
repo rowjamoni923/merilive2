@@ -59,7 +59,6 @@ export function useGameToken() {
           const tokenData: GameToken = {
             token: data.token,
             balance: data.balance,
-            merchant_id: data.merchant_id,
           };
           tokenCache.set(cacheKey, { token: tokenData, timestamp: Date.now() });
           return tokenData;
@@ -86,9 +85,6 @@ export function useGameToken() {
    */
   const buildGameUrl = useCallback(async (
     baseUrl: string,
-    gameId?: string,
-    roomId?: string,
-    merchantId?: string,
   ): Promise<string> => {
     const tokenData = await generateToken(gameId, roomId, merchantId);
     

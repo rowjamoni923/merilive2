@@ -157,12 +157,8 @@ const BigoStyleBannerInner = memo(({ notification, onComplete }: BigoStyleBanner
               className="text-base"
               animate={{ 
                 rotate: [0, 20, -20, 0],
-                scale: [1, 1.3, 1],
               }}
               transition={{ 
-                duration: 0.5, 
-                repeat: 3,
-                ease: "easeInOut"
               }}
             >
               ✨

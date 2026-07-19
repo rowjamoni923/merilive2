@@ -221,10 +221,6 @@ export function LiveCaptionsOverlay({
             <div
               className="rounded-2xl px-4 py-2"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(20,15,40,0.62) 100%)',
-                border: '1px solid rgba(255,255,255,0.10)',
-                backdropFilter: 'blur(14px) saturate(140%)',
-                boxShadow: '0 6px 18px -6px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset',
                 textShadow: '0 1px 2px rgba(0,0,0,0.8)',
               }}
             >

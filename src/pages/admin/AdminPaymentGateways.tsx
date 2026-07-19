@@ -115,7 +115,6 @@ interface Transaction {
   created_at: string | null;
   updated_at: string | null;
   gateway?: {
-    id: string;
     name: string;
     gateway_code: string;
   } | null;
@@ -202,19 +201,9 @@ const AdminPaymentGateways = () => {
         const cfg = (g.config || {}) as Record<string, any>;
         return {
           ...g,
-          gateway_code: g.gateway_type || cfg.gateway_code || '',
-          description: cfg.description ?? null,
-          api_endpoint: cfg.api_endpoint ?? null,
           api_key_encrypted: cfg.api_key_encrypted ?? null,
           secret_key_encrypted: cfg.secret_key_encrypted ?? null,
-          webhook_url: cfg.webhook_url ?? null,
-          min_amount: Number(cfg.min_amount ?? 1),
-          max_amount: Number(cfg.max_amount ?? 10000),
-          fee_percentage: Number(cfg.fee_percentage ?? 0),
-          fee_fixed: Number(cfg.fee_fixed ?? 0),
           settings: cfg.settings ?? null,
-          country_codes: g.country_codes ?? null,
-          is_integrated: g.is_integrated ?? false,
         } as PaymentGateway;
       });
 
@@ -223,7 +212,6 @@ const AdminPaymentGateways = () => {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorFetchingGateways", message: formatAdminError(error)});
       toast({
         title: "Error",
-        description: "Failed to load payment gateways",
         variant: "destructive"
       });
     } finally {
@@ -257,8 +245,6 @@ const AdminPaymentGateways = () => {
 
       const gwMap = new Map((gwRes.data || []).map((g: any) => [g.id, {
         id: g.id,
-        name: g.name,
-        gateway_code: g.gateway_type || g.config?.gateway_code || '',
       }]));
       const userMap = new Map((userRes.data || []).map((u: any) => [u.id, u]));
 
@@ -280,10 +266,6 @@ const AdminPaymentGateways = () => {
       if (error) throw error;
       const r = (data as any) || {};
       setStats({
-        totalTransactions: r.total_transactions || 0,
-        pendingTransactions: r.pending_transactions || 0,
-        completedTransactions: r.completed_transactions || 0,
-        totalRevenue: Number(r.total_revenue) || 0,
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorFetchingStats", message: formatAdminError(error)});
@@ -293,23 +275,6 @@ const AdminPaymentGateways = () => {
   const handleAdd = () => {
     setEditingGateway(null);
     setFormData({
-      name: "",
-      gateway_code: "",
-      description: "",
-      logo_url: "",
-      api_endpoint: "",
-      api_key: "",
-      secret_key: "",
-      webhook_url: "",
-      supported_currencies: "USD",
-      country_codes: [],
-      is_integrated: true,
-      min_amount: 1,
-      max_amount: 10000,
-      fee_percentage: 0,
-      fee_fixed: 0,
-      display_order: gateways.length,
-      is_active: false,
     });
     setShowModal(true);
   };
@@ -317,23 +282,6 @@ const AdminPaymentGateways = () => {
   const handleEdit = (gateway: PaymentGateway) => {
     setEditingGateway(gateway);
     setFormData({
-      name: gateway.name,
-      gateway_code: gateway.gateway_code,
-      description: gateway.description || "",
-      logo_url: gateway.logo_url || "",
-      api_endpoint: gateway.api_endpoint || "",
-      api_key: "",
-      secret_key: "",
-      webhook_url: gateway.webhook_url || "",
-      supported_currencies: gateway.supported_currencies.join(", "),
-      country_codes: gateway.country_codes || [],
-      is_integrated: gateway.is_integrated ?? true,
-      min_amount: gateway.min_amount,
-      max_amount: gateway.max_amount,
-      fee_percentage: gateway.fee_percentage,
-      fee_fixed: gateway.fee_fixed,
-      display_order: gateway.display_order,
-      is_active: gateway.is_active,
     });
     setShowModal(true);
   };
@@ -353,27 +301,12 @@ const AdminPaymentGateways = () => {
       const existingConfig = (editingGateway as any)?.config || {};
       const newConfig: Record<string, any> = {
         ...existingConfig,
-        gateway_code: gatewayCode,
-        description: formData.description || null,
-        api_endpoint: formData.api_endpoint || null,
-        webhook_url: formData.webhook_url || null,
-        min_amount: formData.min_amount,
-        max_amount: formData.max_amount,
-        fee_percentage: formData.fee_percentage,
-        fee_fixed: formData.fee_fixed,
       };
       if (formData.api_key) newConfig.api_key_encrypted = formData.api_key;
       if (formData.secret_key) newConfig.secret_key_encrypted = formData.secret_key;
 
       const gatewayData: any = {
-        name: formData.name,
         gateway_type: gatewayCode,
-        logo_url: formData.logo_url || null,
-        supported_currencies: currencies,
-        country_codes: formData.country_codes && formData.country_codes.length > 0 ? formData.country_codes : null,
-        is_integrated: formData.is_integrated,
-        display_order: formData.display_order,
-        is_active: formData.is_active,
         config: newConfig,
       };
 
@@ -399,9 +332,6 @@ const AdminPaymentGateways = () => {
     } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorSavingGateway", message: formatAdminError(error)});
       toast({
-        title: "Error",
-        description: error.message || "Failed to save payment gateway",
-        variant: "destructive"
       });
     } finally {
       setSaving(false);
@@ -418,17 +348,12 @@ const AdminPaymentGateways = () => {
       if (error) throw error;
       
       toast({
-        title: gateway.is_active ? "Deactivated" : "Activated",
-        description: `${gateway.name} has been ${gateway.is_active ? 'deactivated' : 'activated'}`
       });
       
       fetchGateways();
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorTogglingGateway", message: formatAdminError(error)});
       toast({
-        title: "Error",
-        description: "Failed to update gateway status",
-        variant: "destructive"
       });
     }
   };
@@ -448,9 +373,6 @@ const AdminPaymentGateways = () => {
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorDeletingGateway", message: formatAdminError(error)});
       toast({
-        title: "Error",
-        description: "Failed to delete payment gateway",
-        variant: "destructive"
       });
     }
   };
@@ -474,7 +396,6 @@ const AdminPaymentGateways = () => {
         }
       } else if (newStatus === 'failed') {
         const { data, error } = await supabase.rpc('admin_reject_payment_transaction' as any, {
-          _transaction_id: transactionId,
           _reason: 'Rejected from admin payment gateway panel',
         });
         const result = data as any;
@@ -489,9 +410,6 @@ const AdminPaymentGateways = () => {
     } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorUpdatingTransaction", message: formatAdminError(error)});
       toast({
-        title: "Error",
-        description: error.message || "Failed to update transaction",
-        variant: "destructive"
       });
     }
   };
@@ -523,17 +441,12 @@ const AdminPaymentGateways = () => {
       if (updateError) throw updateError;
 
       toast({
-        title: "✓ Logo Upload Successful",
-        description: "Payment gateway logo has been updated",
       });
 
       fetchGateways();
     } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.LogoUploadError", message: formatAdminError(error)});
       toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload logo",
-        variant: "destructive"
       });
     } finally {
       setUploadingLogoForGateway(null);
@@ -546,18 +459,12 @@ const AdminPaymentGateways = () => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         toast({
-          title: "Invalid File",
-          description: "Only image files can be uploaded",
-          variant: "destructive"
         });
         return;
       }
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         toast({
-          title: "File Too Large",
-          description: "Maximum file size is 2MB",
-          variant: "destructive"
         });
         return;
       }
@@ -1008,7 +915,6 @@ const AdminPaymentGateways = () => {
                       onClick={() =>
                         setFormData({
                           ...formData,
-                          country_codes: checked
                             ? formData.country_codes.filter((x) => x !== c.code)
                             : [...formData.country_codes, c.code],
                         })

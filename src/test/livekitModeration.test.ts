@@ -50,52 +50,40 @@ describe('Pkg127 host moderation', () => {
   it('unmute_all_audio happy path', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { success: true, result: { participants: 2, tracks: 2 } },
-      error: null,
     });
     const r = await hostUnmuteAllAudio({ roomName: 'live_x' });
     expect(r.success).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-moderate', {
-      body: { action: 'unmute_all_audio', roomName: 'live_x' },
     });
   });
 
   it('mute_participant_audio forwards identity', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { success: true, result: { tracks_muted: 1 } },
-      error: null,
     });
     const r = await hostMuteParticipantAudio({ roomName: 'live_x', identity: 'user_42' });
     expect(r.success).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-moderate', {
-      body: { action: 'mute_participant_audio', roomName: 'live_x', identity: 'user_42' },
     });
   });
 
   it('unmute_participant_audio forwards identity', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { success: true, result: { tracks_unmuted: 1 } },
-      error: null,
     });
     const r = await hostUnmuteParticipantAudio({ roomName: 'live_x', identity: 'user_42' });
     expect(r.success).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-moderate', {
-      body: { action: 'unmute_participant_audio', roomName: 'live_x', identity: 'user_42' },
     });
   });
 
   it('kick_participant forwards identity + reason', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { success: true, result: { removed: 'user_42' } },
-      error: null,
     });
     const r = await hostKickParticipant({ roomName: 'live_x', identity: 'user_42', reason: 'abuse' });
     expect(r.success).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-moderate', {
-      body: { action: 'kick_participant', roomName: 'live_x', identity: 'user_42', reason: 'abuse' },
     });
   });
 
@@ -109,8 +97,6 @@ describe('Pkg127 host moderation', () => {
   it('surfaces server-side success:false', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { success: false, error: 'not_room_host' },
-      error: null,
     });
     const r = await hostMuteAllAudio({ roomName: 'live_y' });
     expect(r).toEqual({ success: false, error: 'not_room_host' });

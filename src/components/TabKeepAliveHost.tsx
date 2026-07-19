@@ -115,10 +115,7 @@ export default function TabKeepAliveHost() {
             // hidden tabs from the active one.
             {...(!isActive ? { inert: '' as unknown as boolean } : {})}
             style={{
-              position: 'absolute',
-              inset: 0,
               display: isActive ? 'block' : 'none',
-              overflow: 'auto',
               WebkitOverflowScrolling: 'touch',
             }}
           >

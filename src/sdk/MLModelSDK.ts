@@ -392,13 +392,9 @@ export class AIChatService {
   async streamChat(messages: AIMessage[], callbacks: AIStreamCallbacks): Promise<void> {
     try {
       const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiKey}`,
         },
-        body: JSON.stringify({
-          messages: [
             { role: 'system', content: this.systemPrompt },
             ...messages,
           ],

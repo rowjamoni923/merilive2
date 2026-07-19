@@ -104,7 +104,6 @@ function Sparkline({ data, color = "#f59e0b" }: { data: { t: number; v: number }
 function StatCard({
   icon: Icon, label, value, unit, sub, accent = "amber", spark,
 }: {
-  icon: typeof Activity;
   label: string;
   value: string | number;
   unit?: string;

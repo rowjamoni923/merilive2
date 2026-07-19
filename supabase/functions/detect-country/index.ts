@@ -87,19 +87,10 @@ serve(async (req) => {
         extract: (d: any) => d.country_code && !d.error ? { countryCode: d.country_code, city: d.city || '', region: d.region || '' } : null,
       },
       {
-        name: 'ipwho.is',
-        url: `https://ipwho.is/${realIP}`,
-        extract: (d: any) => d.success && d.country_code ? { countryCode: d.country_code, city: d.city || '', region: d.region || '' } : null,
       },
       {
-        name: 'freeipapi.com',
-        url: `https://freeipapi.com/api/json/${realIP}`,
-        extract: (d: any) => d.countryCode ? { countryCode: d.countryCode, city: d.cityName || '', region: d.regionName || '' } : null,
       },
       {
-        name: 'ip-api.com',
-        url: `http://ip-api.com/json/${realIP}?fields=status,countryCode,city,regionName`,
-        extract: (d: any) => d.status === 'success' && d.countryCode ? { countryCode: d.countryCode, city: d.city || '', region: d.regionName || '' } : null,
       },
     ];
 
@@ -135,8 +126,6 @@ serve(async (req) => {
 
     if (successful.length === 0) {
       return new Response(JSON.stringify({ error: 'All IP APIs failed', ip: realIP }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -160,14 +149,11 @@ serve(async (req) => {
       region: best.region,
       ip: realIP,
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('[detect-country] Error:', error);
     return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

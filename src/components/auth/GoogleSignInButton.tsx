@@ -70,9 +70,6 @@ export const GoogleSignInButton = ({ agreed, referralCode, onSuccess }: GoogleSi
 
     if (!agreed) {
       toast({
-        title: "Accept Terms",
-        description: "Please agree to User Agreement and Privacy Policy to continue.",
-        variant: "destructive",
       });
       return;
     }
@@ -89,9 +86,6 @@ export const GoogleSignInButton = ({ agreed, referralCode, onSuccess }: GoogleSi
 
       if (existingProfile) {
         toast({
-          title: "⚠️ Account Already Exists",
-          description: `This device already has an account (${existingProfile.display_name}). One device can only have one account.`,
-          variant: "destructive",
         });
         return;
       }
@@ -127,8 +121,6 @@ export const GoogleSignInButton = ({ agreed, referralCode, onSuccess }: GoogleSi
           }));
           
           toast({
-            title: "Almost Done!",
-            description: "Please select your gender to complete registration.",
           });
           return;
         }

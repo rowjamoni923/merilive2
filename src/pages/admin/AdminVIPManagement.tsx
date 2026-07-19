@@ -36,10 +36,6 @@ const AdminVIPManagement = () => {
     } catch (e) { /* column might not exist */ }
 
     setStats({
-      vipTiers: tiersRes.count || 0,
-      medals: medalsRes.count || 0,
-      nobleCards: cardsRes.count || 0,
-      activeVIPs: activeVIPsCount
     });
   };
 

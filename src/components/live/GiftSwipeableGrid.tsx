@@ -128,7 +128,6 @@ const GiftItem = memo(({
               : "bg-gradient-to-r from-amber-400/95 to-yellow-500/95 text-black border-white/40"
           )}
           style={{
-            boxShadow: isLocked
               ? '0 2px 6px rgba(244,63,94,0.35)'
               : '0 2px 6px rgba(251,191,36,0.35)',
           }}

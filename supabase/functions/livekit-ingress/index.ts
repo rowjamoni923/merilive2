@@ -117,7 +117,6 @@ Deno.serve(async (req) => {
     const ingressId = info.ingressId ?? "";
 
     await admin.from("live_streams").update({
-      ingress_id: ingressId,
       rtmp_url: rtmpUrl,
       stream_key: streamKey,
       ingress_type: wantWhip ? "whip" : "rtmp",

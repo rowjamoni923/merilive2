@@ -103,17 +103,6 @@ export default function AdminRandomCallOps() {
     const short = today.filter((r: any) => r.status === "ended" && (r.billable_seconds || 0) === 0);
 
     setStats({
-      activeNow: activeNow || 0,
-      queuedNow: queuedNow || 0,
-      callsToday: today.length,
-      completedToday: completed.length,
-      shortToday: short.length,
-      coinsToday: today.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
-      beansToday: today.reduce((s: number, r: any) => s + (r.beans_awarded || 0), 0),
-      callsWeek: week.length,
-      coinsWeek: week.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
-      beansWeek: week.reduce((s: number, r: any) => s + (r.beans_awarded || 0), 0),
-      suspendedHosts: suspCount || 0,
     });
 
     // Fetch profile names for all referenced user ids
@@ -167,9 +156,6 @@ export default function AdminRandomCallOps() {
     const { error } = await (supabase as any)
       .from("host_match_availability")
       .update({
-        match_suspend_until: until,
-        suspend_reason: "manual_admin_action",
-        updated_at: new Date().toISOString(),
       })
       .eq("host_id", hostId);
     if (error) return toast.error("Failed: " + error.message);

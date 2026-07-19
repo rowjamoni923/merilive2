@@ -166,7 +166,6 @@ Deno.serve(async (req) => {
       role,
       action,
       ingressId: ingressId || undefined,
-      roomName: roomName || undefined,
       error: msg.slice(0, 500),
     });
     return json(500, { error: "livekit_error", message: msg });

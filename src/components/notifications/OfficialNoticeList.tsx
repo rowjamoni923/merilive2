@@ -325,22 +325,8 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
       glow: 'shadow-red-500/20'
     };
     if (isHigh) return {
-      icon: Sparkles,
-      iconBg: 'bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500',
-      border: 'border-l-4 border-orange-500',
-      bg: 'bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-transparent',
-      badge: 'bg-gradient-to-r from-orange-500/30 to-amber-500/20 text-orange-300 border border-orange-500/30',
-      badgeText: '⚡ Important',
-      glow: 'shadow-orange-500/20'
     };
     return {
-      icon: Megaphone,
-      iconBg: 'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600',
-      border: 'border-l-4 border-primary',
-      bg: 'bg-gradient-to-r from-primary/10 via-blue-500/5 to-transparent',
-      badge: 'bg-gradient-to-r from-blue-500/30 to-indigo-500/20 text-blue-300 border border-blue-500/30',
-      badgeText: '📢 Notice',
-      glow: 'shadow-blue-500/20'
     };
   };
 

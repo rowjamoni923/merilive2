@@ -49,8 +49,6 @@ Deno.serve(async (req) => {
     const { eventName, customPrompt, style, sizeKey } = body ?? {};
     if (!eventName || typeof eventName !== "string") {
       return new Response(JSON.stringify({ error: "eventName required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -64,7 +62,6 @@ Deno.serve(async (req) => {
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-image",
         messages: [{ role: "user", content: prompt }],
@@ -84,8 +81,6 @@ Deno.serve(async (req) => {
     const dataUrl: string | undefined = aiJson?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     if (!dataUrl?.startsWith("data:image")) {
       return new Response(JSON.stringify({ error: "No image returned" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -134,8 +129,6 @@ Deno.serve(async (req) => {
     );
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e?.message || String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

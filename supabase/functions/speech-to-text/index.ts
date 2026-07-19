@@ -85,12 +85,9 @@ serve(async (req) => {
       console.log('[STT] Using Lovable AI for transcription');
       
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
             {
@@ -101,14 +98,11 @@ serve(async (req) => {
               If the language is Bengali/Bangla, transcribe in Bengali script.`
             },
             {
-              role: "user",
-              content: [
                 {
                   type: "text",
                   text: `Transcribe this audio. Language hint: ${language}`
                 },
                 {
-                  type: "input_audio",
                   input_audio: {
                     data: audio,
                     format: "wav"
@@ -146,7 +140,6 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        text: transcription,
         success: true 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -68,8 +68,6 @@ export function useBroadcastTemplates(categoryPrefix: string) {
         .from("notification_templates")
         .insert({
           ...template,
-          title: template.title_template,
-          body: template.message_template,
         });
 
       if (error) throw error;

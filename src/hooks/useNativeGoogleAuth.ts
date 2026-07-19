@@ -99,8 +99,6 @@ export const useNativeGoogleAuth = () => {
           
           // Sign in with Supabase using the GOOGLE ID token
           const { data, error } = await supabase.auth.signInWithIdToken({
-            provider: 'google',
-            token: googleIdToken,
           });
 
           if (error) {
@@ -111,8 +109,6 @@ export const useNativeGoogleAuth = () => {
           if (data.session) {
             console.log('[GoogleAuth] Login successful!');
             toast({
-              title: "Welcome! 🎉",
-              description: `${result.user.displayName || 'User'}, you have logged in successfully!`,
             });
             return { success: true };
           }
@@ -128,8 +124,6 @@ export const useNativeGoogleAuth = () => {
           // Check for timeout
           if (nativeError.message?.includes('TIMEOUT')) {
             toast({
-              title: "Timeout",
-              description: "Google Sign-In is taking too long. Check your internet connection and try again.",
               variant: "destructive",
             });
             return { success: false, error: 'Timeout' };
@@ -142,8 +136,6 @@ export const useNativeGoogleAuth = () => {
               nativeError.message?.includes('popup') ||
               nativeError.message?.includes('12501')) {
             toast({
-              title: "Cancelled",
-              description: "Google sign-in was cancelled",
             });
             return { success: false, error: 'User cancelled' };
           }
@@ -183,9 +175,6 @@ export const useNativeGoogleAuth = () => {
         console.log('[GoogleAuth] Web preview detected - Firebase Google only works on native');
         
         toast({
-          title: "📱 Native App Only",
-          description: "Google sign-in only works in the native app. Use Start button or download the app.",
-          variant: "default",
         });
         
         return { success: false, error: 'Web preview - use native app' };
@@ -211,9 +200,6 @@ export const useNativeGoogleAuth = () => {
       }
       
       toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
       });
       
       return { success: false, error: errorMessage };

@@ -39,12 +39,6 @@ const AdminVisualAssetsHub = () => {
     }
     const s: any = data;
     setStats({
-      frames: Number(s.frames || 0),
-      roleFrames: Number(s.role_frames || 0),
-      chatBubbles: Number(s.chat_bubbles || 0),
-      animations: Number(s.entry_banners || 0),
-      gifts: Number(s.gifts || 0),
-      shopItems: Number(s.shop_items || 0),
     });
   };
 

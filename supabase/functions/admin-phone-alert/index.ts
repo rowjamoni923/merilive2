@@ -144,7 +144,6 @@ serve(async (req) => {
     // Broadcast real-time for admin dashboard
     const channel = supabase.channel('admin-alerts');
     await channel.send({
-      type: 'broadcast',
       event: 'phone_detection',
       payload: {
         userId,
@@ -153,7 +152,6 @@ serve(async (req) => {
         callId,
         callerName: callerName || userProfile.display_name,
         userUid: userProfile.app_uid,
-        timestamp: new Date().toISOString(),
         violationResult,
       }
     });

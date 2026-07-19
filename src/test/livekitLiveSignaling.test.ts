@@ -103,8 +103,6 @@ describe('Pkg74 livekitLiveSignaling', () => {
     window.addEventListener('livekit-stream-ended', listener);
 
     const env = buildEnvelope('live', 'stream_ended', {
-      streamId: 'stream-OTHER',
-      endedBy: 'host-x',
     }, 'host-x');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'host-x' });
 
@@ -120,7 +118,6 @@ describe('Pkg74 livekitLiveSignaling', () => {
 
     const env = buildEnvelope('call', 'call_ended', {
       callId: 'stream-1',
-      endedBy: 'someone',
     }, 'someone');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'someone' });
 
@@ -141,8 +138,6 @@ describe('Pkg74 livekitLiveSignaling', () => {
     registerStreamRoom('stream-1', room as any);
 
     const ok = await publishStreamEnded('stream-1', {
-      endedBy: 'host-1',
-      hostName: 'Alice',
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();

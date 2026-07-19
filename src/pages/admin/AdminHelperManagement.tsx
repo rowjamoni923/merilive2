@@ -235,15 +235,6 @@ const AdminHelperManagement = () => {
     const s = (statsData as any) || {};
 
     setStats({
-      pendingApplications: s.pendingApplications || 0,
-      approvedApplications: s.approvedApplications || 0,
-      rejectedApplications: s.rejectedApplications || 0,
-      totalHelpers: s.totalHelpers || 0,
-      activeHelpers: s.activeHelpers || 0,
-      level5Helpers: s.level5Helpers || 0,
-      pendingUpgrades: s.pendingUpgrades || 0,
-      pendingTopups: s.pendingTopups || 0,
-      pendingPayroll: s.pendingPayroll || 0,
     });
   };
   
@@ -303,8 +294,6 @@ const AdminHelperManagement = () => {
       const { error } = await supabase
         .from('topup_helpers')
         .update({
-          payroll_status: 'rejected',
-          payroll_enabled: false
         })
         .eq('id', helper.id);
 
@@ -367,8 +356,6 @@ const AdminHelperManagement = () => {
           is_active: true,
           is_verified: true,
           trader_level: app.requested_level,
-          payroll_enabled: app.payroll_requested,
-          payroll_status: app.payroll_requested ? 'approved' : null,
           country_code: applicantProfile?.country_code || null,
           approved_at: new Date().toISOString(),
           approved_by: adminProfile ? user?.id : null
@@ -408,10 +395,6 @@ const AdminHelperManagement = () => {
       const { error: updateError } = await supabase
         .from('helper_applications')
         .update({
-          status: 'rejected',
-          admin_notes: adminNotes,
-          reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString()
         })
         .eq('id', app.id);
       if (updateError) throw updateError;
@@ -510,7 +493,6 @@ const AdminHelperManagement = () => {
         .update({
           diamond_amount: pkg.diamond_amount,
           price_usd: pkg.price_usd,
-          is_active: pkg.is_active,
           updated_at: new Date().toISOString()
         })
         .eq('id', pkg.id);

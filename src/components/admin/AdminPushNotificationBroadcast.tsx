@@ -138,9 +138,6 @@ export function AdminPushNotificationBroadcast() {
     try {
       // Build payload based on target type
       let payload: Record<string, unknown> = {
-        title: formData.title,
-        body: formData.body,
-        type: formData.type,
       };
 
       if (formData.imageUrl) {
@@ -179,16 +176,11 @@ export function AdminPushNotificationBroadcast() {
       }
 
       const { data, error } = await supabase.functions.invoke("send-push-notification", {
-        body: payload,
       });
 
       if (error) throw error;
 
       setLastResult({
-        success: data.success,
-        sent: data.sent || 0,
-        failed: data.failed || 0,
-        total: data.total || 0,
       });
 
       if (data.success) {
@@ -196,9 +188,6 @@ export function AdminPushNotificationBroadcast() {
         // Reset form
         setFormData(prev => ({
           ...prev,
-          title: "",
-          body: "",
-          imageUrl: "",
         }));
       } else {
         toast.error("Failed to send notification");

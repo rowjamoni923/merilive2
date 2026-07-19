@@ -21,9 +21,6 @@ export const VerifiedBadge = ({
   };
 
   const iconSizes = {
-    sm: "w-2.5 h-2.5",
-    md: "w-3.5 h-3.5",
-    lg: "w-5 h-5"
   };
 
   return (
@@ -65,37 +62,22 @@ export const VerifiedBadge = ({
           <motion.div
             className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"
             animate={{
-              scale: [0, 1, 0],
-              opacity: [0, 1, 0]
             }}
             transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              delay: 0.3
             }}
           />
           <motion.div
             className="absolute -bottom-0.5 -left-1 w-1.5 h-1.5 bg-cyan-400 rounded-full"
             animate={{
-              scale: [0, 1, 0],
-              opacity: [0, 1, 0]
             }}
             transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              delay: 0.8
             }}
           />
           <motion.div
             className="absolute top-0 -left-0.5 w-1 h-1 bg-pink-400 rounded-full"
             animate={{
-              scale: [0, 1, 0],
-              opacity: [0, 1, 0]
             }}
             transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              delay: 1.2
             }}
           />
         </>
@@ -117,12 +99,8 @@ export const VerifiedBadge = ({
         <motion.div
           className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/40 to-transparent"
           animate={{
-            opacity: [0.3, 0.6, 0.3]
           }}
           transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
           }}
         />
 
@@ -149,9 +127,6 @@ export const VerifiedBadge = ({
           className="absolute inset-[-3px] rounded-full border-2 border-dashed border-pink-400/50"
           animate={{ rotate: 360 }}
           transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "linear"
           }}
         />
       )}

@@ -189,7 +189,7 @@ export function AIChatbot() {
                   <p className="text-sm font-medium text-foreground mb-1">Hi! I'm MeriLive AI 🤖</p>
                   <p className="text-xs text-muted-foreground">Ask me anything about the app!</p>
                   <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                    {["How to go live?", "How to earn coins?", "What are levels?"].map(q => (
+                    {["How to go live?", "How to earn diamonds?", "What are levels?"].map(q => (
                       <button
                         key={q}
                         onClick={() => { setInput(q); }}

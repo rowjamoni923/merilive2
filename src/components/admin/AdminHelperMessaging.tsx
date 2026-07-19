@@ -263,13 +263,6 @@ const AdminHelperMessaging = () => {
         const { error } = await supabase
           .from('helper_admin_messages')
           .insert({
-            helper_id: selectedHelper,
-            sender_id: user?.id,
-            sender_type: 'admin',
-            title: messageTitle,
-            message: messageBody,
-            priority: priority,
-            attachments: attachments.length > 0 ? attachments : null
           });
 
         if (error) throw error;
@@ -307,8 +300,6 @@ const AdminHelperMessaging = () => {
       setMessageReplies(prev => [...prev, {
         id: tempId,
         message_id: selectedMessage.id,
-        sender_id: user.id,
-        sender_type: 'admin',
         content: text,
         screenshot_url: null,
         is_read: false,
@@ -322,9 +313,6 @@ const AdminHelperMessaging = () => {
         const { error } = await supabase
           .from('helper_message_replies')
           .insert({
-            message_id: selectedMessage.id,
-            sender_id: user.id,
-            sender_type: 'admin',
             reply_text: text,
           } as any);
         if (!error) { lastError = null; break; }
@@ -338,8 +326,6 @@ const AdminHelperMessaging = () => {
         await supabase.from('notifications').insert({
           user_id: selectedMessage.helper.user_id,
           type: 'admin_message_reply',
-          title: '💬 Admin Reply',
-          message: `Reply to: ${selectedMessage.title}`,
           data: { message_id: selectedMessage.id }
         });
       }
@@ -351,7 +337,6 @@ const AdminHelperMessaging = () => {
         r.id === tempId ? { ...r, content: `${r.content}  ⚠️` } as MessageReply : r
       ));
       toast({
-        title: "Message failed",
         description: error?.message || "Could not deliver your reply. Please try again.",
         variant: "destructive",
       });
@@ -637,7 +622,6 @@ const AdminHelperMessaging = () => {
                 <DialogTitle className="text-left">{selectedMessage?.title}</DialogTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-muted-foreground">
-                    To: {selectedMessage?.helper?.profile?.display_name || 'Helper'}
                   </span>
                   {selectedMessage?.priority === 'urgent' && (
                     <Badge className="bg-red-500 text-[10px]">Urgent</Badge>

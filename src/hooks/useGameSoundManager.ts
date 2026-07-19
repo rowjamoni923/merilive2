@@ -256,7 +256,7 @@ export function useGameSoundManager(gameType: GameType) {
     }, 40);
   }, [gameType]);
 
-  // Victory fanfare - coins pouring
+  // Victory fanfare - diamonds pouring
   const playWinSound = useCallback(() => {
     if (!isActiveRef.current || activeGame !== gameType) return;
     initAudioContext();

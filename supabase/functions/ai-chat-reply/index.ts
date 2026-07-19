@@ -148,8 +148,6 @@ serve(async (req) => {
           model: "google/gemini-3-flash-preview",
           messages: [
             {
-              role: "system",
-              content: `You are ${hostName}, a charming and friendly female host on a social video call app. You are warm, playful, flirty but tasteful, and you love making people feel special. Your goal is to have fun conversations and encourage users to video call you.
 
 ${languageInstruction}
 
@@ -207,7 +205,6 @@ The user's name is: ${senderName}`,
     const { error: insertError } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: hostId,
-      content: replyContent,
       message_type: "text",
       is_ai_reply: true,
     });

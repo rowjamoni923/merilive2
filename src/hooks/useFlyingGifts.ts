@@ -61,8 +61,6 @@ export function useFlyingGifts() {
     const newId = `${now}-${Math.random().toString(36).slice(2, 7)}`;
     const newGift: FlyingGift = {
       ...gift,
-      id: newId,
-      comboKey: now,
     };
     comboRef.current.set(senderKey, { id: newId, expiresAt: now + COMBO_WINDOW_MS });
     setGifts(prev => [...prev, newGift]);
@@ -74,7 +72,6 @@ export function useFlyingGifts() {
       try {
         enqueueFullScreenGift({
           gift: {
-            id: newId,
             name: gift.giftName,
             icon_url: gift.giftImageUrl || gift.giftIcon,
             animation_url: gift.animationUrl,

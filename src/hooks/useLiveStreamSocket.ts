@@ -139,7 +139,6 @@ export function useLiveStreamSocket({
     
     if (socketRef.current) {
       socketRef.current.send(JSON.stringify({
-        type: 'leave-stream',
         streamId,
         userId
       }));
@@ -152,10 +151,8 @@ export function useLiveStreamSocket({
   const sendChat = useCallback((message: string, senderName: string, senderAvatar?: string) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
-        type: 'chat',
         streamId,
         userId,
-        payload: { message, senderName, senderAvatar, timestamp: Date.now() }
       }));
     }
   }, [streamId, userId]);
@@ -163,10 +160,8 @@ export function useLiveStreamSocket({
   const sendGift = useCallback((gift: { id: string; name: string; icon: string; value: number; animation: string }) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
-        type: 'gift',
         streamId,
         userId,
-        payload: gift
       }));
     }
   }, [streamId, userId]);
@@ -174,7 +169,6 @@ export function useLiveStreamSocket({
   const sendLike = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
-        type: 'like',
         streamId,
         userId
       }));

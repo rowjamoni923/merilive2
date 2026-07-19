@@ -93,7 +93,6 @@ export function useConversationPrefs(userId: string | null) {
         .upsert(
           {
             user_id: userId,
-            conversation_id: conversationId,
             is_pinned: merged.is_pinned,
             is_muted: merged.is_muted,
             is_archived: merged.is_archived,
