@@ -50,10 +50,10 @@ class TasksFragment : Fragment() {
 
                 taskAdapter.submitList(state.tasks, state.progress, state.claimingTaskId)
 
-                state.rewardPopup?.let { (beans, coins) ->
+                state.rewardPopup?.let { (beans, diamonds) ->
                     val msg = buildString {
                         if (beans > 0) append("+$beans Beans ")
-                        if (coins > 0) append("+$coins Diamonds")
+                        if (diamonds > 0) append("+$diamonds Diamonds")
                     }
                     Toast.makeText(requireContext(), "🎉 $msg", Toast.LENGTH_SHORT).show()
                     viewModel.dismissReward()

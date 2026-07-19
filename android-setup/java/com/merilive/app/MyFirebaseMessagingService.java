@@ -590,7 +590,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     // ═══════════════════════════════════════
-    //  TOPUP / COIN NOTIFICATION
+    //  TOPUP / DIAMOND NOTIFICATION
     // ═══════════════════════════════════════
 
     private void handleTopupNotification(Map<String, String> data) {

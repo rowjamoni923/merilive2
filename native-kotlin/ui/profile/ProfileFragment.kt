@@ -99,7 +99,7 @@ class ProfileFragment : Fragment() {
             tvUid.text = "ID: ${profile.app_uid ?: ""}"
             tvBio.text = profile.bio ?: ""
             tvLevel.text = "Lv.${profile.userLevel}"
-            tvDiamonds.text = formatCount(profile.coins)
+            tvDiamonds.text = formatCount(profile.diamonds)
             tvBeans.text = formatCount(profile.beans)
 
             // Avatar with frame
@@ -211,7 +211,6 @@ data class UserProfile(
     val bio: String?,
     val gender: String?,
     val userLevel: Int = 1,
-    val coins: Int = 0,
     val beans: Int = 0,
     val diamonds: Int = 0,
     val isVip: Boolean = false,

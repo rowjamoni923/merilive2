@@ -17,7 +17,7 @@ data class TasksUiState(
     val progress: Map<String, TaskProgressData> = emptyMap(),
     val isHost: Boolean = false,
     val claimingTaskId: String? = null,
-    val rewardPopup: Pair<Int, Int>? = null, // beans, coins
+    val rewardPopup: Pair<Int, Int>? = null, // beans, diamonds
     val resetDate: String = "",
 )
 
@@ -57,7 +57,7 @@ class TasksViewModel @Inject constructor(
                 val result = taskRepository.claimTask(taskId, _state.value.resetDate)
                 if (result.success) {
                     _state.value = _state.value.copy(
-                        rewardPopup = Pair(result.beans_earned, result.coins_earned)
+                        rewardPopup = Pair(result.beans_earned, result.diamonds_earned)
                     )
                     loadTasks() // Refresh
                 }
