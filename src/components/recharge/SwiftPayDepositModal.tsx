@@ -10,7 +10,7 @@ const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.floor(n ||
 
 interface PkgLite {
   id: string;
-  diamonds: number;
+  coins: number;
   bonus_percentage?: number;
   price_usd: number;
   name?: string;
@@ -35,7 +35,7 @@ interface Props {
   /** When purpose=campaign, the explicit campaign id to redeem (server validates dedup). */
   campaignId?: string | null;
   /** Called after successful credit so parent can refresh or proceed. */
-  onCredited?: (diamonds: number, topupId?: string) => void;
+  onCredited?: (coins: number, topupId?: string) => void;
   /** Pkg433: when set, the deposit row stores this intent so the swift-pay-poll-deposits
    *  cron auto-grants the Trader Wallet on credit — even if the user closes the app
    *  immediately after paying. Only honoured for mode="user" / custom user-diamond flow. */
@@ -128,7 +128,7 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
 };
 
 // Compute total diamonds including bonus_percentage
-const getBonusInclusiveCoins = (p: { diamonds: number; bonus_percentage?: number }) => {
+const getBonusInclusiveCoins = (p: { coins: number; bonus_percentage?: number }) => {
   const bonusPct = Number(p.bonus_percentage ?? 0);
   const bonus = bonusPct > 0 ? Math.floor((p.diamonds * bonusPct) / 100) : 0;
   return { total: Math.floor(p.diamonds + bonus), bonus, bonusPct };
@@ -170,12 +170,12 @@ export default function SwiftPayDepositModal({
       return;
     }
     if (mode === "helper" && helperCustomCoins && helperCustomPriceUsd) {
-      setPkg({ id: `helper_${helperId}`, diamonds: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" });
+      setPkg({ id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" });
       setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
     if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-      setPkg({ id: `custom_${userCustomPriceUsd}`, diamonds: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" });
+      setPkg({ id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" });
       setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
@@ -323,12 +323,15 @@ export default function SwiftPayDepositModal({
       if (data?.status === "credited") {
         setStep("done");
         toast({
+          title: mode === "helper" ? "✅ Trader Wallet topped up!" : "✅ Diamonds credited!",
+          description: mode === "helper"
             ? `${fmt(deposit.diamonds_amount)} diamonds added to your Trader Wallet.`
             : `${fmt(deposit.diamonds_amount)} diamonds added to your balance.`,
         });
         onCredited?.(deposit.diamonds_amount, deposit.topup_id);
       } else if (data?.status === "pending" || data?.status === "paid" || data?.status === "expired") {
         supabase.functions.invoke("swift-pay-poll-deposits", {
+          body: { topup_id: deposit.topup_id },
         }).catch(() => {});
       }
     };

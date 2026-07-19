@@ -13,6 +13,7 @@ const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolea
 const isFreeAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
+  price_diamonds?: number | null;
 }) => {
   return !asset.is_premium && (asset.price_diamonds ?? 0) <= 0 && (asset.price_diamonds ?? 0) <= 0;
 };
@@ -182,6 +183,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         const frameCandidates = ((framesRes.data || []) as any[])
           .map((frame) => ({
+            id: frame.id,
             level: frame.min_level ?? frame.level_required ?? 1,
             free: isFreeAsset(frame),
           }))

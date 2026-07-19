@@ -96,6 +96,15 @@ export default function SuperAdminApply() {
       const now = new Date().toISOString();
 
       const pdfBlob = await generateAgreementPdf({
+        full_name: form.full_name,
+        business_name: form.business_name,
+        country_code: form.country_code,
+        full_address: form.full_address,
+        official_email: form.official_email,
+        official_phone: form.official_phone,
+        whatsapp: form.whatsapp,
+        nid_country: form.nid_country,
+        nid_number: form.nid_number,
         deposit_amount_usd: MIN_DEPOSIT,
         commission_percent: 25,
         date_iso: now,
@@ -110,8 +119,23 @@ export default function SuperAdminApply() {
 
       const { error } = await supabase.from("country_super_admin_applications").insert({
         applicant_user_id: userId,
+        country_code: form.country_code,
+        full_name: form.full_name,
+        business_name: form.business_name || null,
+        full_address: form.full_address,
+        official_email: form.official_email,
+        official_phone: form.official_phone,
+        whatsapp: form.whatsapp || null,
+        telegram: form.telegram || null,
+        nid_country: form.nid_country,
+        nid_number: form.nid_number,
+        nid_front_url: form.nid_front_url,
+        nid_back_url: form.nid_back_url || null,
+        business_doc_url: form.business_doc_url || null,
         // Helper does NOT set deposit — admin confirms the actual amount at approval time.
+        deposit_amount_usd: MIN_DEPOSIT,
         requested_commission_percent: 25,
+        notes: form.notes || null,
         signature_data_url,
         agreement_version: AGREEMENT_VERSION,
         agreement_signed_at: now,
@@ -160,6 +184,18 @@ export default function SuperAdminApply() {
   }
 
   const agreementVars = {
+    full_name: form.full_name || "________________",
+    business_name: form.business_name,
+    country_code: form.country_code,
+    full_address: form.full_address || "________________",
+    official_email: form.official_email || "________________",
+    official_phone: form.official_phone || "________________",
+    whatsapp: form.whatsapp,
+    nid_country: form.nid_country,
+    nid_number: form.nid_number || "________________",
+    deposit_amount_usd: MIN_DEPOSIT,
+    commission_percent: 25,
+    date_iso: new Date().toISOString(),
   };
 
   return (

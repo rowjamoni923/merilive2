@@ -72,6 +72,13 @@ export default function AdminBranding() {
       if (data) {
         const parsed = parseSettingValue<Partial<BrandingSettings> & { app_name?: string; logo_url?: string }>(data.setting_value) || {};
         setSettings({
+          id: data.id,
+          logo_text_primary: parsed.logo_text_primary ?? parsed.app_name?.split(' ')[0] ?? 'meri',
+          logo_text_secondary: parsed.logo_text_secondary ?? 'LIVE',
+          tagline: parsed.tagline ?? 'Connect • Chat • Share',
+          background_type: (parsed.background_type ?? 'image') as BrandingSettings['background_type'],
+          background_url: parsed.background_url ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+          logo_image_url: parsed.logo_image_url ?? parsed.logo_url ?? null,
         });
       }
     } catch (error) {
@@ -131,10 +138,13 @@ export default function AdminBranding() {
       if (type === 'logo') {
         setSettings(prev => ({
           ...prev,
+          logo_image_url: urlData.publicUrl
         }));
       } else {
         setSettings(prev => ({
           ...prev,
+          background_url: urlData.publicUrl,
+          background_type: isVideo ? 'video' : isGif ? 'gif' : 'image'
         }));
       }
 
@@ -155,6 +165,12 @@ export default function AdminBranding() {
       const secondaryText = settings.logo_text_secondary;
       const backgroundType = inferBackgroundTypeFromUrl(settings.background_url, settings.background_type);
       const savedId = await saveBrandingSettings({
+        logo_text_primary: primaryText,
+        logo_text_secondary: secondaryText,
+        tagline: settings.tagline,
+        background_type: backgroundType,
+        background_url: settings.background_url,
+        logo_image_url: settings.logo_image_url,
         app_name: [primaryText, secondaryText].filter(Boolean).join(' '),
         logo_url: settings.logo_image_url,
       }, settings.id !== 'default' ? settings.id : undefined);
@@ -176,12 +192,15 @@ export default function AdminBranding() {
   const removeLogo = () => {
     setSettings(prev => ({
       ...prev,
+      logo_image_url: null
     }));
   };
 
   const removeBackground = () => {
     setSettings(prev => ({
       ...prev,
+      background_type: 'gradient',
+      background_url: ''
     }));
   };
 
@@ -456,6 +475,8 @@ export default function AdminBranding() {
                     const backgroundUrl = e.target.value;
                     setSettings(prev => ({
                       ...prev,
+                      background_url: backgroundUrl,
+                      background_type: inferBackgroundTypeFromUrl(backgroundUrl, prev.background_type),
                     }));
                   }}
                   placeholder="https://..."
@@ -518,6 +539,8 @@ export default function AdminBranding() {
                       <h2 
                         className="text-2xl font-light text-slate-800 tracking-[0.5em] uppercase"
                         style={{ 
+                          fontFamily: 'Georgia, serif',
+                          textShadow: '0 2px 10px rgba(255,255,255,0.2)'
                         }}
                       >
                         {settings.logo_text_secondary}

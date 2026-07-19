@@ -114,15 +114,19 @@ Deno.serve(async (req) => {
       recipient_email: normalizedEmail,
       status: sendLogStatus,
       error_message: sendLogMessage,
+      metadata: payload.metadata ?? null,
     })
 
   if (insertError) {
     // Non-fatal — log and continue. The suppression was already recorded.
     console.warn('Failed to insert email_send_log', {
+      error: insertError,
     })
   }
 
   console.log('Suppression processed', {
+    email_redacted: normalizedEmail[0] + '***@' + normalizedEmail.split('@')[1],
+    reason: payload.reason,
     is_retry: payload.is_retry,
     retry_count: payload.retry_count,
     has_message_id: !!payload.message_id,

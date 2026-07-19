@@ -302,6 +302,9 @@ const AgencyDiamondExchange = () => {
 
       if (ownerError || !ownerData) {
         toast({
+          title: "User Not Found",
+          description: "No user found with this App UID",
+          variant: "destructive"
         });
         setIsSearchingAgency(false);
         return;
@@ -317,6 +320,9 @@ const AgencyDiamondExchange = () => {
 
       if (agencyError || !agencyData) {
         toast({
+          title: "No Agency Found",
+          description: "This user does not own an agency",
+          variant: "destructive"
         });
         setIsSearchingAgency(false);
         return;
@@ -325,6 +331,9 @@ const AgencyDiamondExchange = () => {
       // Check if trying to send to own agency
       if (agencyData.id === agency?.id) {
         toast({
+          title: "Invalid Target",
+          description: "You cannot send diamonds to your own agency",
+          variant: "destructive"
         });
         setIsSearchingAgency(false);
         return;
@@ -337,11 +346,15 @@ const AgencyDiamondExchange = () => {
         owner_id: agencyData.owner_id,
         owner_name: ownerData.display_name,
         owner_app_uid: ownerData.app_uid,
+        diamond_balance: agencyData.diamond_balance || 0
       });
     } catch (error) {
       console.error("Agency search error:", error);
       recordClientError({ label: "AgencyDiamondExchange.searchAgencyByOwnerUID", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Search Error",
+        description: "Failed to search agency",
+        variant: "destructive"
       });
     } finally {
       setIsSearchingAgency(false);
@@ -355,12 +368,18 @@ const AgencyDiamondExchange = () => {
     
     if (diamonds <= 0) {
       toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid diamond amount",
+        variant: "destructive"
       });
       return;
     }
 
     if (diamonds > agency.diamond_balance) {
       toast({
+        title: "Insufficient Diamonds",
+        description: `You have ${agency.diamond_balance.toLocaleString()} diamonds`,
+        variant: "destructive"
       });
       return;
     }
@@ -376,12 +395,18 @@ const AgencyDiamondExchange = () => {
     
     if (beans < minimumExchangeAmount) {
       toast({
+        title: "Minimum Amount",
+        description: `Minimum ${minimumExchangeAmount.toLocaleString()} beans required for exchange`,
+        variant: "destructive"
       });
       return;
     }
 
     if (beans > ownerBeans) {
       toast({
+        title: "Insufficient Balance",
+        description: `You need ${beans.toLocaleString()} beans. You have ${ownerBeans.toLocaleString()}`,
+        variant: "destructive"
       });
       return;
     }
@@ -397,12 +422,18 @@ const AgencyDiamondExchange = () => {
     
     if (diamonds <= 0) {
       toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid diamond amount",
+        variant: "destructive"
       });
       return;
     }
 
     if (diamonds > agency.diamond_balance) {
       toast({
+        title: "Insufficient Diamonds",
+        description: `You have ${agency.diamond_balance.toLocaleString()} diamonds`,
+        variant: "destructive"
       });
       return;
     }
@@ -423,6 +454,9 @@ const AgencyDiamondExchange = () => {
         // Check personal My Beans (profiles.beans), NOT agency beans_balance
         if (ownerBeans < beans) {
           toast({
+            title: "Insufficient My Beans",
+            description: `You need ${beans.toLocaleString()} beans but only have ${ownerBeans.toLocaleString()} My Beans`,
+            variant: "destructive",
           });
           setIsProcessing(false);
           return;
@@ -460,6 +494,7 @@ const AgencyDiamondExchange = () => {
         if (agency && exchangeResult.destination === 'trader_wallet_agency') {
           setAgency({ 
             ...agency, 
+            diamond_balance: (agency.diamond_balance || 0) + diamondsToGet
           });
         }
         
@@ -467,11 +502,14 @@ const AgencyDiamondExchange = () => {
         await supabase.from('notifications').insert({
           user_id: ownerId,
           type: 'diamond_exchange',
+          title: 'Exchange Successful! ✨',
           message: `Converted ${beans.toLocaleString()} beans to ${diamondsToGet.toLocaleString()} diamonds.`,
           data: { beans: beans, diamonds: diamondsToGet, fee: feeAmount }
         });
         
         toast({
+          title: "Exchange Successful! ✨",
+          description: `Converted ${beans.toLocaleString()} beans to ${diamondsToGet.toLocaleString()} diamonds (Fee: ${feeAmount.toLocaleString()})`,
         });
         
         setBeansAmount("");
@@ -502,9 +540,12 @@ const AgencyDiamondExchange = () => {
 
         setAgency({ 
           ...agency, 
+          diamond_balance: rpcResult.new_agency_balance
         });
         
         toast({
+          title: "Transfer Successful! 💎",
+          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedUser.display_name || selectedUser.app_uid}'s top-up balance`,
         });
         
         setDiamondsToSend("");
@@ -519,6 +560,7 @@ const AgencyDiamondExchange = () => {
         const { data: result, error: rpcError } = await (supabase as any).rpc('agency_send_diamonds_to_agency', {
           _sender_agency_id: agency.id,
           _target_agency_id: selectedTargetAgency.id,
+          _amount: diamonds
         });
 
         if (rpcError) throw rpcError;
@@ -529,9 +571,12 @@ const AgencyDiamondExchange = () => {
 
         setAgency({ 
           ...agency, 
+          diamond_balance: rpcResult.new_sender_balance
         });
         
         toast({
+          title: "Transfer Successful! 💎",
+          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedTargetAgency.owner_name || selectedTargetAgency.name}'s trader wallet`,
         });
         
         setDiamondsToSend("");
@@ -543,6 +588,9 @@ const AgencyDiamondExchange = () => {
       console.error("Transaction error:", error);
       recordClientError({ label: "AgencyDiamondExchange.rpcResult", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Transfer Failed",
+        description: error instanceof Error ? error.message : "Failed to complete transaction",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -924,6 +972,7 @@ const AgencyDiamondExchange = () => {
                       <div className="flex-1">
                         <p className="font-semibold text-slate-800">{selectedUser.display_name || "Unknown"}</p>
                         <p className="text-xs text-white/80">
+                          UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)}
                         </p>
                       </div>
                       <Button
@@ -1222,7 +1271,7 @@ const AgencyDiamondExchange = () => {
                   <p>Are you sure?</p>
                   <div className="bg-brand-500/10 p-4 rounded-lg border border-brand-500/20">
                     <p className="text-sm text-slate-800">
-                      Sending <span className="font-semibold text-brand-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> diamonds to{" "}
+                      Sending <span className="font-semibold text-brand-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> coins to{" "}
                       <span className="font-semibold">{selectedTargetAgency.owner_name || selectedTargetAgency.name}</span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">Code: {selectedTargetAgency.agency_code}</p>
@@ -1236,7 +1285,7 @@ const AgencyDiamondExchange = () => {
                   <p>Are you sure?</p>
                   <div className="bg-info-500/10 p-4 rounded-lg border border-info-500/20">
                     <p className="text-sm text-slate-800">
-                      Sending <span className="font-semibold text-info-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> diamonds to{" "}
+                      Sending <span className="font-semibold text-info-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> coins to{" "}
                       <span className="font-semibold">{selectedUser?.display_name || selectedUser?.app_uid}</span>
                     </p>
                     <p className="text-xs text-info-700 mt-1">Destination: user top-up balance</p>

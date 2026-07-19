@@ -122,10 +122,10 @@ export default function MatchCallOverlay({
               JSON.stringify({ private_call_id: r.private_call_id, at: Date.now() }));
           } catch (_) {}
           setConverted(true);
-          toast.success(`Now on Private Call · ${r.rate_per_min} diamonds/min`);
+          toast.success(`Now on Private Call · ${r.rate_per_min} coins/min`);
           onAutoEnd("converted");
         } else if (r?.error === "insufficient_balance") {
-          toast.error("Not enough diamonds to continue. Please recharge.");
+          toast.error("Not enough coins to continue. Please recharge.");
           onAutoEnd("no_balance");
         } else {
           toast.error("Could not switch to private call.");

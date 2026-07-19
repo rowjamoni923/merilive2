@@ -178,6 +178,9 @@ interface Agency {
     country_flag: string | null;
   };
   parent_agency?: {
+    name: string;
+    agency_code: string;
+    level: string | null;
   } | null;
 }
 
@@ -345,6 +348,7 @@ export default function AdminAgencies() {
           min_weekly_income: Math.max(0, Number(tier.min_weekly_income) || 0),
           max_weekly_income: Math.max(0, Number(tier.max_weekly_income) || 0),
           commission_rate: Math.max(0, Number(tier.commission_rate) || 0),
+          badge_color: normalizeAgencyBadgeColor(tier.badge_color, tier.level_code),
           is_active: Boolean(tier.is_active),
           updated_at: new Date().toISOString(),
         };
@@ -608,6 +612,7 @@ export default function AdminAgencies() {
     if (!guardStart(`level-${agencyId}`)) return;
     try {
       const { data, error } = await supabase.rpc('admin_update_agency_level', {
+        _agency_id: agencyId,
         _level: newLevel,
       });
 
@@ -697,6 +702,7 @@ export default function AdminAgencies() {
 
         const transformedAgency = agencyData ? {
           ...agencyData,
+          owner: Array.isArray(agencyData.owner) ? agencyData.owner[0] : agencyData.owner
         } : null;
         setHostAgency(transformedAgency);
 
@@ -830,6 +836,7 @@ export default function AdminAgencies() {
         _owner_id: ownerSearchResult.id,
         _name: newAgencyName.trim(),
         _agency_code: agencyCode,
+        _level: newAgencyLevel,
         _commission_rate: parseFloat(newAgencyCommission) || 2,
       });
 
@@ -875,6 +882,7 @@ export default function AdminAgencies() {
     setPayrollLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_promote_agency_owner_to_payroll_helper', {
+        _agency_id: selectedAgency.id,
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Payroll helper assignment failed');
@@ -919,6 +927,7 @@ export default function AdminAgencies() {
       case "gold": return "from-yellow-400 to-yellow-500";
       case "silver": return "from-gray-300 to-gray-400";
       case "bronze": return "from-amber-600 to-amber-700";
+      default: return "from-blue-500 to-cyan-500";
     }
   };
 
@@ -1065,6 +1074,7 @@ export default function AdminAgencies() {
                               value={commissionSettings.agency_commission_rate}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                agency_commission_rate: parseFloat(e.target.value) || 0
                               }))}
                               className="admin-surface-soft admin-border admin-text"
                             />
@@ -1110,7 +1120,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier1.min}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier1: { ...prev.tiered_rates.tier1, min: parseInt(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1123,7 +1135,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier1.max}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier1: { ...prev.tiered_rates.tier1, max: parseInt(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1136,7 +1150,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier1.rate}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier1: { ...prev.tiered_rates.tier1, rate: parseFloat(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1158,7 +1174,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier2.min}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier2: { ...prev.tiered_rates.tier2, min: parseInt(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1171,7 +1189,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier2.max}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier2: { ...prev.tiered_rates.tier2, max: parseInt(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1184,7 +1204,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier2.rate}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier2: { ...prev.tiered_rates.tier2, rate: parseFloat(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1206,7 +1228,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier3.min}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier3: { ...prev.tiered_rates.tier3, min: parseInt(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1219,7 +1243,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier3.max}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier3: { ...prev.tiered_rates.tier3, max: parseInt(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1232,7 +1258,9 @@ export default function AdminAgencies() {
                               value={commissionSettings.tiered_rates.tier3.rate}
                               onChange={(e) => setCommissionSettings(prev => ({
                                 ...prev,
+                                tiered_rates: {
                                   ...prev.tiered_rates,
+                                  tier3: { ...prev.tiered_rates.tier3, rate: parseFloat(e.target.value) || 0 }
                                 }
                               }))}
                               className="admin-surface admin-border admin-text h-8"
@@ -1271,6 +1299,7 @@ export default function AdminAgencies() {
                             value={commissionSettings.sub_agent_commission_rate}
                             onChange={(e) => setCommissionSettings(prev => ({
                               ...prev,
+                              sub_agent_commission_rate: parseFloat(e.target.value) || 0
                             }))}
                             className="admin-surface admin-border admin-text"
                           />

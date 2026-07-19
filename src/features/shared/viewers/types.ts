@@ -9,7 +9,7 @@ export interface Viewer {
   display_name: string | null;
   avatar_url: string | null;
   user_level: number;
-  diamonds?: number;
+  coins?: number;
   beans?: number;
   is_vip?: boolean;
   joined_at?: string;

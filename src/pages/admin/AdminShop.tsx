@@ -72,6 +72,7 @@ interface ShopItem {
   item_type: string | null;
   animation_type: string | null;
   price_diamonds: number | null;
+  price_diamonds: number | null;
   duration_days: number | null;
   min_level: number | null;
   level_required: number | null;
@@ -186,6 +187,7 @@ const normalizeShopItem = (raw: any): ShopItem => {
     item_type: raw.item_type ?? normalizedFileType,
     animation_type: raw.animation_type ?? (normalizedFileType === "image" ? "static" : "animated"),
     price_diamonds: raw.price_diamonds ?? 0,
+    price_diamonds: raw.price_diamonds ?? 0,
     duration_days: raw.duration_days ?? null,
     min_level: raw.min_level ?? raw.level_required ?? 0,
     level_required: raw.level_required ?? raw.min_level ?? 0,
@@ -222,6 +224,7 @@ const buildShopItemPayload = (formData: ShopFormData, existingItem?: ShopItem | 
     file_type: normalizedFileType,
     animation_type: formData.animation_type,
     price_diamonds: existingItem?.price_diamonds ?? 0,
+    price_diamonds: normalizedPriceDiamonds,
     image_url: normalizedFileType === "image" || normalizedFileType === "gif" ? fallbackAssetUrl : null,
     animation_url: normalizedFileType === "svga" ? null : fallbackAssetUrl,
     svga_url: normalizedFileType === "svga" ? fallbackAssetUrl : null,
@@ -378,6 +381,8 @@ const AdminShop = () => {
     setUploading(true);
     try {
       const result = await r2UploadFile(file, {
+        bucket: 'sounds',
+        folder: 'shop-sounds',
       });
 
       if (!result.success || !result.url) {
@@ -415,6 +420,8 @@ const AdminShop = () => {
     setUploadingPreview(true);
     try {
       const result = await r2UploadFile(file, {
+        bucket: 'shop-items',
+        folder: 'shop-previews',
       });
 
       if (!result.success || !result.url) {
@@ -423,6 +430,7 @@ const AdminShop = () => {
 
       setFormData(prev => ({
         ...prev,
+        preview_url: result.url!,
       }));
       toast.success("Preview image uploaded!");
     } catch (error: any) {
@@ -509,6 +517,11 @@ const AdminShop = () => {
       name: normalizedItem.name,
       description: normalizedItem.description || "",
       category: normalizedItem.category,
+      preview_url: normalizedItem.preview_url || "",
+      animation_url: normalizedItem.animation_url || normalizedItem.svga_url || "",
+      animation_file_url: normalizedItem.animation_file_url || normalizedItem.svga_url || normalizedItem.image_url || "",
+      file_type: normalizedItem.file_type || normalizedItem.item_type || detectFileTypeFromUrl(normalizedItem.animation_file_url || normalizedItem.preview_url),
+      animation_type: normalizedItem.animation_type || "animated",
       price_diamonds: normalizedItem.price_diamonds ?? 0,
       duration_days: normalizedItem.duration_days,
       min_level: normalizedItem.min_level ?? normalizedItem.level_required ?? 0,
@@ -517,6 +530,7 @@ const AdminShop = () => {
       is_active: normalizedItem.is_active,
       is_featured: normalizedItem.is_featured ?? false,
       display_order: normalizedItem.display_order,
+      sound_url: normalizedItem.sound_url || "",
       sound_duration_ms: normalizedItem.sound_duration_ms || 3000,
       animation_format: ((item as any).animation_format ?? null) as any,
       animation_config_url: (item as any).animation_config_url || "",
@@ -869,6 +883,9 @@ const AdminShop = () => {
                 bucket="shop-items"
                 folder="unified"
                 value={{
+                  animation_url: formData.animation_url || formData.animation_file_url || '',
+                  animation_format: formData.animation_format,
+                  animation_config_url: formData.animation_config_url || null,
                 }}
                 onChange={(v) => {
                   const newFt = v.animation_format === 'vap' ? 'vap'
@@ -880,6 +897,11 @@ const AdminShop = () => {
                     : formData.file_type;
                   setFormData(prev => ({
                     ...prev,
+                    animation_url: v.animation_url,
+                    animation_file_url: v.animation_url,
+                    animation_format: v.animation_format,
+                    animation_config_url: v.animation_config_url || '',
+                    file_type: newFt,
                   }));
                   setPreviewFile(v.animation_url || null);
                 }}

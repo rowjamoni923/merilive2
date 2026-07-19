@@ -6,7 +6,7 @@ export interface TopupHistoryEntry {
   action_type: string;
   target_type: string | null;
   target_id: string | null;
-  /** What was credited: diamonds / diamonds / beans / wallet_balance / ... */
+  /** What was credited: diamonds / coins / beans / wallet_balance / ... */
   field: string;
   /** Positive = credit, negative = debit. Always populated. */
   delta: number;
@@ -17,6 +17,7 @@ export interface TopupHistoryEntry {
   target_label: string;
   /** Resolved recipient profile (best-effort). */
   user: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     app_uid: string | null;
@@ -105,6 +106,7 @@ export async function loadAdminTopupHistory(opts?: {
       action_type: String(r.action_type),
       target_type: r.target_type ?? null,
       target_id: r.target_id ?? null,
+      field: fld,
       delta,
       old_balance:
         typeof d.old_balance === "number"
@@ -232,6 +234,7 @@ export async function loadAdminTopupHistory(opts?: {
       const p = profileMap.get(uid);
       if (p) {
         e.user = {
+          id: p.id,
           display_name: p.display_name ?? null,
           avatar_url: p.avatar_url ?? null,
           app_uid: p.app_uid ?? null,

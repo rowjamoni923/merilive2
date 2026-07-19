@@ -124,6 +124,8 @@ export default function AdminBlocked() {
         if (!(data as any)?.success) throw new Error('Unblock failed');
       } else {
         const { error } = await supabase.rpc("admin_block_user", {
+          _user_id: userId,
+          _block: false,
         });
         if (error) throw error;
       }
@@ -139,6 +141,7 @@ export default function AdminBlocked() {
     try {
       const { error } = await supabase.rpc("admin_block_agency", {
         _agency_id: agencyId,
+        _block: false
       });
 
       if (error) throw error;

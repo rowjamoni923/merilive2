@@ -140,8 +140,13 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
             />
             <motion.div
               animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.3, 0.5, 0.3],
               }}
               transition={{
+                duration: 5,
+                repeat: Infinity,
+                ease: "easeInOut",
               }}
               className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-pink-600/20 rounded-full blur-3xl"
             />
@@ -298,7 +303,10 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                         x: ['-100%', '200%'],
                       }}
                       transition={{
+                        duration: 2,
+                        repeat: Infinity,
                         repeatDelay: 3,
+                        ease: "easeInOut",
                       }}
                       className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
                     />

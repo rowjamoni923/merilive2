@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
 
     if (!["accept", "reject", "timeout"].includes(action)) {
       return new Response(JSON.stringify({ error: "bad_action" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -80,6 +81,7 @@ Deno.serve(async (req) => {
               min_billable_seconds: result.min_billable_seconds,
             }),
             sendBroadcast(`broadcast-${broadcastId}`, "random_broadcast_taken", {
+              broadcast_id: broadcastId,
               winner_id: hostId,
             }),
           ]);
@@ -90,11 +92,13 @@ Deno.serve(async (req) => {
         }
         // Loser path — don't penalize reject streak
         return new Response(JSON.stringify({ ok: false, reason: result.reason ?? "already_taken" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       // reject/timeout on broadcast: do NOT count as streak (host just didn't pick up
       // the first; many hosts are pinged simultaneously). Silent no-op.
       return new Response(JSON.stringify({ ok: true, ignored: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -107,6 +111,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (!s || s.host_id !== hostId) {
         return new Response(JSON.stringify({ error: "session_not_found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (action !== "accept" && s.status === "ringing") {
@@ -119,6 +124,7 @@ Deno.serve(async (req) => {
     if (action === "accept") {
       await supabase.rpc("host_random_on_accept", { p_host_id: hostId });
       return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -126,9 +132,11 @@ Deno.serve(async (req) => {
       p_host_id: hostId, p_reason: action,
     });
     return new Response(JSON.stringify({ ok: true, result: res }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: String((e as any)?.message ?? e) }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

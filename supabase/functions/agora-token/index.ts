@@ -415,6 +415,7 @@ serve(async (req) => {
         mode: token ? 'secured' : 'testing',
       }),
       { 
+        headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json',
           'Cache-Control': 'private, max-age=3600',

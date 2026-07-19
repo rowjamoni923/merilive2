@@ -88,6 +88,9 @@ describe('Pkg120 LiveKit RPC', () => {
     });
     expect(out).toBe('OK:host42:kick:{"reason":"spam"}');
     expect(room.localParticipant.performRpc).toHaveBeenCalledWith({
+      destinationIdentity: 'host42',
+      method: 'kick',
+      payload: '{"reason":"spam"}',
       responseTimeout: 15000,
     });
   });

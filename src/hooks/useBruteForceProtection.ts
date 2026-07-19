@@ -27,6 +27,11 @@ export function useBruteForceProtection() {
 
   const checkBeforeLogin = useCallback(async (email: string): Promise<boolean> => {
     setLockoutInfo({
+      locked: false,
+      lockedUntil: null,
+      remainingSeconds: 0,
+      failedAttempts: 0,
+      attemptsRemaining: 999,
     });
     return true;
   }, []);
@@ -37,6 +42,11 @@ export function useBruteForceProtection() {
     ipAddress?: string
   ) => {
     setLockoutInfo({
+      locked: false,
+      lockedUntil: null,
+      remainingSeconds: 0,
+      failedAttempts: 0,
+      attemptsRemaining: 999,
     });
   }, [checkBeforeLogin]);
 

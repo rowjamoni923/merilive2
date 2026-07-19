@@ -42,6 +42,12 @@ const AdminAgencyHub = () => {
       if (error) throw error;
       const s = (data as any) || {};
       setStats({
+        totalAgencies: s.totalAgencies || 0,
+        activeAgencies: s.activeAgencies || 0,
+        totalHelpers: s.totalHelpers || 0,
+        level5Helpers: s.level5Helpers || 0,
+        inactiveAgencies: s.inactiveAgencies || 0,
+        pendingWithdrawals: s.pendingWithdrawals || 0
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminAgencyHub.ErrorFetchingAgencyHubStats", message: formatAdminError(error)});

@@ -360,6 +360,7 @@ const FaceVerification = () => {
   // and how many polls/timeouts occurred.
   type DebugEntry = {
     t: number; // ms since session start
+    kind: 'start' | 'tick' | 'no_face' | 'calib_done' | 'step_pass' | 'timeout' | 'finish' | 'antispoof_fail' | 'error';
     [k: string]: unknown;
   };
   const debugLogRef = useRef<DebugEntry[]>([]);
@@ -392,6 +393,7 @@ const FaceVerification = () => {
       generatedAt: new Date().toISOString(),
       durationMs: sessionStartRef.current ? Date.now() - sessionStartRef.current : 0,
       reason,
+      summary: {
         totalPolls: ticks.length,
         noFacePolls: noFace.length,
         stepsPassed: stepPasses.length,
@@ -1024,6 +1026,11 @@ const FaceVerification = () => {
       
       if (data && data.length > 0 && data[0].user_id !== userId) {
         setExistingAccount({
+          userId: data[0].user_id,
+          displayName: data[0].display_name || 'Unknown User',
+          avatarUrl: data[0].avatar_url || '',
+          isDeleted: data[0].is_deleted || false,
+          deletionScheduledAt: data[0].deletion_scheduled_at,
         });
         setShowExistingAccountModal(true);
         return true;
@@ -1051,6 +1058,9 @@ const FaceVerification = () => {
     if (!userId || !matched?.user_id) return;
     console.warn('[FaceVerify] Client duplicate-face advisory — server analyze pipeline will enforce ban if AWS confirms.');
     toast({
+      title: "Duplicate Face Detected",
+      description: "This face appears already registered. Your submission will be reviewed and the account banned if confirmed by our verification system.",
+      variant: "destructive",
     });
   };
 
@@ -1131,6 +1141,9 @@ const FaceVerification = () => {
     if (file) {
       if (file.size > MAX_PHOTO_BYTES) {
         toast({
+          title: "Error",
+          description: "Image size cannot exceed 30MB",
+          variant: "destructive",
         });
         return;
       }
@@ -1167,6 +1180,9 @@ const FaceVerification = () => {
 
       if (rejected > 0) {
         toast({
+          title: "Some photos skipped",
+          description: `${rejected} photo${rejected > 1 ? 's were' : ' was'} larger than 30MB and skipped.`,
+          variant: "destructive",
         });
       }
 
@@ -1180,6 +1196,9 @@ const FaceVerification = () => {
     if (file) {
       if (file.size > 50 * 1024 * 1024) {
         toast({
+          title: "Error",
+          description: "Video size cannot exceed 50MB",
+          variant: "destructive",
         });
         return;
       }
@@ -1263,6 +1282,9 @@ const FaceVerification = () => {
       console.error('Recording error:', error);
       recordClientError({ label: "FaceVerification.timer", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Camera access failed",
+        description: error.message || "Please grant camera permission and try again",
+        variant: "destructive",
       });
     }
   };
@@ -1343,6 +1365,9 @@ const FaceVerification = () => {
       recordClientError({ label: "FaceVerification.stream", message: error instanceof Error ? error.message : String(error) });
       setNativeFaceCameraActive(false);
       toast({
+        title: "Camera access failed",
+        description: error.message || "Please grant camera permission from settings.",
+        variant: "destructive",
       });
     } finally {
       setFaceCameraStarting(false);
@@ -1392,7 +1417,9 @@ const FaceVerification = () => {
         // fail to load TF.js can NEVER pass the left/right steps.
         const rawPose = response.data.pose || { yaw: 0, pitch: 0, roll: 0 };
         return {
+          faceDetected: Boolean(response.data.faceDetected) && faces === 1 && confidence >= 70,
           pose: { yaw: -Number(rawPose.yaw || 0), pitch: Number(rawPose.pitch || 0), roll: Number(rawPose.roll || 0) },
+          eyesOpen: response.data.eyesOpen !== false,
           source: 'server' as const,
         };
       } catch (err) {
@@ -1419,6 +1446,7 @@ const FaceVerification = () => {
       if (localPose?.faceDetected) {
         return {
           ...localPose,
+          eyesOpen: localPose.eyesOpen && serverPose?.eyesOpen !== false,
         };
       }
 
@@ -1482,6 +1510,8 @@ const FaceVerification = () => {
       setNeutralCalib(calib);
       pushDebug({ kind: 'calib_done', calibration: { ...calib }, samples: samples.length, source: 'neutral_mode' });
       toast({
+        title: 'Calibration saved',
+        description: `Baseline yaw ${calib.baselineYaw.toFixed(1)}°, pitch ${calib.baselinePitch.toFixed(1)}°. Thresholds tuned for your camera.`,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Calibration failed';
@@ -1529,7 +1559,11 @@ const FaceVerification = () => {
     consecutiveFailsRef.current = 0;
     setLastDebugReport(null);
     pushDebug({
+      kind: 'start',
       attempt: failedAttempts + 1,
+      calibration: { ...calibrationRef.current },
+      ua: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
+      viewport: typeof window !== 'undefined' ? { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio } : null,
     });
 
     try {
@@ -1609,12 +1643,15 @@ const FaceVerification = () => {
           const enoughFaceEvidence = faceTicks >= 6 && noFacePolls <= Math.max(4, faceTicks);
           const analyzerUncertainButUsable = !allDone && enoughFaceEvidence && (completedCount >= 1 || poseHistoryRef.current.length >= 8);
           pushDebug({
+            kind: 'timeout',
             elapsedSec: elapsed,
             overallSec,
             stepsCompleted: [...instructionsCompletedRef.current],
             faceTicks,
             noFacePolls,
             analyzerUncertainButUsable,
+            stuckOnStep: currentInstructionRef.current,
+            stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
           });
           finishVerification(allDone || partialDone || analyzerUncertainButUsable, !allDone && (partialDone || analyzerUncertainButUsable));
         }
@@ -1674,6 +1711,7 @@ const FaceVerification = () => {
 
   const evaluateAdaptivePose = (
     instrId: string,
+    pose: { yaw: number; pitch: number },
     c: PoseCalibration,
   ): boolean => {
     const dy = pose.yaw - c.baselineYaw;
@@ -1685,6 +1723,11 @@ const FaceVerification = () => {
   // yet passing. Uses the live calibration so deltas are measured from the
   // user's natural pose, not absolute zero.
   const computeStepDiag = (
+    instrId: string,
+    pose: { yaw: number; pitch: number },
+    faceDetected: boolean,
+    eyesOpen: boolean,
+    c: PoseCalibration,
   ): { hint: string; severity: LiveDiag['severity']; progress: number } => {
     if (!faceDetected) {
       return { hint: 'Face not detected — center your face in the oval', severity: 'error', progress: 0 };
@@ -1737,6 +1780,9 @@ const FaceVerification = () => {
           if (!noFaceStartedAt) noFaceStartedAt = Date.now();
           setScanningStatus('fail');
           setLiveDiag({
+            faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
+            hint: 'Camera frame is not ready — hold steady for a moment',
+            severity: 'error',
           });
           pushDebug({ kind: 'no_face', consecutive: consecutiveFails, reason: 'empty_camera_frame', apiOk: false });
           if (consecutiveFails >= 8 || Date.now() - noFaceStartedAt > 12000) {
@@ -1756,10 +1802,14 @@ const FaceVerification = () => {
         if (!noFaceStartedAt) noFaceStartedAt = Date.now();
         setScanningStatus('fail');
         setLiveDiag({
+          faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
+          hint: consecutiveFails > 3
             ? 'Still no face — improve lighting and hold the phone at eye level'
             : 'Face not detected — center your face in the oval',
+          severity: 'error',
         });
         pushDebug({
+          kind: 'no_face',
           consecutive: consecutiveFails,
           step: currentInstructionRef.current,
           instruction: faceInstructions[currentInstructionRef.current]?.id,
@@ -1780,6 +1830,12 @@ const FaceVerification = () => {
         calibSamplesRef.current.push({ yaw: pose.yaw, pitch: pose.pitch });
         const filled = calibSamplesRef.current.length;
         setLiveDiag({
+          faceDetected: true,
+          eyesOpen: result.eyesOpen,
+          yaw: pose.yaw, pitch: pose.pitch,
+          progress: filled / CALIB_TARGET,
+            hint: 'Preparing secure scan…',
+          severity: 'warn',
         });
         if (filled === CALIB_TARGET) {
           const calib = calibrateThresholds(calibSamplesRef.current);
@@ -1809,9 +1865,22 @@ const FaceVerification = () => {
         const passed = evaluateAdaptivePose(instruction.id, pose, calib) && result.eyesOpen;
         const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
         setLiveDiag({
+          faceDetected: true, eyesOpen: result.eyesOpen,
+          yaw: pose.yaw, pitch: pose.pitch,
+          progress: passed ? 1 : diag.progress,
+          hint: passed ? 'Perfect — locking in…' : diag.hint,
+          severity: passed ? 'ok' : diag.severity,
         });
         pushDebug({
+          kind: 'tick',
+          step: instrIdx,
+          instruction: instruction.id,
+          yaw: +pose.yaw.toFixed(2),
+          pitch: +pose.pitch.toFixed(2),
+          eyesOpen: result.eyesOpen,
           passed,
+          progress: +(passed ? 1 : diag.progress).toFixed(2),
+          hint: diag.hint,
           baselineYaw: +calib.baselineYaw.toFixed(2),
           baselinePitch: +calib.baselinePitch.toFixed(2),
         });
@@ -1896,15 +1965,24 @@ const FaceVerification = () => {
       setFaceVerified(true);
       setFaceManualReviewRequired(effectiveManualReviewRequired);
       toast({
+        title: effectiveManualReviewRequired ? "Manual Review Ready" : localizedMsg.success,
+        description: effectiveManualReviewRequired ? "Enough liveness data was captured. Submit it for admin review." : localizedMsg.successDesc,
       });
     } else {
       pushDebug({
+        kind: 'finish',
         success: false,
+        stepsCompleted: [...instructionsCompletedRef.current],
+        stuckOnStep: currentInstructionRef.current,
+        stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
       });
       setVerificationFailed(true);
       setFailedAttempts(prev => prev + 1);
       buildAndStoreDebugReport('failed');
       toast({
+        title: "❌ " + localizedMsg.failed,
+        description: localizedMsg.failedDesc,
+        variant: "destructive",
       });
     }
   };
@@ -2064,6 +2142,7 @@ const FaceVerification = () => {
     setLoading(false);
     setSubmitInProgress(false);
     toast({
+      title: '✅ Under Review',
       description,
     });
     if (redirect) scheduleProfileRedirect();
@@ -2127,6 +2206,7 @@ const FaceVerification = () => {
   const invokeFaceVerificationAnalyze = async (submissionId: string): Promise<'approved' | 'rejected' | 'retry' | 'manual' | 'error'> => {
     try {
       const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
+        body: { submissionId },
       });
       if (error) {
         console.warn('[FaceVerification] immediate analyze fallback failed; DB trigger/sweeper will retry', error);
@@ -2164,6 +2244,9 @@ const FaceVerification = () => {
         setRejectionReason(String(payload?.rejection_reason || autoFinalize?.reason || blocker));
         setRetryRequired(null);
         toast({
+          title: 'Verification rejected',
+          description: String(payload?.rejection_reason || autoFinalize?.reason || blocker),
+          variant: 'destructive',
         });
         // Keep user here so they can read the reason (duplicate info, gender, etc.).
         navigate('/face-verification', { replace: true });
@@ -2178,6 +2261,9 @@ const FaceVerification = () => {
         setRetryRequired(retryRequiredPayload);
         setRejectionReason(null);
         toast({
+          title: 'Re-upload required',
+          description: retryRequiredPayload?.headline || 'Your photo, video and live scan do not match. Please retry.',
+          variant: 'destructive',
         });
         navigate('/face-verification', { replace: true });
         return 'retry';
@@ -2185,6 +2271,8 @@ const FaceVerification = () => {
       // else: manual review — leave Under Review badge as-is, admin will decide.
       try {
         toast({
+          title: 'Under review',
+          description: 'Submission received. Auto-check inconclusive — admin will review (usually under 2 hours).',
         });
       } catch (_) {}
       return 'manual';
@@ -2380,6 +2468,7 @@ const FaceVerification = () => {
           const recovered = await ensureFreshSupabaseSession({ expectedUserId: freshUid, minFreshMs: 5 * 60_000, forceRefresh: true });
           if (!recovered) throw new Error(sessionExpiredUploadMessage);
           up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
+            contentType: userPhotoFile.type || 'image/jpeg',
           });
         }
         if (!up.error) {
@@ -2437,7 +2526,10 @@ const FaceVerification = () => {
 
       const fullInsertPayload = {
         user_id: userId,
+        verification_type: 'user' as const,
+        status: 'under_review' as const,
         full_name: fullName.trim(),
+        age: parseInt(age, 10),
         language,
         profile_photo_url: profilePhotoUrl,
         face_image_url: videoUrl,
@@ -2446,10 +2538,13 @@ const FaceVerification = () => {
         left_url: angleUrls.left_url ?? null,
         right_url: angleUrls.right_url ?? null,
         admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
+        ai_analysis: {
           ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
           scan_mode: 'passive_photo_video_live',
+          upload_pending: false,
           evidence_required: ['profile_photo', 'face_video', 'live_face_scan'],
           evidence_urls: {
+            profile_photo_url: profilePhotoUrl,
             face_video_frame_url: faceVideoFrameUrl || (!faceVideoForUpload.type.startsWith('video/') ? videoUrl : null),
             live_face_scan_url: angleUrls.front_url || null,
           },
@@ -2517,6 +2612,9 @@ const FaceVerification = () => {
       setVerificationStatus('unverified');
       setSubmitInProgress(false);
       toast({
+        title: "Error",
+        description: error.message || "Failed to complete verification",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -2527,24 +2625,36 @@ const FaceVerification = () => {
   const saveHostStep1 = async () => {
     if (!fullName.trim()) {
       toast({
+        title: "❌ Name Required",
+        description: "Please enter your full name",
+        variant: "destructive",
       });
       return;
     }
     
     if (!age || parseInt(age) < 18) {
       toast({
+        title: "❌ Valid Age Required",
+        description: age ? "Age must be at least 18 years" : "Please enter your age",
+        variant: "destructive",
       });
       return;
     }
     
     if (!language) {
       toast({
+        title: "❌ Language Required",
+        description: "Please select your preferred language",
+        variant: "destructive",
       });
       return;
     }
     
     if (!photoFile) {
       toast({
+        title: "❌ Profile Photo Required",
+        description: "Please upload a profile photo to continue",
+        variant: "destructive",
       });
       return;
     }
@@ -2557,12 +2667,18 @@ const FaceVerification = () => {
   const saveHostStep2 = async () => {
     if (!videoFile) {
       toast({
+        title: "❌ Video Required",
+        description: "Please record or upload a 10-second introduction video",
+        variant: "destructive",
       });
       return;
     }
     
     if (hostPhotos.length !== 3) {
       toast({
+        title: "❌ 3 Photos Required",
+        description: `You've uploaded ${hostPhotos.length}/3 photos. Please upload exactly 3 photos to continue.`,
+        variant: "destructive",
       });
       return;
     }
@@ -2579,6 +2695,9 @@ const FaceVerification = () => {
     const missingRequirements = getMissingHostRequirements();
     if (missingRequirements.filter((item) => item !== 'face_video').length > 0 || !faceVideoForUpload) {
       toast({
+        title: "❌ Requirements Incomplete",
+        description: "Please complete all required host fields (profile, age, language, intro video, 3 photos, and face verification) before submitting.",
+        variant: "destructive",
       });
       return;
     }
@@ -2621,6 +2740,9 @@ const FaceVerification = () => {
       // in the background after the under_review row is created.
       {
         const hostProfilePatch: Record<string, unknown> = {
+          display_name: fullName.trim(),
+          age: parseInt(age, 10),
+          language: language,
         };
         const { error: hostProfUpdErr } = await supabase
           .from('profiles')
@@ -2731,21 +2853,50 @@ const FaceVerification = () => {
       }
 
       const fullHostInsertPayload = {
+        user_id: userId,
+        verification_type: 'host' as const,
+        status: 'under_review' as const,
+        full_name: fullName.trim(),
+        age: parseInt(age, 10),
         language,
+        profile_photo_url: profilePhotoUrl,
         video_url: introVideoUrl,
         host_photos: photoUrls,
+        face_image_url: faceVideoUrl,
+        selfie_url: selfieUrl,
+        front_url: angleUrls.front_url ?? null,
+        left_url: angleUrls.left_url ?? null,
+        right_url: angleUrls.right_url ?? null,
         is_duplicate_face: isDuplicateFace,
         duplicate_face_user_id: duplicateFaceUserId,
         duplicate_face_name: duplicateFaceName,
         duplicate_face_uid: duplicateFaceUid,
         duplicate_face_avatar: duplicateFaceAvatar,
+        admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
+        ai_analysis: {
           ...(faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : {}),
+          scan_mode: 'passive_photo_video_live',
+          upload_pending: false,
+          evidence_required: ['profile_photo', 'intro_video', 'face_video', 'host_gallery_photos', 'live_face_scan'],
+          evidence_urls: {
+            profile_photo_url: profilePhotoUrl,
             intro_video_frame_url: introVideoFrameUrl,
+            face_video_frame_url: faceVideoFrameUrl || (!faceVideoForUpload.type.startsWith('video/') ? faceVideoUrl : null),
+            live_face_scan_url: angleUrls.front_url || null,
             host_photo_urls: photoUrls,
           },
+          upload_results: {
+            profile_photo: !!profilePhotoUrl,
             intro_video: !!introVideoUrl,
+            face_video: !!faceVideoUrl,
             host_photos_count: photoUrls.length,
+            front: !!angleUrls.front_url,
+            left: !!angleUrls.left_url,
+            right: !!angleUrls.right_url,
           },
+          visible_pose_prompts: false,
+          challenge_sequence: faceInstructions.map(i => i.id),
+          challenge_randomized: false,
         },
       };
 
@@ -2798,6 +2949,9 @@ const FaceVerification = () => {
       setVerificationStatus('unverified');
       setSubmitInProgress(false);
       toast({
+        title: "Error",
+        description: error.message || "Failed to complete verification",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -2818,6 +2972,7 @@ const FaceVerification = () => {
     const cameraWindowStyle: React.CSSProperties = {
       position: 'absolute',
       top: '15%',
+      left: '9%',
       width: '82%',
       height: '70%',
       clipPath: HEX_CLIP_PATH,

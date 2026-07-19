@@ -111,6 +111,8 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Server not configured" }),
         {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
@@ -121,6 +123,8 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Invalid SA JSON" }),
         {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
@@ -133,6 +137,7 @@ Deno.serve(async (req) => {
       )}:decodeIntegrityToken`;
     const decRes = await fetch(url, {
       method: "POST",
+      headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
@@ -144,6 +149,8 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Integrity decode failed", detail: t }),
         {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
@@ -219,6 +226,8 @@ Deno.serve(async (req) => {
         error: e instanceof Error ? e.message : "Unknown error",
       }),
       {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
   }

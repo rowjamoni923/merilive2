@@ -157,6 +157,11 @@ Deno.serve(async (req) => {
           });
         }
         return json(200, {
+          success: false,
+          skipped: true,
+          reason: "egress_start_failed",
+          fallback: true,
+          detail: msg,
         });
       }
 
@@ -179,6 +184,7 @@ Deno.serve(async (req) => {
       await admin
         .from("live_streams")
         .update({
+          egress_id: info.egressId,
           recording_url: publicUrl,
           recording_status: "starting",
         })

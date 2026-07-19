@@ -160,6 +160,18 @@ const AdminIconRegistry = () => {
     }
     setSaving(true);
     const payload = {
+      icon_key: form.icon_key,
+      icon_name: form.icon_name,
+      category: form.category,
+      icon_type: form.icon_type,
+      lucide_name: form.lucide_name || null,
+      icon_url: form.icon_url || null,
+      animation_url: form.animation_url || null,
+      fallback_emoji: form.fallback_emoji || null,
+      color_hex: form.color_hex || null,
+      description: form.description || null,
+      display_order: form.display_order,
+      is_active: form.is_active,
       updated_at: new Date().toISOString(),
     };
 

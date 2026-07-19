@@ -77,6 +77,7 @@ describe('Pkg121 LiveKit text/byte streams', () => {
     expect(userFn).toHaveBeenCalledWith(
       expect.objectContaining({
         text: 'hello',
+        info: expect.objectContaining({ id: 'sid-1', senderIdentity: 'alice', size: 5 }),
       }),
     );
   });
@@ -99,6 +100,7 @@ describe('Pkg121 LiveKit text/byte streams', () => {
     registerByteStreamHandler('live', 's2', 'lk.file', userFn);
     const wrapped = room.byteHandlers.get('lk.file');
     const reader = {
+      info: { id: 'bid-1', topic: 'lk.file', name: 'a.png', mimeType: 'image/png', size: 6 },
       async *[Symbol.asyncIterator]() {
         yield new Uint8Array([1, 2, 3]);
         yield new Uint8Array([4, 5, 6]);
@@ -122,6 +124,9 @@ describe('Pkg121 LiveKit text/byte streams', () => {
     });
     expect(out).toEqual({ id: 'txt-lk.chat' });
     expect(room.localParticipant.sendText).toHaveBeenCalledWith('hi there', {
+      topic: 'lk.chat',
+      destinationIdentities: ['host1'],
+      attributes: { kind: 'whisper' },
     });
   });
 
@@ -147,6 +152,7 @@ describe('Pkg121 LiveKit text/byte streams', () => {
     const onProgress = vi.fn();
     const file = new Blob(['abc'], { type: 'text/plain' });
     const out = await sendFile('party', 'p2', file, {
+      topic: 'lk.file',
       name: 'note.txt',
       mimeType: 'text/plain',
       onProgress,
@@ -155,6 +161,9 @@ describe('Pkg121 LiveKit text/byte streams', () => {
     expect(room.localParticipant.sendFile).toHaveBeenCalledWith(
       file,
       expect.objectContaining({
+        topic: 'lk.file',
+        name: 'note.txt',
+        mimeType: 'text/plain',
         onProgress,
       }),
     );

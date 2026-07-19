@@ -181,6 +181,9 @@ serve(async (req: Request): Promise<Response> => {
           is_proxy: result.proxy,
           is_tor: result.tor,
           is_relay: result.relay,
+          country_code: result.country_code,
+          city: result.city,
+          isp: result.isp,
           raw_response: vpnData,
         });
       } catch (logErr) {

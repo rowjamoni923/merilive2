@@ -133,6 +133,9 @@ const FollowingList = () => {
         })).filter(f => f.profile) || [];
 
         const followersWithProfiles: FollowRecord[] = followersData?.map(f => ({
+          id: f.id,
+          created_at: f.created_at,
+          profile: profilesMap.get(f.follower_id) as UserProfile
         })).filter(f => f.profile) || [];
 
         const followerIdsSet = new Set(followerUserIds);
@@ -230,6 +233,9 @@ const FollowingList = () => {
       const followerRecord = followers.find(f => f.profile.id === profileId);
       if (followerRecord) {
         const newFollowRecord: FollowRecord = {
+          id: data.id,
+          created_at: data.created_at || new Date().toISOString(),
+          profile: followerRecord.profile
         };
         setFollowing(prev => [newFollowRecord, ...prev]);
         setFriends(prev => [newFollowRecord, ...prev]);

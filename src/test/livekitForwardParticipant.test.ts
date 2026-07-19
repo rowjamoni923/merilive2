@@ -57,6 +57,10 @@ describe('Pkg128 forwardParticipant', () => {
     expect(r).toEqual({ success: true, result: { forwarded: 'u1' } });
     expect(invokeMock).toHaveBeenCalledWith('livekit-forward-participant', {
       body: {
+        srcRoom: 'live_a',
+        dstRoom: 'live_b',
+        identity: 'u1',
+        reason: 'queue->host',
       },
     });
   });
@@ -66,6 +70,7 @@ describe('Pkg128 forwardParticipant', () => {
     invokeMock.mockResolvedValue({ data: { success: true }, error: null });
     await forwardParticipant({ srcRoom: 'a', dstRoom: 'b', identity: 'u1' });
     expect(invokeMock).toHaveBeenCalledWith('livekit-forward-participant', {
+      body: { srcRoom: 'a', dstRoom: 'b', identity: 'u1' },
     });
   });
 
@@ -79,6 +84,8 @@ describe('Pkg128 forwardParticipant', () => {
   it('surfaces server-side success:false', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
+      data: { success: false, error: 'not_src_room_host' },
+      error: null,
     });
     const r = await forwardParticipant({ srcRoom: 'a', dstRoom: 'b', identity: 'u1' });
     expect(r).toEqual({ success: false, error: 'not_src_room_host' });

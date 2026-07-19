@@ -120,6 +120,8 @@ describe('Pkg73 livekitCallSignaling', () => {
     window.addEventListener('livekit-call-ended', listener);
 
     const env = buildEnvelope('call', 'call_ended', {
+      callId: 'OTHER-CALL',
+      endedBy: 'x',
     });
     room.emitDataReceived(encodeEnvelope(env));
 
@@ -149,6 +151,8 @@ describe('Pkg73 livekitCallSignaling', () => {
     window.addEventListener('livekit-call-ended', listener);
 
     const env = buildEnvelope('call', 'call_ended', {
+      callId: 'call-1',
+      endedBy: 'peer',
     });
     const bytes = encodeEnvelope(env);
     room.emitDataReceived(bytes);
@@ -171,6 +175,9 @@ describe('Pkg73 livekitCallSignaling', () => {
     registerCallRoom('call-1', room as any);
 
     const ok = await publishCallEnded('call-1', {
+      endedBy: 'me',
+      reason: 'caller_hangup',
+      duration: 10,
     });
 
     expect(ok).toBe(true);

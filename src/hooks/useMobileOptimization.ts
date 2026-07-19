@@ -126,6 +126,10 @@ function getSafeAreaInsets(): MobileInsets {
 
   // Apply minimum defaults for common devices
   return {
+    top: Math.max(top, getDefaultTopInset()),
+    bottom: Math.max(bottom, getDefaultBottomInset()),
+    left: Math.max(left, 0),
+    right: Math.max(right, 0),
   };
 }
 

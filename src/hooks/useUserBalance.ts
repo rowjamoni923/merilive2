@@ -80,7 +80,7 @@ async function fetchBalance(userIdOverride?: string | null, forceRefresh = false
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('diamonds') // ZERO-COIN: Diamond is the single spend wallet. No diamonds fallback.
+        .select('diamonds') // ZERO-COIN: Diamond is the single spend wallet. No coins fallback.
         .eq('id', userId)
         .single();
 
@@ -208,7 +208,7 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       const payload = detail.payload || {};
       if (payload.profile_id && payload.profile_id !== userId) return;
 
-      const diamonds = payload.diamonds ?? payload.diamonds; // ZERO-COIN: accept legacy `diamonds` payload field until DB drop, but treat as diamonds.
+      const diamonds = payload.diamonds ?? payload.diamonds; // ZERO-COIN: accept legacy `coins` payload field until DB drop, but treat as diamonds.
       if (diamonds !== undefined) {
         balanceCache.userId = userId;
         updateCachedBalance(Number(diamonds || 0));

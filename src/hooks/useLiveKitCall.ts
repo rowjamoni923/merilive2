@@ -343,6 +343,19 @@ export function useLiveKitCall(
     remoteAudioKeysRef.current.clear();
 
     setState({
+      localStream: null,
+      remoteStream: null,
+      remoteVideoTrack: null,
+      localVideoTrack: null,
+      nativeSession: null,
+      isNativeMediaActive: false,
+      localMediaReady: false,
+      isConnected: false,
+      isAudioEnabled: true,
+      isVideoEnabled: true,
+      connectionState: 'new',
+      isInPip: false,
+      networkQuality: 'unknown',
     });
 
   }, []);
@@ -513,6 +526,13 @@ export function useLiveKitCall(
             setNativeMediaSurface(true);
             setState(p => ({
               ...p,
+              nativeSession: { url, token },
+              isNativeMediaActive: true,
+              localMediaReady: true,
+              isConnected: true,
+              connectionState: 'connected',
+              isAudioEnabled: true,
+              isVideoEnabled: true,
             }));
             console.log('[LiveKitCall/Native] ✅ Connected');
             // Pkg423 — defense-in-depth: initial remote attach sweep after
@@ -612,6 +632,9 @@ export function useLiveKitCall(
             
             setState(p => ({
               ...p,
+              remoteVideoTrack: track,
+              isConnected: true,
+              connectionState: 'connected',
             }));
           }
 
@@ -637,6 +660,9 @@ export function useLiveKitCall(
           
           setState(p => ({
             ...p,
+            remoteStream: ms.getTracks().length > 0 ? ms : p.remoteStream,
+            isConnected: true,
+            connectionState: 'connected',
           }));
         });
 
@@ -672,6 +698,10 @@ export function useLiveKitCall(
             });
           setState(p => ({
             ...p,
+            remoteVideoTrack: null,
+            remoteStream: null,
+            isConnected: false,
+            connectionState: 'closed' as any,
           }));
         });
 
@@ -708,6 +738,7 @@ export function useLiveKitCall(
             // tick is separately governed by `connected_at`).
             try {
               window.dispatchEvent(new CustomEvent('livekit-call-reconnecting', {
+                detail: { callId: callIdRef.current },
               }));
             } catch { /* ignore */ }
             if (!reconnectBudgetTimerRef.current) {
@@ -720,6 +751,7 @@ export function useLiveKitCall(
                 console.warn('[LiveKitCall] Reconnect budget exhausted — forcing network end');
                 try {
                   window.dispatchEvent(new CustomEvent('livekit-call-network-lost', {
+                    detail: { callId: callIdRef.current, reason: 'network' },
                   }));
                 } catch { /* ignore */ }
               }, 30000);
@@ -1026,6 +1058,13 @@ export function useLiveKitCall(
 
         setState(p => ({
           ...p,
+          localStream: localMs.getTracks().length > 0 ? localMs : null,
+          localVideoTrack: localVidTrack,
+          isNativeMediaActive: false,
+          localMediaReady: localMs.getTracks().length > 0,
+          isVideoEnabled: true,
+          isAudioEnabled: true,
+          connectionState: 'connected',
         }));
 
         // Force immediate remote subscriptions + aggressive retries for instant call media
@@ -1041,6 +1080,9 @@ export function useLiveKitCall(
                   try { (pub as any).setVideoQuality?.(VideoQuality.HIGH); } catch {}
                   setState(p => ({
                     ...p,
+                    remoteVideoTrack: pub.track,
+                    isConnected: true,
+                    connectionState: 'connected',
                   }));
                 }
                 if (pub.track.kind === Track.Kind.Audio) {

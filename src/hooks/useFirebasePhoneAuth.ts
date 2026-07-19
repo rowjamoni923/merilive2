@@ -83,6 +83,8 @@ let storedVerificationId: string | null = null;
        } else {
          // Web platform - show message
          toast({
+           title: "📱 Native App Only",
+           description: "Phone OTP only works in the native app. Use Start button or download the app.",
          });
          
          return { success: false, error: 'Web preview - use native app' };
@@ -91,6 +93,8 @@ let storedVerificationId: string | null = null;
        console.error('[PhoneAuth] Error:', error);
        
        toast({
+         title: "Error",
+         description: error.message || "Failed to send OTP",
          variant: "destructive",
        });
        
@@ -125,6 +129,7 @@ let storedVerificationId: string | null = null;
        
        // Use confirmVerificationCode with the stored verification ID
        const confirmResult = await FirebaseAuthentication.confirmVerificationCode({
+         verificationId: storedVerificationId || verificationId,
          verificationCode: code,
        });
        
@@ -154,6 +159,9 @@ let storedVerificationId: string | null = null;
 
       if (existingByPhone) {
         toast({
+          title: 'Account already exists',
+          description: `This phone number is already linked to "${existingByPhone.display_name}". Please use Google sign-in or contact support to recover access.`,
+          variant: 'destructive',
         });
         return { success: false, error: 'phone_already_registered' };
       }
@@ -178,6 +186,7 @@ let storedVerificationId: string | null = null;
             .update({
               phone_number: phoneNumber,
               display_name: displayName,
+              gender: gender,
             })
             .eq('id', anonData.user.id);
         } else {
@@ -185,10 +194,15 @@ let storedVerificationId: string | null = null;
             .from('profiles')
             .insert({
               id: anonData.user.id,
+              phone_number: phoneNumber,
+              display_name: displayName,
+              gender: gender,
             });
         }
 
         toast({
+          title: "Welcome! 🎉",
+          description: `${displayName}, your account has been created!`,
         });
 
         return { success: true };
@@ -211,6 +225,9 @@ let storedVerificationId: string | null = null;
        }
        
        toast({
+         title: "Error",
+         description: errorMessage,
+         variant: "destructive",
        });
        
        return { success: false, error: errorMessage };

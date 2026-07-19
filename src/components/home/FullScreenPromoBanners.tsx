@@ -378,6 +378,10 @@ export function FullScreenPromoBanners() {
                 }}
                 className="flex items-center gap-1.5 rounded-full pl-3 pr-2 py-1.5 text-white"
                 style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(0,0,0,0.4)",
                 }}
               >
                 <span className="text-[11px] font-semibold tracking-wide">Skip</span>
@@ -392,6 +396,9 @@ export function FullScreenPromoBanners() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="rounded-full px-3 py-1.5"
                 style={{
+                  background: "rgba(0,0,0,0.55)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
                 }}
               >
                 <span className="text-[11px] font-medium text-white/70">
@@ -465,6 +472,7 @@ export function FullScreenPromoBanners() {
                   "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
                 boxShadow:
                   "0 14px 30px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.25)",
+                border: "1px solid rgba(255,255,255,0.25)",
               }}
             >
               <div className="pointer-events-none absolute inset-x-2 top-1 h-2 rounded-full bg-white/40 blur-[2px]" />

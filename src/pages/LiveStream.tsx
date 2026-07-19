@@ -170,6 +170,11 @@ interface PKBattleState {
     streamId: string;
   } | null;
   opponentInfo: {
+    name: string;
+    avatar: string;
+    level: number;
+    id: string;
+    streamId: string;
   } | null;
 }
 
@@ -267,10 +272,22 @@ const LiveStream = () => {
     appUid?: string | null;
     isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
   } | null>(() => sessionState?.hostInfo ? {
+    name: sessionState.hostInfo.name || "Host",
+    avatar: sessionState.hostInfo.avatar || "",
+    country: sessionState.hostInfo.country || "🌍",
+    language: sessionState.hostInfo.language || "English",
+    gender: sessionState.hostInfo.gender || "female",
+    level: Number(sessionState.hostInfo.level ?? 1),
+    id: sessionState.hostInfo.id || "",
+    frameId: sessionState.hostInfo.frameId || null,
+    appUid: sessionState.hostInfo.appUid || null,
+    isVerifiedHost: true,
   } : null);
   
   const [currentUser, setCurrentUser] = useState<{
-    diamonds: number;
+    gender: string;
+    id: string;
+    coins: number;
     is_host?: boolean;
     is_agency_owner?: boolean | null;
     is_topup_helper?: boolean | null;
@@ -358,6 +375,7 @@ const LiveStream = () => {
 
   const [pkBattleState, setPKBattleState] = useState<PKBattleState>({
     isActive: false,
+    battleId: null,
     isChallenger: false,
     challengerInfo: null,
     opponentInfo: null,
@@ -382,6 +400,10 @@ const LiveStream = () => {
   
   // Random PK Match state
   const [randomPKRequest, setRandomPKRequest] = useState<{
+    challengerId: string;
+    challengerName: string;
+    challengerAvatar: string;
+    challengerLevel: number;
     challengerStreamId: string;
     inviteSessionId: string | null;
   } | null>(null);
@@ -449,6 +471,7 @@ const LiveStream = () => {
     const isNewUser = userCreatedAt ? (Date.now() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
 
     return {
+      id: msg.id,
       user: displayName,
       initial: displayName.charAt(0),
       message: msg.message || "",
@@ -480,6 +503,7 @@ const LiveStream = () => {
     const now = Date.now();
     const next: JoinNotification = {
       ...notification,
+      id: `live_join_${notification.userId}_${now}`,
       timestamp: now,
     };
     setLiveJoinNotifications((prev) => {
@@ -551,6 +575,13 @@ const LiveStream = () => {
             ? 'and 1 other entered the live room ✨'
             : `and ${out.othersCount} others entered the live room ✨`;
       setMessages(prev => [...prev, {
+        id: `welcome_${out.primary.userId}_${Date.now()}`,
+        user: out.primary.userName,
+        initial: (out.primary.userName || '?').charAt(0),
+        message: suffix,
+        color: 'text-green-400',
+        userLevel: out.primary.userLevel,
+        userAvatar: out.primary.avatarUrl,
       }]);
     },
   });
@@ -699,8 +730,8 @@ const LiveStream = () => {
   }, [id, currentUserId, isHost]);
 
 
-  const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, diamonds?: number | null, count?: number | null) => {
-    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${diamonds || 0}:${count || 1}`;
+  const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
   }, []);
 
   const markOptimisticGiftCount = useCallback((key: string, beans: number) => {
@@ -811,14 +842,14 @@ const LiveStream = () => {
   }, [isHost, isHostVerified, id, showLiveEndSummary, streamStartTime]);
 
   // Phase I — push viewer/coin counts into the native LIVE foreground-service
-  // notification ("🔴 LIVE · {viewers} watching · 💎 {diamonds}"). Bigo/Chamet
+  // notification ("🔴 LIVE · {viewers} watching · 💎 {coins}"). Bigo/Chamet
   // pattern: notification stays fresh while host is broadcasting. No-op on
   // web/iOS and when broadcastMode !== 'live' (controller / plugin guards).
   // Debounced via React batching; updateLiveStats is cheap (single intent).
   useEffect(() => {
     if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
     const viewerCount: number = Number(streamData?.viewer_count ?? 0) || 0;
-    const diamondCount: number = Number(
+    const coinCount: number = Number(
       streamData?.total_diamonds ?? streamData?.coin_count ?? 0
     ) || 0;
     const title: string = String(streamData?.title || hostInfo?.name || '').slice(0, 60);
@@ -827,7 +858,7 @@ const LiveStream = () => {
       try {
         const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
         if (cancelled) return;
-        await nativeLiveKitController.updateLiveStats({ viewerCount, diamondCount, title });
+        await nativeLiveKitController.updateLiveStats({ viewerCount, coinCount, title });
       } catch { /* noop — web / non-live */ }
     })();
     return () => { cancelled = true; };
@@ -875,6 +906,8 @@ const LiveStream = () => {
 
   // Room protection - blocks back button, auto-closes on network loss
   useRoomProtection({
+    roomType: 'live',
+    enabled: true,
     onNetworkClose: async () => {
       console.log('[LiveStream] Network lost - keeping live open and letting LiveKit reconnect');
       if (!isHost) {
@@ -1070,7 +1103,9 @@ const LiveStream = () => {
   // (incoming phone call, alarm, voice assistant) and restores on gain
   // — unless the host had already muted themselves.
   useAudioFocusAutoMute({
+    enabled: isHost,
     intent: 'media',
+    isMicEnabled: !isHostMicMuted,
     setMicEnabled: (want) => {
       const wantMuted = !want;
       if (wantMuted !== isHostMicMuted) {
@@ -1123,6 +1158,8 @@ const LiveStream = () => {
   // ========== FACE DETECTION FOR HOST ==========
   const faceDetection = useLiveFaceDetection({
     localVideoTrack,
+    streamId: id || null,
+    userId: currentUser?.id || null,
     isHost,
     isStreaming: isJoined,
     streamStartTimeMs: streamStartTime,
@@ -1138,11 +1175,15 @@ const LiveStream = () => {
   // → server signals end_stream; we tear down immediately. Best-effort; failures
   // are silent.
   useLiveFrameMonitor({
+    enabled: isHost && isHostVerified && isJoined,
+    userId: currentUserId,
     track:
       (localVideoTrack?.mediaStreamTrack as MediaStreamTrack | undefined) ??
       (typeof localVideoTrack?.getMediaStreamTrack === 'function'
         ? (localVideoTrack.getMediaStreamTrack() as MediaStreamTrack | null)
         : null),
+    context: 'live_stream',
+    streamId: id ?? null,
     intervalMs: 15_000,
     onWarning: (resp) => {
       const a = resp.result?.alerts?.[0];
@@ -1235,6 +1276,18 @@ const LiveStream = () => {
         const profile = userProfileRes.data;
         const profileCoins = profile.diamonds || 0;
         setCurrentUser({
+          gender: profile.gender || "male",
+          id: cachedUser!.id,
+          coins: profileCoins,
+          is_host: profile.is_host === true,
+          is_agency_owner: (profile as any).is_agency_owner === true,
+          is_topup_helper: !!helperProfileRes.data,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url,
+          user_level: Number(profile.user_level ?? 0),
+          host_level: profile.host_level || 0,
+          max_user_level: (profile as any).max_user_level || 0,
+          country_flag: profile.country_flag,
         });
         if (pendingGiftCostRef.current === 0) {
           userCoinsRef.current = profileCoins;
@@ -1263,6 +1316,16 @@ const LiveStream = () => {
           const hostAvatar = normalizeProfileMediaUrl(hostProfile?.avatar_url) || hostProfile?.avatar_url || "";
           const hostLevel = getRequiredDisplayLevel(hostProfile);
           setHostInfo({
+            name: hostProfile?.display_name || "Host",
+            avatar: hostAvatar,
+            country: hostProfile?.country_flag || "🌍",
+            language: "English",
+            gender: hostProfile?.gender || "female",
+            level: hostLevel,
+            id: hostProfile?.id || stream.host_id,
+            frameId: hostProfile?.equipped_frame_id || hostProfile?.frame_id || null,
+            appUid: hostProfile?.app_uid || null,
+            isVerifiedHost: hostProfile?.is_host === true,
           });
         }
 
@@ -1299,7 +1362,22 @@ const LiveStream = () => {
           const opponentAvatar = normalizeProfileMediaUrl(op?.avatar_url) || op?.avatar_url || "";
 
           setPKBattleState({
+            isActive: true,
+            battleId: activeBattle.id,
+            isChallenger: isChallengerSide,
+            challengerInfo: {
+              name: cp?.display_name || "Host",
+              avatar: challengerAvatar,
+              level: getRequiredDisplayLevel(cp),
+              id: activeBattle.challenger_id || "",
+              streamId: activeBattle.challenger_stream_id || "",
             },
+            opponentInfo: {
+              name: op?.display_name || "Host",
+              avatar: opponentAvatar,
+              level: getRequiredDisplayLevel(op),
+              id: activeBattle.opponent_id || "",
+              streamId: activeBattle.opponent_stream_id || "",
             },
           });
         }
@@ -1367,8 +1445,10 @@ const LiveStream = () => {
               // triggered a full-screen emoji particle effect (industry: NO effect = NO display).
               if (mountedRef.current && (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl || rankCode)) {
                 addEntryAnimation({
+                  userId: currentUserId,
                   displayName: userName,
                   avatarUrl,
+                  level: userLevel,
                   entranceUrl: entranceAnimationUrl || undefined,
                   entryNameBarUrl: entryNameBarUrl || undefined,
                   vehicleAnimationUrl: vehicleAnimationUrl || undefined,
@@ -1390,10 +1470,16 @@ const LiveStream = () => {
               try {
                 const { publishViewerJoined } = await import('@/lib/livekitLiveEventsSignaling');
                 const payload = {
+                  userId: currentUserId,
+                  appUid: selfProfile.app_uid || null,
                   userName,
+                  userAvatar: avatarUrl,
                   userLevel,
                   entranceAnimationUrl: entranceAnimationUrl || null,
                   entranceSoundUrl: entranceSoundUrl || null,
+                  entryNameBarUrl: entryNameBarUrl || null,
+                  vehicleAnimationUrl: vehicleAnimationUrl || null,
+                  rankCode: rankCode || null,
                 };
                 let published = false;
                 for (let i = 0; i < 30 && !published && mountedRef.current && !cancelled; i++) {
@@ -1531,7 +1617,16 @@ const LiveStream = () => {
       setMessages(prev => {
         if (prev.some(m => m.id === detail.messageId)) return prev;
         return [...prev, {
+          id: detail.messageId,
+          user: detail.displayName || "User",
+          initial: (detail.displayName || "U").charAt(0),
+          message: detail.message,
+          color: "text-white",
+          userLevel: detail.userLevel ?? 1,
+          userAvatar: detail.avatarUrl,
+          isHost: detail.userId === hostId,
           isNewUser: false,
+          countryFlag: detail.countryFlag,
         }];
       });
     };
@@ -1606,7 +1701,15 @@ const LiveStream = () => {
                   );
                 if (!mountedRef.current) return;
                 addEntryAnimation({
+                  userId: uid,
+                  displayName: userName,
                   avatarUrl: userAvatar,
+                  level: userLevel,
+                  entranceUrl: entranceAnimationUrl || undefined,
+                  entryNameBarUrl: entryNameBarUrl || undefined,
+                  vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                  soundUrl: entranceSoundUrl || undefined,
+                  rankCode: rankCode || undefined,
                 });
               } catch (e) {
                 console.warn('[LiveStream] F6 fallback entry animation failed:', e);
@@ -1758,8 +1861,10 @@ const LiveStream = () => {
         animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
         animationFormat: data.giftAnimationFormat || null,
         animationConfigUrl: data.giftAnimationConfigUrl || undefined,
+        soundUrl: data.giftSoundUrl || undefined,
         giftColor: 'bg-pink-500/50',
         count: data.count || 1,
+        coins: data.giftCoins || 0,
         isReceiverGift: isHost,
       });
 
@@ -1768,6 +1873,7 @@ const LiveStream = () => {
       setTotalBeans(prev => prev + giftAmount);
       if (isHost && giftAmount > 0) {
         window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId: currentUserId, beansDelta: giftAmount },
         }));
       }
       if (isHost) trackTaskProgress('first_gift');
@@ -1775,6 +1881,15 @@ const LiveStream = () => {
       const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
       const tempGiftMsgId = `livekit_gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       setMessages(prev => [...prev, {
+        id: tempGiftMsgId,
+        user: data.senderName || 'User',
+        initial: (data.senderName || 'U').charAt(0),
+        message: giftChatMessage,
+        color: 'text-pink-400',
+        userLevel: data.senderLevel ?? 1,
+        userAvatar: data.senderAvatar,
+        isHost: false,
+        isNewUser: false,
         giftIconUrl: data.giftIconUrl || undefined,
       }]);
 
@@ -1817,6 +1932,13 @@ const LiveStream = () => {
           const now = Date.now();
           if (prev.some((m) => m.id.startsWith(`leave_${p.userId}_`) && now - Number(m.id.split('_').at(-1) || 0) < 5000)) return prev;
           return [...prev, {
+            id: `leave_${p.userId}_${now}`,
+            user: leftName,
+            initial: leftName.charAt(0),
+            message: 'left the live room',
+            color: 'text-white/70',
+            userLevel: leftViewer?.user_level ?? 1,
+            userAvatar: leftViewer?.avatar_url || undefined,
             type: 'leave',
           }];
         });
@@ -1836,7 +1958,11 @@ const LiveStream = () => {
       setViewerCount(prev => Math.max(prev, activeViewerIdsRef.current.size));
       setRecentViewerAvatars((prev) => [
         {
+          id: p.userId,
           app_uid: p.appUid || null,
+          avatar_url: p.userAvatar || null,
+          name: p.userName || 'User',
+          user_level: p.userLevel ?? 1,
         },
         ...prev.filter((v: any) => v.id !== p.userId),
       ].slice(0, 5));
@@ -1845,7 +1971,10 @@ const LiveStream = () => {
       // is handled exclusively by EntryNameBarAnimation below, so avatar/name/
       // level never split into two separate banners.
       addLiveJoinNotification({
+        userId: p.userId,
         userName: p.userName,
+        userAvatar: p.userAvatar || undefined,
+        userLevel: p.userLevel,
       });
 
       // 3. Welcome chat row is owned EXCLUSIVELY by the dispatcher's
@@ -1860,6 +1989,15 @@ const LiveStream = () => {
       // so even plain viewers without equipped items get a visible entrance.
       if (mountedRef.current) {
         addEntryAnimation({
+          userId: p.userId,
+          displayName: p.userName,
+          avatarUrl: p.userAvatar || undefined,
+          level: p.userLevel,
+          entranceUrl: p.entranceAnimationUrl || undefined,
+          entryNameBarUrl: p.entryNameBarUrl || undefined,
+          vehicleAnimationUrl: p.vehicleAnimationUrl || undefined,
+          soundUrl: p.entranceSoundUrl || undefined,
+          rankCode: p.rankCode || undefined,
         });
       }
     };
@@ -1951,6 +2089,10 @@ const LiveStream = () => {
     const streamChannel = supabase
       .channel(`live-stream-end-${id}`)
       .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'live_streams',
+        filter: `id=eq.${id}`,
       }, (payload) => {
         const row = (payload as any).new;
         if (row?.is_active === false || row?.status === 'ended' || row?.ended_at) showEndedFromDb();
@@ -2144,6 +2286,11 @@ const LiveStream = () => {
         const profile = profileMap.get(viewerId);
 
         return {
+          id: profile?.id || viewerId,
+          app_uid: profile?.app_uid || null,
+          avatar_url: profile?.avatar_url || null,
+          name: profile?.display_name || "User",
+          user_level: getRequiredDisplayLevel(profile),
         };
       });
 
@@ -2190,6 +2337,11 @@ const LiveStream = () => {
       if (detail.type === "pk_invite") {
         if (!data.battleId || !data.fromUserId) return;
         setIncomingPKRequest({
+          battleId: data.battleId,
+          challengerId: data.fromUserId,
+          challengerName: data.fromName || "Host",
+          challengerAvatar: data.fromAvatar || "",
+          challengerLevel: data.fromLevel || 1,
         });
         setShowPKRequest(true);
 
@@ -2197,6 +2349,12 @@ const LiveStream = () => {
         if (pkBattleState.isActive || showPKRequest) return;
         if (data.fromUserId === currentUserId) return;
         setRandomPKRequest({
+          challengerId: data.fromUserId,
+          challengerName: data.fromName || "Host",
+          challengerAvatar: data.fromAvatar || "",
+          challengerLevel: data.fromLevel || 1,
+          challengerStreamId: data.fromStreamId || "",
+          inviteSessionId: data.invite_session_id || null,
         });
         setShowRandomPKNotification(true);
 
@@ -2243,6 +2401,7 @@ const LiveStream = () => {
           // Push battleId to winning acceptor (kills the 3.6s poll)
           if (hostInfo) {
             supabase.functions.invoke("pk-invite-deliver", {
+              body: {
                 kind: "random_battle_ready",
                 battleId,
                 toUserId: acceptorId,
@@ -2251,6 +2410,7 @@ const LiveStream = () => {
                 fromAvatar: hostInfo.avatar,
                 fromLevel: hostInfo.level,
                 fromStreamId: id || "",
+                inviteSessionId: sessionId,
               },
             }).catch((e) => console.warn("[LiveStream] random_battle_ready push failed:", e));
           }
@@ -2258,6 +2418,11 @@ const LiveStream = () => {
           // Notify losing acceptors
           if (sessionId) {
             supabase.functions.invoke("pk-invite-deliver", {
+              body: {
+                kind: "random_taken",
+                fromUserId: currentUserId,
+                fromName: hostInfo?.name,
+                inviteSessionId: sessionId,
                 winnerUserId: acceptorId,
               },
             }).catch((e) => console.warn("[LiveStream] random_taken fan-out failed:", e));
@@ -2265,6 +2430,10 @@ const LiveStream = () => {
 
           toast.success(`${acceptorName} accepted your PK!`);
           handlePKBattleStarted(battleId, {
+            id: acceptorId,
+            display_name: acceptorName,
+            avatar_url: acceptorAvatar,
+            user_level: acceptorLevel,
             stream_id: acceptorStreamId,
           });
         } catch (err) {
@@ -2282,7 +2451,22 @@ const LiveStream = () => {
         const challengerLevel = data.fromLevel || 1;
         const challengerStreamId = data.fromStreamId || "";
         setPKBattleState({
+          isActive: true,
+          battleId: data.battleId,
+          isChallenger: false,
+          challengerInfo: {
+            name: challengerName,
+            avatar: challengerAvatar,
+            level: challengerLevel,
+            id: challengerId,
+            streamId: challengerStreamId,
           },
+          opponentInfo: {
+            name: hostInfo.name,
+            avatar: hostInfo.avatar,
+            level: hostInfo.level,
+            id: currentUserId,
+            streamId: id || "",
           },
         });
         setShowRandomPKNotification(false);
@@ -2550,6 +2734,16 @@ const LiveStream = () => {
 
     // Optimistic update - show MASKED message
     setMessages(prev => [...prev, {
+      id: tempId,
+      user: currentUser?.display_name || "User",
+      initial: (currentUser?.display_name || "U").charAt(0),
+      message: contentToSend,
+      color: "text-white",
+      userLevel: getRequiredDisplayLevel(currentUser),
+      userAvatar: currentUser?.avatar_url || undefined,
+      isHost: currentUserId === streamData?.host_id,
+      isNewUser: false,
+      countryFlag: currentUser?.country_flag || undefined,
     }]);
 
     // Clear input immediately
@@ -2559,7 +2753,9 @@ const LiveStream = () => {
     const { data: insertedRow, error } = await supabase
       .from("stream_chat")
       .insert({
+        stream_id: id,
         user_id: currentUserId,
+        message: contentToSend,
       })
       .select("id")
       .single();
@@ -2575,6 +2771,13 @@ const LiveStream = () => {
       // Pkg79: sub-50ms peer delivery via LiveKit DataPacket.
       void publishChatMessage('live', id, {
         messageId: insertedRow?.id || tempId,
+        userId: currentUserId,
+        displayName: currentUser?.display_name || "User",
+        avatarUrl: currentUser?.avatar_url || undefined,
+        userLevel: getRequiredDisplayLevel(currentUser),
+        isHost: currentUserId === streamData?.host_id,
+        countryFlag: currentUser?.country_flag || undefined,
+        message: contentToSend,
         messageType: 'text',
       });
     }
@@ -2658,6 +2861,7 @@ const LiveStream = () => {
         // idempotent after this fast close.
         try {
           const { data: fastClose, error: fastCloseError } = await supabase.rpc('close_live_stream_now' as any, {
+            p_stream_id: id,
           });
           if (fastCloseError || (fastClose as any)?.success === false) {
             console.error('[LiveStream] close_live_stream_now failed:', fastCloseError || fastClose);
@@ -2714,6 +2918,7 @@ const LiveStream = () => {
           if (viewers) audiences = viewers.length;
 
           const { data: endResult, error: endError } = await supabase.rpc('end_live_stream', {
+            p_stream_id: id,
           });
 
           if (endError) {
@@ -2734,6 +2939,7 @@ const LiveStream = () => {
     }
 
     const stats: LiveEndStats = {
+      duration: calculateDuration(),
       audiences,
       giftEarnings,
       callEarnings,
@@ -2856,13 +3062,21 @@ const LiveStream = () => {
         }
 
         setSelectedProfile({
+          id: profile.id,
+          name: profile.display_name || "User",
+          avatar: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || "",
+          level: getRequiredDisplayLevel(profile),
+          coins: 0,
           beans: 0,
           isFollowing,
           isVIP: getRequiredDisplayLevel(profile) >= 30,
+          isVerified: profile.is_verified || false,
           totalGiftsSent: 0,
           totalGiftsReceived: 0,
           followers: followersCount || 0,
           following: followingCount || 0,
+          country: profile.country_name,
+          countryFlag: profile.country_flag,
           bio: profile.bio,
           uid: profile.app_uid,
         });
@@ -2963,12 +3177,12 @@ const LiveStream = () => {
   };
 
   const gifts = [
-    { id: "1", name: "Rose", icon: "🌹", diamonds: 10 },
-    { id: "2", name: "Heart", icon: "❤️", diamonds: 50 },
-    { id: "3", name: "Kiss", icon: "💋", diamonds: 100 },
-    { id: "4", name: "Diamond", icon: "💎", diamonds: 500 },
-    { id: "5", name: "Crown", icon: "👑", diamonds: 1000 },
-    { id: "6", name: "Rocket", icon: "🚀", diamonds: 5000 },
+    { id: "1", name: "Rose", icon: "🌹", coins: 10 },
+    { id: "2", name: "Heart", icon: "❤️", coins: 50 },
+    { id: "3", name: "Kiss", icon: "💋", coins: 100 },
+    { id: "4", name: "Diamond", icon: "💎", coins: 500 },
+    { id: "5", name: "Crown", icon: "👑", coins: 1000 },
+    { id: "6", name: "Rocket", icon: "🚀", coins: 5000 },
   ];
 
   // PK Battle handlers
@@ -2985,8 +3199,22 @@ const LiveStream = () => {
     if (!hostInfo) return;
     setShowPKPanel(false);
     setPKBattleState({
+      isActive: true,
       battleId,
+      isChallenger: true,
+      challengerInfo: {
+        name: hostInfo.name,
+        avatar: hostInfo.avatar,
+        level: hostInfo.level,
+        id: currentUserId || "",
+        streamId: id || "",
       },
+      opponentInfo: {
+        name: opponentInfo.display_name,
+        avatar: opponentInfo.avatar_url,
+        level: opponentInfo.user_level,
+        id: opponentInfo.id,
+        streamId: opponentInfo.stream_id || "",
       },
     });
   };
@@ -3020,6 +3248,14 @@ const LiveStream = () => {
     // Pkg82d: notify challenger via FCM (replaces `pk_battle_${battleId}` channel).
     try {
       await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "accept",
+          battleId: incomingPKRequest.battleId,
+          toUserId: incomingPKRequest.challengerId,
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          fromAvatar: hostInfo.avatar,
+          fromLevel: hostInfo.level,
         },
       });
     } catch (err) {
@@ -3037,7 +3273,22 @@ const LiveStream = () => {
     const opponentStreamId = battle?.opponent_stream_id || "";
 
     setPKBattleState({
+      isActive: true,
+      battleId: incomingPKRequest.battleId,
+      isChallenger: false,
+      challengerInfo: {
+        name: incomingPKRequest.challengerName,
+        avatar: incomingPKRequest.challengerAvatar,
+        level: incomingPKRequest.challengerLevel,
+        id: incomingPKRequest.challengerId,
+        streamId: challengerStreamId,
       },
+      opponentInfo: {
+        name: hostInfo.name,
+        avatar: hostInfo.avatar,
+        level: hostInfo.level,
+        id: currentUserId || "",
+        streamId: opponentStreamId,
       },
     });
   };
@@ -3051,6 +3302,14 @@ const LiveStream = () => {
           .update({ status: "declined" })
           .eq("id", incomingPKRequest.battleId);
         await supabase.functions.invoke("pk-invite-deliver", {
+          body: {
+            kind: "decline",
+            battleId: incomingPKRequest.battleId,
+            toUserId: incomingPKRequest.challengerId,
+            fromUserId: currentUserId,
+            fromName: hostInfo.name,
+            fromAvatar: hostInfo.avatar,
+            fromLevel: hostInfo.level,
           },
         });
       } catch (err) {
@@ -3072,6 +3331,15 @@ const LiveStream = () => {
     // back via pk_random_battle_ready FCM (no client polling).
     try {
       await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_accept",
+          toUserId: randomPKRequest.challengerId,
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          fromAvatar: hostInfo.avatar,
+          fromLevel: hostInfo.level,
+          fromStreamId: id,
+          inviteSessionId: sessionId,
         },
       });
     } catch (err) {
@@ -3099,6 +3367,13 @@ const LiveStream = () => {
     if (randomPKSearching) return;
     try {
       const { data, error } = await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_invite",
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          fromAvatar: hostInfo.avatar,
+          fromLevel: hostInfo.level,
+          fromStreamId: id,
         },
       });
       if (error) throw error;
@@ -3127,6 +3402,11 @@ const LiveStream = () => {
           // Best-effort dismiss any still-open invitations
           supabase.functions
             .invoke("pk-invite-deliver", {
+              body: {
+                kind: "random_cancel",
+                fromUserId: currentUserId,
+                fromName: hostInfo.name,
+                inviteSessionId: sessionId,
               },
             })
             .catch(() => {});
@@ -3149,6 +3429,11 @@ const LiveStream = () => {
     setRandomPKSearching(null);
     try {
       await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_cancel",
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          inviteSessionId: session.sessionId,
         },
       });
       toast.info("Random PK request cancelled");
@@ -3171,9 +3456,20 @@ const LiveStream = () => {
     setPKResult({
       isWinner,
       isDraw,
+      winnerName: isWinner || isDraw ? challenger.name : opponent.name,
+      winnerAvatar: isWinner || isDraw ? challenger.avatar : opponent.avatar,
+      winnerScore: 0,
+      loserName: isWinner ? opponent.name : challenger.name,
+      loserAvatar: isWinner ? opponent.avatar : challenger.avatar,
+      loserScore: 0,
     });
 
     setPKBattleState({
+      isActive: false,
+      battleId: null,
+      isChallenger: false,
+      challengerInfo: null,
+      opponentInfo: null,
     });
 
     setShowPKResult(true);
@@ -3348,10 +3644,21 @@ const LiveStream = () => {
     const result = await sendGift({
       giftId: gift.id,
       gift: {
+        id: gift.id,
+        name: gift.name,
+        coins: gift.diamonds,
         category: 'popular',
+        icon_url: (gift as any).icon_url || (gift as any).icon,
+        animation_url: (gift as any).animation_url,
+        animation_format: (gift as any).animation_format || null,
+        animation_config_url: (gift as any).animation_config_url,
+        sound_url: (gift as any).sound_url,
       },
+      senderId: currentUserId,
       receiverId: hostInfo.id,
       quantity: 1,
+      context: 'live',
+      streamId: id,
     });
 
     if (result.success) {
@@ -3487,6 +3794,12 @@ const LiveStream = () => {
 
   if (showLiveEndSummary) {
     const safeHost = hostInfo ?? {
+      name: streamData?.title || currentUser?.display_name || 'Host',
+      avatar: currentUser?.avatar_url || '/placeholder.svg',
+      level: 1,
+      country: '',
+      language: '',
+      id: streamData?.host_id || currentUser?.id || '',
     } as typeof hostInfo;
     console.log('[LiveStream] 🟣 Host Live End Summary rendering', { hasHostInfo: !!hostInfo });
     return (
@@ -3498,6 +3811,7 @@ const LiveStream = () => {
             opacity: [0.2, 0.4, 0.2],
           }}
           transition={{
+            duration: 4,
             repeat: Infinity,
             ease: "easeInOut",
           }}
@@ -3505,8 +3819,13 @@ const LiveStream = () => {
         />
         <motion.div
           animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2],
           }}
           transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut",
           }}
           className="absolute bottom-1/3 right-1/4 w-56 h-56 bg-pink-600/20 rounded-full"
         />
@@ -3625,7 +3944,10 @@ const LiveStream = () => {
                 x: ['-100%', '200%'],
               }}
               transition={{
+                duration: 2,
+                repeat: Infinity,
                 repeatDelay: 3,
+                ease: "easeInOut",
               }}
               className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
             />
@@ -3810,6 +4132,7 @@ const LiveStream = () => {
                     transform: 'scaleX(-1)',
                     objectFit: 'contain',
                     objectPosition: 'center center',
+                    filter: combinedFilterCSS || undefined,
                     WebkitAppearance: 'none',
                     zIndex: localVideoTrack && hostLiveKitVideoReady ? 0 : 3,
                   }}/>
@@ -4020,6 +4343,7 @@ const LiveStream = () => {
               <motion.div 
                 className="min-w-0 max-w-[calc(100vw-108px)] flex items-center gap-2 rounded-full p-[4px] pr-2.5"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.76) 0%, rgba(30,20,50,0.82) 100%)',
                   border: '1px solid rgba(255,255,255,0.16)',
                   boxShadow: '0 6px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(14px)',
@@ -4086,6 +4410,8 @@ const LiveStream = () => {
                     aria-label="Follow host"
                     className="relative w-7 h-7 shrink-0 flex items-center justify-center rounded-full overflow-hidden"
                     style={{
+                      background: 'linear-gradient(135deg, #ec4899, #f43f5e)',
+                      boxShadow: '0 2px 8px rgba(236,72,153,0.5)',
                     }}
                   >
                     <Heart className="w-3.5 h-3.5 text-white relative z-10" strokeWidth={2.5} />
@@ -4113,6 +4439,10 @@ const LiveStream = () => {
               onClick={() => setShowViewerList(true)}
               className="flex items-center gap-0.5 px-1 py-[3px] rounded-full"
               style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.64), rgba(20,15,35,0.76))',
+                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(12px)',
               }}
             >
               {/* Viewer Avatars inside the pill */}
@@ -4123,6 +4453,7 @@ const LiveStream = () => {
                       key={viewer.id}
                       className="relative"
                       style={{ 
+                        zIndex: 4 - i,
                         width: 30,
                         height: 30,
                       }}
@@ -4228,6 +4559,11 @@ const LiveStream = () => {
               placeholder="Say something..."
               className="w-full h-9 md:h-10 rounded-full text-white text-xs pl-3.5 md:pl-4 pr-10 placeholder:text-white/55"
               style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                color: 'white',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 14px rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(14px)',
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
@@ -4236,6 +4572,9 @@ const LiveStream = () => {
               aria-label="Send message"
               className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden transition-[filter] duration-100 active:brightness-90 focus:outline-none"
               style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 40%, #6d28d9 100%)',
+                boxShadow: '0 4px 12px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 4px rgba(0,0,0,0.25)',
+                transform: 'translate3d(0,-50%,0)',
                 willChange: 'filter',
               }}
               onClick={handleSendMessage}
@@ -4254,6 +4593,8 @@ const LiveStream = () => {
               aria-label="Start private call"
               className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #86efac 0%, #22c55e 45%, #047857 100%)',
+                boxShadow: '0 6px 18px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
               }}
             >
               <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
@@ -4274,6 +4615,8 @@ const LiveStream = () => {
                 aria-label="Beauty filters"
                 className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #d946ef 45%, #7e22ce 100%)',
+                  boxShadow: '0 6px 18px rgba(217,70,239,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
                 }}
               >
                 <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
@@ -4287,6 +4630,8 @@ const LiveStream = () => {
                 aria-label="Flip camera"
                 className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #ddd6fe 0%, #8b5cf6 45%, #5b21b6 100%)',
+                  boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
                 }}
               >
                 <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
@@ -4304,8 +4649,10 @@ const LiveStream = () => {
                 aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
                 className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
+                  background: isHostMicMuted
                     ? 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #ef4444 45%, #991b1b 100%)'
                     : 'radial-gradient(120% 120% at 30% 20%, #a5f3fc 0%, #06b6d4 45%, #0e7490 100%)',
+                  boxShadow: isHostMicMuted
                     ? '0 6px 18px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)'
                     : '0 6px 18px rgba(6,182,212,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
                 }}
@@ -4328,6 +4675,8 @@ const LiveStream = () => {
                 aria-label="Open games"
                 className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%)',
+                  boxShadow: '0 6px 18px rgba(139,92,246,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
                 }}
               >
                 <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
@@ -4341,6 +4690,8 @@ const LiveStream = () => {
                 aria-label="Send heart"
                 className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, #fecaca 0%, #f43f5e 45%, #9f1239 100%)',
+                  boxShadow: '0 6px 18px rgba(244,63,94,0.55), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(0,0,0,0.22)',
                 }}
               >
                 <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55), transparent)' }} />
@@ -4362,6 +4713,8 @@ const LiveStream = () => {
             aria-label="Send gift"
             className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
             style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, #fbcfe8 0%, #ec4899 45%, #9d174d 100%)',
+              boxShadow: '0 6px 20px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -3px 6px rgba(0,0,0,0.22)',
             }}
           >
             <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.6), transparent)' }} />
@@ -4383,6 +4736,10 @@ const LiveStream = () => {
                 aria-label="More options"
                 className="relative w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
+                  background: 'radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,0.22) 0%, rgba(40,30,55,0.85) 45%, rgba(10,8,20,0.95) 100%)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -2px 4px rgba(0,0,0,0.3)',
+                  backdropFilter: 'blur(14px)',
                 }}
               >
                 <span className="absolute inset-x-1 top-0.5 h-2 rounded-full pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.35), transparent)' }} />
@@ -4391,7 +4748,9 @@ const LiveStream = () => {
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-[28px] h-auto p-0 border-0"
               style={{
+                background: 'linear-gradient(180deg, rgba(20,14,40,0.98) 0%, rgba(10,8,22,0.99) 100%)',
                 borderTop: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 -20px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08)',
               }}
             >
               {/* Glass top sheen */}
@@ -4455,6 +4814,7 @@ const LiveStream = () => {
                         <div
                           className={`relative w-[52px] h-[52px] rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center overflow-hidden`}
                           style={{
+                            boxShadow: '0 8px 22px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.25)',
                           }}
                         >
                           <span className="absolute inset-x-1.5 top-1 h-3 rounded-xl pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.45), transparent)' }} />
@@ -4653,6 +5013,19 @@ const LiveStream = () => {
 
           // Trigger flying gift animation IMMEDIATELY
           addFlyingGift({
+            senderId: currentUserId,
+            senderName: senderName,
+            senderAvatar: senderAvatar,
+            giftName: gift.name,
+            giftIcon: gift.emoji || "🎁",
+            giftImageUrl: gift.icon_url || undefined,
+            animationUrl: gift.animation_url || gift.icon_url || undefined,
+            animationFormat: gift.animation_format || null,
+            animationConfigUrl: gift.animation_config_url || undefined,
+            soundUrl: gift.sound_url || undefined,
+            giftColor: "bg-pink-500/50",
+            count: count,
+            coins: gift.diamonds,
             isOwnGift: true,
           });
           
@@ -4660,6 +5033,16 @@ const LiveStream = () => {
           const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${totalCost} diamonds | +${optimisticReceiverBeans} beans`;
           const tempGiftMsgId = `gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           setMessages(prev => [...prev, {
+            id: tempGiftMsgId,
+            user: senderName,
+            initial: senderName.charAt(0),
+            message: giftChatMessage,
+            color: "text-pink-400",
+            userLevel: senderLevel,
+            userAvatar: senderAvatar,
+            isHost: currentUserId === streamData?.host_id,
+            isNewUser: false,
+            giftIconUrl: gift.icon_url || undefined,
           }]);
           
           // Gift animation is already playing - no toast needed
@@ -4691,7 +5074,13 @@ const LiveStream = () => {
             };
             try {
               const result = await sendGift({
+                giftId: gift.id,
                 gift,
+                senderId: currentUserId,
+                receiverId: hostInfo!.id,
+                quantity: count,
+                context: 'live',
+                streamId: id,
               });
 
               releasePendingCost();
@@ -4729,12 +5118,16 @@ const LiveStream = () => {
                   }
                   setMessages(prev => prev.map(m => m.id === tempGiftMsgId ? {
                     ...m,
+                    message: `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`,
                   } : m));
                 }
                 const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                 const { data: giftRow } = await supabase
                   .from("stream_chat")
                   .insert({
+                    stream_id: id,
+                    user_id: currentUserId,
+                    message: finalGiftMessage,
                     message_type: 'gift',
                   })
                   .select("id")
@@ -4743,6 +5136,15 @@ const LiveStream = () => {
                 // so viewers see it without the Supabase Realtime round-trip.
                 if (id) {
                   void publishChatMessage('live', id, {
+                    messageId: giftRow?.id || `gift-${Date.now()}`,
+                    userId: currentUserId,
+                    displayName: currentUser?.display_name || "User",
+                    avatarUrl: currentUser?.avatar_url || undefined,
+                    userLevel: getRequiredDisplayLevel(currentUser),
+                    isHost: currentUserId === streamData?.host_id,
+                    countryFlag: currentUser?.country_flag || undefined,
+                    message: finalGiftMessage,
+                    messageType: 'gift',
                   });
                 }
               }
@@ -4752,7 +5154,7 @@ const LiveStream = () => {
               console.error('[Gift] Background processing error:', err);
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
               if (transactionSucceeded) return;
-              // Refund diamonds on complete failure
+              // Refund coins on complete failure
               userCoinsRef.current += totalCost;
               setUserCoins(userCoinsRef.current);
               toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);

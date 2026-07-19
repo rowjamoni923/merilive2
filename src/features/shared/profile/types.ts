@@ -4,7 +4,7 @@ export interface ProfileData {
   name: string;
   avatar: string;
   level?: number;
-  diamonds?: number;
+  coins?: number;
   beans?: number;
   isFollowing?: boolean;
   isVIP?: boolean;

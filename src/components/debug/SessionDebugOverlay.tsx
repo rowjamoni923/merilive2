@@ -132,6 +132,7 @@ export const SessionDebugOverlay = ({ userId }: Props) => {
       <div
         onClick={() => setExpanded((v) => !v)}
         style={{
+          pointerEvents: 'auto',
           maxWidth: 520,
           margin: '0 auto',
           background: 'rgba(8, 12, 24, 0.92)',
@@ -198,6 +199,8 @@ export const SessionDebugOverlay = ({ userId }: Props) => {
             </div>
             <div
               style={{
+                marginTop: 6,
+                color: '#64748b',
                 fontSize: 10,
               }}
             >

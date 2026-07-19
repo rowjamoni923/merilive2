@@ -199,6 +199,7 @@ export default function AdminCsaDiamondSettings() {
                 onChange={(e) => setS({ ...s, withdrawal_bonus_rate_percent: Number(e.target.value) })}
                 className="bg-slate-800 border-slate-700 mt-1" />
               <p className="text-[10px] text-emerald-300/70 mt-1">
+                Preview: $1,000 withdrawal → {Math.floor(1000 * (Number(s.withdrawal_bonus_rate_percent) / 100) * Number(s.diamonds_per_usd)).toLocaleString()} 💎 bonus
               </p>
             </div>
             <div>

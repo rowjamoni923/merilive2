@@ -186,6 +186,8 @@ const WITHDRAWAL_FEE_CONFIG: Record<string, CountryFeeConfig> = {
     ]
   },
   IN: {
+    defaultFeeUsd: 3,
+    tiers: [
       { maxLocal: 10000, feeUsd: 1 },
       { maxLocal: 25000, feeUsd: 2 },
       { maxLocal: 50000, feeUsd: 3 },
@@ -194,6 +196,8 @@ const WITHDRAWAL_FEE_CONFIG: Record<string, CountryFeeConfig> = {
     ]
   },
   PK: {
+    defaultFeeUsd: 3,
+    tiers: [
       { maxLocal: 25000, feeUsd: 1 },
       { maxLocal: 50000, feeUsd: 2 },
       { maxLocal: 100000, feeUsd: 3 },
@@ -202,6 +206,8 @@ const WITHDRAWAL_FEE_CONFIG: Record<string, CountryFeeConfig> = {
   },
   // Default for all other countries
   DEFAULT: {
+    defaultFeeUsd: 2,
+    tiers: [
       { maxLocal: Infinity, feeUsd: 2 }
     ]
   }
@@ -223,705 +229,1520 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     ]
   },
   IN: {
+    name: "India",
+    flag: "🇮🇳",
+    currency: "INR",
+    currencySymbol: "₹",
+    paymentMethods: [
       { value: "upi", label: "UPI" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   PK: {
+    name: "Pakistan",
+    flag: "🇵🇰",
+    currency: "PKR",
+    currencySymbol: "Rs",
+    paymentMethods: [
       { value: "easypaisa", label: "Easypaisa" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   NP: {
+    name: "Nepal",
+    flag: "🇳🇵",
+    currency: "NPR",
+    currencySymbol: "Rs",
+    paymentMethods: [
       { value: "esewa", label: "eSewa" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   LK: {
+    name: "Sri Lanka",
+    flag: "🇱🇰",
+    currency: "LKR",
+    currencySymbol: "Rs",
+    paymentMethods: [
       { value: "frimi", label: "FriMi" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   PH: {
+    name: "Philippines",
+    flag: "🇵🇭",
+    currency: "PHP",
+    currencySymbol: "₱",
+    paymentMethods: [
       { value: "gcash", label: "GCash" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   ID: {
+    name: "Indonesia",
+    flag: "🇮🇩",
+    currency: "IDR",
+    currencySymbol: "Rp",
+    paymentMethods: [
       { value: "gopay", label: "GoPay" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   VN: {
+    name: "Vietnam",
+    flag: "🇻🇳",
+    currency: "VND",
+    currencySymbol: "₫",
+    paymentMethods: [
       { value: "momo", label: "MoMo" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   TH: {
+    name: "Thailand",
+    flag: "🇹🇭",
+    currency: "THB",
+    currencySymbol: "฿",
+    paymentMethods: [
       { value: "promptpay", label: "PromptPay" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   MY: {
+    name: "Malaysia",
+    flag: "🇲🇾",
+    currency: "MYR",
+    currencySymbol: "RM",
+    paymentMethods: [
       { value: "grabpay", label: "GrabPay" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   SG: {
+    name: "Singapore",
+    flag: "🇸🇬",
+    currency: "SGD",
+    currencySymbol: "S$",
+    paymentMethods: [
       { value: "paynow", label: "PayNow" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   JP: {
+    name: "Japan",
+    flag: "🇯🇵",
+    currency: "JPY",
+    currencySymbol: "¥",
+    paymentMethods: [
       { value: "paypay", label: "PayPay" },
       { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   KR: {
+    name: "South Korea",
+    flag: "🇰🇷",
+    currency: "KRW",
+    currencySymbol: "₩",
+    paymentMethods: [
       { value: "kakaopay", label: "Kakao Pay" },
     ]
   },
   CN: {
+    name: "China",
+    flag: "🇨🇳",
+    currency: "CNY",
+    currencySymbol: "¥",
+    paymentMethods: [
       { value: "alipay", label: "Alipay" },
     ]
   },
   HK: {
+    name: "Hong Kong",
+    flag: "🇭🇰",
+    currency: "HKD",
+    currencySymbol: "HK$",
+    paymentMethods: [
       { value: "payme", label: "PayMe" },
     ]
   },
   TW: {
+    name: "Taiwan",
+    flag: "🇹🇼",
+    currency: "TWD",
+    currencySymbol: "NT$",
+    paymentMethods: [
       { value: "linepay", label: "LINE Pay" },
     ]
   },
   MM: {
+    name: "Myanmar",
+    flag: "🇲🇲",
+    currency: "MMK",
+    currencySymbol: "K",
+    paymentMethods: [
       { value: "wavepay", label: "Wave Pay" },
     ]
   },
   KH: {
+    name: "Cambodia",
+    flag: "🇰🇭",
+    currency: "KHR",
+    currencySymbol: "៛",
+    paymentMethods: [
       { value: "wing", label: "Wing" },
     ]
   },
   LA: {
+    name: "Laos",
+    flag: "🇱🇦",
+    currency: "LAK",
+    currencySymbol: "₭",
+    paymentMethods: [
       { value: "bcel", label: "BCEL One" },
     ]
   },
   BN: {
+    name: "Brunei",
+    flag: "🇧🇳",
+    currency: "BND",
+    currencySymbol: "B$",
+    paymentMethods: [
       { value: "progresifpay", label: "Progresif Pay" },
     ]
   },
   MN: {
+    name: "Mongolia",
+    flag: "🇲🇳",
+    currency: "MNT",
+    currencySymbol: "₮",
+    paymentMethods: [
       { value: "qpay", label: "QPay" },
     ]
   },
   KZ: {
+    name: "Kazakhstan",
+    flag: "🇰🇿",
+    currency: "KZT",
+    currencySymbol: "₸",
+    paymentMethods: [
       { value: "kaspi", label: "Kaspi Gold" },
     ]
   },
   UZ: {
+    name: "Uzbekistan",
+    flag: "🇺🇿",
+    currency: "UZS",
+    currencySymbol: "soʻm",
+    paymentMethods: [
       { value: "payme", label: "Payme" },
     ]
   },
   AZ: {
+    name: "Azerbaijan",
+    flag: "🇦🇿",
+    currency: "AZN",
+    currencySymbol: "₼",
+    paymentMethods: [
       { value: "mpay", label: "m10" },
     ]
   },
   GE: {
+    name: "Georgia",
+    flag: "🇬🇪",
+    currency: "GEL",
+    currencySymbol: "₾",
+    paymentMethods: [
       { value: "tbcpay", label: "TBC Pay" },
     ]
   },
   AM: {
+    name: "Armenia",
+    flag: "🇦🇲",
+    currency: "AMD",
+    currencySymbol: "֏",
+    paymentMethods: [
       { value: "idram", label: "Idram" },
     ]
   },
 
   // Middle East
   AE: {
+    name: "UAE",
+    flag: "🇦🇪",
+    currency: "AED",
+    currencySymbol: "د.إ",
+    paymentMethods: [
       { value: "applepay", label: "Apple Pay" },
     ]
   },
   SA: {
+    name: "Saudi Arabia",
+    flag: "🇸🇦",
+    currency: "SAR",
+    currencySymbol: "﷼",
+    paymentMethods: [
       { value: "stcpay", label: "STC Pay" },
     ]
   },
   QA: {
+    name: "Qatar",
+    flag: "🇶🇦",
+    currency: "QAR",
+    currencySymbol: "ر.ق",
+    paymentMethods: [
       { value: "vodafonepay", label: "Vodafone Pay" },
     ]
   },
   KW: {
+    name: "Kuwait",
+    flag: "🇰🇼",
+    currency: "KWD",
+    currencySymbol: "د.ك",
+    paymentMethods: [
       { value: "knet", label: "K-Net" },
     ]
   },
   BH: {
+    name: "Bahrain",
+    flag: "🇧🇭",
+    currency: "BHD",
+    currencySymbol: "د.ب",
+    paymentMethods: [
       { value: "benefitpay", label: "BenefitPay" },
     ]
   },
   OM: {
+    name: "Oman",
+    flag: "🇴🇲",
+    currency: "OMR",
+    currencySymbol: "ر.ع",
+    paymentMethods: [
       { value: "thawani", label: "Thawani" },
     ]
   },
   JO: {
+    name: "Jordan",
+    flag: "🇯🇴",
+    currency: "JOD",
+    currencySymbol: "د.ا",
+    paymentMethods: [
       { value: "efawateercom", label: "eFAWATEERcom" },
     ]
   },
   IQ: {
+    name: "Iraq",
+    flag: "🇮🇶",
+    currency: "IQD",
+    currencySymbol: "ع.د",
+    paymentMethods: [
       { value: "zaincash", label: "Zain Cash" },
     ]
   },
   TR: {
+    name: "Turkey",
+    flag: "🇹🇷",
+    currency: "TRY",
+    currencySymbol: "₺",
+    paymentMethods: [
       { value: "papara", label: "Papara" },
     ]
   },
   EG: {
+    name: "Egypt",
+    flag: "🇪🇬",
+    currency: "EGP",
+    currencySymbol: "E£",
+    paymentMethods: [
       { value: "vodafonecash", label: "Vodafone Cash" },
     ]
   },
 
   // Africa
   NG: {
+    name: "Nigeria",
+    flag: "🇳🇬",
+    currency: "NGN",
+    currencySymbol: "₦",
+    paymentMethods: [
       { value: "opay", label: "OPay" },
     ]
   },
   GH: {
+    name: "Ghana",
+    flag: "🇬🇭",
+    currency: "GHS",
+    currencySymbol: "₵",
+    paymentMethods: [
       { value: "mtnmomo", label: "MTN MoMo" },
     ]
   },
   KE: {
+    name: "Kenya",
+    flag: "🇰🇪",
+    currency: "KES",
+    currencySymbol: "KSh",
+    paymentMethods: [
       { value: "mpesa", label: "M-Pesa" },
     ]
   },
   TZ: {
+    name: "Tanzania",
+    flag: "🇹🇿",
+    currency: "TZS",
+    currencySymbol: "TSh",
+    paymentMethods: [
       { value: "mpesa", label: "M-Pesa" },
     ]
   },
   UG: {
+    name: "Uganda",
+    flag: "🇺🇬",
+    currency: "UGX",
+    currencySymbol: "USh",
+    paymentMethods: [
       { value: "mtnmomo", label: "MTN Mobile Money" },
     ]
   },
   ET: {
+    name: "Ethiopia",
+    flag: "🇪🇹",
+    currency: "ETB",
+    currencySymbol: "Br",
+    paymentMethods: [
       { value: "telebirr", label: "TeleBirr" },
     ]
   },
   ZA: {
+    name: "South Africa",
+    flag: "🇿🇦",
+    currency: "ZAR",
+    currencySymbol: "R",
+    paymentMethods: [
       { value: "snapscan", label: "SnapScan" },
     ]
   },
   MA: {
+    name: "Morocco",
+    flag: "🇲🇦",
+    currency: "MAD",
+    currencySymbol: "د.م.",
+    paymentMethods: [
       { value: "cmi", label: "CMI" },
     ]
   },
   SN: {
+    name: "Senegal",
+    flag: "🇸🇳",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "wave", label: "Wave" },
     ]
   },
   CI: {
+    name: "Ivory Coast",
+    flag: "🇨🇮",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "orangemoney", label: "Orange Money" },
     ]
   },
   CM: {
+    name: "Cameroon",
+    flag: "🇨🇲",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    paymentMethods: [
       { value: "orangemoney", label: "Orange Money" },
     ]
   },
   ZM: {
+    name: "Zambia",
+    flag: "🇿🇲",
+    currency: "ZMW",
+    currencySymbol: "ZK",
+    paymentMethods: [
       { value: "mtnmomo", label: "MTN Mobile Money" },
     ]
   },
   ZW: {
+    name: "Zimbabwe",
+    flag: "🇿🇼",
+    currency: "ZWL",
+    currencySymbol: "Z$",
+    paymentMethods: [
       { value: "ecocash", label: "EcoCash" },
     ]
   },
   MZ: {
+    name: "Mozambique",
+    flag: "🇲🇿",
+    currency: "MZN",
+    currencySymbol: "MT",
+    paymentMethods: [
       { value: "mpesa", label: "M-Pesa" },
     ]
   },
   AO: {
+    name: "Angola",
+    flag: "🇦🇴",
+    currency: "AOA",
+    currencySymbol: "Kz",
+    paymentMethods: [
       { value: "multicaixa", label: "Multicaixa Express" },
     ]
   },
 
   // Europe
   GB: {
+    name: "United Kingdom",
+    flag: "🇬🇧",
+    currency: "GBP",
+    currencySymbol: "£",
+    paymentMethods: [
       { value: "revolut", label: "Revolut" },
     ]
   },
   DE: {
+    name: "Germany",
+    flag: "🇩🇪",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   FR: {
+    name: "France",
+    flag: "🇫🇷",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   IT: {
+    name: "Italy",
+    flag: "🇮🇹",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "satispay", label: "Satispay" },
     ]
   },
   ES: {
+    name: "Spain",
+    flag: "🇪🇸",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "bizum", label: "Bizum" },
     ]
   },
   PT: {
+    name: "Portugal",
+    flag: "🇵🇹",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "mbway", label: "MB WAY" },
     ]
   },
   NL: {
+    name: "Netherlands",
+    flag: "🇳🇱",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "ideal", label: "iDEAL" },
     ]
   },
   BE: {
+    name: "Belgium",
+    flag: "🇧🇪",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "bancontact", label: "Bancontact" },
     ]
   },
   AT: {
+    name: "Austria",
+    flag: "🇦🇹",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "eps", label: "EPS" },
     ]
   },
   CH: {
+    name: "Switzerland",
+    flag: "🇨🇭",
+    currency: "CHF",
+    currencySymbol: "CHF",
+    paymentMethods: [
       { value: "twint", label: "TWINT" },
     ]
   },
   PL: {
+    name: "Poland",
+    flag: "🇵🇱",
+    currency: "PLN",
+    currencySymbol: "zł",
+    paymentMethods: [
       { value: "blik", label: "BLIK" },
     ]
   },
   CZ: {
+    name: "Czech Republic",
+    flag: "🇨🇿",
+    currency: "CZK",
+    currencySymbol: "Kč",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   HU: {
+    name: "Hungary",
+    flag: "🇭🇺",
+    currency: "HUF",
+    currencySymbol: "Ft",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   RO: {
+    name: "Romania",
+    flag: "🇷🇴",
+    currency: "RON",
+    currencySymbol: "lei",
+    paymentMethods: [
       { value: "revolut", label: "Revolut" },
     ]
   },
   BG: {
+    name: "Bulgaria",
+    flag: "🇧🇬",
+    currency: "BGN",
+    currencySymbol: "лв",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   GR: {
+    name: "Greece",
+    flag: "🇬🇷",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   SE: {
+    name: "Sweden",
+    flag: "🇸🇪",
+    currency: "SEK",
+    currencySymbol: "kr",
+    paymentMethods: [
       { value: "swish", label: "Swish" },
     ]
   },
   NO: {
+    name: "Norway",
+    flag: "🇳🇴",
+    currency: "NOK",
+    currencySymbol: "kr",
+    paymentMethods: [
       { value: "vipps", label: "Vipps" },
     ]
   },
   DK: {
+    name: "Denmark",
+    flag: "🇩🇰",
+    currency: "DKK",
+    currencySymbol: "kr",
+    paymentMethods: [
       { value: "mobilepay", label: "MobilePay" },
     ]
   },
   FI: {
+    name: "Finland",
+    flag: "🇫🇮",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "mobilepay", label: "MobilePay" },
     ]
   },
   IE: {
+    name: "Ireland",
+    flag: "🇮🇪",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "revolut", label: "Revolut" },
     ]
   },
   UA: {
+    name: "Ukraine",
+    flag: "🇺🇦",
+    currency: "UAH",
+    currencySymbol: "₴",
+    paymentMethods: [
       { value: "monobank", label: "Monobank" },
     ]
   },
   RU: {
+    name: "Russia",
+    flag: "🇷🇺",
+    currency: "RUB",
+    currencySymbol: "₽",
+    paymentMethods: [
       { value: "sbp", label: "SBP" },
     ]
   },
   BY: {
+    name: "Belarus",
+    flag: "🇧🇾",
+    currency: "BYN",
+    currencySymbol: "Br",
+    paymentMethods: [
       { value: "erip", label: "ERIP" },
     ]
   },
   RS: {
+    name: "Serbia",
+    flag: "🇷🇸",
+    currency: "RSD",
+    currencySymbol: "дин.",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   HR: {
+    name: "Croatia",
+    flag: "🇭🇷",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   SK: {
+    name: "Slovakia",
+    flag: "🇸🇰",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   SI: {
+    name: "Slovenia",
+    flag: "🇸🇮",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   LT: {
+    name: "Lithuania",
+    flag: "🇱🇹",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "revolut", label: "Revolut" },
     ]
   },
   LV: {
+    name: "Latvia",
+    flag: "🇱🇻",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   EE: {
+    name: "Estonia",
+    flag: "🇪🇪",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "wise", label: "Wise" },
     ]
   },
   MD: {
+    name: "Moldova",
+    flag: "🇲🇩",
+    currency: "MDL",
+    currencySymbol: "L",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   AL: {
+    name: "Albania",
+    flag: "🇦🇱",
+    currency: "ALL",
+    currencySymbol: "L",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   MK: {
+    name: "North Macedonia",
+    flag: "🇲🇰",
+    currency: "MKD",
+    currencySymbol: "ден",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   BA: {
+    name: "Bosnia & Herzegovina",
+    flag: "🇧🇦",
+    currency: "BAM",
+    currencySymbol: "KM",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   ME: {
+    name: "Montenegro",
+    flag: "🇲🇪",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   IS: {
+    name: "Iceland",
+    flag: "🇮🇸",
+    currency: "ISK",
+    currencySymbol: "kr",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   LU: {
+    name: "Luxembourg",
+    flag: "🇱🇺",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   MT: {
+    name: "Malta",
+    flag: "🇲🇹",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   CY: {
+    name: "Cyprus",
+    flag: "🇨🇾",
+    currency: "EUR",
+    currencySymbol: "€",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
 
   // Americas
   US: {
+    name: "United States",
+    flag: "🇺🇸",
+    currency: "USD",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "venmo", label: "Venmo" },
     ]
   },
   CA: {
+    name: "Canada",
+    flag: "🇨🇦",
+    currency: "CAD",
+    currencySymbol: "C$",
+    paymentMethods: [
       { value: "interac", label: "Interac e-Transfer" },
     ]
   },
   MX: {
+    name: "Mexico",
+    flag: "🇲🇽",
+    currency: "MXN",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "mercadopago", label: "Mercado Pago" },
     ]
   },
   BR: {
+    name: "Brazil",
+    flag: "🇧🇷",
+    currency: "BRL",
+    currencySymbol: "R$",
+    paymentMethods: [
       { value: "pix", label: "PIX" },
     ]
   },
   AR: {
+    name: "Argentina",
+    flag: "🇦🇷",
+    currency: "ARS",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "mercadopago", label: "Mercado Pago" },
     ]
   },
   CL: {
+    name: "Chile",
+    flag: "🇨🇱",
+    currency: "CLP",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "mercadopago", label: "Mercado Pago" },
     ]
   },
   CO: {
+    name: "Colombia",
+    flag: "🇨🇴",
+    currency: "COP",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "nequi", label: "Nequi" },
     ]
   },
   PE: {
+    name: "Peru",
+    flag: "🇵🇪",
+    currency: "PEN",
+    currencySymbol: "S/",
+    paymentMethods: [
       { value: "yape", label: "Yape" },
     ]
   },
   VE: {
+    name: "Venezuela",
+    flag: "🇻🇪",
+    currency: "VES",
+    currencySymbol: "Bs",
+    paymentMethods: [
       { value: "pagomovil", label: "Pago Móvil" },
     ]
   },
   EC: {
+    name: "Ecuador",
+    flag: "🇪🇨",
+    currency: "USD",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   BO: {
+    name: "Bolivia",
+    flag: "🇧🇴",
+    currency: "BOB",
+    currencySymbol: "Bs",
+    paymentMethods: [
       { value: "qr", label: "QR Simple" },
     ]
   },
   PY: {
+    name: "Paraguay",
+    flag: "🇵🇾",
+    currency: "PYG",
+    currencySymbol: "₲",
+    paymentMethods: [
       { value: "tigo", label: "Tigo Money" },
     ]
   },
   UY: {
+    name: "Uruguay",
+    flag: "🇺🇾",
+    currency: "UYU",
+    currencySymbol: "$U",
+    paymentMethods: [
       { value: "prex", label: "Prex" },
     ]
   },
   CR: {
+    name: "Costa Rica",
+    flag: "🇨🇷",
+    currency: "CRC",
+    currencySymbol: "₡",
+    paymentMethods: [
       { value: "sinpe", label: "SINPE Móvil" },
     ]
   },
   PA: {
+    name: "Panama",
+    flag: "🇵🇦",
+    currency: "PAB",
+    currencySymbol: "B/.",
+    paymentMethods: [
       { value: "yappy", label: "Yappy" },
     ]
   },
   GT: {
+    name: "Guatemala",
+    flag: "🇬🇹",
+    currency: "GTQ",
+    currencySymbol: "Q",
+    paymentMethods: [
       { value: "tigo", label: "Tigo Money" },
     ]
   },
   HN: {
+    name: "Honduras",
+    flag: "🇭🇳",
+    currency: "HNL",
+    currencySymbol: "L",
+    paymentMethods: [
       { value: "tigo", label: "Tigo Money" },
     ]
   },
   SV: {
+    name: "El Salvador",
+    flag: "🇸🇻",
+    currency: "USD",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "chivo", label: "Chivo Wallet" },
     ]
   },
   NI: {
+    name: "Nicaragua",
+    flag: "🇳🇮",
+    currency: "NIO",
+    currencySymbol: "C$",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   DO: {
+    name: "Dominican Republic",
+    flag: "🇩🇴",
+    currency: "DOP",
+    currencySymbol: "RD$",
+    paymentMethods: [
       { value: "yolopago", label: "Yolo Pago" },
     ]
   },
   PR: {
+    name: "Puerto Rico",
+    flag: "🇵🇷",
+    currency: "USD",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "athm", label: "ATH Móvil" },
     ]
   },
   CU: {
+    name: "Cuba",
+    flag: "🇨🇺",
+    currency: "CUP",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "transfermovil", label: "Transfermóvil" },
     ]
   },
   JM: {
+    name: "Jamaica",
+    flag: "🇯🇲",
+    currency: "JMD",
+    currencySymbol: "J$",
+    paymentMethods: [
       { value: "lynk", label: "Lynk" },
     ]
   },
   TT: {
+    name: "Trinidad & Tobago",
+    flag: "🇹🇹",
+    currency: "TTD",
+    currencySymbol: "TT$",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   HT: {
+    name: "Haiti",
+    flag: "🇭🇹",
+    currency: "HTG",
+    currencySymbol: "G",
+    paymentMethods: [
       { value: "moncash", label: "MonCash" },
     ]
   },
 
   // Oceania
   AU: {
+    name: "Australia",
+    flag: "🇦🇺",
+    currency: "AUD",
+    currencySymbol: "A$",
+    paymentMethods: [
       { value: "payid", label: "PayID" },
     ]
   },
   NZ: {
+    name: "New Zealand",
+    flag: "🇳🇿",
+    currency: "NZD",
+    currencySymbol: "NZ$",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
   FJ: {
+    name: "Fiji",
+    flag: "🇫🇯",
+    currency: "FJD",
+    currencySymbol: "FJ$",
+    paymentMethods: [
       { value: "mpaisaFiji", label: "M-PAiSA" },
     ]
   },
   PG: {
+    name: "Papua New Guinea",
+    flag: "🇵🇬",
+    currency: "PGK",
+    currencySymbol: "K",
+    paymentMethods: [
       { value: "paypal", label: "PayPal" },
     ]
   },
 
   // Additional countries
   AF: {
+    name: "Afghanistan",
+    flag: "🇦🇫",
+    currency: "AFN",
+    currencySymbol: "؋",
+    paymentMethods: [
       { value: "hawala", label: "Hawala" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   BT: {
+    name: "Bhutan",
+    flag: "🇧🇹",
+    currency: "BTN",
+    currencySymbol: "Nu.",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   MV: {
+    name: "Maldives",
+    flag: "🇲🇻",
+    currency: "MVR",
+    currencySymbol: "Rf",
+    paymentMethods: [
       { value: "bml", label: "BML App" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   TJ: {
+    name: "Tajikistan",
+    flag: "🇹🇯",
+    currency: "TJS",
+    currencySymbol: "SM",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   TM: {
+    name: "Turkmenistan",
+    flag: "🇹🇲",
+    currency: "TMT",
+    currencySymbol: "m",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   KG: {
+    name: "Kyrgyzstan",
+    flag: "🇰🇬",
+    currency: "KGS",
+    currencySymbol: "с",
+    paymentMethods: [
       { value: "o", label: "O! Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   YE: {
+    name: "Yemen",
+    flag: "🇾🇪",
+    currency: "YER",
+    currencySymbol: "﷼",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SY: {
+    name: "Syria",
+    flag: "🇸🇾",
+    currency: "SYP",
+    currencySymbol: "£",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   PS: {
+    name: "Palestine",
+    flag: "🇵🇸",
+    currency: "ILS",
+    currencySymbol: "₪",
+    paymentMethods: [
       { value: "jawwal", label: "Jawwal Pay" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   LY: {
+    name: "Libya",
+    flag: "🇱🇾",
+    currency: "LYD",
+    currencySymbol: "ل.د",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SD: {
+    name: "Sudan",
+    flag: "🇸🇩",
+    currency: "SDG",
+    currencySymbol: "ج.س.",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SS: {
+    name: "South Sudan",
+    flag: "🇸🇸",
+    currency: "SSP",
+    currencySymbol: "£",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SO: {
+    name: "Somalia",
+    flag: "🇸🇴",
+    currency: "SOS",
+    currencySymbol: "Sh",
+    paymentMethods: [
       { value: "zaad", label: "Zaad" },
       { value: "edahab", label: "eDahab" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   DJ: {
+    name: "Djibouti",
+    flag: "🇩🇯",
+    currency: "DJF",
+    currencySymbol: "Fdj",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   ER: {
+    name: "Eritrea",
+    flag: "🇪🇷",
+    currency: "ERN",
+    currencySymbol: "Nfk",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   MG: {
+    name: "Madagascar",
+    flag: "🇲🇬",
+    currency: "MGA",
+    currencySymbol: "Ar",
+    paymentMethods: [
       { value: "mvola", label: "MVola" },
       { value: "orangemoney", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   MU: {
+    name: "Mauritius",
+    flag: "🇲🇺",
+    currency: "MUR",
+    currencySymbol: "₨",
+    paymentMethods: [
       { value: "juice", label: "Juice by MCB" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SC: {
+    name: "Seychelles",
+    flag: "🇸🇨",
+    currency: "SCR",
+    currencySymbol: "₨",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   BW: {
+    name: "Botswana",
+    flag: "🇧🇼",
+    currency: "BWP",
+    currencySymbol: "P",
+    paymentMethods: [
       { value: "smega", label: "Smega" },
       { value: "orange", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   NA: {
+    name: "Namibia",
+    flag: "🇳🇦",
+    currency: "NAD",
+    currencySymbol: "N$",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   LS: {
+    name: "Lesotho",
+    flag: "🇱🇸",
+    currency: "LSL",
+    currencySymbol: "L",
+    paymentMethods: [
       { value: "mpesa", label: "M-Pesa" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SZ: {
+    name: "Eswatini",
+    flag: "🇸🇿",
+    currency: "SZL",
+    currencySymbol: "E",
+    paymentMethods: [
       { value: "mtn", label: "MTN MoMo" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   MW: {
+    name: "Malawi",
+    flag: "🇲🇼",
+    currency: "MWK",
+    currencySymbol: "MK",
+    paymentMethods: [
       { value: "airtel", label: "Airtel Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   ML: {
+    name: "Mali",
+    flag: "🇲🇱",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "orangemoney", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   BF: {
+    name: "Burkina Faso",
+    flag: "🇧🇫",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "orangemoney", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   NE: {
+    name: "Niger",
+    flag: "🇳🇪",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "airtel", label: "Airtel Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   TD: {
+    name: "Chad",
+    flag: "🇹🇩",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    paymentMethods: [
       { value: "airtel", label: "Airtel Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   CF: {
+    name: "Central African Republic",
+    flag: "🇨🇫",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   CG: {
+    name: "Republic of Congo",
+    flag: "🇨🇬",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    paymentMethods: [
       { value: "airtel", label: "Airtel Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   CD: {
+    name: "DR Congo",
+    flag: "🇨🇩",
+    currency: "CDF",
+    currencySymbol: "FC",
+    paymentMethods: [
       { value: "mpesa", label: "M-Pesa" },
       { value: "orangemoney", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   GA: {
+    name: "Gabon",
+    flag: "🇬🇦",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    paymentMethods: [
       { value: "airtel", label: "Airtel Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   GQ: {
+    name: "Equatorial Guinea",
+    flag: "🇬🇶",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   GN: {
+    name: "Guinea",
+    flag: "🇬🇳",
+    currency: "GNF",
+    currencySymbol: "FG",
+    paymentMethods: [
       { value: "orangemoney", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   GW: {
+    name: "Guinea-Bissau",
+    flag: "🇬🇼",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   GM: {
+    name: "Gambia",
+    flag: "🇬🇲",
+    currency: "GMD",
+    currencySymbol: "D",
+    paymentMethods: [
       { value: "qmoney", label: "QMoney" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   SL: {
+    name: "Sierra Leone",
+    flag: "🇸🇱",
+    currency: "SLE",
+    currencySymbol: "Le",
+    paymentMethods: [
       { value: "orangemoney", label: "Orange Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   LR: {
+    name: "Liberia",
+    flag: "🇱🇷",
+    currency: "LRD",
+    currencySymbol: "L$",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   TG: {
+    name: "Togo",
+    flag: "🇹🇬",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "flooz", label: "Flooz" },
       { value: "tmoney", label: "T-Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   BJ: {
+    name: "Benin",
+    flag: "🇧🇯",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    paymentMethods: [
       { value: "mtn", label: "MTN MoMo" },
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   MR: {
+    name: "Mauritania",
+    flag: "🇲🇷",
+    currency: "MRU",
+    currencySymbol: "UM",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   CV: {
+    name: "Cape Verde",
+    flag: "🇨🇻",
+    currency: "CVE",
+    currencySymbol: "$",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   ST: {
+    name: "São Tomé and Príncipe",
+    flag: "🇸🇹",
+    currency: "STN",
+    currencySymbol: "Db",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   KM: {
+    name: "Comoros",
+    flag: "🇰🇲",
+    currency: "KMF",
+    currencySymbol: "CF",
+    paymentMethods: [
       { value: "bank", label: "Bank Transfer" },
     ]
   },
   BI: {
+    name: "Burundi",
+    flag: "🇧🇮",
+    currency: "BIF",
+    currencySymbol: "FBu",
+    paymentMethods: [
       { value: "lumitel", label: "Lumitel Money" },
       { value: "bank", label: "Bank Transfer" },
     ]
@@ -1390,6 +2211,10 @@ const AgencyWithdrawal = () => {
       if (awfValue) {
         const awf: any = typeof awfValue === 'string' ? JSON.parse(awfValue) : awfValue;
         setAutoWithdrawalFee({
+          flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
+          percent: typeof awf.percent === 'number' ? awf.percent : 0,
+          enabled: awf.enabled !== false,
+          methods: Array.isArray(awf.methods) && awf.methods.length > 0
             ? awf.methods.map((m: string) => m.toLowerCase()).filter((m: string) => m !== 'epay')
             : ['usdt', 'crypto_auto'],
         });
@@ -1535,6 +2360,10 @@ const AgencyWithdrawal = () => {
       });
 
       const { data, error } = await supabase.rpc('request_agency_withdrawal', {
+        p_agency_id: agency.id,
+        p_amount: Math.round(withdrawAmountBeans), // Total amount (fee already included)
+        p_payment_method: paymentMethod,
+        p_payment_details: paymentDetails,
         p_notes: null,
       });
 
@@ -2275,8 +3104,18 @@ const AgencyWithdrawal = () => {
                   : selectedWithdrawal?.status;
                 
                 const statusColorMap: Record<string, string> = {
+                  completed: 'bg-success-500',
+                  approved: 'bg-success-500',
+                  pending: 'bg-warning-500',
+                  processing: 'bg-info-500',
+                  rejected: 'bg-danger-500'
                 };
                 const statusTextMap: Record<string, string> = {
+                  completed: 'text-success-600',
+                  approved: 'text-success-600',
+                  pending: 'text-warning-600',
+                  processing: 'text-info-600',
+                  rejected: 'text-danger-600'
                 };
                 
                 return (

@@ -131,6 +131,13 @@ export default function AdminSuperAdminManagement() {
   const openReview = (app: Application) => {
     setReviewApp(app);
     setReviewForm({
+      allowed_payment_methods: "bkash,nagad",
+      auto_pay_enabled: false,
+      commission_percent: Math.min(25, app.requested_commission_percent || 25),
+      min_withdraw_usd: 5,
+      max_withdraw_usd: 1000,
+      daily_cap_usd: 5000,
+      deposit_amount_usd: Math.max(10000, Number(app.deposit_amount_usd) || 10000),
     });
   };
 

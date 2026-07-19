@@ -59,7 +59,7 @@ export interface GiftSentPayload {
   giftAnimationFormat?: string | null;
   giftAnimationConfigUrl?: string | null;
   giftSoundUrl?: string;
-  giftCoins?: number;        // unit diamonds
+  giftCoins?: number;        // unit coins
   count?: number;
   totalDiamonds?: number;       // unit × count
   receiverBeans?: number;    // optimistic beans credit for receiver

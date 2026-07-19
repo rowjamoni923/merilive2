@@ -38,9 +38,9 @@ export function CallEndedModal({
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const formatCoins = (diamonds: number) => {
-    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
-    return diamonds.toString();
+  const formatCoins = (coins: number) => {
+    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
+    return coins.toString();
   };
 
   // ===== CALLER/USER: Simple Banner Style - NO earnings/diamond info =====

@@ -32,6 +32,7 @@ type Profile = {
   avatar_url: string | null;
   beans: number | null;
   diamonds: number | null;
+  coins: number | null;
   created_at: string;
 };
 

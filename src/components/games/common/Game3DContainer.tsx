@@ -20,6 +20,7 @@ export function Game3DContainer({ children, className = "", glowColor = "#8b5cf6
       <div 
         className="absolute inset-0 rounded-xl pointer-events-none"
         style={{
+          background: `linear-gradient(135deg, ${glowColor}20 0%, transparent 50%, ${glowColor}10 100%)`,
         }}
       />
       

@@ -255,6 +255,7 @@ const handler = async (req: Request): Promise<Response> => {
                 data: dataPayload,
                 android: {
                   priority: "high",
+                  notification: {
                     sound: "default",
                     channel_id: "merilive_system",
                     notification_priority: "PRIORITY_HIGH",

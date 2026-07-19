@@ -204,6 +204,12 @@ function CampaignFloatingButton() {
     const target = event.currentTarget;
     try { target.setPointerCapture(event.pointerId); } catch {}
     pointerDragRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: dragX.get(),
+      startY: dragY.get(),
+      hasMoved: false,
     };
   }, [dragX, dragY]);
 
@@ -465,10 +471,30 @@ function CampaignFloatingButton() {
 
         if (matchedLegacy.length === 0) {
           return [{
+            id: m.id,
+            helper_id: m.helper_id || `country-${m.id}`,
+            country_code: m.country_code,
+            method_name: m.payment_method_name,
+            method_type: m.method_type || m.payment_type || m.payment_method_name,
+            account_name: m.account_name || m.payment_method_name,
+            account_number: m.account_number || '',
+            logo_url: m.logo_url || m.icon_url || (m.additional_info as any)?.logo_url || null,
+            instructions: m.instructions || (m.additional_info as any)?.instructions || null,
+            additional_info: { ...(m.additional_info || {}), display_order: m.display_order },
           }];
         }
 
         return matchedLegacy.map((legacy: any) => ({
+          id: `${m.id}-${legacy.id}`,
+          helper_id: legacy.helper_id,
+          country_code: m.country_code,
+          method_name: m.payment_method_name,
+          method_type: m.method_type || m.payment_type || legacy.method_type || m.payment_method_name,
+          account_name: legacy.account_name,
+          account_number: legacy.account_number,
+          logo_url: m.logo_url || m.icon_url || legacy.logo_url || (m.additional_info as any)?.logo_url || null,
+          instructions: m.instructions || legacy.instructions || null,
+          additional_info: { ...(legacy.additional_info || {}), ...(m.additional_info || {}), display_order: m.display_order },
         }));
       });
 
@@ -760,8 +786,10 @@ function CampaignFloatingButton() {
       const { error: orderError } = await supabase
         .from('helper_orders')
         .insert({
+          helper_id: currentMethod.helper_id,
           user_id: userId,
           customer_id: userId,
+          diamond_amount: campaign.diamonds_amount,
           diamond_amount: campaign.diamonds_amount,
           amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
           total_price_usd: campaign.offer_price_usd || campaign.original_price_usd,
@@ -776,6 +804,9 @@ function CampaignFloatingButton() {
           provider_transaction_id: normalizedTxnId || null,
           payment_details: {
             transaction_id: normalizedTxnId,
+            method_type: currentMethod.method_type,
+            account_name: currentMethod.account_name,
+            account_number: currentMethod.account_number,
             campaign_id: campaign.id,
           },
           status: 'pending',
@@ -830,6 +861,8 @@ function CampaignFloatingButton() {
             // uses pointer capture instead of Framer's drag layer because nested
             // animated wrappers/buttons were stealing mobile WebView gestures.
             style={{
+              bottom: bottomOffset,
+              right: '12px',
               perspective: '600px',
               x: dragX,
               y: dragY,
@@ -877,6 +910,8 @@ function CampaignFloatingButton() {
             <motion.div
               className="absolute -top-3 -right-2 z-20 pointer-events-none"
               style={{
+                width: floatingCountdownText.length > 5 ? 74 : 60,
+                height: 24,
               }}
               role="timer"
               aria-label={floatingCountdownLabel}
@@ -920,6 +955,9 @@ function CampaignFloatingButton() {
               <motion.div
                 className="absolute left-1/2 -translate-x-1/2 rounded-full blur-md pointer-events-none"
                 style={{
+                  bottom: '-10px',
+                  width: '70px',
+                  height: '10px',
                   background:
                     'radial-gradient(ellipse at center, rgba(0,0,0,0.5), transparent 70%)',
                   zIndex: 0,
@@ -944,6 +982,7 @@ function CampaignFloatingButton() {
                   onClick={() => { if (draggedRef.current) return; setShowPopup(true); }}
                   className="relative w-[78px] h-[78px] rounded-full"
                   style={{
+                    filter: 'drop-shadow(0 12px 22px rgba(245,158,11,0.55)) drop-shadow(0 4px 10px rgba(255,23,68,0.4))',
                     transformStyle: 'preserve-3d',
                   }}
                 >
@@ -951,6 +990,7 @@ function CampaignFloatingButton() {
                   <motion.div
                     className="absolute -inset-2 rounded-full"
                     style={{
+                      background: 'radial-gradient(circle, rgba(245,158,11,0.45) 0%, transparent 70%)',
                     }}
                     animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.95, 0.6] }}
                     transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -959,6 +999,7 @@ function CampaignFloatingButton() {
                   <motion.div
                     className="absolute inset-0 rounded-full"
                     style={{
+                      background: 'conic-gradient(from 0deg, #fbbf24, #ef4444, #f97316, #eab308, #fbbf24)',
                       padding: '3px',
                     }}
                     animate={{ rotate: 360 }}
@@ -970,6 +1011,8 @@ function CampaignFloatingButton() {
                   <div
                     className="absolute inset-[3px] rounded-full overflow-hidden flex items-center justify-center"
                     style={{
+                      border: campaign.banner_image_url ? 'none' : '1.5px solid rgba(255,255,255,0.6)',
+                      background: campaign.banner_image_url
                         ? 'transparent'
                         : 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
                     }}
@@ -1017,6 +1060,9 @@ function CampaignFloatingButton() {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-[340px] rounded-3xl overflow-hidden shadow-2xl max-h-[85vh] overflow-y-auto"
               style={{
+                background: template.popupBg,
+                border: `1.5px solid ${template.popupBorder}`,
+                boxShadow: template.accentGlow,
                 WebkitOverflowScrolling: 'touch',
               }}
             >
@@ -1537,7 +1583,8 @@ function CampaignFloatingButton() {
           open={showSwiftPayModal}
           onOpenChange={(open) => setShowSwiftPayModal(open)}
           packages={matchedPackage ? [{
-            diamonds: matchedPackage.diamonds_amount,
+            id: matchedPackage.id,
+            coins: matchedPackage.diamonds_amount,
             price_usd: matchedPackage.price_usd,
           }] : []}
           userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}

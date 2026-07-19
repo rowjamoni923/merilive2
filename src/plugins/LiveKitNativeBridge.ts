@@ -26,8 +26,10 @@ interface LiveKitNativePlugin {
   setScalingType(options: { type: 'FIT' | 'FILL' | 'BALANCED' }): Promise<void>;
   disconnect(): Promise<void>;
   getStatus(): Promise<{
+    connected: boolean;
     hasRenderer: boolean;
     isVideoVisible: boolean;
+    roomName: string;
     remoteParticipants: number;
   }>;
   addListener(eventName: string, handler: (data: any) => void): Promise<PluginListenerHandle>;

@@ -680,7 +680,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [winAmount, setWinAmount] = useState(0);
   const [lossAmount, setLossAmount] = useState(0);
   
-  // Flying diamonds state
+  // Flying coins state
   const [flyingCoins, setFlyingCoins] = useState<{ id: string; startPos: { x: number; y: number }; endPos: { x: number; y: number } }[]>([]);
   
   const coinDisplayRef = useRef<HTMLDivElement>(null);
@@ -691,7 +691,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     fetchUserCoins();
     
     const refreshFromCache = () => {
-      getBalanceWithFetch().then((diamonds) => setUserCoins(diamonds)).catch(() => {});
+      getBalanceWithFetch().then((coins) => setUserCoins(coins)).catch(() => {});
     };
     const onOwnBeansUpdated = () => refreshFromCache();
     window.addEventListener('own-beans-updated', onOwnBeansUpdated);
@@ -766,7 +766,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       return { success: false, error: 'Not logged in' };
     }
 
-    // Deduct diamonds immediately
+    // Deduct coins immediately
     const { data: profile } = await supabase
       .from('profiles')
       .select('diamonds')
@@ -812,6 +812,8 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
 
     // Credit winnings using process_game_win (allows self-crediting, unlike add_diamonds which requires admin)
     const { data: winData, error: winError } = await supabase.rpc('process_game_win', {
+      p_user_id: user.id,
+      p_amount: amount,
       p_game_id: activeGame || 'unknown',
       p_game_name: currentGame?.game_name || 'Game',
       p_multiplier: null,
@@ -1018,6 +1020,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
         <div 
           className="rounded-2xl overflow-hidden shadow-2xl"
           style={{
+            background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)',
             boxShadow: '0 -4px 30px rgba(139, 92, 246, 0.4), 0 10px 40px rgba(0,0,0,0.5)'
           }}
         >

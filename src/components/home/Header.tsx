@@ -10,13 +10,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useBrandingRealtime } from "@/hooks/useAdminSettingsRealtime";
 
 interface HeaderProps {
-  diamonds: number;
+  coins: number;
   onRecharge?: () => void;
   onSearch?: () => void;
   onNotifications?: () => void;
 }
 
-export const Header = ({ diamonds, onRecharge, onSearch, onNotifications }: HeaderProps) => {
+export const Header = ({ coins, onRecharge, onSearch, onNotifications }: HeaderProps) => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const { branding, loading } = useBrandingRealtime();
@@ -63,7 +63,7 @@ export const Header = ({ diamonds, onRecharge, onSearch, onNotifications }: Head
 
           {/* Right Actions */}
           <div className="flex items-center gap-1.5">
-            <DiamondBalance balance={diamonds} onRecharge={onRecharge} />
+            <DiamondBalance balance={coins} onRecharge={onRecharge} />
             
             <Button
               variant="ghost"

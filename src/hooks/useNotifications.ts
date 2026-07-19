@@ -343,6 +343,7 @@ export const useNotifications = (options: { realtimeOnly?: boolean } = {}) => {
             
             if (topic) {
               window.dispatchEvent(new CustomEvent('app-sync', {
+                detail: { 
                   topic, 
                   eventType: data.eventType || data.event_type || 'UPDATE', 
                   rowId: data.row_id || null, 
@@ -353,6 +354,7 @@ export const useNotifications = (options: { realtimeOnly?: boolean } = {}) => {
               // If it's a verification update, also trigger a profiles sync
               if (['host', 'helper', 'agency'].some(t => topic.includes(t))) {
                 window.dispatchEvent(new CustomEvent('app-sync', {
+                  detail: { topic: 'profiles', eventType: 'UPDATE', payload: {} },
                 }));
               }
 
@@ -429,10 +431,15 @@ export const useNotifications = (options: { realtimeOnly?: boolean } = {}) => {
       .on(
         'postgres_changes',
         {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`
         },
         () => {
           try {
             window.dispatchEvent(new CustomEvent('notifications:change', {
+              detail: { eventType: 'UPDATE' },
             }));
           } catch {/* noop */}
           fetchNotificationsRef.current();

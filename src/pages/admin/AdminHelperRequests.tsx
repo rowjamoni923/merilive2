@@ -255,6 +255,8 @@ const AdminHelperRequests = () => {
       const { error } = await supabase
         .from(table)
         .update({
+          status: 'rejected',
+          admin_notes: adminNotes || 'Rejected by admin',
           ...(requestType === 'upgrade' 
             ? { reviewed_at: new Date().toISOString(), reviewed_by: user?.id }
             : { processed_at: new Date().toISOString(), processed_by: user?.id }
@@ -475,7 +477,7 @@ const AdminHelperRequests = () => {
                             {getStatusBadge(req.status)}
                           </div>
                           <p className="text-sm text-slate-500">
-                            💎 {req.diamond_amount?.toLocaleString()} diamonds • ${req.amount_usd}
+                            💎 {req.diamond_amount?.toLocaleString()} coins • ${req.amount_usd}
                           </p>
                           <p className="text-xs text-slate-400">
                             {format(new Date(req.created_at), 'dd/MM/yy HH:mm')} • {req.payment_method}

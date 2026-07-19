@@ -62,7 +62,7 @@ async function dispatchOne(detail: DispatchDetail) {
     type: asset.type,
     url: asset.url,
     soundUrl: asset.soundUrl,
-    diamonds: asset.diamonds * qty,
+    coins: asset.diamonds * qty,
     priority: priority + Math.min(100, qty),
   });
 }
@@ -147,6 +147,7 @@ export function useNativeGiftDispatcher() {
           (payload) => {
             const row = payload.new as {
               gift_id?: string;
+              quantity?: number;
               stream_id?: string | null;
               room_id?: string | null;
               sender_id?: string;
@@ -161,6 +162,10 @@ export function useNativeGiftDispatcher() {
             const key = `${row.gift_id}:${row.sender_id || ''}:rt`;
             if (!markDispatched(key)) return;
             void dispatchOne({
+              giftId: row.gift_id,
+              quantity: row.quantity ?? 1,
+              senderId: row.sender_id,
+              receiverId: row.receiver_id,
               streamId: row.stream_id ?? undefined,
               roomId: row.room_id ?? undefined,
             });

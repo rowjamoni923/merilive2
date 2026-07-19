@@ -97,7 +97,7 @@ interface UserProfile {
   total_consumption: number | null;
   total_earnings: number | null;
   total_recharged: number | null;
-  diamonds: number | null;
+  coins: number | null;
   user_level: number | null;
   host_level?: number | null;
   max_user_level?: number | null;
@@ -523,6 +523,7 @@ const Level = () => {
                 className="w-28 h-28 relative"
                 animate={{ 
                   rotate: [0, 5, -5, 0],
+                  scale: [1, 1.05, 1]
                 }}
                 transition={{ repeat: Infinity, duration: 4 }}
               >

@@ -159,7 +159,9 @@ export class VideoProcessingSDK {
   }
 
   async generateThumbnails(
+    source: File | Blob | string,
     count: number = 5,
+    options: Omit<ThumbnailOptions, 'time'> = {}
   ): Promise<string[]> {
     const metadata = await this.getMetadata(source);
     const interval = metadata.duration / (count + 1);
@@ -206,6 +208,8 @@ export class VideoProcessingSDK {
   // ===========================================================================
 
   async compress(
+    source: File | Blob,
+    options: CompressionOptions = {},
     onProgress?: (progress: ProcessingProgress) => void
   ): Promise<Blob> {
     const {
@@ -343,7 +347,9 @@ export class VideoProcessingSDK {
   // ===========================================================================
 
   async applyFilter(
+    source: File | Blob,
     filter: VideoFilter,
+    onProgress?: (progress: ProcessingProgress) => void
   ): Promise<Blob> {
     console.log('[VideoSDK] Applying filter:', filter.type);
     onProgress?.({ stage: 'loading', progress: 0, message: 'Loading video...' });
@@ -418,7 +424,9 @@ export class VideoProcessingSDK {
   // ===========================================================================
 
   async extractFrames(
+    source: File | Blob | string,
     frameRate: number = 1, // frames per second to extract
+    onProgress?: (progress: ProcessingProgress) => void
   ): Promise<string[]> {
     console.log('[VideoSDK] Extracting frames at', frameRate, 'fps');
     onProgress?.({ stage: 'loading', progress: 0, message: 'Extracting frames...' });
@@ -463,6 +471,8 @@ export class VideoProcessingSDK {
 
   async createVideoFromFrames(
     frames: string[],
+    frameRate: number = 30,
+    onProgress?: (progress: ProcessingProgress) => void
   ): Promise<Blob> {
     console.log('[VideoSDK] Creating video from', frames.length, 'frames');
     onProgress?.({ stage: 'loading', progress: 0, message: 'Creating video...' });

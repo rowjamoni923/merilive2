@@ -135,6 +135,7 @@ interface NativeLiveKitPlugin {
   reconnectNow(opts?: Record<string, unknown>): Promise<{ connected: boolean; reason?: string }>;
   getActiveSession(): Promise<{
     active: boolean;
+    roomScope?: NativeRoomScope | string;
     isHost?: boolean;
     callType?: string;
     boundAtMs?: number;
@@ -142,7 +143,7 @@ interface NativeLiveKitPlugin {
     canHardReconnect?: boolean;
   }>;
   setSurviveActivityDestroy(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
-  updateLiveStats(opts: { viewerCount?: number; diamondCount?: number; title?: string }): Promise<{ updated: boolean }>;
+  updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<{ updated: boolean }>;
   refreshToken(opts: { token: string }): Promise<{ refreshed: boolean }>;
   setSubscriberVideoQuality(opts: { enabled?: boolean; quality?: string; source?: string }): Promise<{ applied: boolean }>;
   setRemoteVideoSubscribed(opts: { sid?: string; subscribed?: boolean; source?: string }): Promise<{ applied: boolean }>;

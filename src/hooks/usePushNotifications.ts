@@ -117,6 +117,8 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       if (permStatus.receive === 'denied') {
         setPermissionStatus('denied');
         toast({
+          title: 'Notifications Disabled',
+          description: 'Please enable notifications in your device settings',
           variant: 'destructive',
         });
         return false;

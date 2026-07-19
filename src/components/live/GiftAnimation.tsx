@@ -11,23 +11,23 @@ export interface LegacyGiftItem {
   id: string;
   name: string;
   icon: React.ElementType;
-  diamonds: number;
+  coins: number;
   color: string;
   animation: "float" | "explode" | "rain" | "spiral" | "shake";
   size: "sm" | "md" | "lg" | "xl";
 }
 
 export const gifts: LegacyGiftItem[] = [
-  { id: "heart", name: "Heart", icon: Heart, diamonds: 10, color: "text-pink-500", animation: "float", size: "sm" },
-  { id: "star", name: "Star", icon: Star, diamonds: 50, color: "text-yellow-500", animation: "float", size: "sm" },
-  { id: "sparkles", name: "Sparkles", icon: Sparkles, diamonds: 100, color: "text-purple-500", animation: "explode", size: "md" },
-  { id: "gem", name: "Gem", icon: Gem, diamonds: 200, color: "text-cyan-500", animation: "spiral", size: "md" },
-  { id: "crown", name: "Crown", icon: Crown, diamonds: 500, color: "text-amber-500", animation: "shake", size: "lg" },
-  { id: "rocket", name: "Rocket", icon: Rocket, diamonds: 1000, color: "text-blue-500", animation: "float", size: "lg" },
-  { id: "flame", name: "Fire", icon: Flame, diamonds: 2000, color: "text-orange-500", animation: "explode", size: "lg" },
-  { id: "zap", name: "Lightning", icon: Zap, diamonds: 5000, color: "text-yellow-400", animation: "shake", size: "xl" },
-  { id: "diamond", name: "Diamond", icon: Diamond, diamonds: 10000, color: "text-cyan-400", animation: "rain", size: "xl" },
-  { id: "gift", name: "Gift Box", icon: Gift, diamonds: 20000, color: "text-pink-400", animation: "explode", size: "xl" },
+  { id: "heart", name: "Heart", icon: Heart, coins: 10, color: "text-pink-500", animation: "float", size: "sm" },
+  { id: "star", name: "Star", icon: Star, coins: 50, color: "text-yellow-500", animation: "float", size: "sm" },
+  { id: "sparkles", name: "Sparkles", icon: Sparkles, coins: 100, color: "text-purple-500", animation: "explode", size: "md" },
+  { id: "gem", name: "Gem", icon: Gem, coins: 200, color: "text-cyan-500", animation: "spiral", size: "md" },
+  { id: "crown", name: "Crown", icon: Crown, coins: 500, color: "text-amber-500", animation: "shake", size: "lg" },
+  { id: "rocket", name: "Rocket", icon: Rocket, coins: 1000, color: "text-blue-500", animation: "float", size: "lg" },
+  { id: "flame", name: "Fire", icon: Flame, coins: 2000, color: "text-orange-500", animation: "explode", size: "lg" },
+  { id: "zap", name: "Lightning", icon: Zap, coins: 5000, color: "text-yellow-400", animation: "shake", size: "xl" },
+  { id: "diamond", name: "Diamond", icon: Diamond, coins: 10000, color: "text-cyan-400", animation: "rain", size: "xl" },
+  { id: "gift", name: "Gift Box", icon: Gift, coins: 20000, color: "text-pink-400", animation: "explode", size: "xl" },
 ];
 
 interface GiftAnimationProps {
@@ -62,6 +62,9 @@ const FloatAnimation = ({ gift, count = 1 }: { gift: LegacyGiftItem; count: numb
             rotate: Math.random() * 60 - 30,
           }}
           animate={{
+            y: -100,
+            x: Math.random() * 200 + 50,
+            rotate: Math.random() * 360,
             opacity: [0, 1, 1, 0],
           }}
           transition={{
@@ -214,6 +217,9 @@ const ShakeAnimation = ({ gift }: { gift: LegacyGiftItem }) => {
           className="absolute w-4 h-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500"
           initial={{ scale: 0, x: 0, y: 0 }}
           animate={{
+            scale: [0, 1, 0],
+            x: Math.cos((i / 8) * Math.PI * 2) * 120,
+            y: Math.sin((i / 8) * Math.PI * 2) * 120,
           }}
           transition={{ duration: 0.8, delay: 0.2 }}
         />

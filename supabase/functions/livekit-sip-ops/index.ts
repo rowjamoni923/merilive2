@@ -226,6 +226,7 @@ Deno.serve(async (req) => {
     await audit(adminClient, {
       role,
       action,
+      targetId: sipTrunkId || sipDispatchRuleId || undefined,
       error: msg.slice(0, 500),
     });
     return json(500, { error: "livekit_error", message: msg });

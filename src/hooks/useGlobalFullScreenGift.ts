@@ -16,6 +16,7 @@ import { getAppSetting } from "@/utils/appSettingsCache";
 export interface FullScreenGiftJob {
   id: string;
   gift: {
+    id: string;
     name: string;
     icon_url?: string;
     animation_url?: string;

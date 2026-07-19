@@ -161,15 +161,21 @@ serve(async (req) => {
             .select("diamonds")
             .eq("id", callRow.caller_id)
             .maybeSingle();
-          const diamonds = Number(prof?.diamonds ?? 0);
+          const coins = Number(prof?.diamonds ?? 0);
           const rate = Number(callRow.viewer_rate_per_min);
-          const remainingMinutes = rate > 0 ? Math.floor(diamonds / rate) : 0;
+          const remainingMinutes = rate > 0 ? Math.floor(coins / rate) : 0;
           // Industry pattern: pre-warn at 2 min, critical at 1 min.
           if (remainingMinutes <= 2) {
             signals.push({
+              topic: `call_signaling:${callId}`,
+              event: "signal",
+              payload: {
+                action: "low_balance",
                 remaining_minutes: remainingMinutes,
                 remaining_seconds: remainingMinutes * 60,
                 severity: remainingMinutes <= 1 ? "critical" : "warning",
+                call_id: callId,
+                ts: Date.now(),
               },
             });
           }

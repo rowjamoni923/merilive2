@@ -102,6 +102,10 @@ export function SimulcastDialog({ open, onClose, streamId }: Props) {
         return;
       }
       setActive({
+        egressId: r.egressId,
+        providers: r.providers,
+        rtmpUrlsMasked: r.rtmpUrlsMasked,
+        startedAt: Date.now(),
       });
       toast.success(`Simulcasting to ${r.providers.join(", ") || cleaned.length + " destination(s)"}`);
       refreshRecent();

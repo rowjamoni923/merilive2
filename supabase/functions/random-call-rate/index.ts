@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
 
     if (!sessionId || !stars) {
       return new Response(JSON.stringify({ error: "missing_fields" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -49,16 +50,19 @@ Deno.serve(async (req) => {
 
     if (!sess) {
       return new Response(JSON.stringify({ error: "session_not_found" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const me = ud.user.id;
     if (sess.caller_id !== me && sess.host_id !== me) {
       return new Response(JSON.stringify({ error: "not_participant" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if ((sess.duration_seconds ?? 0) < 10) {
       return new Response(JSON.stringify({ error: "call_too_short" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const ratee = me === sess.caller_id ? sess.host_id : sess.caller_id;
@@ -69,6 +73,7 @@ Deno.serve(async (req) => {
 
     if (insErr && !String(insErr.message).includes("duplicate")) {
       return new Response(JSON.stringify({ error: insErr.message }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     return new Response(JSON.stringify({ ok: true }), {
@@ -76,6 +81,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: String((e as any)?.message ?? e) }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

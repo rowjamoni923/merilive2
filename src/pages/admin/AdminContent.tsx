@@ -103,6 +103,9 @@ export default function AdminContent() {
           .from("app_content")
           .insert({
             page_key: pageKey,
+            title: editTitle,
+            content: editContent,
+            is_active: editActive,
           });
 
         if (error) throw error;

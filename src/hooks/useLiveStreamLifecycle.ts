@@ -104,10 +104,14 @@ export const useLiveStreamLifecycle = ({
       const token = session?.access_token;
       if (token) {
         fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/close_live_stream_now`, {
+          method: 'POST',
+          headers: {
             'Content-Type': 'application/json',
             'apikey': getSupabasePublishableKey(),
             'Authorization': `Bearer ${token}`,
           },
+          body: JSON.stringify({ p_stream_id: streamId }),
+          keepalive: true,
         });
       }
     } catch (e) {

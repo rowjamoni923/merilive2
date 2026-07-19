@@ -34,6 +34,7 @@ interface RewardConfig {
   rank_from: number;
   rank_to: number;
   reward_diamonds: number;
+  reward_diamonds: number;
   reward_beans: number;
   is_active: boolean;
 }
@@ -202,6 +203,12 @@ const AdminLeaderboardManagement = () => {
       const { error } = await supabase
         .from("leaderboard_podium_frames")
         .upsert({
+          rank_position: rankPosition,
+          category: selectedCategory,
+          frame_url: url,
+          frame_type: frameType,
+          name: `Rank ${rankPosition} Frame`,
+          is_active: true,
         }, { onConflict: "rank_position,category" });
       if (error) throw error;
       toast.success(`Rank #${rankPosition} frame saved!`);
@@ -234,13 +241,17 @@ const AdminLeaderboardManagement = () => {
 
     const { error } = await supabase.from("leaderboard_reward_config").insert({
       leaderboard_type: selectedCategory,
+      category: selectedCategory,
       period_type: selectedPeriod,
       rank_from: newFrom,
       rank_to: newTo,
+      rank_position: newFrom,
+      reward_diamonds: 0,
       reward_diamonds: 0,
       reward_beans: 0,
       reward_amount: 0,
       reward_type: 'diamonds',
+      is_active: true,
     });
 
     if (error) toast.error(error.message);
@@ -259,6 +270,8 @@ const AdminLeaderboardManagement = () => {
     try {
       const { data, error } = await supabase.functions.invoke('distribute-leaderboard-rewards', {
         body: {
+          category: selectedCategory,
+          period_type: selectedPeriod,
         }
       });
       if (error) throw error;
@@ -274,6 +287,7 @@ const AdminLeaderboardManagement = () => {
     setDistributing(true);
     try {
       const { data, error } = await supabase.functions.invoke('distribute-leaderboard-rewards', {
+        body: { force_all: true }
       });
       if (error) throw error;
       toast.success(`Auto-distribution: ${JSON.stringify(data?.results || data)}`);
@@ -514,6 +528,11 @@ const AdminLeaderboardManagement = () => {
                 ];
                 for (const t of tiers) {
                   await supabase.from("leaderboard_reward_config").insert({
+                    leaderboard_type: selectedCategory,
+                    category: selectedCategory, period_type: selectedPeriod,
+                    rank_from: t.from, rank_to: t.to, rank_position: t.from,
+                    reward_diamonds: 0, reward_diamonds: 0, reward_beans: 0,
+                    reward_amount: 0, reward_type: 'diamonds', is_active: true,
                   });
                 }
                 toast.success("Reward tiers created (set values manually)");
@@ -663,11 +682,17 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
     rank_to: String(reward.rank_to ?? 0),
     reward_beans: String(reward.reward_beans ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
   });
 
   // Sync when upstream row identity/values change (e.g. after refetch from another edit)
   useEffect(() => {
     setDraft({
+      rank_from: String(reward.rank_from ?? 0),
+      rank_to: String(reward.rank_to ?? 0),
+      reward_beans: String(reward.reward_beans ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_diamonds]);
@@ -810,6 +835,7 @@ const RecentDistributions = () => {
       case 'daily': return 'Daily';
       case 'weekly': return 'Weekly';
       case 'monthly': return 'Monthly';
+      default: return type;
     }
   };
 

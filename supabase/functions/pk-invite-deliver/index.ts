@@ -66,16 +66,22 @@ serve(async (req: Request): Promise<Response> => {
     const { data: userData, error: userErr } = await userClient.auth.getUser(token);
     if (userErr || !userData?.user?.id) {
       return new Response(JSON.stringify({ error: "Invalid session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const body = (await req.json()) as Body;
     if (!body.kind || !body.fromUserId) {
       return new Response(JSON.stringify({ error: "kind and fromUserId required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (userData.user.id !== body.fromUserId) {
       return new Response(JSON.stringify({ error: "fromUserId mismatch" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -169,6 +175,11 @@ serve(async (req: Request): Promise<Response> => {
 
       for (const uid of hostIds) {
         rows.push({
+          user_id: uid,
+          type: "pk_random_invite",
+          title: "Random PK Battle",
+          message: `${fromName} is looking for a PK opponent`,
+          data: baseData,
         });
       }
 
@@ -186,6 +197,10 @@ serve(async (req: Request): Promise<Response> => {
       const data = { ...baseData };
       if (body.inviteSessionId) data.invite_session_id = body.inviteSessionId;
       rows.push({
+        user_id: body.toUserId,
+        type: "pk_random_accepted",
+        title: "PK Accepted",
+        message: `${fromName} accepted your random PK`,
         data,
       });
 
@@ -196,6 +211,10 @@ serve(async (req: Request): Promise<Response> => {
       const data = { ...baseData };
       if (body.inviteSessionId) data.invite_session_id = body.inviteSessionId;
       rows.push({
+        user_id: body.toUserId,
+        type: "pk_random_battle_ready",
+        title: "PK Battle Ready",
+        message: `Battle vs ${fromName} is starting`,
         data,
       });
 
@@ -214,6 +233,11 @@ serve(async (req: Request): Promise<Response> => {
         if (!uid || uid === winnerId || seen.has(uid)) continue;
         seen.add(uid);
         rows.push({
+          user_id: uid,
+          type: "pk_random_taken",
+          title: "Match Taken",
+          message: "Another host accepted the PK first",
+          data: { ...baseData, invite_session_id: body.inviteSessionId, winnerUserId: winnerId },
         });
       }
 
@@ -230,6 +254,11 @@ serve(async (req: Request): Promise<Response> => {
         if (!uid || seen.has(uid)) continue;
         seen.add(uid);
         rows.push({
+          user_id: uid,
+          type: "pk_random_cancelled",
+          title: "Request Cancelled",
+          message: `${fromName} cancelled the PK request`,
+          data: { ...baseData, invite_session_id: body.inviteSessionId },
         });
       }
 
@@ -238,10 +267,14 @@ serve(async (req: Request): Promise<Response> => {
         return jsonErr("toUserId and battleId required", 400);
       }
       rows.push({
+        user_id: body.toUserId,
+        type: body.kind === "accept" ? "pk_invite_accepted" : "pk_invite_declined",
+        title: body.kind === "accept" ? "PK Accepted" : "PK Declined",
         message:
           body.kind === "accept"
             ? `${fromName} accepted your PK request`
             : `${fromName} declined your PK request`,
+        data: baseData,
       });
 
     } else {

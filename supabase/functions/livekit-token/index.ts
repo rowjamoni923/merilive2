@@ -331,6 +331,7 @@ Deno.serve(async (req) => {
       canPublish,
       canSubscribe,
       canPublishData,
+      hidden: hide,
     });
 
     const token = await at.toJwt();
@@ -338,8 +339,11 @@ Deno.serve(async (req) => {
       token,
       url: LIVEKIT_URL,
       identity,
+      room: roomName,
       roomType,
       role: canPublish ? "publisher" : "subscriber",
+      hidden: hide,
+      ttl: TTL_SECONDS,
       issuedAt: Math.floor(Date.now() / 1000),
       expiresAt: Math.floor(Date.now() / 1000) + TTL_SECONDS,
     });

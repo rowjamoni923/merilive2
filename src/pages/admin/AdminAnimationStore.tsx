@@ -223,6 +223,7 @@ const AdminAnimationStore = () => {
           .update({ 
             animation_url: assignAnimationId,
             animation_type: assignCategory,
+            is_active: true
           })
           .eq('level', assignLevel);
 
@@ -232,6 +233,10 @@ const AdminAnimationStore = () => {
         const { error } = await supabase
           .from('level_animations')
           .insert({
+            level: assignLevel,
+            animation_url: assignAnimationId,
+            animation_type: assignCategory,
+            is_active: true
           });
 
         if (error) throw error;
@@ -440,6 +445,7 @@ const AdminAnimationStore = () => {
                     <motion.div 
                       className="absolute inset-0"
                       style={{
+                        background: `radial-gradient(circle at center, ${animation.previewColor}80 0%, transparent 60%)`,
                       }}
                       animate={{
                         opacity: [0.3, 0.6, 0.3],
@@ -456,8 +462,12 @@ const AdminAnimationStore = () => {
                       className="relative z-10 w-20 h-20 flex items-center justify-center"
                       animate={{
                         rotate: animation.tier === 'legendary' ? [0, 360] : [0, 5, -5, 0],
+                        scale: [1, 1.1, 1],
                       }}
                       transition={{
+                        duration: animation.tier === 'legendary' ? 4 : 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
                       }}
                     >
                       {/* Tier-based animated icon */}
@@ -474,6 +484,8 @@ const AdminAnimationStore = () => {
                     <motion.div
                       className="absolute top-2 right-2 w-3 h-3"
                       animate={{
+                        opacity: [0, 1, 0],
+                        scale: [0.5, 1.2, 0.5],
                       }}
                       transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
                     >
@@ -482,6 +494,8 @@ const AdminAnimationStore = () => {
                     <motion.div
                       className="absolute bottom-3 left-3 w-2 h-2"
                       animate={{
+                        opacity: [0, 1, 0],
+                        scale: [0.5, 1.2, 0.5],
                       }}
                       transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
                     >
@@ -655,6 +669,7 @@ const AdminAnimationStore = () => {
                 <div className="mt-4 p-4 rounded-lg bg-muted/50 flex items-center gap-4">
                   <div className="w-16 h-16 relative flex items-center justify-center"
                     style={{ 
+                      background: `radial-gradient(circle, ${premiumAnimations.find(a => a.id === assignAnimationId)?.previewColor}30 0%, transparent 70%)` 
                     }}
                   >
                     <Lottie
@@ -720,6 +735,7 @@ const AdminAnimationStore = () => {
 
                             <div className="w-14 h-14 mx-auto mb-2 flex items-center justify-center"
                               style={{ 
+                                background: `radial-gradient(circle, ${animation?.previewColor}30 0%, transparent 70%)` 
                               }}
                             >
                               {animation && (
@@ -766,24 +782,36 @@ const AdminAnimationStore = () => {
               <div 
                 className="aspect-square rounded-xl flex items-center justify-center relative overflow-hidden"
                 style={{ 
+                  background: `linear-gradient(135deg, ${previewAnimation.previewColor}60 0%, ${previewAnimation.previewColor}30 50%, hsl(var(--muted)) 100%)` 
                 }}
               >
                 {/* Animated glow rings */}
                 <motion.div 
                   className="absolute inset-0"
                   style={{
+                    background: `radial-gradient(circle at center, ${previewAnimation.previewColor}60 0%, transparent 50%)`,
                   }}
                   animate={{
+                    opacity: [0.4, 0.8, 0.4],
+                    scale: [1, 1.2, 1],
                   }}
                   transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
                   }}
                 />
                 {/* Main animated icon */}
                 <motion.div 
                   className="relative z-10 w-48 h-48 flex items-center justify-center"
                   animate={{
+                    rotate: previewAnimation.tier === 'legendary' ? [0, 360] : [0, 10, -10, 0],
+                    scale: [1, 1.15, 1],
                   }}
                   transition={{
+                    duration: previewAnimation.tier === 'legendary' ? 3 : 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
                   }}
                 >
                   {previewAnimation.category === 'entry_bar' && <Zap className="w-32 h-32" style={{ color: previewAnimation.previewColor, filter: `drop-shadow(0 0 20px ${previewAnimation.previewColor}) drop-shadow(0 0 40px ${previewAnimation.previewColor}50)` }} />}
@@ -805,10 +833,15 @@ const AdminAnimationStore = () => {
                       left: `${10 + (i * 15)}%`,
                     }}
                     animate={{
+                      opacity: [0, 1, 0],
+                      scale: [0.3, 1, 0.3],
                       y: [0, -20, 0],
                     }}
                     transition={{
+                      duration: 2,
+                      repeat: Infinity,
                       delay: i * 0.3,
+                      ease: "easeInOut"
                     }}
                   >
                     <Sparkles className="w-full h-full" style={{ color: previewAnimation.previewColor }} />
@@ -903,6 +936,7 @@ const AdminAnimationStore = () => {
               <div className="p-4 rounded-lg bg-muted/50 flex items-center gap-4">
                 <div className="w-16 h-16 flex items-center justify-center"
                   style={{ 
+                    background: `radial-gradient(circle, ${premiumAnimations.find(a => a.id === assignAnimationId)?.previewColor}30 0%, transparent 70%)` 
                   }}
                 >
                   <Lottie

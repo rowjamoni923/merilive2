@@ -220,6 +220,7 @@ const AdminLevelPrivileges = () => {
           .from('level_privileges')
           .update({
             ...dataToSave,
+            updated_at: new Date().toISOString()
           })
           .eq('id', dataToSave.id);
 
@@ -248,6 +249,7 @@ const AdminLevelPrivileges = () => {
         .from('level_animations')
         .upsert({
           ...editingAnimation,
+          updated_at: new Date().toISOString()
         });
 
       if (error) throw error;
@@ -344,9 +346,14 @@ const AdminLevelPrivileges = () => {
       setEditingAnimation(existingAnimation);
     } else {
       setEditingAnimation({
+        id: '',
         level: level,
+        animation_url: '',
         animation_type: 'lottie',
+        preview_url: null,
         duration_ms: 3000,
+        is_active: true,
+        icon_url: null,
         display_name: `Level ${level}`
       });
     }
@@ -511,6 +518,7 @@ const AdminLevelPrivileges = () => {
                     value={editingPrivilege.name}
                     onChange={(e) => setEditingPrivilege({
                       ...editingPrivilege,
+                      name: e.target.value
                     })}
                     placeholder="Privilege name"
                     className="bg-white/5 border-white/10 text-slate-900"
@@ -525,6 +533,7 @@ const AdminLevelPrivileges = () => {
                     value={editingPrivilege.unlock_level}
                     onChange={(e) => setEditingPrivilege({
                       ...editingPrivilege,
+                      unlock_level: parseInt(e.target.value) || 1
                     })}
                     className="bg-white/5 border-white/10 text-slate-900"
                   />
@@ -537,6 +546,7 @@ const AdminLevelPrivileges = () => {
                   value={editingPrivilege.description}
                   onChange={(e) => setEditingPrivilege({
                     ...editingPrivilege,
+                    description: e.target.value
                   })}
                   placeholder="Privilege description"
                   className="bg-white/5 border-white/10 text-slate-900"
@@ -552,6 +562,7 @@ const AdminLevelPrivileges = () => {
                       value={editingPrivilege.icon_bg_color}
                       onChange={(e) => setEditingPrivilege({
                         ...editingPrivilege,
+                        icon_bg_color: e.target.value
                       })}
                       className="w-12 h-10 p-1 bg-transparent border-white/10"
                     />
@@ -559,6 +570,7 @@ const AdminLevelPrivileges = () => {
                       value={editingPrivilege.icon_bg_color}
                       onChange={(e) => setEditingPrivilege({
                         ...editingPrivilege,
+                        icon_bg_color: e.target.value
                       })}
                       className="bg-white/5 border-white/10 text-slate-900"
                     />
@@ -572,6 +584,7 @@ const AdminLevelPrivileges = () => {
                       value={editingPrivilege.icon_color}
                       onChange={(e) => setEditingPrivilege({
                         ...editingPrivilege,
+                        icon_color: e.target.value
                       })}
                       className="w-12 h-10 p-1 bg-transparent border-white/10"
                     />
@@ -579,6 +592,7 @@ const AdminLevelPrivileges = () => {
                       value={editingPrivilege.icon_color}
                       onChange={(e) => setEditingPrivilege({
                         ...editingPrivilege,
+                        icon_color: e.target.value
                       })}
                       className="bg-white/5 border-white/10 text-slate-900"
                     />
@@ -651,11 +665,15 @@ const AdminLevelPrivileges = () => {
                 bucket="level-privileges"
                 folder="unified"
                 value={{
+                  animation_url: editingPrivilege.animation_url || '',
                   animation_format: ((editingPrivilege as any).animation_format ?? null) as AnimationFormat | null,
                   animation_config_url: (editingPrivilege as any).animation_config_url || null,
                 }}
                 onChange={(v) => setEditingPrivilege({
                   ...editingPrivilege,
+                  animation_url: v.animation_url || null,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url || null,
                 } as any)}
               />
 
@@ -668,6 +686,7 @@ const AdminLevelPrivileges = () => {
                     value={editingPrivilege.preview_url || ''}
                     onChange={(e) => setEditingPrivilege({
                       ...editingPrivilege,
+                      preview_url: e.target.value
                     })}
                     placeholder="URL or upload file"
                     className="bg-white/5 border-white/10 text-slate-900"
@@ -690,6 +709,7 @@ const AdminLevelPrivileges = () => {
                           if (url) {
                             setEditingPrivilege({
                               ...editingPrivilege,
+                              preview_url: url
                             });
                           }
                         }
@@ -705,6 +725,7 @@ const AdminLevelPrivileges = () => {
                     checked={editingPrivilege.is_active}
                     onCheckedChange={(checked) => setEditingPrivilege({
                       ...editingPrivilege,
+                      is_active: checked
                     })}
                   />
                   <Label className="text-slate-900">Active</Label>
@@ -756,6 +777,7 @@ const AdminLevelPrivileges = () => {
                       value={editingAnimation.icon_url || ''}
                       onChange={(e) => setEditingAnimation({
                         ...editingAnimation,
+                        icon_url: e.target.value
                       })}
                       placeholder="Logo URL or upload"
                       className="bg-white/5 border-white/10 text-slate-900"
@@ -778,6 +800,7 @@ const AdminLevelPrivileges = () => {
                             if (url) {
                               setEditingAnimation({
                                 ...editingAnimation,
+                                icon_url: url
                               });
                             }
                           }
@@ -795,6 +818,7 @@ const AdminLevelPrivileges = () => {
                   value={editingAnimation.display_name || ''}
                   onChange={(e) => setEditingAnimation({
                     ...editingAnimation,
+                    display_name: e.target.value
                   })}
                   placeholder={`Level ${editingAnimation.level}`}
                   className="bg-white/5 border-white/10 text-slate-900"
@@ -808,6 +832,7 @@ const AdminLevelPrivileges = () => {
                   value={editingAnimation.animation_type}
                   onChange={(e) => setEditingAnimation({
                     ...editingAnimation,
+                    animation_type: e.target.value
                   })}
                 >
                   <option value="lottie">Lottie (JSON)</option>
@@ -824,6 +849,7 @@ const AdminLevelPrivileges = () => {
                     value={editingAnimation.animation_url}
                     onChange={(e) => setEditingAnimation({
                       ...editingAnimation,
+                      animation_url: e.target.value
                     })}
                     placeholder="URL or upload file"
                     className="bg-white/5 border-white/10 text-slate-900"
@@ -845,6 +871,7 @@ const AdminLevelPrivileges = () => {
                           if (url) {
                             setEditingAnimation({
                               ...editingAnimation,
+                              animation_url: url
                             });
                           }
                         }
@@ -864,6 +891,7 @@ const AdminLevelPrivileges = () => {
                   value={editingAnimation.duration_ms}
                   onChange={(e) => setEditingAnimation({
                     ...editingAnimation,
+                    duration_ms: parseInt(e.target.value) || 3000
                   })}
                   className="bg-white/5 border-white/10 text-slate-900"
                 />
@@ -875,6 +903,7 @@ const AdminLevelPrivileges = () => {
                     checked={editingAnimation.is_active}
                     onCheckedChange={(checked) => setEditingAnimation({
                       ...editingAnimation,
+                      is_active: checked
                     })}
                   />
                   <Label className="text-slate-900">Active</Label>

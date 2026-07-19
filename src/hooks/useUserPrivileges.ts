@@ -190,6 +190,15 @@ export const useUserPrivileges = (userId: string | null) => {
           else if (cat === 'noble_card') isEquipped = priv.id === profile?.equipped_noble_card_id;
 
           allPrivileges.push({
+            id: priv.id,
+            category: cat,
+            name: priv.name,
+            animation_url: priv.animation_url,
+            animation_file_url: null,
+            preview_url: priv.preview_url,
+            is_equipped: isEquipped,
+            expires_at: null,
+            item_type: 'level',
           });
         }
       }
@@ -201,6 +210,22 @@ export const useUserPrivileges = (userId: string | null) => {
       }
 
       const equipped: EquippedPrivileges = {
+        frame: null,
+        entrance: null,
+        vehicle: null,
+        bubble: null,
+        badge: null,
+        party_background: null,
+        seat_effect: null,
+        gift_effect: null,
+        profile_decoration: null,
+        room_theme: null,
+        emoji: null,
+        entry_bar: null,
+        portrait_frame: null,
+        privilege_sticker: null,
+        privilege_gift: null,
+        entrance_effect: null,
       };
 
       for (const priv of allPrivileges) {
@@ -452,6 +477,15 @@ export const getEquippedPrivilegesForUser = async (userId: string): Promise<Equi
         const key = priv.privilege_type as keyof EquippedPrivileges;
         if (key in equipped && !equipped[key]) {
           equipped[key] = {
+            id: priv.id,
+            category: priv.privilege_type,
+            name: priv.name,
+            animation_url: priv.animation_url,
+            animation_file_url: null,
+            preview_url: priv.preview_url,
+            is_equipped: true,
+            expires_at: null,
+            item_type: 'level',
           };
         }
       }

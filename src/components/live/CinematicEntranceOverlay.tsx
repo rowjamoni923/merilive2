@@ -98,6 +98,9 @@ const CinematicEntranceOverlay = memo(({
                   y: "110%" 
                 }}
                 animate={{ 
+                  opacity: [0, 1, 0],
+                  y: "-10%",
+                  x: (Math.random() * 100) + (Math.random() * 20 - 10) + "%"
                 }}
                 transition={{ 
                   duration: 2 + Math.random() * 3, 
@@ -120,6 +123,7 @@ const CinematicEntranceOverlay = memo(({
             type: "spring", 
             stiffness: 100, 
             damping: 15, 
+            delay: 0.4 
           }}
           className="relative mb-8"
         >
@@ -127,6 +131,7 @@ const CinematicEntranceOverlay = memo(({
           <motion.div
             animate={{ 
               scale: [1, 1.4, 1],
+              opacity: [0.3, 0.6, 0.3]
             }}
             transition={{ duration: 3, repeat: Infinity }}
             className={cn(
@@ -137,6 +142,8 @@ const CinematicEntranceOverlay = memo(({
           
           <motion.div
             animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0.8, 0.5]
             }}
             transition={{ duration: 2, repeat: Infinity }}
             className={cn(

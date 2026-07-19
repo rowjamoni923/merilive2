@@ -111,8 +111,13 @@ export function VirtualBackgroundDialog({ open, onClose, localVideoTrack, isNati
     try {
       const ok = isNative
         ? await applyVirtualBackgroundNative({
+            mode: choice.mode,
+            blurRadius: choice.blurRadius,
           })
         : await applyVirtualBackground(localVideoTrack, {
+            mode: choice.mode,
+            blurRadius: choice.blurRadius,
+            imageUrl: choice.imageUrl,
           });
       savePersisted(choice);
       if (choice.mode === "none") {
@@ -138,6 +143,7 @@ export function VirtualBackgroundDialog({ open, onClose, localVideoTrack, isNati
     label,
   }: {
     value: VirtualBackgroundMode;
+    icon: typeof Sparkles;
     label: string;
   }) => {
     const active = mode === value;

@@ -12,14 +12,14 @@ interface FlyingCoin {
 }
 
 interface CoinFlyAnimationProps {
-  diamonds: FlyingCoin[];
+  coins: FlyingCoin[];
   onComplete?: (id: number) => void;
 }
 
-export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationProps) => {
+export const DiamondFlyAnimation = ({ coins, onComplete }: CoinFlyAnimationProps) => {
   return (
     <AnimatePresence>
-      {diamonds.map((coin) => (
+      {coins.map((coin) => (
         <motion.div
           key={coin.id}
           className="fixed z-[100] pointer-events-none"
@@ -30,6 +30,10 @@ export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationPr
             opacity: 1 
           }}
           animate={{ 
+            x: coin.endX, 
+            y: coin.endY, 
+            scale: 0.5,
+            opacity: 0.8
           }}
           exit={{ opacity: 0, scale: 0 }}
           transition={{ 
@@ -50,9 +54,9 @@ export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationPr
   );
 };
 
-// Hook to manage flying diamonds
+// Hook to manage flying coins
 export const useFlyingCoins = () => {
-  const [diamonds, setCoins] = useState<FlyingCoin[]>([]);
+  const [coins, setCoins] = useState<FlyingCoin[]>([]);
   const [nextId, setNextId] = useState(0);
 
   const addCoin = (startX: number, startY: number, endX: number, endY: number, amount: number) => {
@@ -72,7 +76,7 @@ export const useFlyingCoins = () => {
     setCoins(prev => prev.filter(c => c.id !== id));
   };
 
-  return { diamonds, addCoin, removeCoin };
+  return { coins, addCoin, removeCoin };
 };
 
 // Win celebration animation
@@ -145,8 +149,13 @@ export const WinCelebration = ({
                   x: 0, 
                   y: 0, 
                   opacity: 1,
+                  rotate: 0
                 }}
                 animate={{ 
+                  x: (Math.random() - 0.5) * 200,
+                  y: (Math.random() - 0.5) * 200,
+                  opacity: 0,
+                  rotate: Math.random() * 360
                 }}
                 transition={{ 
                   duration: 1.5,
@@ -226,11 +235,11 @@ export const BetAreaCoins = ({
   amount: number; 
   maxCoins?: number 
 }) => {
-  const diamondCount = Math.min(Math.ceil(amount / 10000), maxCoins);
+  const coinCount = Math.min(Math.ceil(amount / 10000), maxCoins);
   
   return (
     <div className="relative flex items-end justify-center h-8">
-      {[...Array(diamondCount)].map((_, i) => (
+      {[...Array(coinCount)].map((_, i) => (
         <motion.div
           key={i}
           initial={{ y: -20, opacity: 0 }}

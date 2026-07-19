@@ -31,6 +31,7 @@ describe('Pkg137 livekitIngressOps', () => {
     invokeMock.mockResolvedValue({ data: { ingress: [] }, error: null });
     await listLiveKitIngress({ roomName: 'live_42' });
     expect(invokeMock).toHaveBeenCalledWith('livekit-ingress-ops', {
+      body: { action: 'list_ingress', roomName: 'live_42' },
     });
   });
 
@@ -46,10 +47,13 @@ describe('Pkg137 livekitIngressOps', () => {
 
   it('getLiveKitIngress forwards id', async () => {
     invokeMock.mockResolvedValue({
+      data: { ingress: { ingressId: 'IN_7', roomName: 'live_7' } },
+      error: null,
     });
     const out = await getLiveKitIngress('IN_7');
     expect(out?.ingressId).toBe('IN_7');
     expect(invokeMock).toHaveBeenCalledWith('livekit-ingress-ops', {
+      body: { action: 'get_ingress', ingressId: 'IN_7' },
     });
   });
 
@@ -63,6 +67,7 @@ describe('Pkg137 livekitIngressOps', () => {
     const ok = await deleteLiveKitIngress('IN_3');
     expect(ok).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-ingress-ops', {
+      body: { action: 'delete_ingress', ingressId: 'IN_3' },
     });
   });
 

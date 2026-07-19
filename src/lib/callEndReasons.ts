@@ -56,7 +56,7 @@ export function normalizeEndReason(raw: unknown): CallEndReason {
   if (s === 'insufficient_balance'
    || s === 'insufficient balance'
    || s === 'insufficient_diamonds'
-   || s === 'insufficient diamonds'
+   || s === 'insufficient coins'
    || s === 'low_balance'
    || s === 'force_end'             // server force-ends are almost always low-balance
    || s === 'insufficient'

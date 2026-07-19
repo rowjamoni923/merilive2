@@ -166,6 +166,10 @@ const AdminRewardClaimsHistory = () => {
         existing.claims.push(claim);
       } else {
         map.set(claim.user_id, {
+          user_id: claim.user_id,
+          user_name: claim.user_name,
+          user_avatar: claim.user_avatar,
+          user_uid: claim.user_uid,
           total_beans: claim.reward_beans,
           total_diamonds: claim.reward_diamonds,
           total_claims: 1,

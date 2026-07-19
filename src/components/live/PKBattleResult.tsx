@@ -15,7 +15,7 @@ interface PKBattleResultProps {
   mvpName?: string | null;
   mvpAvatar?: string | null;
   mvpCoins?: number | null;
-  /** P4: Bigo-parity reward badge — diamonds the local user earned from the 70/30 loser-score split. Winner-only. */
+  /** P4: Bigo-parity reward badge — coins the local user earned from the 70/30 loser-score split. Winner-only. */
   rewardDiamonds?: number | null;
   onClose: () => void;
 }
@@ -66,6 +66,8 @@ export const PKBattleResult = ({
           className="absolute -top-12 right-0 w-10 h-10 rounded-full flex items-center justify-center"
           style={{
             background: "rgba(0,0,0,0.45)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
             border: "1px solid rgba(255,255,255,0.15)",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
             color: "white",
@@ -81,6 +83,7 @@ export const PKBattleResult = ({
           style={{
             background:
               "linear-gradient(180deg, #1a0f33 0%, #140f23 50%, #0c0818 100%)",
+            border: "1px solid rgba(255,255,255,0.12)",
             boxShadow:
               "0 30px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(168,85,247,0.18), 0 0 60px -10px rgba(236,72,153,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
@@ -160,6 +163,8 @@ export const PKBattleResult = ({
                   style={{
                     background:
                       "linear-gradient(180deg, #fde68a 0%, #fbbf24 50%, #d97706 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
                     filter:
                       "drop-shadow(0 2px 8px rgba(251,191,36,0.6)) drop-shadow(0 0 16px rgba(251,191,36,0.4))",
                   }}
@@ -193,8 +198,11 @@ export const PKBattleResult = ({
                 <motion.div
                   className="text-4xl font-black tracking-wide"
                   style={{
+                    background: isWinner
                       ? "linear-gradient(180deg, #fde68a 0%, #fbbf24 50%, #d97706 100%)"
                       : "linear-gradient(180deg, #e5e7eb 0%, #9ca3af 50%, #6b7280 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
                     filter: isWinner
                       ? "drop-shadow(0 2px 10px rgba(251,191,36,0.6)) drop-shadow(0 0 18px rgba(251,191,36,0.45))"
                       : "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
@@ -220,6 +228,7 @@ export const PKBattleResult = ({
                   <motion.div
                     className="w-20 h-20 rounded-full overflow-hidden"
                     style={{
+                      border: "3px solid #fbbf24",
                       boxShadow:
                         "0 0 0 4px rgba(251,191,36,0.35), 0 0 30px rgba(251,191,36,0.65), 0 0 60px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.25)",
                     }}
@@ -254,6 +263,10 @@ export const PKBattleResult = ({
                         opacity: 0,
                       }}
                       animate={{
+                        x: Math.cos((i * 60 * Math.PI) / 180) * 55,
+                        y: Math.sin((i * 60 * Math.PI) / 180) * 55,
+                        scale: [0, 1.4, 0],
+                        opacity: [0, 1, 0],
                       }}
                       transition={{
                         duration: 1.6,
@@ -267,6 +280,8 @@ export const PKBattleResult = ({
                         top: "50%",
                         width: i % 2 === 0 ? 6 : 4,
                         height: i % 2 === 0 ? 6 : 4,
+                        background: i % 2 === 0 ? "#fbbf24" : "#f0abfc",
+                        boxShadow: `0 0 8px ${i % 2 === 0 ? "rgba(251,191,36,0.9)" : "rgba(240,171,252,0.9)"}`,
                       }}
                     />
                   ))}
@@ -284,6 +299,10 @@ export const PKBattleResult = ({
                   <span
                     className="text-2xl font-black tabular-nums"
                     style={{
+                      background: "linear-gradient(180deg, #fef3c7 0%, #fbbf24 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      filter: "drop-shadow(0 0 10px rgba(251,191,36,0.55))",
                     }}
                   >
                     {winnerScore}
@@ -295,6 +314,7 @@ export const PKBattleResult = ({
               <motion.div
                 className="relative w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                 style={{
+                  background: "linear-gradient(135deg, #ec4899, #a855f7)",
                   boxShadow:
                     "0 0 0 2px rgba(255,255,255,0.18), 0 0 16px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.3)",
                 }}
@@ -321,6 +341,8 @@ export const PKBattleResult = ({
                   <div
                     className="w-16 h-16 rounded-full overflow-hidden grayscale"
                     style={{
+                      border: "2px solid rgba(255,255,255,0.2)",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
                     }}
                   >
                     <img loading="lazy" decoding="async" 
@@ -353,6 +375,7 @@ export const PKBattleResult = ({
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(34,197,94,0.22) 0%, rgba(16,185,129,0.14) 50%, rgba(34,197,94,0.22) 100%)",
+                  border: "1px solid rgba(34,197,94,0.5)",
                   boxShadow:
                     "0 10px 24px -8px rgba(34,197,94,0.45), 0 0 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
                 }}
@@ -366,6 +389,10 @@ export const PKBattleResult = ({
                 <span
                   className="text-lg font-black tabular-nums"
                   style={{
+                    background: "linear-gradient(180deg, #d1fae5 0%, #34d399 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    filter: "drop-shadow(0 0 8px rgba(34,197,94,0.5))",
                   }}
                 >
                   +{rewardDiamonds}
@@ -382,6 +409,7 @@ export const PKBattleResult = ({
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,119,6,0.12) 50%, rgba(251,191,36,0.18) 100%)",
+                  border: "1px solid rgba(251,191,36,0.45)",
                   boxShadow:
                     "0 10px 28px -8px rgba(251,191,36,0.45), 0 0 18px rgba(251,191,36,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
                 }}
@@ -391,6 +419,7 @@ export const PKBattleResult = ({
                   style={{
                     background:
                       "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%)",
+                    animation: "giftSendShine 3.2s ease-in-out infinite",
                   }}
                 />
                 <div className="relative flex items-center gap-3 px-3 py-2.5">
@@ -398,6 +427,7 @@ export const PKBattleResult = ({
                     <motion.div
                       className="w-11 h-11 rounded-full overflow-hidden"
                       style={{
+                        border: "2px solid #fbbf24",
                         boxShadow:
                           "0 0 0 2px rgba(251,191,36,0.35), 0 0 14px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.22)",
                       }}
@@ -437,6 +467,8 @@ export const PKBattleResult = ({
                         style={{
                           background:
                             "linear-gradient(90deg, #fde68a 0%, #fbbf24 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
                         }}
                       >
                         MVP Gifter
@@ -458,6 +490,10 @@ export const PKBattleResult = ({
                       <span
                         className="text-base font-extrabold tabular-nums"
                         style={{
+                          background: "linear-gradient(180deg, #fef3c7 0%, #fbbf24 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          filter: "drop-shadow(0 0 8px rgba(251,191,36,0.5))",
                         }}
                       >
                         {mvpCoins}
@@ -481,6 +517,7 @@ export const PKBattleResult = ({
                     "linear-gradient(95deg, #ec4899 0%, #d946ef 50%, #a855f7 100%)",
                   boxShadow:
                     "0 10px 28px -8px rgba(236,72,153,0.6), 0 4px 14px -6px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
+                  animation: "giftSendBreathe 2.4s ease-in-out infinite",
                 }}
                 onClick={onClose}
                 whileTap={{ scale: 0.97 }}
@@ -496,6 +533,7 @@ export const PKBattleResult = ({
                   style={{
                     background:
                       "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.32) 50%, transparent 65%)",
+                    animation: "giftSendShine 2.6s ease-in-out infinite",
                   }}
                 />
               </motion.button>

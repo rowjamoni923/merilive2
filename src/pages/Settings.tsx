@@ -263,6 +263,8 @@ const Settings = () => {
         
         if (profile) {
           setDeletionInfo({
+            deletionRequestedAt: profile.deletion_requested_at,
+            deletionScheduledAt: profile.deletion_scheduled_at,
           });
         }
       }
@@ -377,6 +379,8 @@ const Settings = () => {
       // Pkg365: If already enabled, open settings to allow the user to turn it OFF
       // as requested ("off-on work correctly").
       toast({
+        title: "Permission Active",
+        description: "Opening app settings so you can manage your notifications.",
       });
       void openPermissionSettings();
       return;
@@ -403,6 +407,8 @@ const Settings = () => {
       // Already denied — browser will NOT re-prompt; user must reset manually
       if (Notification.permission === 'denied') {
         toast({
+          title: "Notifications Blocked",
+          description: isInIframe
             ? "Open the app on your device or in a full browser tab to enable notifications."
             : browserSettingsHint('Notifications'),
           variant: "destructive",
@@ -432,6 +438,8 @@ const Settings = () => {
     console.log('[Settings] Requesting camera permission...');
     if (permissions.camera) {
       toast({
+        title: "Permission Active",
+        description: "Opening app settings so you can manage camera access.",
       });
       void openPermissionSettings();
       return;
@@ -442,8 +450,11 @@ const Settings = () => {
         const p = await navigator.permissions.query({ name: 'camera' as PermissionName });
         if (p.state === 'denied') {
           toast({
+            title: "Camera Blocked",
+            description: isInIframe
               ? "Open the app on your device or in a full browser tab to enable the camera."
               : browserSettingsHint('Camera'),
+            variant: "destructive",
           });
           return;
         }
@@ -482,8 +493,11 @@ const Settings = () => {
         toast({ title: "No Camera Found", description: "No camera device detected on this device.", variant: "destructive" });
       } else if (denied) {
         toast({
+          title: "Camera Permission Needed",
+          description: isNativeApp()
             ? nativeSettingsHint('Camera')
             : (isInIframe ? "Open the app on your device or in a full browser tab to enable the camera." : browserSettingsHint('Camera')),
+          variant: "destructive",
         });
       } else {
         toast({ title: "Error", description: "Failed to request camera permission.", variant: "destructive" });
@@ -498,6 +512,8 @@ const Settings = () => {
     console.log('[Settings] Requesting microphone permission...');
     if (permissions.microphone) {
       toast({
+        title: "Permission Active",
+        description: "Opening app settings so you can manage microphone access.",
       });
       void openPermissionSettings();
       return;
@@ -508,8 +524,11 @@ const Settings = () => {
         const p = await navigator.permissions.query({ name: 'microphone' as PermissionName });
         if (p.state === 'denied') {
           toast({
+            title: "Microphone Blocked",
+            description: isInIframe
               ? "Open the app on your device or in a full browser tab to enable the microphone."
               : browserSettingsHint('Microphone'),
+            variant: "destructive",
           });
           return;
         }
@@ -545,8 +564,11 @@ const Settings = () => {
       const denied = errorName === 'NotAllowedError' || errorName === 'SecurityError';
       if (denied) {
         toast({
+          title: "Microphone Blocked",
+          description: isNativeApp()
             ? nativeSettingsHint('Microphone')
             : (isInIframe ? "Open the app on your device or in a full browser tab to enable the microphone." : browserSettingsHint('Microphone')),
+          variant: "destructive",
         });
       } else {
         toast({ title: "Error", description: "Failed to request microphone permission.", variant: "destructive" });
@@ -561,6 +583,8 @@ const Settings = () => {
     console.log('[Settings] Requesting location permission...');
     if (permissions.location) {
       toast({
+        title: "Permission Active",
+        description: "Opening app settings so you can manage location access.",
       });
       void openPermissionSettings();
       return;
@@ -571,8 +595,11 @@ const Settings = () => {
         const p = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         if (p.state === 'denied') {
           toast({
+            title: "Location Blocked",
+            description: isInIframe
               ? "Open the app on your device or in a full browser tab to share location."
               : browserSettingsHint('Location'),
+            variant: "destructive",
           });
           return;
         }
@@ -609,8 +636,11 @@ const Settings = () => {
             console.error('[Settings] Location error:', error);
             recordClientError({ label: "Settings.result", message: error.message });
             toast({
+              title: "Location Blocked",
+              description: isInIframe
                 ? "Open the app on your device or in a full browser tab to share location."
                 : browserSettingsHint('Location'),
+              variant: "destructive",
             });
             resolve();
           },
@@ -642,6 +672,8 @@ const Settings = () => {
 
     // Show success right away — cleanup happens in background
     toast({
+      title: "Logged Out",
+      description: "You have successfully logged out.",
     });
 
     // Fire-and-forget cleanup; do NOT block the UI
@@ -650,7 +682,7 @@ const Settings = () => {
       .then(({ clearNativeSession }) => clearNativeSession())
       .catch(() => {});
     // Phase 1C: also clear cached balance so the next account doesn't see
-    // stale diamonds/beans from the previous session.
+    // stale coins/beans from the previous session.
     void import('@/hooks/useUserBalance')
       .then(({ clearBalanceCache }) => clearBalanceCache())
       .catch(() => {});
@@ -682,6 +714,8 @@ const Settings = () => {
     }
     
     toast({
+      title: "Cache Cleared",
+      description: "App cache has been cleared successfully.",
     });
   };
 
@@ -700,15 +734,22 @@ const Settings = () => {
       scheduledDate.setDate(scheduledDate.getDate() + 30);
       
       setDeletionInfo({
+        deletionRequestedAt: new Date().toISOString(),
+        deletionScheduledAt: scheduledDate.toISOString(),
       });
       
       toast({
+        title: "Account Deletion Scheduled",
+        description: `Your account will be permanently deleted on ${scheduledDate.toLocaleDateString()}`,
       });
       
       setShowDeleteConfirmDialog(false);
       setShowDeleteDialog(false);
     } catch (error: unknown) {
       toast({
+        title: "Error",
+        description: getErrorMessage(error, "Failed to schedule deletion"),
+        variant: "destructive",
       });
     } finally {
       setDeleteLoading(false);
@@ -727,14 +768,21 @@ const Settings = () => {
       if (error) throw error;
       
       setDeletionInfo({
+        deletionRequestedAt: null,
+        deletionScheduledAt: null,
       });
       
       toast({
+        title: "Deletion Cancelled",
+        description: "Your account deletion has been cancelled.",
       });
       
       setShowDeleteDialog(false);
     } catch (error: unknown) {
       toast({
+        title: "Error",
+        description: getErrorMessage(error, "Failed to cancel deletion"),
+        variant: "destructive",
       });
     } finally {
       setDeleteLoading(false);
@@ -757,41 +805,92 @@ const Settings = () => {
       onClick: () => setShowPermissionsDialog(true),
     },
     {
+      icon: Globe,
+      label: t("settings.language"),
+      value: getCurrentLanguageName(),
+      onClick: () => setShowLanguageDialog(true),
     },
     {
+      icon: Ban,
+      label: "Blacklist",
+      value: blockedCount !== null && blockedCount > 0 ? String(blockedCount) : undefined,
       prefetchPath: "/settings/blacklist",
+      onClick: () => navigate("/settings/blacklist"),
     },
     {
+      icon: Users,
+      label: "User Management",
+      prefetchPath: "/settings/user-management",
+      onClick: () => navigate("/settings/user-management"),
     },
     {
+      icon: Shield,
+      label: t("settings.privacyPolicy"),
+      prefetchPath: "/settings/privacy-policy",
+      onClick: () => navigate("/settings/privacy-policy"),
     },
     {
+      icon: BarChart3,
+      label: "Share usage data",
+      value: analyticsConsent === "granted" ? "On" : "Off",
+      onClick: () => setConsent(analyticsConsent === "granted" ? "denied" : "granted"),
     },
     {
+      icon: FileText,
+      label: t("settings.userAgreement"),
+      prefetchPath: "/settings/user-agreement",
+      onClick: () => navigate("/settings/user-agreement"),
     },
     {
+      icon: Info,
+      label: t("settings.aboutUs"),
+      prefetchPath: "/settings/about-us",
+      onClick: () => navigate("/settings/about-us"),
     },
     // Rate & Clear Cache only for native apps
     ...(isNativeApp() ? [
       {
+        icon: Star,
+        label: t("settings.rateMeriLive"),
+        onClick: () => {
           toast({
+            title: t("settings.thankYou"),
+            description: t("settings.appStoreReview"),
           });
         },
       },
       {
+        icon: Trash2,
+        label: t("settings.clearCache"),
+        value: "0 KB",
+        onClick: handleClearCache,
       },
     ] : []),
     {
+      icon: Smartphone,
+      label: t("settings.version"),
+      value: `${appVersion.version} (${appVersion.build})`,
       showArrow: false,
     },
     {
+      icon: Headphones,
+      label: t("settings.customerService"),
+      prefetchPath: "/settings/customer-service",
+      onClick: () => navigate("/settings/customer-service"),
     },
     // Developer Options — only visible to whitelisted dev emails (see src/config/devAccess.ts)
     ...(hasDevAccess ? [
       {
+        icon: Wrench,
+        label: "Developer Options",
+        onClick: () => navigate("/developer-options"),
       },
     ] : []),
     {
+      icon: UserX,
+      label: t("settings.deleteAccount"),
+      value: deletionInfo?.deletionScheduledAt ? t("settings.daysLeft", { count: getDaysRemaining() }) : undefined,
+      onClick: () => setShowDeleteDialog(true),
       danger: true,
     },
   ];
@@ -889,9 +988,14 @@ const Settings = () => {
                       style={
                         item.value === 'On'
                           ? {
+                              background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
                               color: '#065f46',
+                              boxShadow: '0 2px 6px -2px rgba(16,185,129,0.35), inset 0 1px 0 rgba(255,255,255,0.7)',
                             }
                           : {
+                              background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                              color: '#475569',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(15,23,42,0.05)',
                             }
                       }
                     >
@@ -901,6 +1005,8 @@ const Settings = () => {
                     <span
                       className="text-[11px] font-bold px-2.5 py-1 rounded-full text-red-700"
                       style={{
+                        background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
+                        boxShadow: '0 2px 6px -2px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.7)',
                       }}
                     >
                       {item.value}
@@ -924,7 +1030,9 @@ const Settings = () => {
           onClick={() => setShowLogoutDialog(true)}
           className="w-full h-12 rounded-2xl font-semibold text-destructive flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
           style={{
+            background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)',
             border: '1px solid hsl(var(--destructive) / 0.3)',
+            boxShadow: '0 8px 20px -10px hsl(var(--destructive) / 0.30), inset 0 1px 0 rgba(255,255,255,0.7)',
           }}
         >
           <LogOut className="w-5 h-5" />

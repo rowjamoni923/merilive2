@@ -204,6 +204,9 @@ export default function AdminPushBroadcast() {
     const key = `${category}_${Date.now()}`;
     await addTemplate({
       template_key: key,
+      title_template: addForm.title,
+      message_template: addForm.body,
+      description: addForm.description,
       category,
     });
     setAddDialog(false);
@@ -336,6 +339,7 @@ export default function AdminPushBroadcast() {
         type: 'broadcast',
         imageUrl: imageUrl || undefined,
         data: {
+          type: 'broadcast',
           broadcast_id: requestId,
           persist_fallback: false,
           timestamp: new Date().toISOString(),
@@ -354,6 +358,11 @@ export default function AdminPushBroadcast() {
       setTitle(""); setMessage(""); setLinkUrl(""); removeImage();
     } catch (error: any) {
       recordAdminError({
+        kind: "edge",
+        label: "AdminPushBroadcast.SendNotification",
+        message: error?.message || "Failed to send notification",
+        detail: error?.stack?.slice(0, 1000),
+        silent: true,
       });
       toast.error(error.message || "Failed to send notification");
     } finally {

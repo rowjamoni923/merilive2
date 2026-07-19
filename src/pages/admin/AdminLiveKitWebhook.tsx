@@ -149,6 +149,10 @@ export default function AdminLiveKitWebhook() {
       if (r.event.startsWith("egress_")) out.egress++;
     });
     return {
+      total: out.total,
+      rooms: out.rooms.size,
+      participants: out.participants,
+      egress: out.egress,
     };
   }, [rows]);
 

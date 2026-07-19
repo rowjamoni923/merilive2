@@ -84,6 +84,7 @@ export const SmartAvatarImage: React.FC<SmartAvatarImageProps> = ({
   const resolvedGender = explicitGender ?? cached?.gender ?? null;
   const placeholderSeed = userId || seed || "anonymous";
   const url = getDisplayAvatar(placeholderSeed, null, {
+    gender: resolvedGender,
   });
 
   return <AvatarImage src={url} {...rest} />;

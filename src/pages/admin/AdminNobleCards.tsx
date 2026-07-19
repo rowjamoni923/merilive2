@@ -60,6 +60,11 @@ const AdminNobleCards = () => {
 
       const mapped: NobleCardItem[] = (data || []).map(item => ({
         id: item.id,
+        level: item.unlock_level,
+        name: item.name,
+        animation_url: item.animation_url,
+        preview_url: item.preview_url,
+        is_active: item.is_active,
         created_at: item.created_at
       }));
 
@@ -161,6 +166,12 @@ const AdminNobleCards = () => {
   const openEditDialog = (item: NobleCardItem) => {
     setEditingItem(item);
     setFormData({
+      level: item.level, name: item.name,
+      animation_url: item.animation_url || '',
+      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (item as any).animation_config_url || '',
+      preview_url: item.preview_url || '',
+      is_active: item.is_active
     });
     setDialogOpen(true);
   };
@@ -175,7 +186,12 @@ const AdminNobleCards = () => {
       const payload = {
         privilege_type: 'noble_card', unlock_level: formData.level, name: formData.name,
         description: `Noble Card for Level ${formData.level}+`,
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
+        preview_url: formData.preview_url || null,
         icon_name: 'CreditCard', icon_bg_color: '#FEE2E2', icon_color: '#EF4444',
+        is_active: formData.is_active, display_order: formData.level,
         updated_at: new Date().toISOString()
       };
 
@@ -320,9 +336,15 @@ const AdminNobleCards = () => {
               bucket="noble-cards"
               folder="unified"
               value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
               }))}
             />
             <div>

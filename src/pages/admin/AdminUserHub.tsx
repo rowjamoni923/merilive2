@@ -31,6 +31,14 @@ const AdminUserHub = () => {
       if (error) throw error;
       const s = (data || {}) as Record<string, number>;
       setStats({
+        totalUsers: Number(s.total || 0),
+        verifiedUsers: Number(s.face_verified || 0),
+        bannedUsers: Number(s.blocked || 0),
+        activeToday: Number(s.active_today || 0),
+        onlineNow: Number(s.online || 0),
+        newToday: Number(s.today || 0),
+        hosts: Number(s.hosts || 0),
+        faceVerified: Number(s.face_verified || 0),
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: formatAdminError(error) });

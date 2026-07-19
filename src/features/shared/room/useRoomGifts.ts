@@ -66,7 +66,7 @@ export function useRoomGifts({
         soundUrl: detail.giftSoundUrl,
         giftColor: 'from-pink-500 to-purple-500',
         count: detail.count || 1,
-        diamonds: detail.totalDiamonds || detail.giftCoins || 0,
+        coins: detail.totalDiamonds || detail.giftCoins || 0,
       });
       onPlaySoundRef.current?.();
     };
@@ -86,10 +86,11 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
     senderName: string;
     gift: { name: string; icon_url?: string; animation_url?: string };
     count: number;
-    diamonds: number;
+    coins: number;
   }) => {
     onGiftReceived({
       id: `local_gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      senderName: params.senderName,
       giftName: params.gift.name,
       giftIcon: '🎁',
       giftImageUrl: params.gift.icon_url || undefined,
@@ -97,6 +98,8 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
       animationFormat: (params.gift as any).animation_format || null,
       animationConfigUrl: (params.gift as any).animation_config_url || undefined,
       giftColor: 'from-pink-500 to-purple-500',
+      count: params.count,
+      coins: params.diamonds,
     });
   }, [onGiftReceived]);
 

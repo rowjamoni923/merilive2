@@ -359,7 +359,10 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 {latestStatus === 'rejected' && (
                   <div className="rounded-xl px-4 py-3 text-xs leading-relaxed"
                     style={{
+                      background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
+                      border: '1px solid rgba(220,38,38,0.30)',
                       color: '#7f1d1d',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
                     }}
                   >
                     <div className="font-extrabold text-red-700 mb-1">Previous submission rejected</div>
@@ -371,6 +374,9 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 )}
                 <div className="rounded-2xl p-5 text-center relative overflow-hidden"
                   style={{
+                    background: 'linear-gradient(135deg, #fff7d6 0%, #fef3c7 55%, #ffedd5 100%)',
+                    border: '1px solid rgba(180,83,9,0.25)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px -12px rgba(120,53,15,0.18)',
                   }}
                 >
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 rounded-full opacity-40"
@@ -379,6 +385,9 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                   <div className="relative">
                     <div className="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center"
                       style={{
+                        background: 'linear-gradient(135deg, #fde68a, #f59e0b)',
+                        border: '1px solid rgba(180,83,9,0.35)',
+                        boxShadow: '0 6px 18px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.6)',
                       }}
                     >
                       <Gift className="w-7 h-7 text-amber-950" />
@@ -387,6 +396,9 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                     <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
                       <span className="text-[11px] font-extrabold px-3 py-1.5 rounded-lg text-amber-900"
                         style={{
+                          background: 'linear-gradient(180deg, #ffffff, #fde68a)',
+                          border: '1px solid rgba(180,83,9,0.30)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(180,83,9,0.08)',
                         }}
                       >
                         Hosts: {rewardAmounts.host_beans.toLocaleString()} 🫘
@@ -394,6 +406,9 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                       <span className="text-amber-700/60 text-xs">•</span>
                       <span className="text-[11px] font-extrabold px-3 py-1.5 rounded-lg text-violet-900"
                         style={{
+                          background: 'linear-gradient(180deg, #ffffff, #ede9fe)',
+                          border: '1px solid rgba(139,92,246,0.30)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(139,92,246,0.10)',
                         }}
                       >
                         Users: {rewardAmounts.user_diamonds.toLocaleString()} 💎
@@ -420,10 +435,13 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                     disabled={uploading}
                     className="w-full h-12 gap-2 font-black rounded-2xl border-0 relative overflow-hidden"
                     style={{
+                      background: uploading
                         ? 'linear-gradient(180deg, #fde68a, #fbbf24)'
                         : 'linear-gradient(180deg, #fde68a 0%, #f59e0b 38%, #b45309 100%)',
+                      boxShadow: uploading
                         ? 'inset 0 1px 0 rgba(255,255,255,0.5)'
                         : '0 14px 30px -10px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(120,53,15,0.5)',
+                      color: '#3b1e05',
                       textShadow: '0 1px 0 rgba(255,255,255,0.5)',
                     }}
                   >
@@ -457,6 +475,9 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
               >
                 <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
                   style={{
+                    background: 'linear-gradient(180deg, #34d399, #059669)',
+                    border: '1px solid rgba(5,150,105,0.40)',
+                    boxShadow: '0 8px 24px rgba(16,185,129,0.40), inset 0 1px 0 rgba(255,255,255,0.5)',
                   }}
                 >
                   <CheckCircle className="w-9 h-9 text-white" />
@@ -476,6 +497,10 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 onClick={() => setShowDialog(false)}
                 className="w-full h-11 rounded-2xl font-black border-0 relative overflow-hidden"
                 style={{
+                  background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 38%, #b45309 100%)',
+                  boxShadow: '0 12px 26px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(120,53,15,0.5)',
+                  color: '#3b1e05',
+                  textShadow: '0 1px 0 rgba(255,255,255,0.5)',
                 }}
               >
                 Got it!

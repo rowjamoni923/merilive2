@@ -6,6 +6,7 @@ export interface Conversation {
   participant2_id: string;
   last_message_at: string | null;
   other_user: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     is_online: boolean | null;

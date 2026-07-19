@@ -24,7 +24,7 @@ const CHIP_VALUES = [500, 1000, 5000, 10000, 20000];
 
 interface UserProfile {
   id: string;
-  diamonds: number;
+  coins: number;
   display_name: string;
 }
 
@@ -94,7 +94,7 @@ export const FerrisWheelGame = () => {
     }
 
     // Server validates balance during spinWheel via place_game_bet RPC.
-    // Selecting a slot must not be blocked by stale cached diamonds.
+    // Selecting a slot must not be blocked by stale cached coins.
 
     setSelectedFood(index);
     playBetSound();
@@ -118,7 +118,7 @@ export const FerrisWheelGame = () => {
     }
 
     const newBalance = betResult.newBalance || 0;
-    setProfile({ ...profile, diamonds: newBalance });
+    setProfile({ ...profile, coins: newBalance });
 
     // Determine winner (with slight house edge)
     const random = Math.random();
@@ -158,7 +158,7 @@ export const FerrisWheelGame = () => {
         );
         
         if (winResult.success) {
-          setProfile(prev => prev ? { ...prev, diamonds: winResult.newBalance || 0 } : null);
+          setProfile(prev => prev ? { ...prev, coins: winResult.newBalance || 0 } : null);
         }
         
         setTodayProfit(prev => prev + winAmount - selectedChip);

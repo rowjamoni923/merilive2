@@ -124,6 +124,7 @@ export function DynamicPartyBanners({ roomType, onBannerClick, onOpenGames }: Dy
               <div
                 className="relative rounded-[14px] px-3 py-2 overflow-hidden"
                 style={{
+                  background: `linear-gradient(135deg, ${banner.gradient_from}EE 0%, ${banner.gradient_to}EE 100%)`,
                   backdropFilter: 'blur(10px) saturate(140%)',
                   WebkitBackdropFilter: 'blur(10px) saturate(140%)',
                 }}
@@ -144,6 +145,7 @@ export function DynamicPartyBanners({ roomType, onBannerClick, onOpenGames }: Dy
                   style={{
                     background:
                       'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.32) 50%, transparent 70%)',
+                    animation: `giftSendShine ${2.8 + (index % 3) * 0.4}s ease-in-out infinite`,
                     mixBlendMode: 'overlay',
                   }}
                 />

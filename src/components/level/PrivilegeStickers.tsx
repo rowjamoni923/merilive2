@@ -218,6 +218,7 @@ export const StickerSendAnimation = ({
             }}
             animate={{
               x: [0, Math.cos(i * 30 * Math.PI / 180) * 100],
+              y: [0, Math.sin(i * 30 * Math.PI / 180) * 100],
               opacity: [1, 0],
               scale: [0.5, 1.5],
             }}
@@ -303,7 +304,14 @@ const PrivilegeStickers = ({
       if (shopStickers) {
         shopStickers.forEach(s => {
           allStickers.push({
+            id: s.id,
+            name: s.name,
+            preview_url: s.preview_url,
+            animation_url: s.animation_url,
             animation_file_url: s.animation_file_url,
+            unlock_level: s.min_level || 1,
+            category: 'special',
+            is_premium: s.is_premium || false,
           });
         });
       }

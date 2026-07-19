@@ -31,6 +31,7 @@ describe('Pkg136 livekitEgressOps', () => {
     invokeMock.mockResolvedValue({ data: { egress: [] }, error: null });
     await listLiveKitEgress({ roomName: 'live_42', active: true });
     expect(invokeMock).toHaveBeenCalledWith('livekit-egress-ops', {
+      body: { action: 'list_egress', roomName: 'live_42', active: true },
     });
   });
 
@@ -46,10 +47,13 @@ describe('Pkg136 livekitEgressOps', () => {
 
   it('getLiveKitEgress forwards id', async () => {
     invokeMock.mockResolvedValue({
+      data: { egress: { egressId: 'EG_7', roomName: 'live_7' } },
+      error: null,
     });
     const out = await getLiveKitEgress('EG_7');
     expect(out?.egressId).toBe('EG_7');
     expect(invokeMock).toHaveBeenCalledWith('livekit-egress-ops', {
+      body: { action: 'get_egress', egressId: 'EG_7' },
     });
   });
 
@@ -60,10 +64,13 @@ describe('Pkg136 livekitEgressOps', () => {
 
   it('updateLiveKitEgressLayout forwards args', async () => {
     invokeMock.mockResolvedValue({
+      data: { egress: { egressId: 'EG_3', roomName: 'live_3' } },
+      error: null,
     });
     const out = await updateLiveKitEgressLayout('EG_3', 'grid-dark');
     expect(out?.egressId).toBe('EG_3');
     expect(invokeMock).toHaveBeenCalledWith('livekit-egress-ops', {
+      body: { action: 'update_layout', egressId: 'EG_3', layout: 'grid-dark' },
     });
   });
 

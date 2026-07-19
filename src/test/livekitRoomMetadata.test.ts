@@ -92,6 +92,8 @@ describe('Pkg122 LiveKit Room Metadata', () => {
         action: 'set',
         scope: 'live',
         scopeId: 'stream-123',
+        roomName: 'live_stream-123',
+        metadata: { song: 'x', poll: { q: 'a?' } },
       },
     });
   });
@@ -99,6 +101,8 @@ describe('Pkg122 LiveKit Room Metadata', () => {
   it('setRoomMetadata accepts null to clear', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
     await setRoomMetadata('party', 'p2', {
+      roomName: 'party_p2',
+      metadata: null,
     });
     expect(supabase.functions.invoke).toHaveBeenCalledWith(
       'livekit-room-metadata',
@@ -120,6 +124,8 @@ describe('Pkg122 LiveKit Room Metadata', () => {
   it('setRoomMetadata throws on edge-function payload error', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
     (supabase.functions.invoke as any).mockResolvedValueOnce({
+      data: { error: 'not_room_owner' },
+      error: null,
     });
     await expect(
       setRoomMetadata('live', 's3', { roomName: 'live_s3', metadata: {} }),

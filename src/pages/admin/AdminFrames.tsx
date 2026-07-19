@@ -250,6 +250,8 @@ const AdminFrames = () => {
 
       setFormData({
         ...formData,
+        frame_url: publicUrl,
+        frame_type: detectedType,
       });
 
       toast.success(`${detectedType.toUpperCase()} file uploaded successfully!`);
@@ -273,7 +275,23 @@ const AdminFrames = () => {
     
     try {
       const saveData = {
+        name: formData.name,
+        frame_url: formData.frame_url,
+        frame_type: formData.frame_type,
+        animation_type: formData.animation_type,
+        min_level: formData.min_level,
+        is_premium: formData.is_premium,
+        is_active: formData.is_active,
+        display_order: formData.display_order,
+        description: formData.description || null,
+        category: formData.category,
+        price_diamonds: formData.price_diamonds,
+        preview_url: formData.preview_url || null,
+        target_type: formData.target_type,
         // Pkg424 — unified pro animation columns
+        animation_url: formData.animation_url || null,
+        animation_format: formData.animation_format || null,
+        animation_config_url: formData.animation_config_url || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -369,12 +387,48 @@ const AdminFrames = () => {
 
   const resetForm = () => {
     setFormData({
+      name: "",
+      frame_url: "",
+      frame_type: "svga",
+      animation_type: "glow",
+      min_level: 1,
+      is_premium: false,
+      is_active: true,
+      display_order: 0,
+      description: "",
+      category: "general",
+      price_diamonds: 0,
+      preview_url: "",
+      sound_url: "",
+      sound_duration_ms: 3000,
+      target_type: "both",
+      animation_url: "",
+      animation_format: null,
+      animation_config_url: "",
     });
   };
 
   const openEditDialog = (frame: Frame) => {
     setEditingFrame(frame);
     setFormData({
+      name: frame.name,
+      frame_url: frame.frame_url,
+      frame_type: frame.frame_type || "svga",
+      animation_type: frame.animation_type || "glow",
+      min_level: frame.min_level,
+      is_premium: frame.is_premium,
+      is_active: frame.is_active,
+      display_order: frame.display_order,
+      description: frame.description || "",
+      category: frame.category || "general",
+      price_diamonds: frame.price_diamonds || 0,
+      preview_url: frame.preview_url || "",
+      sound_url: frame.sound_url || "",
+      sound_duration_ms: frame.sound_duration_ms || 3000,
+      target_type: frame.target_type || "both",
+      animation_url: (frame as any).animation_url || "",
+      animation_format: ((frame as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (frame as any).animation_config_url || "",
     });
     setShowAddDialog(true);
   };
@@ -795,9 +849,15 @@ const AdminFrames = () => {
               bucket="frames"
               folder="unified"
               value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url || null,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url || '',
               }))}
             />
 

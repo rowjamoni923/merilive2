@@ -86,6 +86,7 @@ export default function FloatingRandomMatchPill({ className = "" }: { className?
           }}
           style={{
             width: 16, height: 16, minWidth: 16, minHeight: 16,
+            top: -5, right: -5, padding: 0, lineHeight: 0,
           }}
           className="absolute z-20 rounded-full bg-black/60 text-white grid place-items-center
                      ring-[0.5px] ring-white/35 shadow-[0_1px_2px_rgba(0,0,0,0.4)]

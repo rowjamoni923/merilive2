@@ -121,6 +121,10 @@ const AdminHostConversion = () => {
       await supabase
         .from('host_conversion_requests')
         .update({
+          status: 'rejected',
+          admin_response: responseText[req.id] || 'Request rejected',
+          admin_id: user?.id,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', req.id);
 

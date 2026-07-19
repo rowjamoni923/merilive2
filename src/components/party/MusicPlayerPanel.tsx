@@ -188,6 +188,10 @@ export function MusicPlayerPanel({
       if (error) throw error;
       
       const formattedTracks: MusicTrack[] = (data || []).map(t => ({
+        id: t.id,
+        title: t.title,
+        artist: t.artist,
+        audio_url: t.audio_url,
         cover_image_url: t.cover_image_url,
         duration_seconds: t.duration_seconds,
         category: t.category
@@ -251,6 +255,11 @@ export function MusicPlayerPanel({
       
       // Create local track
       const newTrack: MusicTrack = {
+        id: `local-${Date.now()}`,
+        title: title,
+        artist: 'My Music',
+        audio_url: objectUrl,
+        isLocal: true
       };
 
       setLocalTracks(prev => [...prev, newTrack]);
@@ -354,6 +363,9 @@ export function MusicPlayerPanel({
             await supabase
               .from(table)
               .update({ 
+                current_music_url: audioUrl,
+                current_music_title: track.title,
+                music_started_at: new Date().toISOString()
               } as any)
               .eq('id', roomId);
           }

@@ -120,10 +120,14 @@ const handler = async (req: Request): Promise<Response> => {
         callerUserId, userId, templateKey, type,
       });
       return new Response(JSON.stringify({ success: false, error: "Not authorized to send notifications to other users" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
     if (!isServiceRoleCall && !isAdmin && !callerUserId) {
       return new Response(JSON.stringify({ success: false, error: "Authentication required" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -132,6 +136,8 @@ const handler = async (req: Request): Promise<Response> => {
         callerUserId, userId, templateKey, type,
       });
       return new Response(JSON.stringify({ success: false, error: "Restricted notification type" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
     // ────────────────────────────────────────────────────────────────────────
@@ -174,10 +180,14 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Notification sent successfully:", notification.id);
 
     return new Response(JSON.stringify({ success: true, notificationId: notification.id }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error sending notification:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
 };

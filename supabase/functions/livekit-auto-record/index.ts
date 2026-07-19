@@ -171,6 +171,7 @@ Deno.serve(async (req) => {
   await admin
     .from("live_streams")
     .update({
+      egress_id: info.egressId,
       recording_url: publicUrl,
       recording_status: "starting",
     })

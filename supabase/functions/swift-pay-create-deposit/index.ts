@@ -161,6 +161,7 @@ Deno.serve(async (req) => {
     if (!SUPPORTED_CURRENCIES.has(payCurrency)) {
       return json({
         ok: false,
+        error: "currency_not_enabled",
         fallback: true,
         message: `${payCurrency} is not enabled on the gateway. Supported: ${[...SUPPORTED_CURRENCIES].join(", ")}.`,
       });
@@ -301,7 +302,9 @@ Deno.serve(async (req) => {
           if (requestedDiamonds !== totalDiamonds) return json({ error: "invalid_custom_coin_amount" }, 400);
           if (priceUsd < minUsd) {
             return json({
+              error: "below_minimum",
               min_usd: minUsd,
+              message: `Minimum crypto payment is $${minUsd}. Please choose a higher amount.`,
             }, 400);
           }
         }
@@ -326,6 +329,7 @@ Deno.serve(async (req) => {
         external_user_id: externalUserId,
         display_name: user.email ?? user.id,
         amount_usd: priceUsd,
+        pay_currency: payCurrency,
       }),
     });
 
@@ -347,8 +351,12 @@ Deno.serve(async (req) => {
         const minMatch = detailsStr.match(/\$\s*([0-9]+(?:\.[0-9]+)?)/);
         const parsedMin = minMatch ? Number(minMatch[1]) : null;
         return json({
+          ok: false,
+          error: "minimum_deposit_not_met",
+          fallback: true,
           currency: payCurrency,
           min_required_usd: parsedMin,
+          message: parsedMin
             ? `${payCurrency.toUpperCase()} requires at least $${parsedMin.toFixed(2)}. Choose a larger amount or a different network.`
             : `${payCurrency.toUpperCase()} requires a larger deposit. Choose a bigger amount or a different network.`,
           gateway_status: depositRes.status,
@@ -359,11 +367,22 @@ Deno.serve(async (req) => {
 
       if (isGatewayFallbackError(gatewayMessage)) {
         return json({
+          ok: false,
+          error: "currency_not_enabled",
+          fallback: true,
+          message: gatewayMessage,
+          gateway_status: depositRes.status,
+          details: depositBody,
         });
       }
 
       return json(
         {
+          ok: false,
+          fallback: true,
+          error: gatewayMessage,
+          gateway_status: depositRes.status,
+          details: depositBody,
         },
         200,
       );
@@ -376,6 +395,11 @@ Deno.serve(async (req) => {
       const i = body.helper_application_intent;
       const lvl = Number(i.selected_level);
       intentPayload = {
+        selected_level: Number.isFinite(lvl) && lvl >= 1 && lvl <= 5 ? Math.floor(lvl) : 1,
+        contact_whatsapp: typeof i.contact_whatsapp === "string" ? i.contact_whatsapp.slice(0, 120) : null,
+        contact_telegram: typeof i.contact_telegram === "string" ? i.contact_telegram.slice(0, 120) : null,
+        reason: typeof i.reason === "string" ? i.reason.slice(0, 1000) : null,
+        payroll_requested: Boolean(i.payroll_requested),
       };
     }
 
@@ -383,11 +407,14 @@ Deno.serve(async (req) => {
       .from("swift_pay_topups")
       .insert({
         user_id: user.id,
+        package_id: packageId,
         diamonds_amount: totalDiamonds,
         price_usd: priceUsd,
+        pay_currency: payCurrency,
         pay_network: depositBody?.network ?? null,
         pay_address: depositBody?.pay_address ?? null,
         pay_amount: depositBody?.pay_amount ?? null,
+        external_user_id: externalUserId,
         payment_id: depositBody?.payment_id ? String(depositBody.payment_id) : null,
         idempotency_key: idempotencyKey,
         expires_at: depositBody?.expires_at ?? null,
@@ -395,6 +422,8 @@ Deno.serve(async (req) => {
         status: "pending",
         target_type: target,
         target_helper_id: targetHelperId,
+        campaign_id: campaignId,
+        helper_application_intent: intentPayload,
       })
       .select("id, pay_address, pay_amount, pay_currency, pay_network, expires_at, status")
       .single();
@@ -407,7 +436,14 @@ Deno.serve(async (req) => {
 
     return json({
       topup_id: row.id,
+      pay_address: row.pay_address,
+      pay_amount: row.pay_amount,
+      pay_currency: row.pay_currency,
       network: row.pay_network,
+      expires_at: row.expires_at,
+      diamonds_amount: totalDiamonds,
+      price_usd: priceUsd,
+      status: row.status,
     });
   } catch (e) {
     console.error("[swift-pay-create-deposit] fatal", e);

@@ -335,6 +335,13 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
           // Special "NONE" marker = no country should be shown or detected
           if (countryCode === 'NONE') {
             setLocation({
+              country: "",
+              countryCode: "",
+              countryFlag: "",
+              city: "",
+              region: "",
+              loading: false,
+              error: null,
             });
             console.log('[Geolocation] Account marked as NONE - no country displayed');
             return;
@@ -344,8 +351,13 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
           const countryName = profile.country_name || countryNamesEnglish[countryCode] || "Unknown";
 
           setLocation({
+            country: countryName,
             countryCode,
             countryFlag,
+            city: profile.city || "",
+            region: profile.region || "",
+            loading: false,
+            error: null,
           });
 
           // Update last login IP & device info (non-blocking) + backfill registration data if missing
@@ -447,6 +459,8 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
         if (isMounted) {
           setLocation(prev => ({
             ...prev,
+            loading: false,
+            error: "Could not load location",
           }));
         }
       }
@@ -466,6 +480,13 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
   const detectAndSaveInitialLocation = async (uid: string, isMounted: boolean) => {
     // Collect device info
     const deviceInfo = {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform || '',
+      language: navigator.language || '',
+      screenWidth: window.screen?.width || 0,
+      screenHeight: window.screen?.height || 0,
+      deviceMemory: (navigator as any).deviceMemory || null,
+      hardwareConcurrency: navigator.hardwareConcurrency || null,
     };
 
     // Try server-side detection first (accurate real IP, not proxy)
@@ -475,7 +496,10 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
       const serverResult = await getDetectedCountry();
       if (serverResult?.countryCode) {
         ipResult = {
+          countryCode: serverResult.countryCode,
           countryName: '',
+          city: serverResult.city || '',
+          region: serverResult.region || '',
           ip: serverResult.ip || '',
         };
         console.log('[Geolocation] Server-side initial detection:', ipResult.countryCode, ipResult.city);
@@ -498,10 +522,13 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
 
       if (isMounted) {
         setLocation({
+          country: countryName,
           countryCode,
           countryFlag,
           city,
           region,
+          loading: false,
+          error: null,
         });
       }
 
@@ -512,9 +539,14 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
           country_code: countryCode,
           country_name: countryName,
           country_flag: countryFlag,
+          city: city,
+          region: region,
           registration_ip: ipResult.ip || null,
+          last_login_ip: ipResult.ip || null,
           registration_device_info: deviceInfo,
+          last_login_device_info: deviceInfo,
           registration_user_agent: navigator.userAgent,
+          last_login_device: navigator.userAgent,
         })
         .eq("id", uid);
 
@@ -559,8 +591,13 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
 
           if (isMounted) {
             setLocation({
+              country: countryName,
               countryCode,
               countryFlag,
+              city: geoData.city || geoData.locality || "",
+              region: geoData.principalSubdivision || "",
+              loading: false,
+              error: null,
             });
           }
 
@@ -568,6 +605,11 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
           await supabase
             .from("profiles")
             .update({
+              country_code: countryCode,
+              country_name: countryName,
+              country_flag: countryFlag,
+              city: geoData.city || geoData.locality || "",
+              region: geoData.principalSubdivision || "",
             })
             .eq("id", uid);
 
@@ -592,6 +634,13 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
   const setDefaultLocation = async (uid: string, isMounted: boolean = true) => {
     if (isMounted) {
       setLocation({
+        country: "",
+        countryCode: "",
+        countryFlag: "🌍",
+        city: "",
+        region: "",
+        loading: false,
+        error: "Location detection failed - will retry on next login",
       });
     }
 

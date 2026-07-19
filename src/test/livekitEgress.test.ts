@@ -70,6 +70,8 @@ describe('Pkg111 livekitEgress', () => {
   it('startStreamRecording surfaces alreadyRecording', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
+      data: { egressId: 'EG_dup', alreadyRecording: true },
+      error: null,
     });
     const r = await startStreamRecording('stream-1');
     expect(r?.alreadyRecording).toBe(true);
@@ -87,6 +89,7 @@ describe('Pkg111 livekitEgress', () => {
     const ok = await stopStreamRecording('EG_123');
     expect(ok).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-egress', {
+      body: { action: 'stop', egressId: 'EG_123' },
     });
   });
 

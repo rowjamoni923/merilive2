@@ -89,6 +89,10 @@ describe("AdminHelperApplications — Level Auto-Detection Audit block", () => {
     render(
       <LevelAuditBlock
         paymentDetails={{
+          selected_level: 2,
+          detected_level: 4,
+          auto_level_adjusted: true,
+          auto_verified: true,
         }}
       />,
     );
@@ -103,6 +107,10 @@ describe("AdminHelperApplications — Level Auto-Detection Audit block", () => {
     render(
       <LevelAuditBlock
         paymentDetails={{
+          selected_level: 5,
+          detected_level: 3,
+          auto_level_adjusted: true,
+          auto_verified: true,
         }}
       />,
     );
@@ -118,6 +126,10 @@ describe("AdminHelperApplications — Level Auto-Detection Audit block", () => {
     render(
       <LevelAuditBlock
         paymentDetails={{
+          selected_level: 1,
+          detected_level: 2,
+          auto_level_adjusted: true,
+          auto_verified: true,
         }}
       />,
     );
@@ -147,6 +159,9 @@ describe("AdminHelperApplications — Level Auto-Detection Audit block", () => {
     render(
       <LevelAuditBlock
         paymentDetails={{
+          selected_level: 2,
+          detected_level: 2,
+          auto_level_adjusted: null as any,
         }}
       />,
     );
@@ -157,6 +172,9 @@ describe("AdminHelperApplications — Level Auto-Detection Audit block", () => {
     render(
       <LevelAuditBlock
         paymentDetails={{
+          selected_level: 2,
+          detected_level: 2,
+          auto_level_adjusted: false,
           verified_at: "2026-05-20T12:00:00Z",
         }}
       />,

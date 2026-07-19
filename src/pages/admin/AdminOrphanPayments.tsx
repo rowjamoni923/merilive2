@@ -109,11 +109,31 @@ const AdminOrphanPayments = () => {
               : ` · gateway confirmed — pending credit`)
           : " · never confirmed on-chain";
         return {
+          kind: "swift_pay_stuck",
+          id: r.id,
+          created_at: r.created_at,
+          status: r.status,
+          user_ref: r.user_id?.slice(0, 8) || "—",
+          user_id: r.user_id,
+          amount: `${r.pay_amount || 0} ${r.pay_currency || ""} ($${r.price_usd || 0})`,
+          method: `Swift Pay ${r.pay_network || ""}${gatewayHint}`,
+          reference: r.payment_id || r.idempotency_key || "—",
+          details: r,
         };
       });
 
 
       const googleRows: Row[] = ((googleRes.data as any[]) || []).map((r) => ({
+        kind: "google_play_stuck",
+        id: r.id,
+        created_at: r.created_at,
+        status: r.status,
+        user_ref: r.user_id?.slice(0, 8) || "—",
+        user_id: r.user_id,
+        amount: `${r.diamonds_amount || 0} coins${r.amount_usd ? ` ($${r.amount_usd})` : ""}`,
+        method: "Google Play",
+        reference: r.google_order_id || r.requested_order_id || `token…${r.purchase_token_suffix || ""}`,
+        details: r,
       }));
 
       const merged = [...claimRows, ...swiftRows, ...googleRows]
@@ -167,7 +187,14 @@ const AdminOrphanPayments = () => {
     const { error } = await supabase
       .from("user_payment_claims" as any)
       .insert({
+        reported_app_uid: form.reported_app_uid.trim() || null,
+        reported_phone: form.reported_phone.trim() || null,
         reported_user_id: user_id,
+        claimed_amount: form.claimed_amount ? Number(form.claimed_amount) : null,
+        claimed_currency: form.claimed_currency || null,
+        claimed_payment_method: form.claimed_payment_method || null,
+        claimed_reference: form.claimed_reference || null,
+        notes: form.notes || null,
         channel: "admin_note",
       });
     if (error) {
@@ -177,6 +204,8 @@ const AdminOrphanPayments = () => {
     toast.success("Claim logged");
     setCreateOpen(false);
     setForm({
+      reported_app_uid: "", reported_phone: "", claimed_amount: "",
+      claimed_currency: "USD", claimed_payment_method: "", claimed_reference: "", notes: "",
     });
     fetchAll();
   };

@@ -45,6 +45,7 @@ interface PKRewardTier {
   rank_to: number;
   reward_diamonds: number;
   reward_beans: number;
+  reward_diamonds: number;
   reward_badge: string | null;
   is_active: boolean;
 }
@@ -121,6 +122,13 @@ const PKCompetitionManager = () => {
       const { data, error } = await supabase
         .from("pk_competitions")
         .insert({
+          title: formData.title,
+          description: formData.description || null,
+          banner_image_url: formData.banner_image_url || null,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+          competition_type: formData.competition_type,
+          max_participants: formData.max_participants,
           status: new Date(formData.start_date) <= new Date() ? "active" : "upcoming",
           is_active: true,
         })
@@ -155,6 +163,8 @@ const PKCompetitionManager = () => {
           rank_to: t.to,
           reward_diamonds: 0,
           reward_beans: 0,
+          reward_diamonds: 0,
+          is_active: true,
         }))
       );
       if (insertError) throw insertError;
@@ -184,6 +194,9 @@ const PKCompetitionManager = () => {
     const lastTier = rewards[rewards.length - 1];
     const newFrom = lastTier ? lastTier.rank_to + 1 : 1;
     const { error } = await supabase.from("pk_competition_rewards").insert({
+      competition_id: selectedComp.id,
+      rank_from: newFrom, rank_to: Math.min(newFrom + 4, 50),
+      reward_diamonds: 0, reward_beans: 0, reward_diamonds: 0, is_active: true,
     });
     if (error) {
       toast.error(error.message || "Failed to add reward tier");
@@ -453,10 +466,16 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
     rank_to: String(reward.rank_to ?? 1),
     reward_beans: String(reward.reward_beans ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
   });
 
   useEffect(() => {
     setDraft({
+      rank_from: String(reward.rank_from ?? 1),
+      rank_to: String(reward.rank_to ?? 1),
+      reward_beans: String(reward.reward_beans ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
     });
   }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_diamonds]);
 

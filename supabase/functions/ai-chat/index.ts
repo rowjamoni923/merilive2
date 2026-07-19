@@ -129,21 +129,25 @@ Example format: ["Reply 1", "Reply 2", "Reply 3"]`
       }
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // For streaming modes, pass through the stream
     if (mode === "chat" || mode === "admin") {
       return new Response(response.body, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
     }
 
@@ -152,11 +156,13 @@ Example format: ["Reply 1", "Reply 2", "Reply 3"]`
     const content = data.choices?.[0]?.message?.content || "";
     
     return new Response(JSON.stringify({ result: content }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (e) {
     console.error("ai-chat error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

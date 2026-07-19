@@ -208,6 +208,8 @@ const AdminDiamondTraders = () => {
     } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.TransferError", message: formatAdminError(error)});
       toast({
+        title: "Failed",
+        description: error.message || "Transfer failed",
         variant: "destructive"
       });
     } finally {
@@ -227,15 +229,20 @@ const AdminDiamondTraders = () => {
     setEditingHelper(helper);
     const credentials = helper.payment_credentials || {};
     setPaymentMethods({
+      manual: {
         enabled: credentials.manual?.enabled || false,
         accountName: credentials.manual?.accountName || "",
         accountNumber: credentials.manual?.accountNumber || "",
         bankName: credentials.manual?.bankName || "",
         instructions: credentials.manual?.instructions || ""
       },
+      binance: {
+        enabled: credentials.binance?.enabled || false,
         payId: credentials.binance?.payId || "",
         email: credentials.binance?.email || ""
       },
+      epay: {
+        enabled: credentials.epay?.enabled || false,
         accountId: credentials.epay?.accountId || "",
         phone: credentials.epay?.phone || ""
       }
@@ -258,12 +265,17 @@ const AdminDiamondTraders = () => {
       if (error) throw error;
 
       toast({
+        title: "✅ Success",
+        description: "Payment method updated"
       });
       setShowPaymentModal(false);
       setEditingHelper(null);
       fetchHelpers();
     } catch (error: any) {
       toast({
+        title: "Failed",
+        description: error.message,
+        variant: "destructive"
       });
     } finally {
       setIsSavingPayment(false);
@@ -319,6 +331,7 @@ const AdminDiamondTraders = () => {
                 { key: "status", label: "Status", weight: 0.9 },
               ]}
               meta={{
+                title: activeTab === "helpers" ? "Diamond Traders" : "Trader Transactions",
                 subtitle: `${activeTab === "helpers" ? helpers.length : transactions.length} records`,
                 fileName: activeTab === "helpers" ? "diamond-traders" : "diamond-trader-transactions",
                 summary: [
@@ -735,6 +748,7 @@ const AdminDiamondTraders = () => {
                   checked={paymentMethods.manual.enabled}
                   onCheckedChange={(checked) => setPaymentMethods(prev => ({
                     ...prev,
+                    manual: { ...prev.manual, enabled: checked }
                   }))}
                 />
               </div>
@@ -747,6 +761,7 @@ const AdminDiamondTraders = () => {
                        value={paymentMethods.manual.accountName}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        manual: { ...prev.manual, accountName: e.target.value }
                       }))}
                     />
                   </div>
@@ -757,6 +772,7 @@ const AdminDiamondTraders = () => {
                        value={paymentMethods.manual.accountNumber}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        manual: { ...prev.manual, accountNumber: e.target.value }
                       }))}
                     />
                   </div>
@@ -767,6 +783,7 @@ const AdminDiamondTraders = () => {
                        value={paymentMethods.manual.bankName}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        manual: { ...prev.manual, bankName: e.target.value }
                       }))}
                     />
                   </div>
@@ -777,6 +794,7 @@ const AdminDiamondTraders = () => {
                        value={paymentMethods.manual.instructions}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        manual: { ...prev.manual, instructions: e.target.value }
                       }))}
                       rows={2}
                     />
@@ -801,6 +819,7 @@ const AdminDiamondTraders = () => {
                   checked={paymentMethods.binance.enabled}
                   onCheckedChange={(checked) => setPaymentMethods(prev => ({
                     ...prev,
+                    binance: { ...prev.binance, enabled: checked }
                   }))}
                 />
               </div>
@@ -813,6 +832,7 @@ const AdminDiamondTraders = () => {
                       value={paymentMethods.binance.payId}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        binance: { ...prev.binance, payId: e.target.value }
                       }))}
                     />
                   </div>
@@ -823,6 +843,7 @@ const AdminDiamondTraders = () => {
                       value={paymentMethods.binance.email}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        binance: { ...prev.binance, email: e.target.value }
                       }))}
                     />
                   </div>
@@ -846,6 +867,7 @@ const AdminDiamondTraders = () => {
                   checked={paymentMethods.epay.enabled}
                   onCheckedChange={(checked) => setPaymentMethods(prev => ({
                     ...prev,
+                    epay: { ...prev.epay, enabled: checked }
                   }))}
                 />
               </div>
@@ -858,6 +880,7 @@ const AdminDiamondTraders = () => {
                       value={paymentMethods.epay.accountId}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        epay: { ...prev.epay, accountId: e.target.value }
                       }))}
                     />
                   </div>
@@ -868,6 +891,7 @@ const AdminDiamondTraders = () => {
                       value={paymentMethods.epay.phone}
                       onChange={(e) => setPaymentMethods(prev => ({
                         ...prev,
+                        epay: { ...prev.epay, phone: e.target.value }
                       }))}
                     />
                   </div>

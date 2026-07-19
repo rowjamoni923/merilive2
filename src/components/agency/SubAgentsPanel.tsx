@@ -38,6 +38,7 @@ interface SubAgency {
   } | null;
   level_info?: {
     level_name: string;
+    commission_rate: number;
   };
 }
 
@@ -114,6 +115,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
             } : null,
             level_info: levelInfo ? {
               level_name: levelInfo.level_name,
+              commission_rate: levelInfo.commission_rate
             } : undefined
           };
         });
@@ -139,21 +141,29 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
     if (success) {
       setCopiedLink(true);
       toast({
+        title: "Link Copied!",
+        description: "Sub-agency invite link copied to clipboard",
       });
       setTimeout(() => setCopiedLink(false), 2000);
     } else {
       toast({
+        title: "Failed to copy",
+        description: "Please try again",
+        variant: "destructive"
       });
     }
   };
 
   const shareReferralLink = async () => {
     const success = await shareLink(referralLink, {
+      title: 'Create a Sub-Agency',
       text: 'Use this link to create a sub-agency under my agency and start earning together!'
     });
     
     if (success) {
       toast({
+        title: "Link Shared!",
+        description: "Referral link shared successfully",
       });
     }
   };

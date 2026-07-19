@@ -201,6 +201,8 @@ export function ActiveCallScreen({
         try {
           callCameraHandleRef.current?.release();
           callCameraHandleRef.current = adoptCameraSession(stream, {
+            video: true,
+            audio: true,
           });
         } catch { /* non-fatal */ }
         setPreviewStream(stream);
@@ -301,7 +303,7 @@ export function ActiveCallScreen({
   // The actual deduction happens on the backend every 60 seconds
   // We only show the ACTUAL billed amounts from the database (updated every 5s)
   // NO calculations or interpolation - Admin panel settings are the only source
-  // totalCoinsSpent = actual diamonds deducted from caller (set by admin: e.g., 2000/min)
+  // totalCoinsSpent = actual coins deducted from caller (set by admin: e.g., 2000/min)
   // hostEarned = actual beans credited to host (admin commission: e.g., 60% = 1200 beans)
   const displayedCoinsSpent = totalCoinsSpent;
   const displayedHostEarned = hostEarned;
@@ -350,9 +352,11 @@ export function ActiveCallScreen({
   // MediaStream (no second mic open). Runs for BOTH parties — either side
   // sharing contact info is penalized identically to text/F6.
   useLiveVoiceMonitor({
+    enabled: isOpen && isConnected,
     userId,
     context: "call",
     sourceId: callId,
+    isMicEnabled: isAudioEnabled,
     getMediaStream: () => localStream,
     onViolation: ({ matches, beansDeducted, violationNumber }) => {
       const matchPreview = matches.slice(0, 2).join(", ");
@@ -516,7 +520,7 @@ export function ActiveCallScreen({
     return () => window.clearTimeout(t);
   }, [isOpen, callId, callStatus, isConnected, onEndCall]);
 
-  // Fetch user diamonds, display name AND host photos
+  // Fetch user coins, display name AND host photos
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!userId) return;
@@ -615,7 +619,7 @@ export function ActiveCallScreen({
         soundUrl: detail.giftSoundUrl || undefined,
         giftColor: "bg-pink-500/50",
         count: detail.count || 1,
-        diamonds: detail.giftCoins || 0,
+        coins: detail.giftCoins || 0,
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
@@ -624,7 +628,12 @@ export function ActiveCallScreen({
         ...prev,
         {
           id: `gift-recv-${detail.senderId}-${Date.now()}`,
+          senderId: detail.senderId,
+          senderName: detail.senderName || 'User',
           message: encodeInlineGiftMarker({
+            giftName: detail.giftName || 'Gift',
+            count: detail.count || 1,
+            coins: detail.giftCoins || 0,
             iconUrl: detail.giftIconUrl || '',
           }),
           timestamp: Date.now(),
@@ -670,9 +679,9 @@ export function ActiveCallScreen({
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const formatCoins = (diamonds: number) => {
-    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
-    return diamonds.toString();
+  const formatCoins = (coins: number) => {
+    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
+    return coins.toString();
   };
 
   // Gift sending via unified gifting service (single source of truth)
@@ -705,15 +714,34 @@ export function ActiveCallScreen({
       // Show local animation immediately; the receiver gets the LiveKit packet
       // from sendGift's optimistic path without waiting for the DB round-trip.
       addFlyingGift({
+        senderId: userId,
+        senderName: "You",
+        giftName: gift.name,
+        giftIcon: "🎁",
+        giftImageUrl: gift.icon_url || undefined,
+        animationUrl: gift.animation_url || gift.icon_url || undefined,
+        animationFormat: gift.animation_format || null,
+        animationConfigUrl: gift.animation_config_url || undefined,
+        soundUrl: gift.sound_url || undefined,
+        giftColor: "bg-pink-500/50",
         count,
+        coins: gift.diamonds,
         isOwnGift: true,
       });
       // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
       setChatMessages((prev) => [
         ...prev,
         {
+          id: `gift-send-${Date.now()}`,
+          senderId: userId,
+          senderName: myDisplayName || 'You',
+          message: encodeInlineGiftMarker({
+            giftName: gift.name,
             count,
+            coins: gift.diamonds,
+            iconUrl: gift.icon_url || '',
           }),
+          timestamp: Date.now(),
         },
       ]);
       playSound('gift');
@@ -721,8 +749,10 @@ export function ActiveCallScreen({
       const result = await sendGift({
         giftId: gift.id,
         gift,
+        senderId: userId,
         receiverId: remoteUserId,
         quantity: count,
+        context: 'call',
         callId: callId || undefined,
       });
 
@@ -914,7 +944,9 @@ export function ActiveCallScreen({
         userId: detail.userId,
         displayName: detail.displayName,
         avatarUrl: detail.avatarUrl ?? null,
+        message: detail.message,
         isSelf: detail.userId === userId,
+        timestamp: detail.timestamp || Date.now(),
       }).catch(() => { /* old APK no-op */ });
     };
     window.addEventListener('livekit-chat-message', onPeer as EventListener);
@@ -923,16 +955,33 @@ export function ActiveCallScreen({
         const handle = await NativeCall.addListener('native-call-chat-send', (ev) => {
           if (!ev || ev.callId !== callId || !ev.text?.trim()) return;
           const msg = {
+            id: ev.clientId || `${ev.ts}-${userId}`,
+            senderId: userId || '',
+            senderName: myDisplayName,
+            message: ev.text.trim(),
+            timestamp: ev.ts || Date.now(),
           };
           setChatMessages((prev) => [...prev, msg]);
           checkToxic(ev.text, { contextType: 'call', callId }).catch(() => {});
           void publishChatMessage('call', callId, {
+            messageId: msg.id,
+            userId: userId || '',
+            displayName: myDisplayName,
+            message: ev.text.trim(),
             messageType: 'text',
+            timestamp: msg.timestamp,
           }).catch(() => { /* non-fatal */ });
           // Echo own msg back into native overlay too so the user sees
           // their own bubble immediately.
           void NativeCall.pushChatMessage({
             callId,
+            messageId: msg.id,
+            userId: userId || '',
+            displayName: myDisplayName,
+            avatarUrl: myAvatarUrl,
+            message: ev.text.trim(),
+            isSelf: true,
+            timestamp: msg.timestamp,
           }).catch(() => {});
         });
         detach = () => { try { handle.remove(); } catch { /* ignore */ } };
@@ -958,6 +1007,11 @@ export function ActiveCallScreen({
       setChatMessages((prev) => [
         ...prev,
         {
+          id: detail.messageId,
+          senderId: detail.userId,
+          senderName: detail.displayName || 'User',
+          message: detail.message,
+          timestamp: detail.timestamp || Date.now(),
         },
       ]);
     };
@@ -973,6 +1027,11 @@ export function ActiveCallScreen({
     if (!text || !callId || !userId) return;
 
     const msg = {
+      id: `${Date.now()}-${userId}`,
+      senderId: userId,
+      senderName: myDisplayName,
+      message: text,
+      timestamp: Date.now(),
     };
 
     setChatMessages((prev) => [...prev, msg]);
@@ -983,7 +1042,12 @@ export function ActiveCallScreen({
 
     // Pkg83: fan out via LiveKit DataPacket (chat scope='call').
     void publishChatMessage('call', callId, {
+      messageId: msg.id,
       userId,
+      displayName: myDisplayName,
+      message: text,
+      messageType: 'text',
+      timestamp: msg.timestamp,
     }).catch(() => { /* non-fatal */ });
   };
 
@@ -1007,6 +1071,7 @@ export function ActiveCallScreen({
       data-room-shell="call"
       className="fixed inset-0 z-[2147483600] isolate flex select-none overflow-hidden"
       style={{ 
+        position: 'relative',
         userSelect: 'none', 
         WebkitUserSelect: 'none',
         contain: 'layout style paint',
@@ -1017,6 +1082,7 @@ export function ActiveCallScreen({
         // two-person media canvas is transparent so bounded Android TextureView
         // slots can show through; this prevents a raw native preview/fullscreen
         // surface from becoming the visible "third-class" UI during accept.
+        background: (revealNativeConnectedCanvas && !callEnded) ? 'transparent' : '#050208',
       }}
     >
       <div
@@ -1066,6 +1132,7 @@ export function ActiveCallScreen({
             <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
               style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(30,15,55,0.65) 100%)',
                 border: '1px solid rgba(255,255,255,0.14)',
                 boxShadow: '0 8px 24px -8px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 6px rgba(0,0,0,0.35)',
               }}
@@ -1116,6 +1183,9 @@ export function ActiveCallScreen({
           {/* Center - Duration timer */}
           <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full backdrop-blur-xl shrink-0"
             style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(20,8,40,0.6) 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 8px 20px -8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16)',
             }}
           >
             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
@@ -1142,6 +1212,9 @@ export function ActiveCallScreen({
 
               <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full backdrop-blur-xl"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.28) 0%, rgba(234,88,12,0.22) 100%)',
+                  border: '1px solid rgba(252,211,77,0.5)',
+                  boxShadow: '0 8px 20px -6px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
                 }}
               >
                 <BeansIcon size={14} />
@@ -1155,6 +1228,9 @@ export function ActiveCallScreen({
             ) : (
               <div className="flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-xl"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.18) 100%)',
+                  border: '1px solid rgba(110,231,183,0.45)',
+                  boxShadow: '0 8px 18px -6px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
               >
                 <ShieldCheck className="w-3 h-3 text-emerald-200" />
@@ -1261,6 +1337,8 @@ export function ActiveCallScreen({
               {isHost && (
                 <div className="flex items-center gap-2.5 mt-4 px-5 py-2.5 rounded-2xl border border-emerald-300/40 backdrop-blur-xl"
                   style={{
+                    background: 'linear-gradient(135deg, rgba(16,185,129,0.28) 0%, rgba(5,150,105,0.2) 100%)',
+                    boxShadow: '0 8px 22px -8px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.25)',
                   }}
                 >
                   <TrendingUp className="w-4 h-4 text-emerald-200" />
@@ -1286,7 +1364,9 @@ export function ActiveCallScreen({
                 <div
                   className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md"
                   style={{
+                    background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(30,15,55,0.55))',
                     textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
                   }}
                 >
                   You
@@ -1421,6 +1501,9 @@ export function ActiveCallScreen({
               <div
                 className="absolute left-1.5 top-1.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white border border-white/20 backdrop-blur-md"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(30,15,55,0.55))',
+                  textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
                 }}
               >
                 {secondaryLabel}
@@ -1456,7 +1539,7 @@ export function ActiveCallScreen({
                       giftName={giftMarker.giftName}
                       giftIconUrl={giftMarker.iconUrl || undefined}
                       count={giftMarker.count}
-                      diamonds={giftMarker.diamonds}
+                      coins={giftMarker.diamonds}
                       isSelf={isMe}
                       surface="overlay"
                       compact
@@ -1501,9 +1584,12 @@ export function ActiveCallScreen({
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="absolute bottom-24 right-3 z-[100] backdrop-blur-xl"
             style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(25,12,50,0.88) 100%)',
+              border: '1px solid rgba(255,255,255,0.18)',
               borderRadius: '20px',
               padding: '8px',
               minWidth: '180px',
+              boxShadow: '0 18px 44px -10px rgba(0,0,0,0.7), 0 0 24px rgba(168,85,247,0.18), inset 0 1px 0 rgba(255,255,255,0.16)',
             }}
           >
             <button onClick={() => { toggleAudio(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-all">
@@ -1541,6 +1627,9 @@ export function ActiveCallScreen({
             {/* Message input pill */}
             <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full backdrop-blur-2xl relative overflow-hidden"
               style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+                border: '1px solid rgba(255,255,255,0.16)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 20px -10px rgba(0,0,0,0.55)',
               }}
             >
               <span aria-hidden className="pointer-events-none absolute inset-x-3 top-0 h-px"
@@ -1561,8 +1650,10 @@ export function ActiveCallScreen({
                 disabled={!chatInput.trim()}
                 className="w-7 h-7 rounded-full flex items-center justify-center border border-white/25 relative shrink-0"
                 style={{
+                  background: chatInput.trim()
                     ? 'linear-gradient(135deg, #f472b6, #ec4899 55%, #a855f7)'
                     : 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                  boxShadow: chatInput.trim()
                     ? '0 6px 16px -6px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.45)'
                     : 'inset 0 1px 0 rgba(255,255,255,0.15)',
                 }}
@@ -1579,8 +1670,11 @@ export function ActiveCallScreen({
               onClick={() => { try { void toggleAudio(); } catch { /* ignore */ } }}
               className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl relative overflow-hidden"
               style={{
+                background: isAudioEnabled
                   ? 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)'
                   : 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 45%, #b91c1c 100%)',
+                border: `1px solid ${isAudioEnabled ? 'rgba(255,255,255,0.18)' : 'rgba(252,165,165,0.45)'}`,
+                boxShadow: isAudioEnabled
                   ? '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)'
                   : '0 10px 22px -8px rgba(239,68,68,0.6), inset 0 1px 0 rgba(255,255,255,0.4)',
               }}
@@ -1599,6 +1693,9 @@ export function ActiveCallScreen({
               onClick={handleEndCall}
               className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #fca5a5 0%, #ef4444 40%, #b91c1c 100%)',
+                boxShadow: '0 10px 24px -6px rgba(239,68,68,0.65), 0 4px 10px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.3)',
+                border: '1px solid rgba(252,165,165,0.45)',
               }}
               aria-label="End call"
             >
@@ -1614,6 +1711,9 @@ export function ActiveCallScreen({
               onClick={() => setShowGiftPanel(true)}
               className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
               style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #f9a8d4 0%, #ec4899 40%, #a855f7 100%)',
+                boxShadow: '0 10px 24px -6px rgba(236,72,153,0.55), 0 4px 10px -2px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 8px rgba(0,0,0,0.28)',
+                border: '1px solid rgba(249,168,212,0.4)',
               }}
               aria-label="Send gift"
             >
@@ -1629,6 +1729,9 @@ export function ActiveCallScreen({
               onClick={() => setShowMoreMenu(!showMoreMenu)}
               className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 backdrop-blur-xl"
               style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                boxShadow: '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
             >
               <MoreVertical className="w-5 h-5 text-white/85" />

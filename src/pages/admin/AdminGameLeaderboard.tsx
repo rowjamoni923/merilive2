@@ -36,6 +36,7 @@ interface RewardConfig {
   rank_from: number;
   rank_to: number;
   reward_diamonds: number;
+  reward_diamonds: number;
   reward_beans: number;
   reward_badge: string | null;
   min_target: number;
@@ -200,6 +201,11 @@ export default function AdminGameLeaderboard() {
       .sort(([, a], [, b]) => b.wins !== a.wins ? b.wins - a.wins : b.amount - a.amount)
       .slice(0, 50)
       .map(([uid, val]) => ({
+        id: uid,
+        name: pMap[uid]?.display_name || pMap[uid]?.username || 'Player',
+        avatar_url: pMap[uid]?.avatar_url || null,
+        stat_value: val.wins,
+        stat_label: 'wins',
         extra_info: `${val.amount.toLocaleString()} earned`,
       }));
   };
@@ -230,6 +236,12 @@ export default function AdminGameLeaderboard() {
       .sort(([, a], [, b]) => b - a)
       .slice(0, 50)
       .map(([aid, val]) => ({
+        id: aid,
+        name: aMap[aid]?.name || 'Agency',
+        avatar_url: aMap[aid]?.logo_url || null,
+        stat_value: val,
+        stat_label: 'total income',
+        extra_info: aMap[aid]?.agency_code || '',
       }));
   };
 
@@ -260,6 +272,11 @@ export default function AdminGameLeaderboard() {
       }
       if (reward.reward_diamonds > 0) {
         const { data, error } = await supabase.rpc('admin_adjust_balance', {
+          _target_type: 'agency',
+          _target_id: entry.id,
+          _field: 'diamond_balance',
+          _delta: reward.reward_diamonds,
+          _reason: `Leaderboard reward: ${category}/${period}`,
         });
         if (error) throw error;
         if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency diamonds reward failed');
@@ -315,6 +332,8 @@ export default function AdminGameLeaderboard() {
           reward_amount: rewardAmount,
           period_start: start,
           period_end: end,
+          stat_value: Math.floor(entry.stat_value),
+          reward_diamonds: reward.reward_diamonds,
           reward_diamonds: reward.reward_diamonds,
           reward_beans: reward.reward_beans,
         });
@@ -534,12 +553,17 @@ export default function AdminGameLeaderboard() {
 const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig; onCommit: (field: string, value: number) => void }) => {
   const [draft, setDraft] = useState({
     reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
     reward_beans: String(reward.reward_beans ?? 0),
     min_target: String(reward.min_target ?? 0),
   });
 
   useEffect(() => {
     setDraft({
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_beans: String(reward.reward_beans ?? 0),
+      min_target: String(reward.min_target ?? 0),
     });
   }, [reward.id, reward.reward_diamonds, reward.reward_diamonds, reward.reward_beans, reward.min_target]);
 

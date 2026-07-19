@@ -257,12 +257,30 @@ const AdminRechargeHistory = () => {
         }
 
         return {
+          id: r.id,
+          user_id: r.user_id,
+          diamond_amount: r.diamonds_received || 0,
+          amount_usd: r.amount || 0,
+          amount_local: r.local_currency_amount || 0,
+          currency_code: r.currency_code || 'USD',
+          payment_method: src === 'google_play' ? 'Google Play' : (r.payment_method || src),
+          status: r.status,
+          created_at: r.created_at,
+          processed_at: r.completed_at || null,
+          helper_id: null,
+          payment_details: { 
             purchase_source: r.purchase_source,
+            google_order_id: r.google_order_id,
             google_product_id: r.google_product_id,
             agent_name: r.agent_name,
             agency_name: r.agency_name,
             ip_address: r.ip_address,
           },
+          user_payment_proof: null,
+          source: sourceType,
+          source_label: sourceLabel,
+          transaction_id: r.transaction_id || null,
+          google_order_id: r.google_order_id || null,
         };
       });
 
@@ -274,25 +292,77 @@ const AdminRechargeHistory = () => {
         .filter((r: any) => !['completed', 'already_processed'].includes(String(r.status || '')))
         .filter((r: any) => !rechargeTokenHashes.has(String(r.purchase_token_hash || '')))
         .map((r: any) => ({
+          id: r.id,
+          user_id: r.user_id,
+          diamond_amount: r.diamonds_amount || 0,
+          amount_usd: r.amount_usd || 0,
+          amount_local: 0,
+          currency_code: r.currency_code || 'USD',
+          payment_method: 'Google Play Verification',
+          status: r.status === 'already_processed' ? 'completed' : r.status,
+          created_at: r.created_at,
+          processed_at: r.completed_at || null,
+          helper_id: null,
+          payment_details: {
             product_id: r.product_id,
+            google_order_id: r.google_order_id,
             requested_order_id: r.requested_order_id,
             purchase_token_suffix: r.purchase_token_suffix,
             error_code: r.error_code,
             error_message: r.error_message,
             google_purchase_state: r.google_purchase_state,
           },
+          user_payment_proof: null,
+          source: 'google_play_attempt' as const,
+          source_label: '📱 Google Play Attempt',
+          transaction_id: r.purchase_token_suffix ? `token…${r.purchase_token_suffix}` : r.purchase_token_hash,
+          google_order_id: r.google_order_id || r.requested_order_id || null,
         }));
 
       // Transform payment_transactions
       const gatewayRecords: RechargeRecord[] = (gatewayRes.data || []).map((r: any) => ({
+        id: r.id,
+        user_id: r.user_id,
+        diamond_amount: r.coins_to_receive || 0,
+        amount_usd: r.amount_usd || 0,
+        amount_local: r.amount_local || 0,
+        currency_code: r.currency_code || 'USD',
+        payment_method: 'Payment Gateway',
+        status: r.status,
+        created_at: r.created_at,
+        processed_at: r.completed_at || null,
+        helper_id: null,
+        payment_details: r.payment_data || null,
+        user_payment_proof: null,
+        source: 'gateway' as const,
+        source_label: '💳 Gateway',
+        transaction_id: r.gateway_transaction_id || r.transaction_ref || null,
+        google_order_id: null,
       }));
 
       // Transform helper_transactions (Trader)
       const traderRecords: RechargeRecord[] = (traderRes.data || []).map((r: any) => ({
+        id: r.id,
+        user_id: r.user_id,
+        diamond_amount: r.diamond_amount || 0,
+        amount_usd: r.usd_amount || 0,
+        amount_local: r.local_amount || 0,
+        currency_code: r.currency_code || 'USD',
+        payment_method: r.payment_method || 'Trader Wallet',
+        status: r.status || 'completed',
+        created_at: r.created_at,
+        processed_at: r.processed_at || null,
+        helper_id: r.helper_id || null,
+        payment_details: {
           transaction_type: r.transaction_type,
           notes: r.notes,
           ...(r.payment_details || {}),
         },
+        user_payment_proof: null,
+        source: 'trader' as const,
+        source_label: '🏪 Trader',
+        transaction_id: null,
+        google_order_id: null,
       }));
 
       // Transform diamond_transfers (Diamond Transfer)
@@ -305,10 +375,27 @@ const AdminRechargeHistory = () => {
         else if (senderType === 'trader') methodLabel = 'Trader Transfer';
 
         return {
+          id: r.id,
+          user_id: r.receiver_id,
+          diamond_amount: r.amount || 0,
+          amount_usd: 0,
+          amount_local: 0,
+          currency_code: 'USD',
+          payment_method: methodLabel,
+          status: r.status || 'completed',
+          created_at: r.created_at,
+          processed_at: null,
+          helper_id: null,
+          payment_details: {
             sender_type: r.sender_type,
             sender_id: r.sender_id,
             note: r.note,
           },
+          user_payment_proof: null,
+          source: 'diamond_transfer' as const,
+          source_label: '💎 Diamond Transfer',
+          transaction_id: null,
+          google_order_id: null,
         };
       });
 
@@ -321,6 +408,18 @@ const AdminRechargeHistory = () => {
             ? 'failed'
             : rawStatus;
         return {
+          id: r.id,
+          user_id: r.user_id,
+          diamond_amount: r.diamonds_amount || 0,
+          amount_usd: Number(r.price_usd || 0),
+          amount_local: Number(r.pay_amount || 0),
+          currency_code: r.pay_currency || 'USD',
+          payment_method: `Swift Pay (${r.pay_currency || 'crypto'}/${r.pay_network || ''})`,
+          status: uiStatus,
+          created_at: r.created_at,
+          processed_at: r.credited_at || r.paid_at || null,
+          helper_id: null,
+          payment_details: {
             raw_status: rawStatus,
             pay_currency: r.pay_currency,
             pay_network: r.pay_network,
@@ -330,9 +429,15 @@ const AdminRechargeHistory = () => {
             paid_at: r.paid_at,
             credited_at: r.credited_at,
             poll_attempts: r.poll_attempts,
+            error_message: r.error_message,
             target_type: r.target_type,
             target_helper_id: r.target_helper_id,
           },
+          user_payment_proof: null,
+          source: 'swift_pay' as const,
+          source_label: '🪙 Swift Pay',
+          transaction_id: r.payment_id || null,
+          google_order_id: null,
         };
       });
 
@@ -498,6 +603,7 @@ const AdminRechargeHistory = () => {
       const codeIs = (row: RtdnEventRow, codes: number[]) =>
         row.event_type_code != null && codes.includes(row.event_type_code);
       setRtdnStats({
+        total: rows.length,
         processed: rows.filter(r => r.processed).length,
         failed: rows.filter(r => !!r.process_error).length,
         // subscription purchase (4) + one-time purchase (1)
@@ -506,6 +612,7 @@ const AdminRechargeHistory = () => {
           (r.notification_type === 'one_time_product' && codeIs(r, [1]))
         ).length,
         renewed: rows.filter(r => r.notification_type === 'subscription' && codeIs(r, [2, 1, 7])).length,
+        cancelled: rows.filter(r => r.notification_type === 'subscription' && codeIs(r, [3, 12, 13])).length,
         refunded: rows.filter(r => r.notification_type === 'voided').length,
       });
     } catch (e) {

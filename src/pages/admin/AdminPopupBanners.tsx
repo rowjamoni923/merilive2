@@ -86,10 +86,13 @@ const AdminPopupBanners = () => {
     setSaving(true);
     try {
       const payload = {
+        title: formData.title, description: formData.description || null,
         image_url: formData.image_url, link_url: formData.link_url || null,
         link_type: formData.link_type || 'internal',
+        display_duration_seconds: formData.display_duration_seconds || 3,
         skip_delay_seconds: formData.skip_delay_seconds || 3,
         auto_dismiss_seconds: formData.auto_dismiss_seconds ?? 10,
+        is_active: formData.is_active, display_order: formData.display_order,
         start_date: formData.start_date || null, end_date: formData.end_date || null,
       };
 
@@ -127,6 +130,14 @@ const AdminPopupBanners = () => {
   const handleEdit = (banner: PopupBanner) => {
     setEditingBanner(banner);
     setFormData({
+      title: banner.title, description: banner.description || '',
+      image_url: banner.image_url, link_url: banner.link_url || '',
+      link_type: banner.link_type || 'internal',
+      display_duration_seconds: banner.display_duration_seconds,
+      skip_delay_seconds: banner.skip_delay_seconds,
+      auto_dismiss_seconds: banner.auto_dismiss_seconds,
+      is_active: banner.is_active, display_order: banner.display_order,
+      start_date: banner.start_date ? banner.start_date.split('T')[0] : '',
       end_date: banner.end_date ? banner.end_date.split('T')[0] : '',
     });
     setIsDialogOpen(true);
@@ -134,6 +145,9 @@ const AdminPopupBanners = () => {
 
   const resetForm = () => {
     setFormData({
+      title: '', description: '', image_url: '', link_url: '', link_type: 'internal',
+      display_duration_seconds: 3, skip_delay_seconds: 3, auto_dismiss_seconds: 10,
+      is_active: true, display_order: banners.length, start_date: '', end_date: '',
     });
   };
 

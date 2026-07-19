@@ -97,6 +97,10 @@ export function RecordingDialog({ open, onClose, streamId }: Props) {
           return;
         }
         setActive({
+          egressId: r.egressId,
+          format: "hls",
+          url: r.playlistUrl,
+          startedAt: Date.now(),
         });
         toast.success(r.alreadyRecording ? "HLS recording already running" : "HLS recording started");
       }

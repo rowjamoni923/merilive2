@@ -27,14 +27,39 @@ const vehicles = {
     particles: ['#EF4444', '#F97316', '#EAB308']
   },
   bike: { 
+    emoji: '🏍️', 
+    gradient: 'from-violet-500 via-purple-500 to-fuchsia-500', 
+    name: 'Superbike',
+    glow: 'shadow-[0_0_35px_rgba(139,92,246,0.5)]',
+    particles: ['#8B5CF6', '#A855F7', '#D946EF']
   },
   plane: { 
+    emoji: '✈️', 
+    gradient: 'from-purple-500 via-fuchsia-500 to-pink-500', 
+    name: 'Private Jet',
+    glow: 'shadow-[0_0_50px_rgba(168,85,247,0.5)]',
+    particles: ['#A855F7', '#EC4899', '#8B5CF6']
   },
   helicopter: { 
+    emoji: '🚁', 
+    gradient: 'from-cyan-500 via-blue-500 to-indigo-500', 
+    name: 'Helicopter',
+    glow: 'shadow-[0_0_40px_rgba(6,182,212,0.5)]',
+    particles: ['#06B6D4', '#3B82F6', '#6366F1']
   },
   yacht: { 
+    emoji: '🛥️', 
+    gradient: 'from-teal-500 via-cyan-500 to-blue-500', 
+    name: 'Luxury Yacht',
+    glow: 'shadow-[0_0_35px_rgba(20,184,166,0.5)]',
+    particles: ['#14B8A6', '#06B6D4', '#3B82F6']
   },
   rocket: { 
+    emoji: '🚀', 
+    gradient: 'from-amber-500 via-yellow-400 to-amber-600', 
+    name: 'Rocket',
+    glow: 'shadow-[0_0_60px_rgba(251,191,36,0.6)]',
+    particles: ['#FFD700', '#FFA500', '#FF6347']
   }
 };
 
@@ -118,9 +143,12 @@ const VehicleEntranceAnimation = ({
           <motion.div
             initial={{ x: -400 }}
             animate={{ 
+              x: ['calc(-50%)', 'calc(50% - 180px)', 'calc(50% - 180px)', 'calc(150%)']
             }}
             transition={{ 
+              duration: 4,
               times: [0, 0.3, 0.7, 1],
+              ease: "easeInOut"
             }}
             className="absolute top-1/2 -translate-y-1/2 left-1/2"
           >
@@ -131,14 +159,20 @@ const VehicleEntranceAnimation = ({
                 className="absolute w-3 h-3 rounded-full"
                 style={{
                   backgroundColor: vehicle.particles[i % 3],
+                  left: -20 - i * 20,
+                  top: '50%',
                   transform: 'translateY(-50%)'
                 }}
                 animate={{
+                  opacity: [0.9, 0],
                   scale: [1, 0.3],
+                  x: [0, -40],
                   y: [0, (i % 2 === 0 ? -1 : 1) * 15]
                 }}
                 transition={{
+                  duration: 0.7,
                   repeat: Infinity,
+                  delay: i * 0.08
                 }}
               />
             ))}
@@ -160,6 +194,7 @@ const VehicleEntranceAnimation = ({
                 className="text-5xl md:text-6xl"
                 animate={{ 
                   rotate: [-5, 5, -5],
+                  y: [-3, 3, -3]
                 }}
                 transition={{ duration: 0.4, repeat: Infinity }}
               >
@@ -209,10 +244,17 @@ const VehicleEntranceAnimation = ({
               key={i}
               className="absolute w-2 h-2 rounded-full bg-yellow-300"
               style={{
+                left: `${15 + i * 10}%`,
+                top: `${20 + (i % 3) * 25}%`
               }}
               animate={{
+                scale: [0, 1.5, 0],
+                opacity: [0, 1, 0]
               }}
               transition={{
+                duration: 1.2,
+                delay: 1 + i * 0.15,
+                repeat: Infinity,
                 repeatDelay: 1
               }}
             />
@@ -222,8 +264,15 @@ const VehicleEntranceAnimation = ({
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ 
+              opacity: [0, 0.4, 0],
+              scale: [0, 2.5, 4],
+              x: [0, -150, -300]
             }}
             transition={{ 
+              duration: 2.5,
+              delay: 0.8,
+              repeat: 1,
+              repeatDelay: 1
             }}
             className="absolute left-1/2 top-[48%] w-24 h-24 rounded-full bg-gradient-to-r from-white/30 to-transparent blur-2xl"
           />

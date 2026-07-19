@@ -218,7 +218,12 @@ const Index = () => {
 
   // Fetch hosts based on subTab - Optimized for speed
   const { data: hosts } = useQuery({
+    queryKey: ["index-hosts-v4", selectedCountry, subTab, currentUserId],
+    staleTime: 1000 * 30, // Increased staleTime for better cache hits
+    gcTime: 1000 * 300,  // Keep in memory longer
+    refetchOnMount: false, // Don't refetch on every mount if we have data
     refetchOnWindowFocus: false,
+    queryFn: async () => {
       // Fetch public-safe host rows through SECURITY DEFINER RPC.
       // profiles_public is security_invoker, so normal users cannot see other
       // users' base profile rows after public SELECT was correctly removed.
@@ -491,6 +496,7 @@ const Index = () => {
 
   const { active: nativeFeedActive, setItems: setNativeFeedItems } = useNativeFeed({
     enabled: true,
+    title: "Home",
     onTap: (id) => {
       const meta = hostIndexRef.current.get(id);
       if (meta) handleUserClick(id, meta.isLive, meta.liveStreamId);
@@ -658,6 +664,8 @@ const Index = () => {
                   <div
                     className="flex items-center gap-1 rounded-full px-2 py-[3px] backdrop-blur-md"
                     style={{
+                      background: 'rgba(15, 23, 42, 0.55)',
+                      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.10)',
                     }}
                   >
                     <Eye className="w-3 h-3 text-white" />
@@ -739,6 +747,8 @@ const Index = () => {
               <div
                 className="absolute bottom-2.5 right-2 z-10 flex items-center gap-1 rounded-full px-2 py-[4px] backdrop-blur-md pointer-events-none"
                 style={{
+                  background: 'rgba(245, 158, 11, 0.92)',
+                  boxShadow: '0 4px 10px -2px rgba(245,158,11,0.45), inset 0 0 0 1px rgba(255,255,255,0.20)',
                 }}
               >
                 <span className="w-[5px] h-[5px] rounded-full bg-white" />

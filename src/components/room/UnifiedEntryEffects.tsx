@@ -26,6 +26,7 @@ interface UnifiedEntryEffectsProps {
   entryNameBarInfo: {
     userName: string;
     userLevel: number;
+    avatarUrl?: string;
     animationUrl?: string; // Optional - gradient fallback if empty/missing
   } | null;
   onNameBarComplete: () => void;
@@ -34,6 +35,9 @@ interface UnifiedEntryEffectsProps {
   showVehicleAnimation?: boolean;
   vehicleUserInfo?: {
     userId?: string;
+    displayName: string;
+    avatarUrl?: string;
+    level: number;
     vehicleAnimationUrl: string; // Required - SVGA animation
     vehicleSoundUrl?: string | null; // Optional - admin-uploaded fallback sound
   } | null;
@@ -298,6 +302,9 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
           key={i}
           className="absolute h-[2px] rounded-full bg-gradient-to-r from-orange-500 to-transparent"
           style={{
+            top: `${20 + Math.random() * 60}%`,
+            left: '-100px',
+            width: `${80 + Math.random() * 120}px`
           }}
           initial={{ x: -200, opacity: 0 }}
           animate={{ 

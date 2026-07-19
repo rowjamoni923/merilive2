@@ -88,6 +88,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Invalid token" }),
         {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
@@ -103,6 +105,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Admin only" }),
         {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
@@ -115,19 +119,26 @@ serve(async (req) => {
         error: "GOOGLE_SERVICE_ACCOUNT_JSON not set",
       };
       return new Response(JSON.stringify({ success: false, result }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     let sa: any;
     try {
       sa = JSON.parse(raw);
       result.checks.serviceAccount = {
+        ok: true,
         clientEmail: sa.client_email,
         projectId: sa.project_id,
       };
     } catch (e) {
       result.checks.serviceAccount = {
+        ok: false,
+        error: `JSON parse: ${String(e)}`,
       };
       return new Response(JSON.stringify({ success: false, result }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -136,11 +147,14 @@ serve(async (req) => {
     try {
       accessToken = await getAccessToken(sa);
       result.checks.oauthToken = {
+        ok: true,
         tokenPrefix: accessToken.slice(0, 12) + "...",
       };
     } catch (e) {
       result.checks.oauthToken = { ok: false, error: String(e) };
       return new Response(JSON.stringify({ success: false, result }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -153,6 +167,8 @@ serve(async (req) => {
     );
     const probeBody = await probe.text();
     result.checks.googlePlayApi = {
+      ok: probe.status !== 401 && probe.status !== 403,
+      status: probe.status,
       bodyPreview: probeBody.slice(0, 400),
     };
 
@@ -172,10 +188,12 @@ serve(async (req) => {
         productId: p.product_id,
         priceUsd: p.price_usd,
         resolved: !!info?.diamonds,
-        diamonds: info?.diamonds,
+        coins: info?.diamonds,
+        error: infoErr?.message,
       });
     }
     result.checks.products = {
+      ok: productChecks.every((p) => p.resolved),
       total: productChecks.length,
       items: productChecks,
     };
@@ -203,11 +221,15 @@ serve(async (req) => {
       result.checks.googlePlayApi.ok &&
       result.checks.products.ok;
     return new Response(JSON.stringify({ success: allOk, result }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("[google-play-health] error", e);
     result.error = e instanceof Error ? e.message : String(e);
     return new Response(JSON.stringify({ success: false, result }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

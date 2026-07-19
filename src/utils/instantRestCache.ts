@@ -52,7 +52,7 @@ const isRestRead = (url: string, method: string): boolean => {
 const isSensitiveBalanceRead = (url: string): boolean => {
   const decoded = decodeURIComponent(url).toLowerCase();
   if (!decoded.includes("/rest/v1/profiles") && !decoded.includes("/rest/v1/agencies")) return false;
-  return /select=\*|diamonds|diamonds|beans|wallet_balance|diamond_balance|pending_earnings|weekly_earnings|total_beans/.test(decoded);
+  return /select=\*|coins|diamonds|beans|wallet_balance|diamond_balance|pending_earnings|weekly_earnings|total_beans/.test(decoded);
 };
 
 const makeCacheKey = (namespace: string, url: string, method: string, headers: Headers): string => {

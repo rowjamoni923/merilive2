@@ -33,7 +33,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
   // This will automatically update when host changes their rate
   const { callRate, loading } = useHostCallRate(isOpen ? hostId : null);
 
-  // Check if rate is configured and user has enough diamonds
+  // Check if rate is configured and user has enough coins
   const rateConfigured = callRate !== null && callRate > 0;
   const hasEnoughCoins = rateConfigured && userDiamonds >= callRate;
 

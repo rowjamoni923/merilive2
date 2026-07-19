@@ -68,6 +68,7 @@ const Game3DCard = ({
       <motion.div
         animate={{
           rotateY: isHovered ? 5 : 0,
+          rotateX: isHovered ? -5 : 0,
         }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
@@ -77,6 +78,7 @@ const Game3DCard = ({
           isSelected && "ring-3 ring-white ring-offset-2 ring-offset-transparent"
         )}
         style={{ 
+          transformStyle: 'preserve-3d',
           boxShadow: isHovered 
             ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(147, 51, 234, 0.3)' 
             : '0 10px 30px -10px rgba(0, 0, 0, 0.4)'
@@ -92,6 +94,7 @@ const Game3DCard = ({
         <motion.div
           animate={{
             x: isHovered ? '100%' : '-100%',
+            opacity: isHovered ? 0.4 : 0
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
@@ -113,6 +116,9 @@ const Game3DCard = ({
         {/* Game Icon - Show Logo from Admin Panel or Fallback to Emoji */}
         <motion.div
           animate={{
+            y: isHovered ? -8 : 0,
+            scale: isHovered ? 1.15 : 1,
+            rotateY: isHovered ? 10 : 0
           }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           className="absolute inset-0 flex items-center justify-center p-1.5"
@@ -171,6 +177,8 @@ const Game3DCard = ({
       {/* 3D Shadow */}
       <motion.div
         animate={{
+          scale: isHovered ? 1.1 : 0.95,
+          opacity: isHovered ? 0.3 : 0.15
         }}
         className="absolute inset-0 -bottom-2 rounded-2xl bg-black blur-xl -z-10"
         style={{ transform: 'translateZ(-10px) translateY(10px)' }}
@@ -280,6 +288,7 @@ export function GameSelectionModal({
                       repeatType: "reverse" 
                     }}
                     style={{
+                      boxShadow: '0 8px 30px rgba(168, 85, 247, 0.4)'
                     }}
                   >
                     <Gamepad2 className="w-6 h-6 text-white" />
@@ -370,6 +379,7 @@ export function GameSelectionModal({
                         games.find(g => g.id === selectedGame)?.color || "from-purple-600 to-pink-600"
                       )}
                       style={{
+                        boxShadow: '0 10px 40px rgba(168, 85, 247, 0.4), inset 0 2px 0 rgba(255,255,255,0.2)'
                       }}
                     >
                       <motion.span

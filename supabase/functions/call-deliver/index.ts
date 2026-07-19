@@ -113,6 +113,8 @@ serve(async (req: Request): Promise<Response> => {
       const { data: userData, error: userErr } = await userClient.auth.getUser(token);
       if (userErr || !userData?.user?.id) {
         return new Response(JSON.stringify({ error: "Invalid session" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       authedCallerId = userData.user.id;
@@ -132,11 +134,15 @@ serve(async (req: Request): Promise<Response> => {
     const callerId = body.callerId?.trim();
     if (!callId || !calleeId || !callerId) {
       return new Response(JSON.stringify({ error: "callId, calleeId, callerId required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (!isInternal && authedCallerId !== callerId) {
       return new Response(JSON.stringify({ error: "caller mismatch" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -192,17 +198,23 @@ serve(async (req: Request): Promise<Response> => {
     const callErr = callRowRes.error;
     if (callErr || !callRow) {
       return new Response(JSON.stringify({ error: "call_not_found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const st = String(callRow.status || "").toLowerCase();
     if (!["ringing", "pending"].includes(st)) {
       return new Response(JSON.stringify({ ok: false, reason: "call_not_ringing", status: callRow.status }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (callRow.caller_id !== callerId || callRow.host_id !== calleeId) {
       return new Response(JSON.stringify({ error: "call_participants_mismatch" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -239,6 +251,7 @@ serve(async (req: Request): Promise<Response> => {
         callee_id: calleeId,
         attempt_number: 0,
         channel: "notification_insert",
+        status: notifInsertOk ? "sent" : "failed",
         sent_at: notifInsertOk ? new Date().toISOString() : null,
         error_message: notifInsertOk ? null : (notifErr?.message || "notifications insert failed"),
         device_info: { type: "incoming_call" },
@@ -257,6 +270,13 @@ serve(async (req: Request): Promise<Response> => {
       // can warn the caller: "Push not configured — recipient may not be
       // notified if the app is closed."
       await admin.from("call_delivery_log").insert({
+        call_id: callId,
+        callee_id: calleeId,
+        attempt_number: 1,
+        channel: "fcm",
+        status: "skipped_no_fcm",
+        error_message: "FIREBASE_SERVICE_ACCOUNT_JSON missing",
+        device_info: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
       });
       console.warn("[call-deliver] FIREBASE_SERVICE_ACCOUNT_JSON missing — push delivery skipped. Set the secret to enable background-ring delivery.");
       return new Response(JSON.stringify({
@@ -270,6 +290,8 @@ serve(async (req: Request): Promise<Response> => {
         lastResults,
         warning: "Push not configured — recipient will only be notified if the app is in the foreground.",
       }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -303,19 +325,36 @@ serve(async (req: Request): Promise<Response> => {
       if (!["ringing", "pending"].includes(fst)) {
 
         await admin.from("call_delivery_log").insert({
+          call_id: callId,
+          callee_id: calleeId,
+          attempt_number: attempt,
+          channel: "fcm",
+          status: "aborted_call_ended",
+          error_message: "Call ended before delivery",
+          device_info: { remote_status: fresh?.status },
         });
         break;
       }
 
       if (tokens.length === 0) {
         await admin.from("call_delivery_log").insert({
+          call_id: callId,
+          callee_id: calleeId,
+          attempt_number: attempt,
+          channel: "fcm",
+          status: "no_tokens",
+          error_message: "No active device tokens",
+          device_info: {},
         });
         if (attempt < maxRetries) await sleep(gapMs * Math.pow(2, attempt - 1));
         continue;
       }
 
       const dataPayload: Record<string, string> = {
+        type: "incoming_call",
+        call_id: callId,
         caller_id: callerId,
+        callee_id: calleeId,
         caller_name: callerName,
         caller_avatar: callerAvatar,
         caller_level: String(callerLevel),
@@ -327,12 +366,15 @@ serve(async (req: Request): Promise<Response> => {
         tokens.map(async (device: { token: string; platform: string }) => {
           try {
             const fcmMessage = {
+              message: {
                 token: device.token,
+                data: dataPayload,
                 android: {
                   priority: "high",
                   ttl: `${ringTimeoutSec}s`,
                 },
                 apns: {
+                  headers: { "apns-priority": "10" },
                   payload: {
                     aps: {
                       "content-available": 1,
@@ -346,6 +388,7 @@ serve(async (req: Request): Promise<Response> => {
               `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
               {
                 method: "POST",
+                headers: {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${accessToken}`,
                 },
@@ -374,6 +417,14 @@ serve(async (req: Request): Promise<Response> => {
       const okCount = results.filter((r: { success?: boolean }) => r.success).length;
 
       await admin.from("call_delivery_log").insert({
+        call_id: callId,
+        callee_id: calleeId,
+        attempt_number: attempt,
+        channel: "fcm",
+        status: okCount > 0 ? "sent" : "failed",
+        sent_at: okCount > 0 ? new Date().toISOString() : null,
+        error_message: okCount > 0 ? null : "FCM delivery failed",
+        device_info: { tokens: tokens.length, success: okCount, results },
       });
 
       if (okCount > 0) {
@@ -390,6 +441,10 @@ serve(async (req: Request): Promise<Response> => {
     // notifications-row insert (above) is the sole foreground delivery path.
     return new Response(
       JSON.stringify({
+        ok: true,
+        fcmConfigured: true,
+        attempts: maxRetries,
+        fcmDelivered: anyFcmOk,
         notifInsertOk,
         lastResults,
       }),
@@ -400,6 +455,8 @@ serve(async (req: Request): Promise<Response> => {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("[call-deliver]", e);
     return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

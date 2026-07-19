@@ -76,6 +76,8 @@ async function init() {
     });
     await Network.addListener('networkStatusChange', (s) => {
       emit({
+        connected: s.connected,
+        type: (s.connectionType as ConnectionType) || 'unknown',
       });
     });
   } catch {

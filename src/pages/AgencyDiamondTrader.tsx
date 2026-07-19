@@ -95,7 +95,7 @@ const AgencyDiamondTrader = () => {
   const [tradeHistory, setTradeHistory] = useState<TradeHistory[]>([]);
   
   // Official diamond purchase state
-  const [buyDiamondsAmount, setBuyCoinsAmount] = useState<string>("");
+  const [buyCoinsAmount, setBuyCoinsAmount] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'epay' | 'binance' | null>(null);
   const [showBuyConfirmDialog, setShowBuyConfirmDialog] = useState(false);
   const [isBuyProcessing, setIsBuyProcessing] = useState(false);
@@ -192,6 +192,9 @@ const AgencyDiamondTrader = () => {
       console.error('Error loading data:', error);
       recordClientError({ label: "AgencyDiamondTrader.enrichedHistory", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: "Failed to load data",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -234,11 +237,11 @@ const AgencyDiamondTrader = () => {
   const calculateTrade = () => {
     const amount = parseFloat(tradeAmount) || 0;
     if (activeTab === "buy") {
-      // Buying diamonds from user - agency pays, user loses diamonds
+      // Buying coins from user - agency pays, user loses coins
       const dollarValue = amount / tradeSettings.buy_rate;
       return { beans: amount, dollars: dollarValue };
     } else {
-      // Selling diamonds to user - user pays, agency loses diamonds
+      // Selling coins to user - user pays, agency loses coins
       const dollarValue = amount / tradeSettings.sell_rate;
       return { beans: amount, dollars: dollarValue };
     }
@@ -250,6 +253,9 @@ const AgencyDiamondTrader = () => {
     const amount = parseFloat(tradeAmount);
     if (isNaN(amount) || amount < tradeSettings.min_trade_amount) {
       toast({
+        title: "Error",
+        description: `Minimum ${tradeSettings.min_trade_amount} Diamonds required`,
+        variant: "destructive"
       });
       return;
     }
@@ -266,6 +272,9 @@ const AgencyDiamondTrader = () => {
 
     if (activeTab === "sell" && amount > totalAvailable) {
       toast({
+        title: "Error",
+        description: "Insufficient Diamonds in your wallet",
+        variant: "destructive"
       });
       return;
     }
@@ -273,8 +282,8 @@ const AgencyDiamondTrader = () => {
     setIsProcessing(true);
     try {
       if (activeTab === "buy") {
-        // Agency buys diamonds from user - ATOMIC operations
-        // 1. ATOMIC: Deduct from user's diamonds with FOR UPDATE locking
+        // Agency buys coins from user - ATOMIC operations
+        // 1. ATOMIC: Deduct from user's coins with FOR UPDATE locking
         const { data: deductResult, error: deductError } = await supabase
           .rpc('deduct_diamonds_from_user', {
             p_user_id: selectedUser.id,
@@ -308,7 +317,7 @@ const AgencyDiamondTrader = () => {
             receiver_id: selectedUser.id,
             amount: Math.floor(amount),
             sender_type: 'agency_buy',
-            note: `Agency bought ${Math.floor(amount)} diamonds from user`
+            note: `Agency bought ${Math.floor(amount)} coins from user`
           });
 
         toast({ title: "Diamonds purchased successfully" });
@@ -325,6 +334,7 @@ const AgencyDiamondTrader = () => {
           .rpc('helper_transfer_diamonds_to_user', {
             _sender_id: currentUserId,
             _receiver_id: selectedUser.id,
+            _amount: Math.floor(amount),
             _sender_type: senderType
           });
 
@@ -338,6 +348,11 @@ const AgencyDiamondTrader = () => {
         await supabase
           .from('diamond_transfers')
           .insert({
+            sender_id: agency.id,
+            receiver_id: selectedUser.id,
+            amount: Math.floor(amount),
+            sender_type: 'agency_sell',
+            note: `Agency sold ${Math.floor(amount)} coins to user`
           });
 
         toast({ title: "Diamonds sold successfully" });
@@ -355,6 +370,9 @@ const AgencyDiamondTrader = () => {
       console.error('Trade error:', error);
       recordClientError({ label: "AgencyDiamondTrader.addUserData", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: error?.message || "Failed to process trade",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -363,11 +381,14 @@ const AgencyDiamondTrader = () => {
 
   // Handle official diamond purchase order
   const handleOfficialBuyOrder = async () => {
-    if (!agency || !buyDiamondsAmount || !selectedPaymentMethod) return;
+    if (!agency || !buyCoinsAmount || !selectedPaymentMethod) return;
 
-    const amount = parseFloat(buyDiamondsAmount);
+    const amount = parseFloat(buyCoinsAmount);
     if (isNaN(amount) || amount < tradeSettings.min_trade_amount) {
       toast({
+        title: "Error",
+        description: `Minimum ${tradeSettings.min_trade_amount} Diamonds to buy`,
+        variant: "destructive"
       });
       return;
     }
@@ -394,6 +415,8 @@ const AgencyDiamondTrader = () => {
       if (error) throw error;
 
       toast({
+        title: "Order Submitted",
+        description: `Order for ${amount.toLocaleString()} Diamonds is being processed.`,
       });
 
       // Reset form
@@ -405,6 +428,9 @@ const AgencyDiamondTrader = () => {
       console.error('Order error:', error);
       recordClientError({ label: "AgencyDiamondTrader.dollarAmount", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: "Failed to submit order",
+        variant: "destructive"
       });
     } finally {
       setIsBuyProcessing(false);
@@ -555,7 +581,7 @@ const AgencyDiamondTrader = () => {
                   <Input
                     type="number"
                     placeholder="e.g. 100000"
-                    value={buyDiamondsAmount}
+                    value={buyCoinsAmount}
                     onChange={(e) => setBuyCoinsAmount(e.target.value)}
                     className="pl-10 text-lg h-12 font-medium"
                   />
@@ -569,7 +595,7 @@ const AgencyDiamondTrader = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => setBuyCoinsAmount(amount.toString())}
-                      className={`text-xs ${buyDiamondsAmount === amount.toString() ? 'border-primary bg-primary/10' : ''}`}
+                      className={`text-xs ${buyCoinsAmount === amount.toString() ? 'border-primary bg-primary/10' : ''}`}
                     >
                       {(amount / 1000).toLocaleString()}K
                     </Button>
@@ -578,7 +604,7 @@ const AgencyDiamondTrader = () => {
               </div>
 
               {/* Price Calculator */}
-              {buyDiamondsAmount && parseFloat(buyDiamondsAmount) > 0 && (
+              {buyCoinsAmount && parseFloat(buyCoinsAmount) > 0 && (
                 <Card className="bg-gradient-to-br from-warning-50 to-warning-50 border-warning-200">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -592,7 +618,7 @@ const AgencyDiamondTrader = () => {
                       <div className="flex justify-between items-center py-2 border-b border-warning-200">
                         <span className="text-warning-600">Diamond Amount:</span>
                         <span className="font-bold text-lg text-warning-800">
-                          {parseFloat(buyDiamondsAmount).toLocaleString()} <span className="text-sm">Diamonds</span>
+                          {parseFloat(buyCoinsAmount).toLocaleString()} <span className="text-sm">Diamonds</span>
                         </span>
                       </div>
                       
@@ -607,7 +633,7 @@ const AgencyDiamondTrader = () => {
                         <span className="text-warning-700 font-medium">Total Payment:</span>
                         <div className="text-right">
                           <p className="font-bold text-2xl text-success-600">
-                            ${(parseFloat(buyDiamondsAmount) / tradeSettings.buy_rate).toFixed(2)}
+                            ${(parseFloat(buyCoinsAmount) / tradeSettings.buy_rate).toFixed(2)}
                           </p>
                           <p className="text-xs text-warning-600">USD</p>
                         </div>
@@ -618,7 +644,7 @@ const AgencyDiamondTrader = () => {
               )}
 
               {/* Payment Methods */}
-              {buyDiamondsAmount && parseFloat(buyDiamondsAmount) >= tradeSettings.min_trade_amount && (
+              {buyCoinsAmount && parseFloat(buyCoinsAmount) >= tradeSettings.min_trade_amount && (
                 <div className="space-y-3">
                   <Label className="text-base font-semibold flex items-center gap-2">
                     <Banknote className="w-5 h-5 text-success-600" />
@@ -691,11 +717,11 @@ const AgencyDiamondTrader = () => {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Amount:</span>
-                            <span className="font-bold">${(parseFloat(buyDiamondsAmount) / tradeSettings.buy_rate).toFixed(2)}</span>
+                            <span className="font-bold">${(parseFloat(buyCoinsAmount) / tradeSettings.buy_rate).toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Diamonds you'll get:</span>
-                            <span className="font-bold text-warning-600">{parseFloat(buyDiamondsAmount).toLocaleString()}</span>
+                            <span className="font-bold text-warning-600">{parseFloat(buyCoinsAmount).toLocaleString()}</span>
                           </div>
                         </div>
                         
@@ -718,16 +744,16 @@ const AgencyDiamondTrader = () => {
                         : ''
                     }`}
                     onClick={() => setShowBuyConfirmDialog(true)}
-                    disabled={!selectedPaymentMethod || !buyDiamondsAmount}
+                    disabled={!selectedPaymentMethod || !buyCoinsAmount}
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                    Order Now - ${(parseFloat(buyDiamondsAmount || '0') / tradeSettings.buy_rate).toFixed(2)}
+                    Order Now - ${(parseFloat(buyCoinsAmount || '0') / tradeSettings.buy_rate).toFixed(2)}
                   </Button>
                 </div>
               )}
 
               {/* Minimum Amount Notice */}
-              {buyDiamondsAmount && parseFloat(buyDiamondsAmount) > 0 && parseFloat(buyDiamondsAmount) < tradeSettings.min_trade_amount && (
+              {buyCoinsAmount && parseFloat(buyCoinsAmount) > 0 && parseFloat(buyCoinsAmount) < tradeSettings.min_trade_amount && (
                 <div className="bg-danger-50 border border-danger-200 rounded-lg p-3 text-sm text-danger-600 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4" />
                   Minimum {tradeSettings.min_trade_amount.toLocaleString()} Diamonds required
@@ -995,7 +1021,7 @@ const AgencyDiamondTrader = () => {
             <div className="flex justify-between items-center pb-3 border-b border-success-200">
               <span className="text-success-700">Diamond Amount:</span>
               <span className="font-bold text-lg text-success-800">
-                {parseFloat(buyDiamondsAmount || '0').toLocaleString()} Diamonds
+                {parseFloat(buyCoinsAmount || '0').toLocaleString()} Diamonds
               </span>
             </div>
             
@@ -1013,7 +1039,7 @@ const AgencyDiamondTrader = () => {
             <div className="flex justify-between items-center pt-2 border-t border-success-200">
               <span className="text-success-700 font-medium">Total Payment:</span>
               <span className="font-bold text-xl text-success-600">
-                ${(parseFloat(buyDiamondsAmount || '0') / tradeSettings.buy_rate).toFixed(2)}
+                ${(parseFloat(buyCoinsAmount || '0') / tradeSettings.buy_rate).toFixed(2)}
               </span>
             </div>
           </div>

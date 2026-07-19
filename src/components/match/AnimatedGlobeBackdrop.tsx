@@ -29,6 +29,10 @@ export default function AnimatedGlobeBackdrop() {
       Array.from({ length: 6 }).map((_, i) => {
         const angle = (i / 6) * Math.PI * 2;
         return {
+          id: i,
+          x: 50 + Math.cos(angle) * 32,
+          y: 50 + Math.sin(angle) * 32,
+          delay: i * 0.8,
         };
       }),
     [],
@@ -79,6 +83,7 @@ export default function AnimatedGlobeBackdrop() {
           style={{
             width: "min(110vw, 720px)",
             height: "min(110vw, 720px)",
+            filter: "drop-shadow(0 0 60px rgba(99,102,241,0.35))",
           }}
         >
           {/* Glow halo */}

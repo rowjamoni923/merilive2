@@ -10,7 +10,7 @@ const corsHeaders = {
  *
  * When a user reports "I paid but didn't get diamonds", admin can:
  * 1. Enter the user_id and coin amount
- * 2. This function credits the diamonds and records it as admin_manual
+ * 2. This function credits the coins and records it as admin_manual
  *
  * Pkg321: Added section permission check (user-management with edit right).
  */
@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    console.log(`[admin-verify-purchase] ✅ Credited ${creditedDiamonds} diamonds to ${profile.display_name} (${userId}). New balance: ${newBalance}`);
+    console.log(`[admin-verify-purchase] ✅ Credited ${creditedDiamonds} coins to ${profile.display_name} (${userId}). New balance: ${newBalance}`);
 
     return new Response(
       JSON.stringify({

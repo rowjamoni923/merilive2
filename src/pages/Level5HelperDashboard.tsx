@@ -321,6 +321,9 @@ const Level5HelperDashboard = () => {
   const helperCountryCode = (helperData?.country_code || "").toUpperCase();
   const helperCountryName = (() => {
     const names: Record<string, string> = {
+      BD: "🇧🇩 Bangladesh", IN: "🇮🇳 India", PK: "🇵🇰 Pakistan", NP: "🇳🇵 Nepal", LK: "🇱🇰 Sri Lanka",
+      PH: "🇵🇭 Philippines", ID: "🇮🇩 Indonesia", VN: "🇻🇳 Vietnam", TH: "🇹🇭 Thailand", MY: "🇲🇾 Malaysia",
+      SG: "🇸🇬 Singapore", KE: "🇰🇪 Kenya", CN: "🇨🇳 China", HK: "🇭🇰 Hong Kong", TW: "🇹🇼 Taiwan", BR: "🇧🇷 Brazil",
     };
     return names[helperCountryCode] || helperCountryCode || "Your Country";
   })();
@@ -852,6 +855,7 @@ const Level5HelperDashboard = () => {
 
       // Optimistic UI — show the reply immediately
       setMessageReplies(prev => [...prev, {
+        id: tempId,
         message_id: selectedMessage.id,
         sender_id: user.id,
         sender_type: 'helper',
@@ -869,6 +873,11 @@ const Level5HelperDashboard = () => {
         const { error } = await supabase
           .from('helper_message_replies')
           .insert({
+            message_id: selectedMessage.id,
+            sender_id: user.id,
+            sender_type: 'helper',
+            content: text,
+            screenshot_url: screenshotUrl,
           });
         if (!error) { lastError = null; break; }
         lastError = error;
@@ -963,6 +972,8 @@ const Level5HelperDashboard = () => {
           helper_id: helperData.id,
           country_code: targetCountry,
           payment_type: paymentType,
+          account_name: accountName,
+          account_number: accountNumber,
           bank_name: bankName || null,
           is_primary: paymentMethods.length === 0,
           merchant_number: merchantNumber || null,
@@ -1080,8 +1091,16 @@ const Level5HelperDashboard = () => {
       const { error } = await supabase
         .from('helper_country_payment_methods')
         .insert({
+          helper_id: helperData.id,
+          country_code: selectedCountry,
           country_name: countryName,
           payment_method_name: methodName,
+          method_name: methodName,
+          method_type: isGateway ? 'auto_gateway' : paymentType,
+          account_name: isGateway ? gatewayPrimaryCredential : accountName,
+          account_number: isGateway ? gatewayDisplayNumberValue : accountNumber,
+          bank_name: bankName || null,
+          instructions: methodInstructions || null,
           logo_url: logoUrl || matchedIntegratedGateway?.logo_url || null,
           additional_info: isGateway ? {
             gateway_type: paymentType,
@@ -1098,7 +1117,11 @@ const Level5HelperDashboard = () => {
             } : {}),
             display_method: gatewayDisplayMethodValue,
             display_number: gatewayDisplayNumberValue,
+            merchant_number: merchantNumber || null,
+            is_merchant: true,
           } : {
+            merchant_number: merchantNumber || null,
+            is_merchant: isMerchant,
           },
         });
 
@@ -1132,6 +1155,9 @@ const Level5HelperDashboard = () => {
       
       if (checkError || !currentState) {
         toast({ 
+          title: "Error", 
+          description: "Could not verify withdrawal status", 
+          variant: "destructive" 
         });
         loadAgencyWithdrawals();
         return;
@@ -1139,6 +1165,9 @@ const Level5HelperDashboard = () => {
 
       if (currentState.status !== 'pending') {
         toast({ 
+          title: "⚠️ Unavailable", 
+          description: "This withdrawal is no longer available", 
+          variant: "destructive" 
         });
         loadAgencyWithdrawals();
         loadCompletedHistory();
@@ -1149,6 +1178,9 @@ const Level5HelperDashboard = () => {
 
       if (lockIsActive && currentState.assigned_helper_id && currentState.assigned_helper_id !== helperData?.id) {
         toast({ 
+          title: "⚠️ Already Claimed", 
+          description: "Another helper already claimed this withdrawal. Refreshing list...", 
+          variant: "destructive" 
         });
         loadAgencyWithdrawals(); // Refresh to show updated state
         return;
@@ -1164,6 +1196,9 @@ const Level5HelperDashboard = () => {
 
       if (claimError || !claimResponse?.success) {
         toast({ 
+          title: "⚠️ Already Claimed", 
+          description: claimResponse?.error || "Another helper just claimed this withdrawal. Refreshing list...", 
+          variant: "destructive" 
         });
         loadAgencyWithdrawals();
         return;
@@ -1213,12 +1248,18 @@ const Level5HelperDashboard = () => {
       if (!user) throw new Error("Not authenticated");
 
       const { data: claimResult, error: claimError } = await supabase.rpc('claim_agency_withdrawal' as any, {
+        _withdrawal_id: selectedAgencyWithdrawal.id,
+        _helper_id: helperData.id,
+        _lock_seconds: CLAIM_LOCK_SECONDS,
       });
 
       const claimResponse = claimResult as { success?: boolean; error?: string } | null;
 
       if (claimError || !claimResponse?.success) {
         toast({ 
+          title: '⚠️ Cannot Process', 
+          description: claimResponse?.error || 'This withdrawal has been claimed by another helper or already processed', 
+          variant: 'destructive' 
         });
         handleCloseAgencyWithdrawalDialog();
         return;
@@ -1236,6 +1277,8 @@ const Level5HelperDashboard = () => {
       const safeNotes = helperNotes.trim().slice(0, 500) || null;
 
       const { data: processResult, error: processError } = await supabase.rpc('helper_process_agency_withdrawal' as any, {
+        _withdrawal_id: selectedAgencyWithdrawal.id,
+        _helper_id: helperData.id,
         _screenshot_url: proofPath,
         _transaction_id: trimmedTx,
         _notes: safeNotes,
@@ -1288,6 +1331,7 @@ const Level5HelperDashboard = () => {
         await supabase
           .from('helper_withdrawal_requests')
           .update({ 
+            status: 'paid',
             paid_at: new Date().toISOString(),
             helper_notes: helperNotes || null
           })
@@ -1316,8 +1360,10 @@ const Level5HelperDashboard = () => {
         await supabase
           .from('helper_withdrawal_requests')
           .update({ 
+            status: 'screenshot_submitted',
             payment_screenshot_url: publicUrl,
             submitted_at: new Date().toISOString(),
+            helper_notes: helperNotes || null
           })
           .eq('id', selectedWithdrawal.id);
 
@@ -1500,10 +1546,10 @@ const Level5HelperDashboard = () => {
                     helperId={helperData.id}
                     traderLevel={helperData?.trader_level || 5}
                     defaultOpen={true}
-                    onCredited={(diamonds) => {
+                    onCredited={(coins) => {
                       setHelperData((prev: any) =>
                         prev
-                          ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + diamonds }
+                          ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins }
                           : prev
                       );
                       setShowManualTopupDialog(false);
@@ -1875,6 +1921,7 @@ const Level5HelperDashboard = () => {
                               const { data: processResult, error: processError } = await supabase.rpc('process_helper_order_secure' as any, {
                                 _order_id: order.id,
                                 _action: 'complete',
+                                _notes: 'Processed from Level 5 Helper Dashboard',
                               });
                               const processData = processResult as any;
                               if (processError || !processData?.success) {
@@ -1884,6 +1931,11 @@ const Level5HelperDashboard = () => {
 
                                // Send notification
                                await supabase.rpc('send_notification', {
+                                 p_user_id: order.user_id,
+                                 p_type: 'diamond_purchase_helper',
+                                 p_title: '💎 Diamonds Added!',
+                                 p_message: `${order.diamond_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
+                                 p_data: { amount: order.diamond_amount, amount_usd: order.amount_usd, source: 'helper' }
                                });
 
                               toast({ title: "Success!", description: "Order completed and diamonds credited to user" });
@@ -1908,6 +1960,9 @@ const Level5HelperDashboard = () => {
                             setProcessing(true);
                             try {
                               const { data: processResult, error: processError } = await supabase.rpc('process_helper_order_secure' as any, {
+                                _order_id: order.id,
+                                _action: 'reject',
+                                _notes: 'Rejected from Level 5 Helper Dashboard',
                               });
                               const processData = processResult as any;
                               if (processError || !processData?.success) {
@@ -1916,6 +1971,11 @@ const Level5HelperDashboard = () => {
 
                               // Send notification
                               await supabase.rpc('send_notification', {
+                                p_user_id: order.user_id,
+                                p_type: 'order_cancelled',
+                                p_title: '❌ Order Cancelled',
+                                p_message: `Your order for ${order.diamond_amount.toLocaleString()} diamonds has been cancelled`,
+                                p_data: { order_id: order.id }
                               });
 
                               toast({ title: "Cancelled", description: "Order has been cancelled" });
@@ -2234,9 +2294,20 @@ const Level5HelperDashboard = () => {
                         completed: {
                           card: 'border-l-green-500',
                           badge: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white',
+                          amount: 'text-emerald-600',
+                          label: 'Completed'
                         },
                         processing: {
+                          card: 'border-l-blue-500',
+                          badge: 'bg-gradient-to-r from-sky-500 to-sky-600 text-white',
+                          amount: 'text-sky-700',
+                          label: 'Processing'
                         },
+                        rejected: {
+                          card: 'border-l-red-500',
+                          badge: 'bg-gradient-to-r from-rose-500 to-rose-600 text-white',
+                          amount: 'text-rose-600',
+                          label: 'Rejected'
                         }
                       } as const;
                       const config = statusConfig[displayStatus as keyof typeof statusConfig] || statusConfig.processing;

@@ -39,15 +39,20 @@ describe('Pkg135 livekitRoomOps', () => {
 
   it('listLiveKitRoomParticipants forwards roomName', async () => {
     invokeMock.mockResolvedValue({
+      data: { participants: [{ sid: 'p1', identity: 'u1' }] },
+      error: null,
     });
     const out = await listLiveKitRoomParticipants('live_42');
     expect(out).toHaveLength(1);
     expect(invokeMock).toHaveBeenCalledWith('livekit-room-ops', {
+      body: { action: 'list_participants', roomName: 'live_42' },
     });
   });
 
   it('getLiveKitRoom returns room + participants', async () => {
     invokeMock.mockResolvedValue({
+      data: { room: { sid: 'r1', name: 'live_7' }, participants: [] },
+      error: null,
     });
     const out = await getLiveKitRoom('live_7');
     expect(out.room?.name).toBe('live_7');

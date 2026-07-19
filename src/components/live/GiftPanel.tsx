@@ -27,7 +27,7 @@ export interface GiftData {
   name: string;
   nameBn: string;
   emoji: string;
-  diamonds: number;
+  coins: number;
   category: string;
   animationType: 'basic' | 'premium' | 'luxury' | 'legendary';
   icon_url?: string | null;
@@ -57,10 +57,10 @@ export const giftCategories: GiftCategory[] = [
 ];
 
 // Format diamond value
-export const formatCoinValue = (diamonds: number): string => {
-  if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
-  if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(diamonds >= 10000 ? 0 : 1)}K`;
-  return diamonds.toString();
+export const formatCoinValue = (coins: number): string => {
+  if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
+  if (coins >= 1000) return `${(coins / 1000).toFixed(coins >= 10000 ? 0 : 1)}K`;
+  return coins.toString();
 };
 
 // Re-export for backward compatibility
@@ -238,7 +238,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         name: gift.name,
         nameBn: gift.name,
         emoji: '', // No defaults - only DB assets
-        diamonds: gift.diamond_value,
+        coins: gift.diamond_value,
         category: gift.category || 'wall',
         animationType: getAnimationType(gift.diamond_value),
         icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
@@ -487,6 +487,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
           <Sparkles className="w-1.5 h-1.5 text-white" />
         </div>
       );
+      default: return null;
     }
   }, []);
 
@@ -537,6 +538,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
           overflow: 'hidden',
           willChange: 'transform',
           transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1)',
           backfaceVisibility: 'hidden',
           WebkitBackfaceVisibility: 'hidden',
           contain: 'layout style paint',
@@ -600,6 +602,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 onClick={onClose}
                 className="w-8 h-8 rounded-full bg-white/10 active:bg-white/20 border border-white/15 flex items-center justify-center transition-all hover:-translate-y-0.5"
                 style={{
+                  WebkitTapHighlightColor: 'transparent',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 10px -4px rgba(0,0,0,0.5)',
                 }}
               >
@@ -632,6 +635,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                       : "bg-white/[0.06] text-white/65 border-white/10 active:bg-white/15 hover:-translate-y-0.5"
                   )}
                   style={{
+                    WebkitTapHighlightColor: 'transparent',
+                    boxShadow: isActive
                       ? '0 6px 16px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.4)'
                       : 'inset 0 1px 0 rgba(255,255,255,0.06)',
                   }}
@@ -650,6 +655,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
           className="overflow-y-auto overflow-x-hidden flex-1"
           style={{ 
             minHeight: '120px',
+            maxHeight: '35vh',
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
             touchAction: 'pan-y'
@@ -683,6 +689,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
             selectedGift ? "opacity-100" : "opacity-0 h-0 overflow-hidden p-0 border-0"
           )}
           style={{ 
+            minHeight: selectedGift ? '140px' : '0px',
+            transition: 'opacity 150ms ease-out, min-height 150ms ease-out'
           }}
         >
           {selectedGift && (

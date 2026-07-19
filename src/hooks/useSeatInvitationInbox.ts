@@ -106,6 +106,10 @@ export function useSeatInvitationInbox(userId: string | null | undefined) {
       .on(
         'postgres_changes',
         {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'seat_invitations',
+          filter: `invitee_id=eq.${userId}`,
         },
         (payload) => {
           const row = payload.new as { id: string; status: string };
@@ -136,6 +140,7 @@ export function useSeatInvitationInbox(userId: string | null | undefined) {
 
   const decline = useCallback(async (invitationId: string) => {
     const { data, error } = await supabase.rpc('decline_seat_invitation', {
+      p_invitation_id: invitationId,
     });
     setState((prev) => (prev.current?.id === invitationId ? { current: null } : prev));
     if (error) return { ok: false as const, error: error.message };

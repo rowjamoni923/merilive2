@@ -13,7 +13,7 @@ interface FlyingGiftBannerProps {
   giftImageUrl?: string;
   giftAnimationUrl?: string;
   count: number;
-  diamonds: number;
+  coins: number;
   onComplete: () => void;
 }
 
@@ -27,32 +27,32 @@ const getLevelGradient = (level: number) => {
 };
 
 // Banner gradient based on gift value
-const getBannerGradient = (diamonds: number) => {
-  if (diamonds >= 10000) return 'from-amber-500/95 via-orange-500/90 to-red-500/85';
-  if (diamonds >= 1000) return 'from-purple-600/90 via-pink-500/85 to-rose-500/80';
-  if (diamonds >= 100) return 'from-blue-600/85 via-indigo-500/80 to-purple-500/75';
+const getBannerGradient = (coins: number) => {
+  if (coins >= 10000) return 'from-amber-500/95 via-orange-500/90 to-red-500/85';
+  if (coins >= 1000) return 'from-purple-600/90 via-pink-500/85 to-rose-500/80';
+  if (coins >= 100) return 'from-blue-600/85 via-indigo-500/80 to-purple-500/75';
   return 'from-slate-700/85 via-gray-600/80 to-slate-700/75';
 };
 
 // Tier-aware multi-stop glow shadow (Pkg176/Pkg178 parity)
-const getTierShadow = (diamonds: number) => {
-  if (diamonds >= 10000) {
+const getTierShadow = (coins: number) => {
+  if (coins >= 10000) {
     return '0 0 0 1px rgba(251,191,36,0.55), 0 10px 28px -8px rgba(251,146,60,0.55), 0 4px 14px -4px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.22)';
   }
-  if (diamonds >= 1000) {
+  if (coins >= 1000) {
     return '0 0 0 1px rgba(244,114,182,0.45), 0 10px 28px -8px rgba(168,85,247,0.55), 0 4px 14px -4px rgba(236,72,153,0.4), inset 0 1px 0 rgba(255,255,255,0.18)';
   }
-  if (diamonds >= 100) {
+  if (coins >= 100) {
     return '0 0 0 1px rgba(129,140,248,0.4), 0 10px 24px -8px rgba(99,102,241,0.5), 0 4px 12px -4px rgba(59,130,246,0.35), inset 0 1px 0 rgba(255,255,255,0.16)';
   }
   return '0 0 0 1px rgba(255,255,255,0.18), 0 10px 22px -8px rgba(0,0,0,0.5), 0 3px 10px -4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.14)';
 };
 
 // Sparkle accent color
-const getSparkleColor = (diamonds: number) => {
-  if (diamonds >= 10000) return '#FFD700';
-  if (diamonds >= 1000) return '#FF69B4';
-  if (diamonds >= 100) return '#A5B4FC';
+const getSparkleColor = (coins: number) => {
+  if (coins >= 10000) return '#FFD700';
+  if (coins >= 1000) return '#FF69B4';
+  if (coins >= 100) return '#A5B4FC';
   return '#E5E7EB';
 };
 
@@ -72,8 +72,8 @@ export const PremiumFlyingGiftBanner = ({
   const [currentCount, setCurrentCount] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   
-  const isPremium = diamonds >= 1000;
-  const isLegendary = diamonds >= 10000;
+  const isPremium = coins >= 1000;
+  const isLegendary = coins >= 10000;
 
   // Animate count and auto-hide after 3.5 seconds (Bigo/Chamet standard)
   useEffect(() => {
@@ -146,12 +146,12 @@ export const PremiumFlyingGiftBanner = ({
             className={cn(
               "relative flex items-center gap-2.5 pl-1.5 pr-4 py-2 rounded-r-full overflow-hidden",
               "bg-gradient-to-r",
-              getBannerGradient(diamonds)
+              getBannerGradient(coins)
             )}
             style={{
               backdropFilter: 'blur(16px) saturate(150%)',
               WebkitBackdropFilter: 'blur(16px) saturate(150%)',
-              boxShadow: getTierShadow(diamonds),
+              boxShadow: getTierShadow(coins),
             }}
           >
             {/* Aurora overlay */}
@@ -188,6 +188,7 @@ export const PremiumFlyingGiftBanner = ({
               <motion.div
                 className="absolute -inset-1 rounded-full blur-md"
                 style={{
+                  background: isLegendary
                     ? 'radial-gradient(circle, rgba(251,191,36,0.65) 0%, transparent 70%)'
                     : isPremium
                       ? 'radial-gradient(circle, rgba(244,114,182,0.55) 0%, transparent 70%)'
@@ -211,6 +212,8 @@ export const PremiumFlyingGiftBanner = ({
                 <div
                   className="relative w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base"
                   style={{
+                    background: getLevelGradient(senderLevel),
+                    border: '2px solid rgba(255,255,255,0.65)',
                     boxShadow:
                       '0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
                   }}
@@ -223,6 +226,8 @@ export const PremiumFlyingGiftBanner = ({
               <div
                 className="absolute -bottom-1 -right-1 px-1.5 py-[1px] rounded-md text-[8px] font-bold text-white leading-none tabular-nums"
                 style={{
+                  background: getLevelGradient(senderLevel),
+                  border: '1px solid rgba(255,255,255,0.45)',
                   boxShadow:
                     '0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35)',
                 }}
@@ -258,6 +263,7 @@ export const PremiumFlyingGiftBanner = ({
               <motion.div
                 className="absolute -inset-2 rounded-xl blur-md"
                 style={{
+                  background: isLegendary
                     ? 'radial-gradient(circle, rgba(251,191,36,0.6) 0%, transparent 70%)'
                     : isPremium
                       ? 'radial-gradient(circle, rgba(244,114,182,0.55) 0%, transparent 70%)'
@@ -269,10 +275,13 @@ export const PremiumFlyingGiftBanner = ({
               <div
                 className="relative rounded-xl p-1.5 flex items-center justify-center"
                 style={{
+                  background: isLegendary
                     ? 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(245,158,11,0.18) 100%)'
                     : 'linear-gradient(135deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.08) 100%)',
+                  border: isLegendary
                     ? '1px solid rgba(251,191,36,0.5)'
                     : '1px solid rgba(255,255,255,0.32)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
                 }}
               >
                 {renderGiftIcon()}
@@ -312,7 +321,9 @@ export const PremiumFlyingGiftBanner = ({
                   key={i}
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{
+                    background: getSparkleColor(coins),
                     right: 0,
+                    boxShadow: isLegendary
                       ? '0 0 8px rgba(251,191,36,0.8), 0 0 14px rgba(245,158,11,0.45)'
                       : '0 0 6px rgba(244,114,182,0.7), 0 0 12px rgba(168,85,247,0.4)',
                   }}

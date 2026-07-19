@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
 
   if (!adminRow) {
     return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -46,6 +47,7 @@ Deno.serve(async (req) => {
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 

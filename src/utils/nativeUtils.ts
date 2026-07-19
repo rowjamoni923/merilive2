@@ -266,6 +266,9 @@ export const shareContent = async (options: {
     try {
       const { Share } = await import('@capacitor/share');
       await Share.share({
+        title: options.title,
+        text: options.text,
+        url: options.url,
         dialogTitle: options.title,
       });
       return true;

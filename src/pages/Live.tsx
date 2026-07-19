@@ -20,6 +20,7 @@ interface LiveStream {
   viewer_count: number;
   is_active: boolean;
   host: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     country_code: string | null;

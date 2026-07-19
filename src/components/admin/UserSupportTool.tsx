@@ -29,6 +29,7 @@ interface UserResult {
   is_verified: boolean | null;
   is_blocked: boolean | null;
   blocked_reason: string | null;
+  coins: number | null;
   diamonds: number | null;
   user_level: number | null;
   host_level: number | null;
@@ -259,6 +260,7 @@ export default function UserSupportTool() {
       const { error } = await supabase.rpc("admin_block_user", {
         _user_id: selectedUser.id,
         _block: !selectedUser.is_blocked,
+        _reason: blockReason || null
       });
       if (error) throw error;
       toast.success(selectedUser.is_blocked ? "✅ User unblocked" : "🚫 User blocked");
@@ -280,6 +282,7 @@ export default function UserSupportTool() {
     try {
       const toHost = !selectedUser.is_host;
       const { error } = await supabase.rpc("admin_convert_user_role", {
+        _user_id: selectedUser.id,
         _to_host: toHost,
       });
       if (error) throw error;
@@ -300,6 +303,7 @@ export default function UserSupportTool() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc("admin_set_user_verification", {
+        _user_id: selectedUser.id,
         _verified: !selectedUser.is_verified,
       });
       if (error) throw error;
@@ -323,6 +327,7 @@ export default function UserSupportTool() {
         const { data, error } = await supabase.rpc("admin_process_face_verification", {
           _submission_id: faceVerification.id,
           _action: "approve",
+          _reason: "Manually approved by admin via Support Tool",
           _approve_as: selectedUser.is_host ? "host" : "user",
           _set_gender: selectedUser.gender || (selectedUser.is_host ? "female" : "male"),
         });
@@ -335,6 +340,8 @@ export default function UserSupportTool() {
         if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed');
       } else {
         const { data, error } = await supabase.rpc("admin_toggle_face_verification", {
+          _user_id: selectedUser.id,
+          _verified: true,
         });
         if (error) throw error;
         if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed');

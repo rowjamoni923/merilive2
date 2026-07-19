@@ -62,8 +62,12 @@ function RouteStageSurface({
               opacity: 1,
             }
           : {
+              position: "fixed",
               inset: 0,
+              zIndex: 0,
+              minHeight: "100%",
               overflow: "hidden",
+              opacity: 0,
               pointerEvents: "none",
               contain: "paint",
             }

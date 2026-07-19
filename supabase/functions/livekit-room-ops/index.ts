@@ -132,16 +132,21 @@ Deno.serve(async (req) => {
     if (action === "list_participants") {
       const ps = await svc.listParticipants(roomName);
       const out = (ps ?? []).map((p: any) => ({
+        sid: p.sid,
         identity: p.identity,
+        name: p.name ?? "",
         state: p.state,
         joinedAt: p.joinedAt ? Number(p.joinedAt) : null,
+        metadata: p.metadata ?? "",
         permission: p.permission ?? null,
         isPublisher: !!p.isPublisher,
         numTracks: Array.isArray(p.tracks) ? p.tracks.length : 0,
         tracks: Array.isArray(p.tracks)
           ? p.tracks.map((t: any) => ({
+              sid: t.sid,
               type: t.type, // 0=audio, 1=video
               source: t.source, // 0=unknown,1=camera,2=microphone,3=screen_share,4=screen_share_audio
+              name: t.name ?? "",
               muted: !!t.muted,
               mimeType: t.mimeType ?? "",
             }))
@@ -165,9 +170,21 @@ Deno.serve(async (req) => {
     return json(200, {
       room: room
         ? {
+            sid: room.sid,
+            name: room.name,
+            numParticipants: room.numParticipants ?? 0,
+            numPublishers: room.numPublishers ?? 0,
+            creationTime: room.creationTime ? Number(room.creationTime) : null,
+            metadata: room.metadata ?? "",
+            activeRecording: !!room.activeRecording,
           }
         : null,
       participants: (ps ?? []).map((p: any) => ({
+        sid: p.sid,
+        identity: p.identity,
+        state: p.state,
+        joinedAt: p.joinedAt ? Number(p.joinedAt) : null,
+        isPublisher: !!p.isPublisher,
       })),
     });
   } catch (e) {

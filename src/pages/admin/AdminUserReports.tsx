@@ -113,7 +113,9 @@ export default function AdminUserReports() {
     if (!adminId) { toast.error("Not signed in as admin"); return; }
     try {
       const { error } = await supabase.rpc("admin_update_user_report", {
+        _admin_id: adminId,
         _report_id: reportId,
+        _status: newStatus,
         _admin_note: adminNotes || null,
       });
       if (error) throw error;
@@ -134,6 +136,7 @@ export default function AdminUserReports() {
       const { error } = await supabase.rpc("admin_block_user", {
         _user_id: userId,
         _block: true,
+        _admin_id: adminId,
       });
       if (error) throw error;
       toast.success("User blocked");
@@ -337,6 +340,7 @@ export default function AdminUserReports() {
                             className="text-[10px] text-amber-300/80 hover:text-amber-200 font-mono inline-flex items-center gap-0.5"
                             title="Copy ID"
                           >
+                            ID: {report.reporter.app_uid} <Copy className="w-2.5 h-2.5" />
                           </button>
                         )}
                       </TableCell>
@@ -401,6 +405,7 @@ export default function AdminUserReports() {
                       onClick={() => copyId(selectedReport.reported_user?.app_uid)}
                       className="text-[11px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-1 mt-0.5"
                     >
+                      ID: {selectedReport.reported_user.app_uid} <Copy className="w-3 h-3" />
                     </button>
                   )}
                 </div>
@@ -412,6 +417,7 @@ export default function AdminUserReports() {
                       onClick={() => copyId(selectedReport.reporter?.app_uid)}
                       className="text-[11px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-1 mt-0.5"
                     >
+                      ID: {selectedReport.reporter.app_uid} <Copy className="w-3 h-3" />
                     </button>
                   )}
                 </div>

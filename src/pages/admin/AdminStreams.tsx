@@ -44,6 +44,7 @@ interface LiveStream {
   started_at: string | null;
   created_at: string;
   host: {
+    id: string;
     display_name: string;
     avatar_url: string | null;
     is_verified: boolean;
@@ -424,6 +425,7 @@ export default function AdminStreams() {
                 "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
                 "x-admin-token": getAdminSessionToken(),
               },
+              body: JSON.stringify(banPayload),
             });
 
             const fallbackData = await resp.json();
@@ -446,7 +448,14 @@ export default function AdminStreams() {
         setActiveBans((prev) => [
           {
             id: `temp-${Date.now()}`,
+            user_id: hostId,
+            ban_reason: reason,
+            violation_type: banViolationType,
+            ban_duration_hours: banDuration === "permanent" ? null : parseInt(banDuration),
+            ban_end: banEnd,
+            is_active: true,
             created_at: now,
+            profile: {
               display_name: hostName,
               avatar_url: hostAvatar,
               app_uid: null,
@@ -483,10 +492,10 @@ export default function AdminStreams() {
     return `${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m`;
   };
 
-  const formatCoins = (diamonds: number) => {
-    if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
-    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
-    return diamonds.toString();
+  const formatCoins = (coins: number) => {
+    if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
+    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
+    return coins.toString();
   };
 
   return (

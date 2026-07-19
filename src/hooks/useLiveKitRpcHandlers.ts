@@ -43,8 +43,10 @@ export function useLiveKitRpcHandlers(
       }
       window.dispatchEvent(
         new CustomEvent("livekit-rpc-kick-request", {
+          detail: {
             scope,
             id,
+            callerIdentity: ctx.callerIdentity,
             targetIdentity: payloadObj.targetIdentity || null,
             reason: payloadObj.reason || null,
           },
@@ -64,8 +66,10 @@ export function useLiveKitRpcHandlers(
       }
       window.dispatchEvent(
         new CustomEvent("livekit-rpc-approve-seat", {
+          detail: {
             scope,
             id,
+            callerIdentity: ctx.callerIdentity,
             seatIndex: payloadObj.seatIndex ?? null,
           },
         }),

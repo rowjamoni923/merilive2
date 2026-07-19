@@ -101,6 +101,8 @@ const DEFAULT_CONFIG: PaymentGatewayMethodConfig = {
       ],
     },
     IN: {
+      currency: "INR",
+      gateways: [
         { method_name: "UPI", route_type: "manual", gateway_type: "manual", logo_url: "https://cdn.example.com/payments/upi.png", enabled: true },
         { method_name: "PhonePe", route_type: "manual", gateway_type: "manual", logo_url: "https://cdn.example.com/payments/phonepe.png", enabled: true },
         { method_name: "Paytm", route_type: "manual", gateway_type: "manual", logo_url: "https://cdn.example.com/payments/paytm.png", enabled: true },
@@ -174,6 +176,7 @@ const AdminPaymentGatewayMethodConfig = () => {
   const handleSave = async () => {
     const finalConfig: PaymentGatewayMethodConfig = {
       ...config,
+      diamond_store_recommended: {
         ...config.diamond_store_recommended,
         logo_source_priority: logoPriorityText
           .split(/\r?\n/)
@@ -188,6 +191,9 @@ const AdminPaymentGatewayMethodConfig = () => {
       toast.success("Payment gateway method config saved");
     } catch (error) {
       recordAdminError({
+        kind: "other",
+        label: "AdminPaymentGatewayMethodConfig.save",
+        message: formatAdminError(error),
       });
       toast.error("Failed to save");
     } finally {
@@ -214,6 +220,7 @@ const AdminPaymentGatewayMethodConfig = () => {
     }
     setConfig((prev) => ({
       ...prev,
+      countries: { ...prev.countries, [code]: { currency, gateways: [] } },
     }));
     setNewCountryCode("");
     setNewCountryCurrency("");
@@ -230,12 +237,14 @@ const AdminPaymentGatewayMethodConfig = () => {
   const updateCountryCurrency = (code: string, currency: string) => {
     setConfig((prev) => ({
       ...prev,
+      countries: { ...prev.countries, [code]: { ...prev.countries[code], currency } },
     }));
   };
 
   const addGateway = (code: string) => {
     setConfig((prev) => ({
       ...prev,
+      countries: {
         ...prev.countries,
         [code]: {
           ...prev.countries[code],
@@ -254,6 +263,7 @@ const AdminPaymentGatewayMethodConfig = () => {
       list[idx] = { ...list[idx], ...patch };
       return {
         ...prev,
+        countries: { ...prev.countries, [code]: { ...prev.countries[code], gateways: list } },
       };
     });
   };
@@ -263,6 +273,7 @@ const AdminPaymentGatewayMethodConfig = () => {
       const list = prev.countries[code].gateways.filter((_, i) => i !== idx);
       return {
         ...prev,
+        countries: { ...prev.countries, [code]: { ...prev.countries[code], gateways: list } },
       };
     });
   };
@@ -356,6 +367,7 @@ const AdminPaymentGatewayMethodConfig = () => {
                 onCheckedChange={(v) =>
                   setConfig((p) => ({
                     ...p,
+                    defaults: { ...p.defaults, fraud_controls: { ...p.defaults.fraud_controls, [row.key]: v } },
                   }))
                 }
               />
@@ -369,6 +381,7 @@ const AdminPaymentGatewayMethodConfig = () => {
               onChange={(e) =>
                 setConfig((p) => ({
                   ...p,
+                  defaults: { ...p.defaults, fraud_controls: { ...p.defaults.fraud_controls, max_failed_verify_attempts: Number(e.target.value) } },
                 }))
               }
             />

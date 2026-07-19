@@ -52,6 +52,9 @@ export function useAppLock() {
     if (next) {
       // require successful biometric before enabling
       const r = await BiometricAuth.authenticate({
+        title: 'Enable App Lock',
+        reason: 'Verify to turn on biometric app lock',
+        allowDeviceCredential: true,
       });
       if (!r.success) return false;
       setAppLockEnabled(true);
@@ -60,6 +63,9 @@ export function useAppLock() {
     }
     // disabling also requires biometric to prevent attacker from turning it off
     const r = await BiometricAuth.authenticate({
+      title: 'Disable App Lock',
+      reason: 'Verify to turn off biometric app lock',
+      allowDeviceCredential: true,
     });
     if (!r.success) return false;
     setAppLockEnabled(false);

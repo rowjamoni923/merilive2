@@ -156,6 +156,7 @@ export function AdminAlertBell() {
     setUnreadCount(prev => Math.max(0, prev - 1));
     try {
       const { data, error } = await supabase.functions.invoke('admin-dismiss-alert', {
+        body: { alertId }
       });
       if (error) {
         console.error('[AlertPanel] Dismiss error:', error);

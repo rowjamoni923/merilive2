@@ -336,6 +336,10 @@ const AdminSupportTickets = () => {
       }
 
       setStats({
+        total: totalRes.count || 0,
+        open: openRes.count || 0,
+        pending: pendingRes.count || 0,
+        resolved: resolvedRes.count || 0,
       });
     } catch (e) {
       console.error('Error fetching global stats:', e);
@@ -545,6 +549,7 @@ const AdminSupportTickets = () => {
     
     try {
       const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
           mode: 'support_reply',
           messages: [
             { role: 'user', content: `Ticket subject: ${selectedTicketRef.current?.subject || ''}\nCategory: ${selectedTicketRef.current?.category || ''}\n\nUser message: ${messageContent}` }
@@ -602,6 +607,7 @@ const AdminSupportTickets = () => {
         try {
           setIsTranslating(true);
           const { data: transData } = await supabase.functions.invoke("translate", {
+            body: { text: replyMessage.trim(), targetLanguage: targetLangCode, sourceLanguage: "bn" },
           });
           translatedContent = transData?.translatedText || "";
         } catch (e) {
@@ -617,10 +623,17 @@ const AdminSupportTickets = () => {
       const supportName = await getCurrentSupportName();
 
       await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
+        content: replyMessage.trim(),
+        translatedContent: translatedContent || null,
+        originalLanguage: 'bn',
+        supportAdminName: supportName,
+        markPending: true,
       });
 
       // Send email notification (fire-and-forget, don't block UI)
       supabase.functions.invoke("send-support-reply-email", {
+        body: { ticketId: selectedTicket.id, replyContent: translatedContent || replyMessage.trim() },
       }).then(({ data }) => {
         if (data?.success) {
           console.log("📧 Email notification sent to", data.sentTo);
@@ -660,6 +673,8 @@ const AdminSupportTickets = () => {
       } else {
         setUserGender(newGender);
         toast({
+          title: '✅ Gender Updated',
+          description: `User gender changed to ${newGender === 'female' ? 'Female (Host)' : 'Male (User)'}`,
         });
       }
     } catch (err: any) {
@@ -729,6 +744,8 @@ const AdminSupportTickets = () => {
 
       if (anyPending) {
         toast({
+          title: '⏳ Submitted for Owner Approval',
+          description: 'Compensation request sent to owner. Funds will be credited once approved.',
         });
         setCompensationBeans("");
         setCompensationDiamonds("");
@@ -746,6 +763,9 @@ const AdminSupportTickets = () => {
 
       const supportName = await getCurrentSupportName();
       await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
+        content: `🎁 Compensation: ${rewardParts.join(' + ')} has been adjusted.`,
+        supportAdminName: supportName,
       });
 
       // Send notification to user about compensation
@@ -792,6 +812,11 @@ const AdminSupportTickets = () => {
       const supportName = await getCurrentSupportName();
 
       await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
+        content: replyMessage.trim() || '📷 Image',
+        attachmentUrl: path,
+        attachmentType: 'image',
+        supportAdminName: supportName,
       });
       toast({ title: "✅ Image Sent" });
       setReplyMessage("");
@@ -892,6 +917,9 @@ const AdminSupportTickets = () => {
           ? {
               ...t,
               status,
+              updated_at: nowIso,
+              resolved_at: status === 'resolved' ? nowIso : t.resolved_at,
+              closed_at: status === 'closed' ? nowIso : t.closed_at,
             }
           : t,
       ),
@@ -906,6 +934,7 @@ const AdminSupportTickets = () => {
     try {
       const updates: any = {
         status,
+        updated_at: nowIso,
       };
 
       if (status === 'resolved') {
@@ -974,6 +1003,9 @@ const AdminSupportTickets = () => {
       if (agencyBeansAmount > 0 && userAgency) {
         const adjustedAmount = resolveAgencyBeansMode === "deduct" ? -agencyBeansAmount : agencyBeansAmount;
         const { data, error } = await supabase.rpc('admin_adjust_agency_beans', {
+          _agency_id: userAgency.id,
+          _delta: adjustedAmount,
+          _reason: `Resolve ticket ${selectedTicket.ticket_number}`,
         });
         if (error) throw new Error(`Agency beans adjustment failed: ${error.message}`);
         if ((data as any)?.pending) anyPending = true;
@@ -981,6 +1013,8 @@ const AdminSupportTickets = () => {
 
       if (anyPending) {
         toast({
+          title: '⏳ Reward Pending Approval',
+          description: 'Ticket resolved, but reward credits are queued for owner approval.',
         });
       }
 
@@ -989,6 +1023,8 @@ const AdminSupportTickets = () => {
         .from('support_tickets')
         .update({ 
           status: 'resolved',
+          resolved_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .eq('id', selectedTicket.id);
 
@@ -1008,6 +1044,9 @@ const AdminSupportTickets = () => {
 
       const supportName = await getCurrentSupportName();
       await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
+        content: resolveContent,
+        supportAdminName: supportName,
       });
 
       // Send notification to user about ticket resolution + reward
@@ -1016,6 +1055,8 @@ const AdminSupportTickets = () => {
       }
 
       toast({ 
+        title: "✅ Ticket Resolved", 
+        description: rewardParts.length > 0 ? `Reward: ${rewardParts.join(' + ')}` : "Ticket resolved successfully"
       });
 
       setResolveBeans("");
@@ -1313,6 +1354,10 @@ const AdminSupportTickets = () => {
                       {(() => {
                         const sector = ticket.sender_sector || "user";
                         const sectorMap: Record<string, { label: string; cls: string }> = {
+                          user: { label: "User", cls: "bg-blue-500/10 text-blue-400 border-blue-500/15" },
+                          host: { label: "Host", cls: "bg-pink-500/10 text-pink-400 border-pink-500/15" },
+                          agency: { label: "Agency", cls: "bg-amber-500/10 text-amber-400 border-amber-500/15" },
+                          helper: { label: "Helper", cls: "bg-green-500/10 text-green-400 border-green-500/15" },
                         };
                         const s = sectorMap[sector] || sectorMap.user;
                         return <Badge className={`${s.cls} text-[9px] h-4 px-1.5`}>{s.label}</Badge>;
@@ -1607,6 +1652,7 @@ const AdminSupportTickets = () => {
                             return totalDiamonds === parseInt(recoveryCoins);
                           });
                           const { data, error } = await supabase.functions.invoke('admin-verify-purchase', {
+                            body: {
                               userId: selectedTicket.user_id,
                               diamondAmount: parseInt(recoveryCoins),
                               reason: recoveryReason,
@@ -1621,17 +1667,24 @@ const AdminSupportTickets = () => {
                               Number(data.vipBonusDiamonds || 0) > 0 ? `VIP +${Number(data.vipBonusDiamonds).toLocaleString()}` : null,
                             ].filter(Boolean).join(', ');
                             toast({
+                              title: "✅ Purchase Recovered!",
+                              description: `${Number(data.diamondAmount || recoveryCoins).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}${bonusParts ? ` (${bonusParts})` : ''}`,
                             });
                             setShowPurchaseRecovery(false);
                             setRecoveryCoins("");
                             setRecoveryOrderId("");
                           } else {
                             toast({
+                              title: "Failed",
+                              description: data?.error || "Could not credit diamonds",
                               variant: "destructive",
                             });
                           }
                         } catch (err: any) {
                           toast({
+                            title: "Error",
+                            description: err.message || "Recovery failed",
+                            variant: "destructive",
                           });
                         } finally {
                           setSendingRecovery(false);

@@ -68,6 +68,12 @@ const AdminOnboardingSlides = () => {
   const openCreate = () => {
     setEditingSlide(null);
     setForm({
+      image_url: "",
+      title: "",
+      description: "",
+      gradient: "from-primary to-accent",
+      display_order: (slides.length + 1),
+      is_active: true,
     });
     setDialogOpen(true);
   };
@@ -75,6 +81,12 @@ const AdminOnboardingSlides = () => {
   const openEdit = (slide: OnboardingSlide) => {
     setEditingSlide(slide);
     setForm({
+      image_url: slide.image_url,
+      title: slide.title,
+      description: slide.description,
+      gradient: slide.gradient,
+      display_order: slide.display_order,
+      is_active: slide.is_active,
     });
     setDialogOpen(true);
   };

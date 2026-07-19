@@ -75,7 +75,7 @@ function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
  * When the edge function aborts (12s timeout, transient 5xx, or network drop),
  * the server may have already processed the transaction. Polling
  * `gift_transactions` by idempotency_key lets us recover a silent success
- * instead of showing a false "Gift failed" toast AND refunding diamonds that
+ * instead of showing a false "Gift failed" toast AND refunding coins that
  * were actually spent. Read-only — never re-issues the charge.
  */
 async function confirmGiftByIdempotencyKey(

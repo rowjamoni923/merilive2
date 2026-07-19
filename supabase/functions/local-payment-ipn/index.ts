@@ -135,6 +135,13 @@ serve(async (req) => {
           console.error("[IPN] SSLCommerz: No gateway credentials for payment method:", paymentMethodId);
           status = "FAILED";
           await supabaseAdmin.from("payment_reconciliation_log").insert({
+            event_type: "credit_failed",
+            gateway: "sslcommerz",
+            user_id: userId,
+            order_id: orderId,
+            transaction_id: txnId,
+            amount_coins: totalDiamonds,
+            metadata: { reason: "Gateway credentials not found for verification" },
           });
         }
       }
@@ -157,6 +164,9 @@ serve(async (req) => {
 
       validationData = {
         pg_txnid: body.pg_txnid,
+        amount: body.amount,
+        currency: body.currency,
+        card_type: body.card_type,
         pay_status: body.pay_status,
         status_code: body.status_code,
       };
@@ -185,6 +195,13 @@ serve(async (req) => {
             console.error("[IPN] AamarPay validation FAILED:", checkData);
             status = "FAILED";
             await supabaseAdmin.from("payment_reconciliation_log").insert({
+              event_type: "credit_failed",
+              gateway: "aamarpay",
+              user_id: userId,
+              order_id: orderId,
+              transaction_id: txnId,
+              amount_coins: totalDiamonds,
+              metadata: { reason: "AamarPay API validation failed", check_response: checkData },
             });
           } else {
             validationData = { ...validationData, gateway_validation: checkData };
@@ -193,6 +210,13 @@ serve(async (req) => {
           console.error("[IPN] AamarPay: No gateway credentials for payment method:", paymentMethodId);
           status = "FAILED";
           await supabaseAdmin.from("payment_reconciliation_log").insert({
+            event_type: "credit_failed",
+            gateway: "aamarpay",
+            user_id: userId,
+            order_id: orderId,
+            transaction_id: txnId,
+            amount_coins: totalDiamonds,
+            metadata: { reason: "Gateway credentials not found for AamarPay verification" },
           });
         }
       }
@@ -220,6 +244,8 @@ serve(async (req) => {
       totalDiamonds,
       paymentMethodId,
       txnId,
+      amount: validationData.amount,
+      currency: validationData.currency,
     });
 
     if (order.status !== "gateway_pending") {
@@ -276,15 +302,22 @@ serve(async (req) => {
 
       // Record in recharge_transactions (schema-aligned)
       const { error: txErr } = await supabaseAdmin.from("recharge_transactions").insert({
+        user_id: userId,
         helper_id: order.helper_id,
+        order_id: orderId,
         payment_method: gatewayType,
+        transaction_id: txnId,
+        amount: order.amount_usd,
         usd_amount: order.amount_usd,
+        currency: "USD",
         diamonds_amount: totalDiamonds,
         diamonds_received: totalDiamonds,
+        status: "completed",
         completed_at: new Date().toISOString(),
         purchase_source: gatewayType,
         local_payment_provider: gatewayType,
         notes: JSON.stringify({
+          gateway: gatewayType,
           ...validationData,
           balance_before: result.balance_before,
           balance_after: result.balance_after,
@@ -303,6 +336,7 @@ serve(async (req) => {
           .maybeSingle();
         if (bonusRow?.id) {
           const { error: claimErr } = await supabaseAdmin.from("first_recharge_claims").insert({
+            user_id: userId,
             bonus_id: bonusRow.id,
             original_amount: orderDetails.base_diamonds || (totalDiamonds - (orderDetails.bonus_diamonds || 0)),
             bonus_amount: orderDetails.bonus_diamonds || 0,
@@ -313,16 +347,17 @@ serve(async (req) => {
 
       // Notification
       await supabaseAdmin.from("notifications").insert({
+        user_id: userId,
         type: "recharge_success",
         title: "💎 Diamonds Added!",
         message: `${totalDiamonds.toLocaleString()} diamonds added via ${gatewayType === 'sslcommerz' ? 'SSLCommerz' : 'AamarPay'}!`,
-        data: { order_id: orderId, diamonds: totalDiamonds, gateway: gatewayType },
+        data: { order_id: orderId, coins: totalDiamonds, gateway: gatewayType },
       });
 
       console.log(`[IPN] ✅ SUCCESS: ${totalDiamonds} diamonds → user ${userId} (${result.balance_before} → ${result.balance_after})`);
 
       return Response.redirect(
-        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&diamonds=${totalDiamonds}`,
+        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalDiamonds}`,
         302
       );
 
@@ -333,7 +368,10 @@ serve(async (req) => {
       await supabaseAdmin
         .from("helper_orders")
         .update({
+          status: "failed",
+          payment_details: {
             ...(order.payment_details as any),
+            ipn_status: status,
             ...validationData,
           },
         })
@@ -349,6 +387,7 @@ serve(async (req) => {
     console.error("[IPN] Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
     });
   }
 });

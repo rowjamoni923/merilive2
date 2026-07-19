@@ -74,6 +74,9 @@ export async function enumerateMediaDevices(): Promise<{
   try {
     const list = await navigator.mediaDevices.enumerateDevices();
     return {
+      audioinput: list.filter((d) => d.kind === 'audioinput'),
+      videoinput: list.filter((d) => d.kind === 'videoinput'),
+      audiooutput: list.filter((d) => d.kind === 'audiooutput'),
     };
   } catch {
     return empty;

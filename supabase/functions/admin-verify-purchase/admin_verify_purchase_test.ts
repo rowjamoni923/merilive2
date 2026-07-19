@@ -128,7 +128,7 @@ Deno.test({ name: "admin-verify-purchase: rejects unknown userId", ignore: !CAN_
   }
 });
 
-Deno.test({ name: "admin-verify-purchase: success credits diamonds + records transaction", ignore: !CAN_RUN }, async () => {
+Deno.test({ name: "admin-verify-purchase: success credits coins + records transaction", ignore: !CAN_RUN }, async () => {
   const token = await provisionAdmin();
   const orderId = `e2e_test_${crypto.randomUUID()}`;
   try {

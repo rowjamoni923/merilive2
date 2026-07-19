@@ -18,7 +18,7 @@ export interface ResolvedGiftAsset {
   url: string;
   type: NativeGiftType;
   soundUrl?: string;
-  diamonds: number;
+  coins: number;
 }
 
 type GiftRow = {
@@ -33,7 +33,7 @@ type GiftRow = {
   sound_url: string | null;
   price?: number | null;
   cost?: number | null;
-  diamonds?: number | null;
+  coins?: number | null;
 };
 
 const cache = new Map<string, ResolvedGiftAsset | null>();
@@ -80,7 +80,7 @@ export async function resolveGiftAsset(giftId: string): Promise<ResolvedGiftAsse
       const row = data as GiftRow;
       const picked = pickFormat(row);
       if (!picked) { cache.set(giftId, null); return null; }
-      const diamonds = Number(row.diamonds ?? row.price ?? row.cost ?? 0) || 0;
+      const coins = Number(row.diamonds ?? row.price ?? row.cost ?? 0) || 0;
       const resolved: ResolvedGiftAsset = {
         id: row.id,
         name: row.name || '',
@@ -108,7 +108,7 @@ export function primeGiftAssetCache(rows: Array<Partial<GiftRow> & { id: string 
     if (cache.has(r.id)) continue;
     const picked = pickFormat(r as GiftRow);
     if (!picked) { cache.set(r.id, null); continue; }
-    const diamonds = Number((r as any).diamonds ?? (r as any).price ?? (r as any).cost ?? 0) || 0;
+    const coins = Number((r as any).diamonds ?? (r as any).price ?? (r as any).cost ?? 0) || 0;
     cache.set(r.id, {
       id: r.id,
       name: r.name || '',

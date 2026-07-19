@@ -82,6 +82,12 @@ const recoverAccountByDevice = async (deviceId: string): Promise<{
     const account: any = data[0];
     if (!account?.exchange_token) return null;
     return {
+      userId: account.user_id,
+      displayName: account.display_name || 'User',
+      avatarUrl: account.avatar_url,
+      gender: account.gender,
+      isHost: account.is_host || false,
+      exchangeToken: account.exchange_token,
     };
   } catch (error) {
     console.error('Error checking device account:', error);
@@ -384,6 +390,12 @@ const Auth = () => {
     background_url: realtimeBranding.background_url ?? '',
     logo_image_url: realtimeBranding.logo_image_url
   } : {
+    logo_text_primary: 'meri',
+    logo_text_secondary: 'LIVE',
+    tagline: 'Connect • Chat • Share',
+    background_type: 'gradient' as const,
+    background_url: '',
+    logo_image_url: null
   };
 
   // Capture link attribution from URL. Invitation refs and agency codes must stay separate.
@@ -559,6 +571,8 @@ const Auth = () => {
         }
 
         toast({
+          title: "Welcome!",
+          description: `Account created as ${pending.displayName}!`,
         });
         navigateAfterAuth();
       } catch (error) {
@@ -575,6 +589,8 @@ const Auth = () => {
   const handleStartClick = () => {
     if (!agreed) {
       toast({
+        title: "Accept Terms",
+        description: "Please agree to User Agreement and Privacy Policy to continue.",
         variant: "destructive",
       });
       return;
@@ -608,7 +624,9 @@ const Auth = () => {
           await ensureProfileReady(
             existingForDevice.userId,
             {
+              display_name: existingForDevice.displayName,
               device_id: deviceId,
+              gender: existingForDevice.gender || undefined,
             },
             { requireHost: existingForDevice.gender === 'female' }
           );
@@ -618,8 +636,11 @@ const Auth = () => {
             userId: existingForDevice.userId,
             displayName: existingForDevice.displayName,
             avatarUrl: existingForDevice.avatarUrl,
+            gender: existingForDevice.gender as Gender,
           }));
           toast({
+            title: "🎉 Welcome Back!",
+            description: `Logged in as ${existingForDevice.displayName}`,
           });
           navigateAfterAuth();
           return;
@@ -639,6 +660,9 @@ const Auth = () => {
   const handleLastUserLogin = () => {
     if (!agreed) {
       toast({
+        title: "Accept Terms",
+        description: "Please agree to User Agreement and Privacy Policy to continue.",
+        variant: "destructive",
       });
       return;
     }
@@ -651,6 +675,9 @@ const Auth = () => {
   const handleLoginAuth = async () => {
     if (!email || !password) {
       toast({
+        title: "Error",
+        description: "Please enter email and password",
+        variant: "destructive",
       });
       return;
     }
@@ -679,10 +706,15 @@ const Auth = () => {
       await triggerLegacyProfileSync((await supabase.auth.getUser()).data.user?.id);
       
       toast({
+        title: "Welcome!",
+        description: "Logged in successfully.",
       });
       navigateAfterAuth();
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: error.message || "Login failed",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -803,11 +835,12 @@ const Auth = () => {
   };
 
   const ensureProfileReady = async (
+    userId: string,
     patch: Record<string, unknown>,
     options: { requireHost?: boolean; maxAttempts?: number } = {}
   ) => {
     // Strip server-protected columns (profiles triggers raise on direct mutation of these).
-    // is_verified / is_host / host_status / host_level / diamonds / beans / diamonds / total_*
+    // is_verified / is_host / host_status / host_level / coins / beans / diamonds / total_*
     // / registration_ip / last_login_ip / device_id / is_banned / is_blocked / is_deleted /
     // agency_id / call_rate_per_minute / is_face_verified can only be touched via SECDEF RPCs.
     // gender/host mapping is finalized through finalize_signup_profile; direct client
@@ -917,6 +950,7 @@ const Auth = () => {
                 .from("profiles")
                 .insert({
                   id: userId,
+                  display_name: fallbackDisplayName,
                   username,
                   avatar_url: avatarUrl,
                   app_uid: appUid,
@@ -974,6 +1008,9 @@ const Auth = () => {
 
     if (!displayName.trim()) {
       toast({
+        title: "Error",
+        description: "Please enter your name",
+        variant: "destructive",
       });
       return;
     }
@@ -992,11 +1029,18 @@ const Auth = () => {
           await ensureProfileReady(
             existingForDevice.userId,
             {
+              display_name: existingForDevice.displayName,
+              device_id: deviceId,
+              gender: existingForDevice.gender || selectedGender || undefined,
             },
             { requireHost: (existingForDevice.gender || selectedGender) === 'female' }
           );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
+            userId: existingForDevice.userId,
+            displayName: existingForDevice.displayName,
+            avatarUrl: existingForDevice.avatarUrl,
+            gender: existingForDevice.gender as Gender,
           }));
           localStorage.setItem("meri_device_id", deviceId);
           toast({ title: "🎉 Account Recovered!", description: `Welcome back, ${existingForDevice.displayName}!` });
@@ -1011,10 +1055,15 @@ const Auth = () => {
       
       // Step 1: Try signing up with deterministic credentials
       const { data, error } = await supabase.auth.signUp({
+        email: guestEmail,
         password: guestPassword,
+        options: {
           data: {
             full_name: displayName,
+            display_name: displayName,
             is_guest: true,
+            device_id: deviceId,
+            gender: selectedGender,
             selected_gender: selectedGender,
             account_type: selectedGender === 'female' ? 'host' : 'user',
             profile_type: selectedGender === 'female' ? 'host' : 'user',
@@ -1030,6 +1079,8 @@ const Auth = () => {
         // Try: signin → if fail, force-sync credentials → signin again.
         console.log('[Auth] Signup failed, trying signin:', error.message);
         let { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: guestEmail,
+          password: guestPassword,
         });
 
         if (signInError) {
@@ -1038,6 +1089,8 @@ const Auth = () => {
             await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
           } catch (e) { /* ignore — retry signin anyway */ }
           const retry = await supabase.auth.signInWithPassword({
+            email: guestEmail,
+            password: guestPassword,
           });
           signInData = retry.data;
           signInError = retry.error;
@@ -1047,6 +1100,9 @@ const Auth = () => {
           console.error('[Auth] Guest signin still failing after credential sync:', signInError.message);
           recordClientError({ label: "Auth.guestPassword", message: String(signInError.message ?? "unknown") });
           toast({
+            title: "Couldn't create account",
+            description: "Please try again in a moment.",
+            variant: "destructive",
           });
           return;
         }
@@ -1058,6 +1114,8 @@ const Auth = () => {
           await supabase
             .from("profiles")
             .update({ 
+              display_name: displayName,
+              device_id: deviceId,
             })
             .eq("id", userId);
         }
@@ -1070,6 +1128,9 @@ const Auth = () => {
         const readyProfile = await ensureProfileReady(
           userId,
           {
+            display_name: displayName,
+            device_id: deviceId,
+            gender: selectedGender || undefined,
           },
           { requireHost: selectedGender === 'female' }
         );
@@ -1081,7 +1142,11 @@ const Auth = () => {
         // Save device account with credentials for future recovery
         localStorage.setItem("meri_device_account", JSON.stringify({
           deviceId,
+          email: guestEmail,
+          password: guestPassword,
           displayName,
+          avatarUrl: null,
+          gender: selectedGender,
         }));
         
         // Save device ID for recovery
@@ -1102,9 +1167,13 @@ const Auth = () => {
 
         if (selectedGender === 'female') {
           toast({
+            title: "🎉 Congratulations!",
+            description: "Your host account is ready! Complete face verification to go live.",
           });
         } else {
           toast({
+            title: "🎉 Welcome!",
+            description: `${displayName}, your account is ready!`,
           });
         }
         
@@ -1115,6 +1184,9 @@ const Auth = () => {
       console.error("Registration error:", error);
       recordClientError({ label: "Auth.pendingReferral", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: error?.message || "Account setup failed. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -1128,6 +1200,9 @@ const Auth = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(normalizedEmail)) {
       toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
       });
       return;
     }
@@ -1137,6 +1212,8 @@ const Auth = () => {
     setAuthStep("email_otp");
     startResendCountdown();
     toast({
+      title: "📧 Sending Verification Code",
+      description: `Code is being sent to ${normalizedEmail}. Check your inbox in a few seconds.`,
     });
 
     // Fire-and-forget background send + abuse gate
@@ -1165,6 +1242,9 @@ const Auth = () => {
           setResendCountdown(0);
         }
         toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
         });
       }
     })();
@@ -1174,6 +1254,9 @@ const Auth = () => {
   const handleVerifyEmailOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       toast({
+        title: "Error",
+        description: "Please enter 6-digit verification code",
+        variant: "destructive",
       });
       return;
     }
@@ -1211,6 +1294,8 @@ const Auth = () => {
         setConfirmPassword("");
         setAuthStep("email_password");
         toast({
+          title: "✅ Email Verified!",
+          description: "Now set your name and password to create your account.",
         });
         return;
       }
@@ -1237,10 +1322,15 @@ const Auth = () => {
       // INSTANT LOGIN: navigate immediately, run profile readiness in background.
       // App-mount runLegacyProfileSync + profile self-healing handles any gaps.
       localStorage.setItem("meri_last_user", JSON.stringify({
+        email: normalizedEmail,
+        displayName: fallbackDisplayName,
+        avatarUrl: null,
       }));
       localStorage.removeItem("meri_manual_logout");
 
       toast({
+        title: "✅ Welcome!",
+        description: "Login successful.",
       });
       resetAuthState();
       navigateAfterAuth();
@@ -1249,6 +1339,8 @@ const Auth = () => {
       void ensureProfileReady(
         verifiedUser.id,
         {
+          email: normalizedEmail,
+          display_name: fallbackDisplayName,
           is_verified: true,
         },
         { requireHost: false }
@@ -1256,6 +1348,9 @@ const Auth = () => {
         if (readyProfile?.display_name && readyProfile.display_name !== fallbackDisplayName) {
           try {
             localStorage.setItem("meri_last_user", JSON.stringify({
+              email: normalizedEmail,
+              displayName: readyProfile.display_name,
+              avatarUrl: (readyProfile as any).avatar_url || null,
             }));
           } catch {}
         }
@@ -1267,6 +1362,9 @@ const Auth = () => {
       recordClientError({ label: "Auth.readyProfile", message: error instanceof Error ? error.message : String(error) });
       if (isExpiredOtpMessage(error?.message)) setOtpCode("");
       toast({
+        title: "Invalid Code",
+        description: error.message || "Invalid verification code",
+        variant: "destructive",
       });
     } finally {
       setOtpLoading(false);
@@ -1279,6 +1377,9 @@ const Auth = () => {
 
     if (!emailVerified) {
       toast({
+        title: "Verify Email",
+        description: "Please verify your email code before creating an account.",
+        variant: "destructive",
       });
       setAuthStep("email");
       return;
@@ -1286,18 +1387,27 @@ const Auth = () => {
 
     if (!displayName.trim()) {
       toast({
+        title: "Error",
+        description: "Please enter your name",
+        variant: "destructive",
       });
       return;
     }
 
     if (password.length < 6) {
       toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive",
       });
       return;
     }
 
     if (password !== confirmPassword) {
       toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
       });
       return;
     }
@@ -1310,6 +1420,9 @@ const Auth = () => {
       const existingForDevice = await recoverAccountByDevice(deviceId);
       if (existingForDevice) {
         toast({
+          title: "⚠️ Account Already Exists",
+          description: `This device already has an account (${existingForDevice.displayName}). One device can only have one account.`,
+          variant: "destructive",
         });
         setLoading(false);
         return;
@@ -1322,10 +1435,14 @@ const Auth = () => {
       }
 
       const { data: signInData, error: signInError } = await supabase.functions.invoke("otp-direct-signin", {
+        body: {
           email,
           verified_token: emailVerifiedToken,
           mode: "create",
           password,
+          display_name: displayName,
+          device_id: deviceId,
+          gender: selectedGender,
         },
       });
 
@@ -1335,6 +1452,8 @@ const Auth = () => {
       }
 
       const { error: setErr } = await supabase.auth.setSession({
+        access_token: signInData.access_token,
+        refresh_token: signInData.refresh_token,
       });
       if (setErr) throw setErr;
 
@@ -1343,6 +1462,11 @@ const Auth = () => {
         const readyProfile = await ensureProfileReady(
           user.id,
           {
+            display_name: displayName,
+            is_verified: true,
+            email: email,
+            device_id: deviceId,
+            gender: selectedGender || undefined,
           },
           { requireHost: selectedGender === 'female' }
         );
@@ -1362,9 +1486,12 @@ const Auth = () => {
         localStorage.setItem("meri_last_user", JSON.stringify({
           email,
           displayName,
+          avatarUrl: null,
         }));
 
         toast({
+          title: "🎉 Welcome to MeriLive!",
+          description: "Your account has been created successfully!",
         });
         
         // Clear state and navigate
@@ -1373,6 +1500,9 @@ const Auth = () => {
       }
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: error.message || "Failed to create account",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -1419,6 +1549,9 @@ const Auth = () => {
     const { phoneDigits, displayPhone } = getPhoneIdentity();
     if (!phoneDigits || phoneDigits.length < 7) {
       toast({
+        title: "Error",
+        description: "Please enter a valid phone number",
+        variant: "destructive",
       });
       return;
     }
@@ -1426,6 +1559,8 @@ const Auth = () => {
     setAuthStep("phone_otp");
     startResendCountdown();
     toast({
+      title: "📱 Sending WhatsApp Code",
+      description: `Code is being sent to ${displayPhone}.`,
     });
 
     void (async () => {
@@ -1435,23 +1570,32 @@ const Auth = () => {
       if (!canProceed) return;
 
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
+        body: { phone_number: displayPhone, action: "send" }
       });
 
       if (error) throw error;
       if (!data?.success) {
         await recordAttempt(`otp:${phoneDigits}`, false);
         toast({
+          title: "Error",
+          description: data?.error || "Failed to send OTP",
+          variant: "destructive",
         });
         return;
       }
 
       await recordAttempt(`otp:${phoneDigits}`, false);
       toast({
+        title: "📱 WhatsApp OTP Sent!",
+        description: `Verification code sent to ${displayPhone} via WhatsApp`,
       });
     } catch (error: any) {
       recordClientError({ label: "Auth.handleSendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
       await recordAttempt(`otp:${phoneDigits}`, false);
       toast({
+        title: "Error",
+        description: error.message || "Failed to send WhatsApp OTP",
+        variant: "destructive",
       });
     }
     })();
@@ -1461,6 +1605,9 @@ const Auth = () => {
   const handleVerifyPhoneOtp = async () => {
     if (!phoneOtpCode || phoneOtpCode.length !== 6) {
       toast({
+        title: "Error",
+        description: "Please enter the 6-digit code",
+        variant: "destructive",
       });
       return;
     }
@@ -1469,12 +1616,16 @@ const Auth = () => {
     try {
       const { phoneDigits, displayPhone, phoneEmail } = getPhoneIdentity();
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
+        body: { phone_number: displayPhone, action: "verify", otp: phoneOtpCode }
       });
 
       if (error) throw error;
       if (!data?.verified || !data?.verified_token) {
         if (isExpiredOtpMessage(data?.error)) setPhoneOtpCode("");
         toast({
+          title: "Invalid Code",
+          description: data?.error || "The verification code is incorrect",
+          variant: "destructive",
         });
         return;
       }
@@ -1495,14 +1646,19 @@ const Auth = () => {
       if (existingProfile) {
         // Existing account found — auto-login via edge function
         const { data: signInResult, error: signInError } = await supabase.functions.invoke('otp-direct-signin', {
+          body: { email: phoneEmail, channel: "phone", identifier: phoneDigits, verified_token: data.verified_token }
         });
 
         if (!signInError && signInResult?.access_token && signInResult?.refresh_token) {
           await supabase.auth.setSession({
+            access_token: signInResult.access_token,
+            refresh_token: signInResult.refresh_token,
           });
 
           localStorage.removeItem('meri_manual_logout');
           toast({
+            title: "✅ Welcome Back!",
+            description: `Logged in as ${existingProfile.display_name || displayPhone}`,
           });
           resetAuthState();
           navigateAfterAuth();
@@ -1512,11 +1668,16 @@ const Auth = () => {
 
       // No existing account — proceed to create new account
       toast({
+        title: "✅ Phone Verified!",
+        description: "Now set your name and password to create your account.",
       });
       setAuthStep("phone_password");
     } catch (error: any) {
       if (isExpiredOtpMessage(error?.message)) setPhoneOtpCode("");
       toast({
+        title: "Error",
+        description: error.message || "Verification failed",
+        variant: "destructive",
       });
     } finally {
       setPhoneOtpLoading(false);
@@ -1544,10 +1705,23 @@ const Auth = () => {
 
     try {
       const { data, error } = await supabase.auth.signUp({
+        email: phoneEmail,
         password,
+        options: {
+          data: {
+            full_name: displayName,
+            display_name: displayName,
             phone_number: phoneDigits,
+            device_id: deviceId,
             phone_verified: true,
             phone_dial_code: selectedCountry?.code || null,
+            country_code: selectedCountry?.country || null,
+            country_name: selectedCountry?.name || null,
+            country_flag: selectedCountry?.flag || null,
+            gender: selectedGender,
+            selected_gender: selectedGender,
+            account_type: selectedGender === 'female' ? 'host' : 'user',
+            profile_type: selectedGender === 'female' ? 'host' : 'user',
           },
         },
       });
@@ -1556,6 +1730,7 @@ const Auth = () => {
         if (error.message?.includes("already registered")) {
           // Try login
           const { error: loginError } = await supabase.auth.signInWithPassword({
+            email: phoneEmail,
             password,
           });
           if (loginError) {
@@ -1575,6 +1750,15 @@ const Auth = () => {
         const readyProfile = await ensureProfileReady(
           data.user.id,
           {
+            display_name: displayName,
+            phone_number: phoneDigits,
+            phone_verified: true,
+            device_id: deviceId,
+            is_verified: true,
+            gender: selectedGender || undefined,
+            country_code: selectedCountry?.country || undefined,
+            country_name: selectedCountry?.name || undefined,
+            country_flag: selectedCountry?.flag || undefined,
           },
           { requireHost: selectedGender === 'female' }
         );
@@ -1592,7 +1776,9 @@ const Auth = () => {
         await joinPendingAgencyAfterSignup(data.user.id, selectedGender === 'female');
 
         localStorage.setItem("meri_last_user", JSON.stringify({
+          email: phoneEmail,
           displayName,
+          avatarUrl: null,
         }));
 
         toast({ title: "🎉 Welcome to MeriLive!", description: "Your account has been created!" });
@@ -1616,6 +1802,7 @@ const Auth = () => {
     setPhoneOtpLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
+        body: { phone_number: displayPhone, action: "send" }
       });
       if (error) throw error;
       await recordAttempt(`otp:${phoneDigits}`, false);
@@ -1641,6 +1828,7 @@ const Auth = () => {
     setOtpLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-email-otp", {
+        body: { email: normalizedEmail, purpose: "login" },
       });
 
       if (error) throw error;
@@ -1650,6 +1838,8 @@ const Auth = () => {
 
       await recordAttempt(`otp:${normalizedEmail}`, false);
       toast({
+        title: "Code Resent",
+        description: `A new verification code has been sent to ${normalizedEmail}`,
       });
       startResendCountdown();
     } catch (error: any) {
@@ -1657,6 +1847,9 @@ const Auth = () => {
       await recordAttempt(`otp:${normalizedEmail}`, false);
       const errorMessage = await getFunctionErrorMessage(error, "Failed to resend code. Please try again.");
       toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
       });
     } finally {
       setOtpLoading(false);
@@ -1667,12 +1860,18 @@ const Auth = () => {
   const handleEmailAuth = async () => {
     if (!email || !password || !displayName) {
       toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
       });
       return;
     }
 
     if (password.length < 6) {
       toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive",
       });
       return;
     }
@@ -1681,6 +1880,9 @@ const Auth = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
       });
       return;
     }
@@ -1694,6 +1896,7 @@ const Auth = () => {
       
       // Send confirmation email via edge function - DO NOT create account yet
       const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
+        body: {
           email,
           displayName,
           verificationCode,
@@ -1704,12 +1907,17 @@ const Auth = () => {
         console.error("Email sending error:", emailError);
         recordClientError({ label: "Auth.verificationCode", message: emailError instanceof Error ? emailError.message : String(emailError) });
         toast({
+          title: "Error",
+          description: "Failed to send verification code. Please try again.",
+          variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
       toast({
+        title: "📧 Verification Code Sent",
+        description: `Check your email at ${email} for the 6-digit verification code.`,
       });
       
       // Show OTP verification step - account will be created AFTER verification
@@ -1717,6 +1925,9 @@ const Auth = () => {
       startResendCountdown();
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: error.message || "Failed to send verification code",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -1727,6 +1938,9 @@ const Auth = () => {
   const handleVerifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       toast({
+        title: "Error",
+        description: "Please enter 6-digit verification code",
+        variant: "destructive",
       });
       return;
     }
@@ -1739,12 +1953,16 @@ const Auth = () => {
           const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
           const deviceId = await getPersistentDeviceId();
           const { data: eligibility } = await supabase.rpc('check_signup_eligibility', {
+            _device_id: deviceId,
             _ip_address: null,
             _face_hash: null,
           });
           const result = eligibility as { eligible?: boolean; reason?: string } | null;
           if (result && result.eligible === false) {
             toast({
+              title: "🚫 Signup Blocked",
+              description: result.reason || "This device has been permanently banned. Please contact support.",
+              variant: "destructive",
             });
             setOtpLoading(false);
             return;
@@ -1757,6 +1975,14 @@ const Auth = () => {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: displayName,
+              display_name: displayName,
+              gender: selectedGender,
+              selected_gender: selectedGender,
+              account_type: selectedGender === 'female' ? 'host' : 'user',
+              profile_type: selectedGender === 'female' ? 'host' : 'user',
               email_confirmed: true,
             },
           },
@@ -1772,12 +1998,17 @@ const Auth = () => {
             
             if (loginError) {
               toast({
+                title: "Error",
+                description: "This email is already registered with a different password.",
+                variant: "destructive",
               });
               setOtpLoading(false);
               return;
             }
             
             toast({
+              title: "Welcome Back!",
+              description: "Logged in successfully!",
             });
             navigateAfterAuth();
             return;
@@ -1791,6 +2022,9 @@ const Auth = () => {
           const readyProfile = await ensureProfileReady(
             data.user.id,
             {
+              gender: selectedGender,
+              display_name: displayName,
+              email: email,
             },
             { requireHost: isHost }
           );
@@ -1812,10 +2046,13 @@ const Auth = () => {
           localStorage.setItem("meri_last_user", JSON.stringify({
             email,
             displayName,
+            avatarUrl: null,
           }));
         }
 
         toast({
+          title: "🎉 Welcome to MeriLive!",
+          description: "Your account has been created successfully!",
         });
         
         // Clear state and navigate
@@ -1831,10 +2068,16 @@ const Auth = () => {
         navigateAfterAuth();
       } else {
         toast({
+          title: "Invalid Code",
+          description: "The verification code is incorrect. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: error.message || "Verification failed",
+        variant: "destructive",
       });
     } finally {
       setOtpLoading(false);
@@ -1849,6 +2092,7 @@ const Auth = () => {
       setExpectedOtpCode(verificationCode);
       
       await supabase.functions.invoke('send-signup-confirmation', {
+        body: {
           email,
           displayName,
           verificationCode,
@@ -1856,10 +2100,15 @@ const Auth = () => {
       });
       
       toast({
+        title: "Code Resent",
+        description: `A new verification code has been sent to ${email}`,
       });
       startResendCountdown();
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: "Failed to resend code. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setOtpLoading(false);
@@ -1869,6 +2118,9 @@ const Auth = () => {
   const handleGmailClick = () => {
     if (!agreed) {
       toast({
+        title: "Accept Terms",
+        description: "Please agree to User Agreement and Privacy Policy to continue.",
+        variant: "destructive",
       });
       return;
     }
@@ -1897,8 +2149,14 @@ const Auth = () => {
             animation: 'pulse 4s ease-in-out infinite',
           }} />
           <div className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full opacity-15" style={{
+            background: 'radial-gradient(circle, #f472b6 0%, transparent 70%)',
+            filter: 'blur(50px)',
+            animation: 'pulse 5s ease-in-out infinite 1s',
           }} />
           <div className="absolute top-2/3 left-1/2 w-56 h-56 rounded-full opacity-10" style={{
+            background: 'radial-gradient(circle, #60a5fa 0%, transparent 70%)',
+            filter: 'blur(55px)',
+            animation: 'pulse 6s ease-in-out infinite 2s',
           }} />
         </div>
       )}
@@ -1964,6 +2222,9 @@ const Auth = () => {
             onClick={() => {
               if (!agreed) {
                 toast({
+                  title: "Accept Terms",
+                  description: "Please agree to User Agreement and Privacy Policy to continue.",
+                  variant: "destructive",
                 });
                 return;
               }
@@ -1988,6 +2249,9 @@ const Auth = () => {
             onClick={() => {
               if (!agreed) {
                 toast({
+                  title: "Accept Terms",
+                  description: "Please agree to User Agreement and Privacy Policy to continue.",
+                  variant: "destructive",
                 });
                 return;
               }

@@ -110,7 +110,7 @@ interface ProfileData {
   host_level?: number | null;
   previous_host_level?: number | null;
   weekly_earnings?: number | null;
-  diamonds?: number | null;
+  coins?: number | null;
   tags: string[] | null;
   frame_id?: string | null;
   total_recharged?: number | null;
@@ -345,6 +345,9 @@ const ProfileDetail = () => {
     
     if (isInCall) {
       toast({
+        title: "Already in Call",
+        description: "You are already in a call",
+        variant: "destructive",
       });
       return;
     }
@@ -361,6 +364,8 @@ const ProfileDetail = () => {
     
     if (callId) {
       toast({
+        title: "Calling...",
+        description: `Calling ${profile?.display_name || 'Host'}`,
       });
     }
   };
@@ -495,6 +500,7 @@ const ProfileDetail = () => {
     if (presenceData?.is_live && presenceData.live_stream_id) {
       setActiveLiveStream({
         id: presenceData.live_stream_id,
+        title: presenceData.live_title || '',
         viewer_count: presenceData.live_viewer_count || 0,
       });
     } else {
@@ -552,6 +558,7 @@ const ProfileDetail = () => {
       receivedCounts[giftId].totalDiamonds += t.diamond_amount || 0;
       const sender = senderMap[t.sender_id];
       giftSendersList.push({
+        id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "🎁",
         diamond_amount: t.diamond_amount || 0, sender_id: t.sender_id,
         sender_name: sender?.display_name || sender?.username || "Anonymous",
         sender_avatar: sender?.avatar_url || null, sender_uid: sender?.app_uid || null, created_at: t.created_at
@@ -1058,6 +1065,9 @@ const ProfileDetail = () => {
               onClick={() => navigate(`/party/${activePartyRoom.id}`)}
               className="absolute top-16 right-4 safe-area-top flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-xl"
               style={{
+                background: 'linear-gradient(135deg, rgba(168,85,247,0.86), rgba(124,58,237,0.92))',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 8px 25px rgba(124,58,237,0.35)',
               }}
             >
               <Users className="w-3.5 h-3.5 text-slate-900" />
@@ -1490,6 +1500,8 @@ const ProfileDetail = () => {
                 onClick={() => navigate(`/chat?user=${userId}`)}
  className="flex items-center justify-center gap-2 py-4 rounded-2xl text-slate-900 font-semibold relative overflow-hidden"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(168,85,247,0.8), rgba(236,72,153,0.8))',
+                  boxShadow: '0 8px 30px rgba(168,85,247,0.3)',
                 }}
               >
                 <MessageCircle className="w-5 h-5" />
@@ -1502,6 +1514,8 @@ const ProfileDetail = () => {
                   onClick={handleCallClick}
  className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl text-slate-900 font-semibold relative overflow-hidden"
                   style={{
+                    background: 'linear-gradient(135deg, rgba(52,211,153,0.8), rgba(16,185,129,0.8))',
+                    boxShadow: '0 8px 30px rgba(16,185,129,0.3)',
                   }}
                 >
                   <motion.div
@@ -1525,6 +1539,8 @@ const ProfileDetail = () => {
                 onClick={() => setShowGiftPanel(true)}
  className="flex items-center justify-center gap-2 py-4 rounded-2xl text-slate-900 font-semibold"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.8), rgba(249,115,22,0.8))',
+                  boxShadow: '0 8px 30px rgba(245,158,11,0.3)',
                 }}
               >
                 <BrandedGiftIcon className="w-6 h-6 rounded-md" />
@@ -1592,6 +1608,8 @@ const ProfileDetail = () => {
                         // Confirm with server value (handles realtime overwrite races)
                         setProfile((p) => (p ? ({ ...p, hide_gift_senders: data.hide_gift_senders } as ProfileData) : p));
                         toast({
+                          title: data.hide_gift_senders ? 'Gift senders hidden' : 'Gift senders visible',
+                          description: data.hide_gift_senders
                             ? 'Visitors will no longer see who sent your gifts.'
                             : 'Visitors can now see who sent your gifts.',
                         });
@@ -1703,6 +1721,7 @@ const ProfileDetail = () => {
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
   <DialogDescription className="text-slate-600">
+              Total: {selectedGift?.count || 0} gifts received
             </DialogDescription>
           </DialogHeader>
           
@@ -1913,6 +1932,9 @@ const ProfileDetail = () => {
           const totalCost = gift.diamonds * count;
           if (currentUserCoins < totalCost) {
             toast({
+              title: "Not Enough Diamonds!",
+              description: "Please recharge your diamonds.",
+              variant: "destructive"
             });
             return;
           }
@@ -1937,13 +1959,14 @@ const ProfileDetail = () => {
             soundUrl: (gift as any).sound_url || undefined,
             giftColor: 'from-pink-500 to-purple-500',
             count,
-            diamonds: gift.diamonds,
+            coins: gift.diamonds,
             isOwnGift: true,
           });
 
           const result = await sendGift({
             giftId: gift.id,
             gift,
+            senderId: currentUser.id,
             receiverId: userId,
             quantity: count,
             context: 'profile',
@@ -1957,6 +1980,8 @@ const ProfileDetail = () => {
           }
 
           toast({
+            title: "Gift Sent!",
+            description: `${gift.name} has been sent to ${profile?.display_name || 'User'}.`,
           });
 
           setShowGiftPanel(false);

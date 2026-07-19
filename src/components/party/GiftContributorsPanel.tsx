@@ -155,9 +155,9 @@ export function GiftContributorsPanel({
       const d = (e as CustomEvent<any>).detail;
       if (!d || d.scope !== 'party' || d.id !== roomId) return;
       const senderId = d.senderId;
-      const diamonds = Number(d.totalDiamonds ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
-      if (!senderId || diamonds <= 0) return;
-      const hostBeans = Math.floor(diamonds * hostCommissionPercent / 100);
+      const coins = Number(d.totalDiamonds ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
+      if (!senderId || coins <= 0) return;
+      const hostBeans = Math.floor(coins * hostCommissionPercent / 100);
       setContributors((prev) => {
         const map = new Map(prev.map((c) => [c.userId, { ...c }]));
         const existing = map.get(senderId);
@@ -166,6 +166,13 @@ export function GiftContributorsPanel({
           existing.giftCount += 1;
         } else {
           map.set(senderId, {
+            userId: senderId,
+            displayName: d.senderName || 'User',
+            avatarUrl: d.senderAvatar,
+            level: d.senderLevel || 1,
+            totalBeans: hostBeans,
+            giftCount: 1,
+            frameId: undefined,
           });
         }
         return Array.from(map.values()).sort((a, b) => b.totalBeans - a.totalBeans);
@@ -236,6 +243,7 @@ export function GiftContributorsPanel({
                   <div
                     className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
                     style={{
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                       boxShadow: '0 6px 18px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
                     }}
                   >
@@ -243,6 +251,7 @@ export function GiftContributorsPanel({
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
+                        background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.45) 50%, transparent 60%)',
                         animation: 'giftSendShine 3.2s ease-in-out infinite',
                       }}
                     />
@@ -251,6 +260,7 @@ export function GiftContributorsPanel({
                     <h3
                       className="font-bold text-lg leading-tight"
                       style={{
+                        background: 'linear-gradient(90deg, #ffffff, #fde68a 60%, #fbbf24)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
@@ -276,6 +286,8 @@ export function GiftContributorsPanel({
               <div
                 className="mt-3 p-3 rounded-2xl border border-amber-400/25 relative overflow-hidden"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.22) 0%, rgba(217,119,6,0.14) 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                 }}
               >
                 <div className="flex items-center justify-between relative z-10">
@@ -291,6 +303,8 @@ export function GiftContributorsPanel({
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
+                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.18) 50%, transparent 58%)',
+                    animation: 'giftSendShine 4s ease-in-out infinite',
                   }}
                 />
               </div>
@@ -335,11 +349,13 @@ export function GiftContributorsPanel({
                         }}
                         className="w-full flex items-center gap-3 p-3 rounded-2xl relative overflow-hidden transition-colors text-left"
                         style={{
+                          background: isFirst
                             ? 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(168,85,247,0.10) 100%)'
                             : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
                           border: isFirst
                             ? '1px solid rgba(251,191,36,0.35)'
                             : '1px solid rgba(255,255,255,0.06)',
+                          boxShadow: isFirst
                             ? '0 6px 22px -8px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.06)'
                             : 'inset 0 1px 0 rgba(255,255,255,0.04)',
                         }}
@@ -348,6 +364,8 @@ export function GiftContributorsPanel({
                           <div
                             className="absolute inset-0 pointer-events-none"
                             style={{
+                              background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.14) 50%, transparent 58%)',
+                              animation: 'giftSendShine 3.6s ease-in-out infinite',
                             }}
                           />
                         )}
@@ -358,6 +376,7 @@ export function GiftContributorsPanel({
                             <div
                               className={`w-8 h-8 rounded-full bg-gradient-to-br ${rankBadge.color} flex items-center justify-center`}
                               style={{
+                                boxShadow: isFirst
                                   ? '0 4px 14px -2px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.4)'
                                   : '0 3px 10px -2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                               }}
@@ -399,8 +418,11 @@ export function GiftContributorsPanel({
                         <div
                           className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl relative z-10"
                           style={{
+                            background: isTop
                               ? 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(245,158,11,0.18) 100%)'
                               : 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.10) 100%)',
+                            border: '1px solid rgba(251,191,36,0.30)',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                           }}
                         >
                           <BeansIcon size={12} className="text-amber-300" />

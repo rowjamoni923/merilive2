@@ -85,7 +85,7 @@ export default function AdminWalletLedger() {
   }, [realtime, currency, source, userFilter]);
 
   const totals = useMemo(() => {
-    const t = { beans: 0, diamonds: 0, diamonds: 0, count: rows.length };
+    const t = { beans: 0, diamonds: 0, coins: 0, count: rows.length };
     rows.forEach((r) => { t[r.currency] += Number(r.delta) || 0; });
     return t;
   }, [rows]);

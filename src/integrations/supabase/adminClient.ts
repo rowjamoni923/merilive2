@@ -154,9 +154,14 @@ const ensureAdminSessionDeviceBound = (token: string): Promise<boolean> => {
       const row = Array.isArray(payload) ? payload[0] : payload;
       if (row?.status === 'approved' || row?.success === true) {
         const verifyResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/current_admin_id_from_header`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
             'content-type': 'application/json',
             'x-admin-token': token,
           },
+          body: '{}',
         });
         if (!verifyResp.ok) return true;
         const verifiedAdminId = await verifyResp.json().catch(() => null);
@@ -220,6 +225,7 @@ const adminFetch: typeof fetch = (input, init) => {
     // 🛡️ NO AUTO-LOGOUT POLICY (Pkg359): do NOT force logout — admin stays on
     // current page, sees the error in dev console, and can manually re-login.
     return Promise.resolve(new Response(JSON.stringify({ message }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     }));
   }
@@ -241,6 +247,7 @@ const adminFetch: typeof fetch = (input, init) => {
     if (isLoginRpc) return;
     try {
       window.dispatchEvent(new CustomEvent('admin-table-update', {
+        detail: { url: url.replace(SUPABASE_URL, '').split('?')[0], method },
       }));
     } catch { /* no-op */ }
   };
@@ -310,18 +317,26 @@ const adminFetch: typeof fetch = (input, init) => {
     if ((sessionExpired || accessDenied || missingToken) && !isLoginRpc) {
       recordAdminError({
         kind,
+        label: `${method} ${path}`,
+        status: resp.status,
         message: missingToken
           ? 'No admin session token — please log in again'
           : sessionExpired
             ? `Admin session expired: ${String(parsedMsg).slice(0, 160)}`
             : `Access denied: ${String(parsedMsg).slice(0, 160)}`,
+        detail: bodyText.slice(0, 1000),
         url,
+        silent: true,
       });
       return resp;
     }
 
     recordAdminError({
       kind,
+      label: `${method} ${path}`,
+      status: resp.status,
+      message: String(parsedMsg).slice(0, 300),
+      detail: bodyText.slice(0, 1000),
       url,
     });
     return resp;
@@ -394,6 +409,8 @@ const getSyntheticAdminUser = () => {
     },
     user_metadata: {
       display_name: session.display_name,
+      admin_role: session.role,
+      is_owner: session.is_owner,
     },
     aud: 'authenticated',
   } as any;

@@ -137,6 +137,7 @@ const isUnlockedByLevel = (requiredLevel: number | null | undefined, effectiveLe
 const isMonetizedAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
+  price_diamonds?: number | null;
 }): boolean => {
   return Boolean(
     asset.is_premium ||
@@ -358,6 +359,7 @@ const VIP = () => {
             (slot === 'noble_card' && p.item_id === equippedNobleCardId);
 
           allPrivileges.push({
+            id: p.id,
             item_id: p.item_id,
             name: shopItem.name,
             category: shopCategory,
@@ -394,6 +396,15 @@ const VIP = () => {
           const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
           if (!alreadyExists) {
             allPrivileges.push({
+              id: `frame_${frame.id}`,
+              item_id: frame.id,
+              name: frame.name,
+              category: 'frame',
+              preview_url: frame.preview_url,
+              animation_url: frame.frame_url || frame.preview_url,
+              is_equipped: isEquipped,
+              expires_at: null,
+              source: 'frame',
               unlock_level: requiredLevel,
             });
           }
@@ -426,6 +437,16 @@ const VIP = () => {
           else if (slot === 'medal') isEquipped = priv.id === equippedMedalId;
           
           allPrivileges.push({
+            id: priv.id,
+            item_id: priv.id,
+            name: priv.name || priv.privilege_name,
+            category: priv.privilege_type,
+            preview_url: priv.preview_url,
+            animation_url: priv.animation_url || priv.preview_url,
+            is_equipped: isEquipped,
+            expires_at: null,
+            source: 'level',
+            unlock_level: requiredLevel,
           });
         }
       }
@@ -461,6 +482,16 @@ const VIP = () => {
           const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
           if (!alreadyExists) {
             allPrivileges.push({
+              id: `enb_${bar.id}`,
+              item_id: bar.id,
+              name: bar.name,
+              category: 'entry_name_bar',
+              preview_url: previewUrl,
+              animation_url: animationUrl,
+              is_equipped: isEquipped,
+              expires_at: null,
+              source: 'level',
+              unlock_level: unlockLevel,
             });
           }
         }
@@ -487,6 +518,16 @@ const VIP = () => {
           const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
           if (!alreadyExists) {
             allPrivileges.push({
+              id: `eb_${banner.id}`,
+              item_id: banner.id,
+              name: banner.name,
+              category: 'entrance',
+              preview_url: banner.image_url,
+              animation_url: banner.animation_url || banner.image_url,
+              is_equipped: isEquipped,
+              expires_at: null,
+              source: 'level',
+              unlock_level: banner.level_required || 1,
             });
           }
         }
@@ -511,6 +552,16 @@ const VIP = () => {
           const alreadyExists = allPrivileges.some((p) => p.item_id === vehicle.id);
           if (!alreadyExists) {
             allPrivileges.push({
+              id: `vehicle_${vehicle.id}`,
+              item_id: vehicle.id,
+              name: vehicle.name,
+              category: 'vehicle',
+              preview_url: vehicle.preview_url || vehicle.image_url,
+              animation_url: vehicle.animation_url || vehicle.preview_url || vehicle.image_url,
+              is_equipped: isEquipped,
+              expires_at: null,
+              source: 'level',
+              unlock_level: vehicle.level_required || 1,
             });
           }
         }
@@ -564,6 +615,7 @@ const VIP = () => {
             const af = avatarFrameMap[(assigned as any).frame_id];
             if (af) {
               frame = {
+                id: af.id,
                 frame_name: af.name,
                 frame_url: af.frame_url || af.image_url,
                 description: af.description,
@@ -579,6 +631,15 @@ const VIP = () => {
             const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
             if (!alreadyExists) {
               allPrivileges.push({
+                id: (assigned as any).id,
+                item_id: frame.id,
+                name: frame.frame_name,
+                category: 'frame',
+                preview_url: frame.frame_url,
+                animation_url: frame.frame_url,
+                is_equipped: isEquipped,
+                expires_at: (assigned as any).expires_at,
+                source: 'admin_assigned',
                 role_type: (assigned as any).role_type,
               });
             }
@@ -598,6 +659,15 @@ const VIP = () => {
             const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'frame');
             if (!alreadyExists) {
               allPrivileges.push({
+                id: `vip_frame_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Frame`,
+                category: 'frame',
+                preview_url: activeTier.frame_animation_url,
+                animation_url: activeTier.frame_animation_url!,
+                is_equipped: activeTier.id === equippedFrameId,
+                expires_at: vipData?.expires_at || null,
+                source: 'shop',
               });
             }
           }
@@ -606,6 +676,15 @@ const VIP = () => {
             const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'entrance');
             if (!alreadyExists) {
               allPrivileges.push({
+                id: `vip_entry_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Entry`,
+                category: 'entrance',
+                preview_url: activeTier.entry_animation_url,
+                animation_url: activeTier.entry_animation_url!,
+                is_equipped: activeTier.id === equippedEntranceId,
+                expires_at: vipData?.expires_at || null,
+                source: 'shop',
               });
             }
           }
@@ -614,6 +693,15 @@ const VIP = () => {
             const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'bubble');
             if (!alreadyExists) {
               allPrivileges.push({
+                id: `vip_bubble_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Bubble`,
+                category: 'bubble',
+                preview_url: activeTier.bubble_animation_url,
+                animation_url: activeTier.bubble_animation_url!,
+                is_equipped: activeTier.id === equippedBubbleId,
+                expires_at: vipData?.expires_at || null,
+                source: 'shop',
               });
             }
           }
@@ -673,6 +761,7 @@ const VIP = () => {
       if (userDiamonds < tier.price_diamonds) {
         toast({
           title: "Insufficient Diamonds",
+          description: "You don't have enough diamonds. Please recharge first.",
           variant: "destructive",
         });
         setSelectedTier(null);
@@ -697,6 +786,8 @@ const VIP = () => {
       }
 
       toast({
+        title: "🎉 VIP Activated!",
+        description: `You are now ${tier.tier_name}! All exclusive items are now equipped.`,
       });
 
       setUserDiamonds(rpcResult.balance_after);
@@ -710,6 +801,9 @@ const VIP = () => {
       console.error("Error purchasing VIP:", error);
       recordClientError({ label: "VIP.rpcResult", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Purchase Failed",
+        description: error.message || "Failed to activate VIP. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setPurchasing(false);
@@ -724,6 +818,9 @@ const VIP = () => {
 
     if (privilegeSlot === 'other') {
       toast({
+        title: 'Unsupported Item',
+        description: 'This privilege cannot be equipped yet.',
+        variant: 'destructive',
       });
       return;
     }
@@ -747,6 +844,8 @@ const VIP = () => {
 
     // Instant feedback toast.
     toast({
+      title: "✨ Equipped!",
+      description: `${privilege.name} is now active - Profile, Live, Party Rooms, Chat!`,
     });
 
     setEquipping(privilege.id);
@@ -856,6 +955,9 @@ const VIP = () => {
       recordClientError({ label: "VIP.handleEquip", message: error instanceof Error ? error.message : String(error) });
       setUserPrivileges(previousPrivileges);
       toast({
+        title: "Failed to Equip",
+        description: error?.message || "Could not equip item. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setEquipping(null);
@@ -929,6 +1031,7 @@ const VIP = () => {
       case 'entry_name_bar': case 'entry_bar': return 'Entry Name Bar';
       case 'vehicle': case 'vehicle_entrance': return 'Vehicle';
       case 'bubble': case 'chat_bubble': return 'Chat Bubble';
+      default: return category;
     }
   };
 
@@ -988,6 +1091,8 @@ const VIP = () => {
         <TabsList
           className="mx-4 mt-3 p-1 rounded-2xl bg-transparent gap-1"
           style={{
+            background: 'rgba(15,23,42,0.08)',
+            boxShadow: 'inset 0 2px 6px rgba(15,23,42,0.18), inset 0 -1px 0 rgba(255,255,255,0.6)',
             border: '1px solid rgba(217,182,107,0.45)',
           }}
         >
@@ -995,6 +1100,8 @@ const VIP = () => {
             value="vip"
             className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
             style={activeTab === 'vip' ? {
+              background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
               textShadow: '0 1px 2px rgba(0,0,0,0.20)',
             } : undefined}
           >
@@ -1005,6 +1112,9 @@ const VIP = () => {
             value="noble"
             className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
             style={activeTab === 'noble' ? {
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              boxShadow: '0 8px 20px -6px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
             } : undefined}
           >
             <Crown className="w-4 h-4 mr-1.5" />
@@ -1014,6 +1124,9 @@ const VIP = () => {
             value="privileges"
             className="flex-1 rounded-xl font-semibold transition-all data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:text-heading"
             style={activeTab === 'privileges' ? {
+              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.20)',
             } : undefined}
           >
             <Sparkles className="w-4 h-4 mr-1.5" />
@@ -1037,6 +1150,8 @@ const VIP = () => {
             <div
               className="mb-4 p-4 rounded-2xl relative overflow-hidden"
               style={{
+                background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                boxShadow: '0 14px 32px -10px rgba(168,85,247,0.50), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -3px 6px rgba(0,0,0,0.15)',
               }}
             >
               <div
@@ -1056,7 +1171,9 @@ const VIP = () => {
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center"
                   style={{
+                    background: 'rgba(255,255,255,0.22)',
                     backdropFilter: 'blur(8px)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45)',
                   }}
                 >
                   <Sparkles className="w-5 h-5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
@@ -1080,6 +1197,8 @@ const VIP = () => {
                   transition={{ delay: index * 0.08 }}
                   className="relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
                   style={{
+                    border: isOwned ? '1px solid rgba(16,185,129,0.55)' : '1px solid rgba(217,182,107,0.50)',
+                    boxShadow: isOwned
                       ? '0 14px 32px -10px rgba(16,185,129,0.35), 0 2px 6px -2px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.7)'
                       : '0 14px 32px -12px rgba(180,140,40,0.30), 0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)',
                   }}
@@ -1089,6 +1208,9 @@ const VIP = () => {
                     <div
                       className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-[10px] font-bold text-white tracking-wider"
                       style={{
+                        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                        boxShadow: '0 4px 10px -2px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.40)',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.25)',
                       }}
                     >
                       ★ BEST
@@ -1102,6 +1224,8 @@ const VIP = () => {
                         <div
                           className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
                           style={{
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,251,242,0.7))',
+                            boxShadow: '0 6px 14px -4px rgba(146,64,14,0.30), inset 0 1px 0 rgba(255,255,255,0.85)',
                           }}
                         >
                           {tier.badge_animation_url ? (
@@ -1124,6 +1248,9 @@ const VIP = () => {
                         <span
                           className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white"
                           style={{
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            boxShadow: '0 6px 14px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.40)',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.25)',
                           }}
                         >
                           <Check className="w-3 h-3" /> Active
@@ -1142,6 +1269,8 @@ const VIP = () => {
                           key={i}
                           className="flex items-center gap-2 text-body text-xs font-medium px-2 py-1.5 rounded-lg"
                           style={{
+                            background: 'linear-gradient(135deg, rgba(147,51,234,0.08), rgba(236,72,153,0.06))',
+                            border: '1px solid rgba(147,51,234,0.18)',
                           }}
                         >
                           <priv.icon className="w-3.5 h-3.5 text-purple-700 flex-shrink-0" />
@@ -1155,6 +1284,9 @@ const VIP = () => {
                       <div
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
                         style={{
+                          background: 'linear-gradient(135deg, rgba(251,191,36,0.20), rgba(217,182,107,0.14))',
+                          border: '1px solid rgba(217,182,107,0.40)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
                         }}
                       >
                         <Diamond3DIcon size={18} />
@@ -1168,8 +1300,15 @@ const VIP = () => {
                         disabled={isOwned || purchasing}
                         className="px-5 py-2 rounded-full font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-100 disabled:hover:translate-y-0 disabled:cursor-default"
                         style={isOwned ? {
+                          background: 'linear-gradient(135deg, rgba(16,185,129,0.18), rgba(5,150,105,0.12))',
                           color: '#065f46',
+                          border: '1px solid rgba(16,185,129,0.40)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
                         } : {
+                          background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                          color: '#fff',
+                          boxShadow: '0 10px 22px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.22)',
                         }}
                       >
                         {isOwned ? '✓ Active' : 'Subscribe'}
@@ -1365,6 +1504,9 @@ const VIP = () => {
         <DialogContent
           className="border-0 max-w-sm"
           style={{
+            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+            border: '1px solid rgba(217,182,107,0.40)',
+            boxShadow: '0 25px 60px rgba(120,90,30,0.30), 0 0 40px rgba(168,85,247,0.15)',
           }}
         >
           <DialogHeader>
@@ -1382,6 +1524,9 @@ const VIP = () => {
               <div
                 className="flex items-center justify-center gap-2 py-4 rounded-2xl"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(251,191,36,0.22), rgba(217,182,107,0.14))',
+                  border: '1px solid rgba(217,182,107,0.40)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(180,140,40,0.10)',
                 }}
               >
                 <Diamond3DIcon size={26} />
@@ -1399,6 +1544,9 @@ const VIP = () => {
                   onClick={() => setSelectedTier(null)}
                   className="flex-1 py-3 rounded-full font-semibold text-heading transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
                   style={{
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(217,182,107,0.45)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
                   }}
                 >
                   Cancel
@@ -1408,6 +1556,9 @@ const VIP = () => {
                   disabled={purchasing || userDiamonds < selectedTier.price_diamonds}
                   className="flex-1 py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:hover:translate-y-0"
                   style={{
+                    background: 'linear-gradient(135deg, hsl(270 75% 55%) 0%, hsl(292 84% 60%) 50%, hsl(330 84% 60%) 100%)',
+                    boxShadow: '0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.22)',
                   }}
                 >
                   {purchasing ? "Processing..." : "Confirm"}
@@ -1422,6 +1573,9 @@ const VIP = () => {
                   }}
                   className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                   style={{
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                    boxShadow: '0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.22)',
                   }}
                 >
                   <Diamond3DIcon size={16} />

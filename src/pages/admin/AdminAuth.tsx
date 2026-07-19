@@ -262,6 +262,7 @@ export default function AdminAuth() {
               authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
               'content-type': 'application/json',
             },
+            body: JSON.stringify({ token: accessToken }),
           });
           const directData = await directResp.json().catch(() => null);
           if (directData?.valid) {
@@ -341,6 +342,8 @@ export default function AdminAuth() {
       // joining admin_sessions.device_fingerprint to admin_allowed_devices.
       if (linkKind === 'owner' && auth.is_owner) {
         const { data: ownerDeviceData, error: ownerDeviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
+          _admin_id: auth.admin_id,
+          _device_fingerprint: fp.fingerprint,
           _device_name: fp.deviceName,
           _device_info: fp.details,
           _ip_address: null,
@@ -352,6 +355,14 @@ export default function AdminAuth() {
           throw new Error(ownerDevice?.error || 'Owner device session could not be verified');
         }
         saveAdminSession({
+          admin_id: auth.admin_id,
+          email: auth.email,
+          display_name: auth.display_name,
+          role: auth.role,
+          is_owner: true,
+          must_change_password: !!auth.must_change_password,
+          device_fingerprint: fp.fingerprint,
+          session_token: auth.session_token,
         });
         markAdminSessionPreflightValid();
         setAdminSessionToken(auth.session_token);
@@ -366,6 +377,12 @@ export default function AdminAuth() {
 
       // ─── SUB-ADMIN LINK → DEVICE VERIFICATION REQUIRED ──────────
       const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
+        _admin_id: auth.admin_id,
+        _device_fingerprint: fp.fingerprint,
+        _device_name: fp.deviceName,
+        _device_info: fp.details,
+        _ip_address: null,
+        _user_agent: navigator.userAgent,
       });
 
       if (deviceError) throw deviceError;
@@ -373,6 +390,14 @@ export default function AdminAuth() {
 
       if (device?.status === 'approved') {
         saveAdminSession({
+          admin_id: auth.admin_id,
+          email: auth.email,
+          display_name: auth.display_name,
+          role: auth.role,
+          is_owner: !!auth.is_owner,
+          must_change_password: !!auth.must_change_password,
+          device_fingerprint: fp.fingerprint,
+          session_token: auth.session_token,
         });
         markAdminSessionPreflightValid();
         setAdminSessionToken(auth.session_token);
@@ -388,6 +413,11 @@ export default function AdminAuth() {
         setPendingFingerprint(fp.fingerprint);
         setPendingSessionToken(auth.session_token);
         setPendingAuthData({
+          email: auth.email,
+          display_name: auth.display_name ?? null,
+          role: auth.role,
+          is_owner: !!auth.is_owner,
+          must_change_password: !!auth.must_change_password,
         });
         setPendingDeviceId(device.device_id);
         setAdminSessionToken(null);

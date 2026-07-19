@@ -231,6 +231,19 @@ export default function AdminEntryBanners() {
 
   const resetForm = () => {
     setFormData({
+      name: "",
+      description: "",
+      animation_url: "",
+      animation_format: null,
+      animation_config_url: null,
+      preview_url: "",
+      min_level: 0,
+      min_vip_tier: 0,
+      price_diamonds: 0,
+      is_active: true,
+      is_premium: false,
+      display_order: 0,
+      duration_ms: 3000
     });
     setSelectedBanner(null);
   };
@@ -238,6 +251,19 @@ export default function AdminEntryBanners() {
   const openEditDialog = (banner: EntryBanner) => {
     setSelectedBanner(banner);
     setFormData({
+      name: banner.name,
+      description: banner.description || "",
+      animation_url: banner.animation_url,
+      animation_format: ((banner as any).animation_format ?? null) as AnimationFormat | null,
+      animation_config_url: (banner as any).animation_config_url ?? null,
+      preview_url: banner.preview_url || "",
+      min_level: banner.min_level,
+      min_vip_tier: banner.min_vip_tier,
+      price_diamonds: banner.price_diamonds,
+      is_active: banner.is_active,
+      is_premium: banner.is_premium,
+      display_order: banner.display_order,
+      duration_ms: banner.duration_ms
     });
     setShowDialog(true);
   };
@@ -409,9 +435,15 @@ export default function AdminEntryBanners() {
               label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
               folder="entry-banners"
               value={{
+                animation_url: formData.animation_url,
+                animation_format: formData.animation_format,
+                animation_config_url: formData.animation_config_url,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
+                animation_url: v.animation_url,
+                animation_format: v.animation_format,
+                animation_config_url: v.animation_config_url,
               }))}
             />
 

@@ -114,6 +114,7 @@ const HostTransferHistory = () => {
         totalEarnings,
         thisWeekEarnings,
         thisMonthEarnings,
+        totalWeeks: earnings.length,
         giftTotal,
         callTotal
       });

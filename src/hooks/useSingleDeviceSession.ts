@@ -189,6 +189,7 @@ export const useSingleDeviceSession = (userId: string | null) => {
         sessionId: sessionId.current,
         userId,
         forceNewId,
+        platform: deviceInfo.platform,
       });
       isRegistered.current = true;
       resetErrorBackoff();
@@ -459,6 +460,7 @@ export const useSingleDeviceSession = (userId: string | null) => {
   }, [userId, armReconnectGrace]);
 
   return {
+    sessionId: sessionId.current,
     registerSession,
     checkSessionValid,
   };

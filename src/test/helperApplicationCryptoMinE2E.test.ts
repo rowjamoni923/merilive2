@@ -62,6 +62,9 @@ describe('Pkg67 — helper application crypto $100 minimum gate', () => {
     'ALLOWS payment when tier price is $%s (at/above $100)',
     (price) => {
       const err = validateCryptoPayment({
+        selectedLevel: 3,
+        upgradeCostUsd: price,
+        diamondsPerUsd: 100,
       });
       expect(err).toBeNull();
     },
@@ -69,6 +72,9 @@ describe('Pkg67 — helper application crypto $100 minimum gate', () => {
 
   it('skips the minimum check for free (L0) levels', () => {
     const err = validateCryptoPayment({
+      selectedLevel: 0,
+      upgradeCostUsd: 0,
+      diamondsPerUsd: 100,
     });
     expect(err).toBeNull();
   });
@@ -78,18 +84,27 @@ describe('Pkg67 — helper application crypto $100 minimum gate', () => {
     // The "not configured" branch only fires if isPaidLevel is true with effectiveCost<=0,
     // which is unreachable given current derivation — documents intended ordering.
     const err = validateCryptoPayment({
+      selectedLevel: 2,
+      upgradeCostUsd: 0,
+      diamondsPerUsd: 100,
     });
     expect(err).toBeNull();
   });
 
   it('blocks on missing diamond rate before evaluating the $100 floor', () => {
     const err = validateCryptoPayment({
+      selectedLevel: 1,
+      upgradeCostUsd: 50, // would otherwise trigger the $100 message
+      diamondsPerUsd: 0,
     });
     expect(err).toBe('Diamond rate not loaded yet — try again in a moment');
   });
 
   it('UI message is user-facing (no internal jargon, mentions both numbers)', () => {
     const err = validateCryptoPayment({
+      selectedLevel: 1,
+      upgradeCostUsd: 50,
+      diamondsPerUsd: 100,
     })!;
     expect(err).toMatch(/Minimum crypto payment is \$100/);
     expect(err).toMatch(/\$50/);

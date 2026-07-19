@@ -45,6 +45,7 @@ describe('Pkg110 livekitSip', () => {
   it('sipDial returns null on edge function error', async () => {
     (isLiveKitEnabled as any).mockResolvedValue(true);
     (supabase.functions.invoke as any).mockResolvedValue({
+      data: null, error: { message: 'sip_disabled' },
     });
     expect(await sipDial('s1', '+12025550101')).toBeNull();
   });
@@ -59,6 +60,7 @@ describe('Pkg110 livekitSip', () => {
     (supabase.functions.invoke as any).mockResolvedValue({ data: { ok: true }, error: null });
     expect(await sipHangup('SIP_P_1', 'live_s1')).toBe(true);
     expect((supabase.functions.invoke as any)).toHaveBeenCalledWith('livekit-sip', {
+      body: { action: 'hangup', sipParticipantId: 'SIP_P_1', roomName: 'live_s1' },
     });
   });
 

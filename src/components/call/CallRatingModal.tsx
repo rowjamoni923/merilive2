@@ -125,11 +125,16 @@ export function CallRatingModal({
       }
 
       toast({
+        title: "Thank you! 🎉",
+        description: "Your rating has been submitted",
       });
       onClose();
     } catch (error) {
       console.error('Error submitting rating:', error);
       toast({
+        title: "Error",
+        description: "Please try again",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

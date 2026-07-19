@@ -192,7 +192,7 @@ const TreasureChestIcon = ({ size = 64 }: { size?: number }) => (
       <animateTransform attributeName="transform" type="translate" values="0,0; 1,-2; 0,0" dur="2.2s" repeatCount="indefinite" />
     </path>
 
-    {/* Gold diamonds pile */}
+    {/* Gold coins pile */}
     {[
       {cx:48, cy:94, rx:7, ry:3.5},
       {cx:152, cy:94, rx:7, ry:3.5},

@@ -31,8 +31,12 @@ const colorConfig = {
     tableColor: "#ef4444",
   },
   blue: {
+    glow: "rgba(59, 130, 246, 0.6)",
+    tableColor: "#3b82f6",
   },
   green: {
+    glow: "rgba(34, 197, 94, 0.6)",
+    tableColor: "#22c55e",
   }
 };
 

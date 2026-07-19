@@ -59,17 +59,25 @@ const TOOL_DEF = {
     description:
       "Classify a single live-stream chat message and choose an action.",
     parameters: {
+      type: "object",
       properties: {
         action: {
+          type: "string",
           enum: ["allow", "warn", "mute", "kick"],
         },
         severity: {
+          type: "integer",
           description: "0 (clean) to 100 (extreme).",
         },
         reason: {
+          type: "string",
+          description: "Short explanation (max 140 chars) shown in audit log.",
         },
         categories: {
+          type: "array",
           items: {
+            type: "string",
+            enum: [
               "clean",
               "profanity",
               "harassment",
@@ -261,12 +269,23 @@ Deno.serve(async (req) => {
       console.error("[ai-moderator] enforce failed:", e);
       enforcement = { enforced: "failed", error: String(e) };
       await sb.from("livekit_moderation_log").insert({
+        admin_token_role: "ai_agent",
+        actor_type: "ai_agent",
+        room_name: body.room_name,
+        participant_identity: body.participant_identity,
+        action: result.action === "kick" ? "kick_participant" : "mute_participant_audio",
+        reason: `[AI] ${result.reason}`,
+        success: false,
         error_message: String(e),
       });
     }
   }
 
   return json(200, {
+    action: result.action,
+    severity: result.severity,
+    reason: result.reason,
+    categories: result.categories,
     enforcement,
   });
 });

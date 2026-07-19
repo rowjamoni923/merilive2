@@ -32,6 +32,8 @@ export const formatNumber = (
   }
 
   return num.toLocaleString('en-US', {
+    minimumFractionDigits: minDecimals ?? 0,
+    maximumFractionDigits: maxDecimals ?? 2,
   });
 };
 
@@ -85,8 +87,8 @@ export const formatCompactNumber = (
 };
 
 /**
- * Format a number as beans/diamonds display
- * @param beans - The number of beans/diamonds
+ * Format a number as beans/coins display
+ * @param beans - The number of beans/coins
  */
 export const formatBeans = (beans: number | undefined | null): string => {
   return formatNumber(beans, { maxDecimals: 0 });

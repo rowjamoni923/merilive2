@@ -31,7 +31,7 @@ export interface InlineGiftRowProps {
   giftIconUrl?: string;
   giftEmoji?: string;
   count: number;
-  diamonds?: number;
+  coins?: number;
   className?: string;
   /** Visual surface. Defaults to "chat". */
   surface?: InlineGiftSurface;
@@ -50,7 +50,7 @@ const InlineGiftRowInner = ({
   giftIconUrl,
   giftEmoji,
   count,
-  diamonds = 0,
+  coins = 0,
   className,
   surface = "chat",
   isSelf = false,
@@ -60,9 +60,9 @@ const InlineGiftRowInner = ({
   // Subtle accent color for "xN" — keeps the bubble itself neutral
   // while still indicating gift tier the same way pro apps do.
   const accent =
-    diamonds >= 10000
+    coins >= 10000
       ? "text-amber-500"
-      : diamonds >= 1000
+      : coins >= 1000
       ? "text-cyan-500"
       : "text-rose-500";
 
@@ -200,29 +200,29 @@ export default InlineGiftRow;
 // ===== Inline gift marker helpers =====
 // Canonical chat marker so any surface can serialize a gift row into a
 // plain message string and detect+render it without bespoke metadata:
-//   [INLINE_GIFT:<iconUrl>|<giftName>|<count>|<diamonds>]
+//   [INLINE_GIFT:<iconUrl>|<giftName>|<count>|<coins>]
 const INLINE_GIFT_RE = /\[INLINE_GIFT:([^\]]*)\]/;
 
 export function encodeInlineGiftMarker(opts: {
   giftName: string;
   count: number;
-  diamonds?: number;
+  coins?: number;
   iconUrl?: string;
 }): string {
-  const { giftName, count, diamonds = 0, iconUrl = "" } = opts;
+  const { giftName, count, coins = 0, iconUrl = "" } = opts;
   const safe = (s: string) => String(s).replace(/\|/g, "\u2758").replace(/[\[\]]/g, "");
-  return `[INLINE_GIFT:${safe(iconUrl)}|${safe(giftName)}|${Math.max(1, count | 0)}|${Math.max(0, diamonds | 0)}]`;
+  return `[INLINE_GIFT:${safe(iconUrl)}|${safe(giftName)}|${Math.max(1, count | 0)}|${Math.max(0, coins | 0)}]`;
 }
 
 export function parseInlineGiftMarker(
   raw: string
-): { iconUrl: string; giftName: string; count: number; diamonds: number } | null {
+): { iconUrl: string; giftName: string; count: number; coins: number } | null {
   const m = raw.match(INLINE_GIFT_RE);
   if (!m) return null;
   const parts = m[1].split("|");
   if (parts.length < 2) return null;
   const [iconUrl = "", giftName = "Gift", countStr = "1", coinsStr = "0"] = parts;
   const count = Math.max(1, parseInt(countStr, 10) || 1);
-  const diamonds = Math.max(0, parseInt(coinsStr, 10) || 0);
-  return { iconUrl, giftName, count, diamonds };
+  const coins = Math.max(0, parseInt(coinsStr, 10) || 0);
+  return { iconUrl, giftName, count, coins };
 }

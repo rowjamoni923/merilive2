@@ -121,12 +121,14 @@ export const HostModerationSheet = ({
         case "unmute_mic":
           res = await hostUnmuteParticipantAudio({
             roomName,
+            identity: identity!,
             reason,
           });
           break;
         case "kick":
           res = await hostKickParticipant({
             roomName,
+            identity: identity!,
             reason,
           });
           break;

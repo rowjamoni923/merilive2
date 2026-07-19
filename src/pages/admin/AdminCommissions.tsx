@@ -139,6 +139,7 @@ export default function AdminCommissions() {
           buy_rate: 9500,
           sell_rate: 10500,
           min_trade_amount: 1000,
+          enabled: true
         },
         party_room_defaults: settingsMap.party_room_defaults || { 
           max_video_participants: 4, 

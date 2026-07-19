@@ -49,8 +49,9 @@ interface SearchResult {
   avatar?: string;
   isBlocked?: boolean;
   balances: {
-    diamonds?: number;
+    coins?: number;
     beans?: number;
+    diamonds?: number;
     pending_earnings?: number;
     total_earnings?: number;
     wallet_balance?: number;
@@ -59,10 +60,15 @@ interface SearchResult {
   helperId?: string;
   // New: Related accounts for unified view
   relatedAgency?: {
+    id: string;
+    name: string;
     beans_balance: number;
     diamond_balance: number;
   };
   relatedHelper?: {
+    id: string;
+    wallet_balance: number;
+    total_earnings: number;
     level: number;
   };
 }
@@ -308,20 +314,26 @@ export default function AdminBalanceDeduction() {
             
             searchResults.push({
               type: profile.is_host ? 'host' : 'user',
+              id: profile.id,
+              uid: profile.app_uid || undefined,
               name: profile.display_name || 'Unknown',
               avatar: profile.avatar_url || undefined,
               isBlocked: profile.is_blocked || false,
               balances: {
-                diamonds: profile.diamonds || 0,
+                coins: profile.diamonds || 0,
                 total_earnings: profile.total_earnings || 0,
                 pending_earnings: profile.pending_earnings || 0
               },
               relatedAgency: agencyData ? {
+                id: agencyData.id,
+                name: agencyData.name,
                 beans_balance: agencyData.beans_balance || 0,
                 diamond_balance: agencyData.diamond_balance || 0
               } : undefined,
               relatedHelper: helperData ? {
+                id: helperData.id,
                 wallet_balance: helperData.wallet_balance || 0,
+                total_earnings: helperData.total_earnings || 0,
                 level: helperData.trader_level || 1
               } : undefined
             });
@@ -378,8 +390,17 @@ export default function AdminBalanceDeduction() {
             const ownerUid = ownerUidMap.get(agency.owner_id) || agency.agency_code;
             
             searchResults.push({
+              type: 'agency',
+              id: agency.owner_id || agency.id,
               agencyId: agency.id,
+              uid: ownerUid,
+              name: agency.name,
+              avatar: agency.logo_url || undefined,
+              isBlocked: agency.is_blocked || false,
+              balances: {
                 beans: agency.beans_balance || 0,
+                diamonds: agency.diamond_balance || 0,
+                wallet_balance: agency.wallet_balance || 0
               }
             });
           }
@@ -409,7 +430,16 @@ export default function AdminBalanceDeduction() {
               profile.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
             )) {
               searchResults.push({
+                type: 'helper',
+                id: (helper as any).user_id,
                 helperId: (helper as any).id,
+                uid: profile.app_uid || undefined,
+                name: `${profile.display_name || 'Unknown'} (Level ${(helper as any).trader_level || 1})`,
+                avatar: profile.avatar_url || undefined,
+                isBlocked: !(helper as any).is_active || profile.is_blocked,
+                balances: {
+                  wallet_balance: (helper as any).wallet_balance || 0,
+                  total_earnings: (helper as any).total_earnings || 0
                 }
               });
             }
@@ -446,6 +476,7 @@ export default function AdminBalanceDeduction() {
       case 'host': return <Crown className="w-4 h-4" />;
       case 'agency': return <Building2 className="w-4 h-4" />;
       case 'helper': return <Wallet className="w-4 h-4" />;
+      default: return <User className="w-4 h-4" />;
     }
   };
 
@@ -509,6 +540,7 @@ export default function AdminBalanceDeduction() {
     addOrDeduct: 'add' | 'deduct',
     fieldKey: string,
     amount: number,
+    reason: string,
   ): Promise<{ ok: boolean; error?: string; newBalance?: number }> => {
     if (!selectedResult) return { ok: false, error: 'No selection' };
 
@@ -535,6 +567,11 @@ export default function AdminBalanceDeduction() {
       target_type = 'profile';
       target_id = selectedResult.id;
       const profileFieldMap: Record<string, string> = {
+        coins: 'diamonds',
+        total_earnings: 'total_earnings',
+        pending_earnings: 'pending_earnings',
+        beans: 'beans',
+        diamonds: 'diamonds',
       };
       db_field = profileFieldMap[fieldKey] || fieldKey;
     }
@@ -543,6 +580,9 @@ export default function AdminBalanceDeduction() {
       target_type = 'agency';
       target_id = selectedResult.agencyId || selectedResult.id;
       const agencyFieldMap: Record<string, string> = {
+        beans: 'beans_balance',
+        diamonds: 'diamond_balance',
+        wallet_balance: 'wallet_balance',
       };
       db_field = agencyFieldMap[fieldKey] || fieldKey;
     }
@@ -562,6 +602,7 @@ export default function AdminBalanceDeduction() {
       _target_id: target_id,
       _field: db_field,
       _delta: delta,
+      _reason: reason || null,
     });
 
     if (error) return { ok: false, error: error.message };
@@ -598,6 +639,9 @@ export default function AdminBalanceDeduction() {
       handleSearch();
     } catch (error) {
       recordAdminError({
+        kind: 'rpc',
+        label: 'AdminBalanceDeduction.AddError',
+        message: formatAdminError(error),
       });
       toast.error('Failed to add amount');
     } finally {
@@ -623,6 +667,9 @@ export default function AdminBalanceDeduction() {
       const result = await adjustBalance('deduct', deductionField, amount, deductionReason);
       if (!result.ok) {
         recordAdminError({
+          kind: 'rpc',
+          label: 'AdminBalanceDeduction.DeductionError',
+          message: result.error || 'Unknown',
         });
         toast.error(result.error || 'Failed to deduct amount');
         return;
@@ -632,6 +679,9 @@ export default function AdminBalanceDeduction() {
       handleSearch();
     } catch (error) {
       recordAdminError({
+        kind: 'rpc',
+        label: 'AdminBalanceDeduction.DeductionError',
+        message: formatAdminError(error),
       });
       toast.error('Failed to deduct amount');
     } finally {
@@ -650,11 +700,17 @@ export default function AdminBalanceDeduction() {
       if (selectedResult.type === 'agency') {
         const { data, error } = await supabase.rpc('admin_block_agency', {
           _agency_id: selectedResult.agencyId,
+          _block: true,
+          _reason: blockReason || null,
         });
         if (error) throw error;
         if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to block agency');
       } else {
         const { data, error } = await supabase.rpc('admin_block_user', {
+          _user_id: selectedResult.id,
+          _block: true,
+          _reason: blockReason || null,
+          _ban_device: false,
         });
         if (error) throw error;
         if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to block user');
@@ -663,6 +719,13 @@ export default function AdminBalanceDeduction() {
       // Log the admin action
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       await supabase.from('admin_logs').insert({
+        admin_id: user?.id,
+        action_type: 'user_blocked',
+        target_type: selectedResult.type,
+        target_id: selectedResult.id,
+        details: {
+          reason: blockReason,
+          uid: selectedResult.uid
         }
       });
 

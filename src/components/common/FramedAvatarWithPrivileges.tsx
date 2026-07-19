@@ -258,6 +258,9 @@ const FramedAvatarWithPrivileges = ({
               className="absolute -inset-1 rounded-full pointer-events-none"
               animate={{ rotate: 360 }}
               transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear",
               }}
             >
               {[0, 60, 120, 180, 240, 300].map((angle, i) => (
@@ -265,14 +268,19 @@ const FramedAvatarWithPrivileges = ({
                   key={i}
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{
+                    background: glowColor,
                     boxShadow: `0 0 6px ${glowColor}`,
                     top: "50%",
                     left: "50%",
                     transform: `rotate(${angle}deg) translateX(${size === 'xs' ? 14 : size === 'sm' ? 20 : 24}px) translateY(-50%)`,
                   }}
                   animate={{
+                    scale: [0.8, 1.3, 0.8],
+                    opacity: [0.6, 1, 0.6],
                   }}
                   transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
                     delay: i * 0.2,
                   }}
                 />
@@ -289,11 +297,15 @@ const FramedAvatarWithPrivileges = ({
               <motion.div
                 className="absolute inset-0"
                 style={{
+                  background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)`,
                 }}
                 animate={{
                   x: ["-100%", "200%"],
                 }}
                 transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "linear",
                   repeatDelay: 1.5,
                 }}
               />
@@ -330,12 +342,21 @@ const FramedAvatarWithPrivileges = ({
               alt=""
               className="absolute w-auto h-auto object-contain pointer-events-none"
               style={{
+                inset: frameInsetPx[size],
+                width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+                zIndex: 20,
               }}
               animate={showAnimation ? {
+                scale: [1, 1.03, 1],
+                filter: level >= 20
                   ? ["brightness(1)", "brightness(1.15)", "brightness(1)"]
                   : undefined,
               } : {}}
               transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
               }}
             />
           )}
@@ -357,10 +378,19 @@ const FramedAvatarWithPrivileges = ({
                   key={`sparkle-${i}`}
                   className="absolute text-xs pointer-events-none"
                   style={{
+                    top: "50%",
+                    left: "50%",
+                    transform: `rotate(${angle}deg) translateX(${size === 'xs' ? 16 : size === 'sm' ? 22 : 28}px)`,
+                    zIndex: 25,
                   }}
                   animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0.5, 1.2, 0.5],
                   }}
                   transition={{
+                    duration: 1.8,
+                    repeat: Infinity,
+                    delay: i * 0.4,
                   }}
                 >
                   ✨

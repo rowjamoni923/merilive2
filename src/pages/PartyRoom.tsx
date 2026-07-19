@@ -137,6 +137,7 @@ interface PartyRoom {
   host_id: string;
   active_seats?: number; // ADDED: Current active seats from DB
   host: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     host_level: number | null;
@@ -153,6 +154,7 @@ interface Participant {
   role: string | null;
   position: number | null;
   user: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
@@ -283,7 +285,7 @@ const PartyRoom = () => {
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
-  // Per-participant SENT coin totals (sender_id -> total diamonds spent in this room)
+  // Per-participant SENT coin totals (sender_id -> total coins spent in this room)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
   // PR-2.3 (G) — Per-seat RECEIVED beans (receiver_id -> beans earned).
   // Mirrors Chamet/Bigo: each co-host seat shows their own earnings, host
@@ -303,6 +305,9 @@ const PartyRoom = () => {
     max_audio_participants: number;
     max_game_participants: number;
   }>({
+    max_video_participants: 4,
+    max_audio_participants: 12,
+    max_game_participants: 6
   });
   
   // Beauty state is UI-only; native beauty was removed for single-camera stability.
@@ -389,6 +394,7 @@ const PartyRoom = () => {
   const recentlyProcessedRequestsRef = useRef<Set<string>>(new Set());
   // Join messages for chat display
   const [joinMessages, setJoinMessages] = useState<{
+    id: string;
     userId: string;
     userName: string;
     userLevel: number;
@@ -424,9 +430,11 @@ const PartyRoom = () => {
             ? 'and 1 other joined the room ✨'
             : `and ${out.othersCount} others joined the room ✨`;
       setMessages(prev => [...prev, {
+        id: `welcome_${out.primary.userId}_${Date.now()}`,
         user_id: out.primary.userId,
         message: suffix,
         created_at: new Date().toISOString(),
+        type: 'join',
         user: {
           display_name: out.primary.userName,
           avatar_url: out.primary.avatarUrl,
@@ -448,11 +456,11 @@ const PartyRoom = () => {
   
   // Gift broadcast channel ref for instant sync
   const giftBroadcastChannelRef = useRef<any>(null);
-  const optimisticGiftCountsRef = useRef<Map<string, { beans: number; diamonds: number; expiresAt: number }>>(new Map());
-  const getPartyGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, diamonds?: number | null, count?: number | null) => {
-    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${diamonds || 0}:${count || 1}`;
+  const optimisticGiftCountsRef = useRef<Map<string, { beans: number; coins: number; expiresAt: number }>>(new Map());
+  const getPartyGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
   }, []);
-  const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, diamonds: number) => {
+  const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, coins: number) => {
     const now = Date.now();
     optimisticGiftCountsRef.current.set(key, { beans, diamonds, expiresAt: now + 15000 });
     optimisticGiftCountsRef.current.forEach((value, staleKey) => {
@@ -480,6 +488,7 @@ const PartyRoom = () => {
   
   // Room protection - blocks back button, auto-closes on network loss
   useRoomProtection({
+    roomType: 'party',
     enabled: !!roomId,
     onNetworkClose: async () => {
       console.log('[PartyRoom] Network lost - keeping room open while LiveKit reconnects');
@@ -522,6 +531,7 @@ const PartyRoom = () => {
 
       if (!error && data) {
         setGames(data.map(game => ({
+          id: game.game_id,
           name: game.game_name,
           emoji: game.game_emoji,
           color: game.game_color,
@@ -573,6 +583,9 @@ const PartyRoom = () => {
           const limits = limitsValue;
           console.log('[PartyRoom] ✅ Party limits loaded:', limits);
           setAdminPartyLimits({
+            max_video_participants: limits.max_video_participants || 4,
+            max_audio_participants: limits.max_audio_participants || 12,
+            max_game_participants: limits.max_game_participants || 6
           });
         }
       } catch (err) {
@@ -657,7 +670,7 @@ const PartyRoom = () => {
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
 
-          // Per-participant gift contribution tracking (sender -> diamonds spent)
+          // Per-participant gift contribution tracking (sender -> coins spent)
           const perUser: Record<string, number> = {};
           // PR-2.3 (G) — per-seat received beans (receiver -> beans earned)
           const perReceiver: Record<string, number> = {};
@@ -711,7 +724,7 @@ const PartyRoom = () => {
           if (Date.now() - lkMark < 5000) return; // LiveKit fast-path won
           // Safety-net apply
           const beans = Number(row.receiver_beans ?? Math.floor((row.diamond_amount || 0) * hostCommissionPercentRef.current / 100));
-          const diamonds = Number(row.total_diamonds ?? row.diamond_amount ?? 0);
+          const coins = Number(row.total_diamonds ?? row.diamond_amount ?? 0);
           if (beans > 0) {
             setTotalRoomBeans(prev => prev + beans);
             if (row.receiver_id) {
@@ -729,10 +742,10 @@ const PartyRoom = () => {
               } catch { /* ignore */ }
             }
           }
-          if (row.sender_id && diamonds > 0) {
+          if (row.sender_id && coins > 0) {
             setParticipantBeans(prev => ({
               ...prev,
-              [row.sender_id]: (prev[row.sender_id] || 0) + diamonds,
+              [row.sender_id]: (prev[row.sender_id] || 0) + coins,
             }));
           }
           console.log('[PartyRoom] Gift safety-net applied (LK missed):', row.id, '+', beans);
@@ -823,6 +836,7 @@ const PartyRoom = () => {
   // loss (phone call, alarm, voice assistant). Restored on focus regain
   // only if the user hadn't already muted themselves.
   useAudioFocusAutoMute({
+    enabled: isHost,
     intent: 'media',
     isMicEnabled: isAudioEnabled,
     setMicEnabled: (want) => {
@@ -850,13 +864,18 @@ const PartyRoom = () => {
     
     if (room.room_type === 'video') {
       return Array.from({ length: maxSeats }, (_, i) => ({
+        id: i,
         label: i === 0 ? "Host" : `Seat ${i}`
       }));
     } else if (room.room_type === 'audio') {
       return Array.from({ length: maxSeats }, (_, i) => ({
+        id: i,
+        label: i === 0 ? "Host" : `Seat ${i}`
       }));
     } else {
       return Array.from({ length: Math.min(maxSeats, 8) }, (_, i) => ({
+        id: i,
+        label: i === 0 ? "Host" : `Player ${i}`
       }));
     }
   };
@@ -942,6 +961,9 @@ const PartyRoom = () => {
           ...(roomData.data as any),
           host: resolvedHost ? {
             ...resolvedHost,
+            id: hostId,
+            display_name: resolvedHost.display_name || 'Host',
+            avatar_url: normalizeProfileMediaUrl(resolvedHost.avatar_url) || resolvedHost.avatar_url || null,
             frame_id: (resolvedHost as any).equipped_frame_id || (resolvedHost as any).frame_id || null,
           } : null,
         } as PartyRoom);
@@ -1129,6 +1151,7 @@ const PartyRoom = () => {
       const broadcastCoins = Number(giftData.totalDiamonds ?? (giftData.giftCoins || 0) * (giftData.count || 1));
       if (giftData.receiverId === cuid && broadcastBeans > 0) {
         window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId: cuid, beansDelta: broadcastBeans },
         }));
       }
 
@@ -1144,7 +1167,7 @@ const PartyRoom = () => {
         soundUrl: giftData.giftSoundUrl || undefined,
         giftColor: 'from-pink-500 to-purple-500',
         count: giftData.count || 1,
-        diamonds: giftData.giftCoins || 0,
+        coins: giftData.giftCoins || 0,
         isReceiverGift: giftData.receiverId ? giftData.receiverId === cuid : false,
       });
 
@@ -1191,13 +1214,26 @@ const PartyRoom = () => {
         setParticipants(prev => prev.some(p => p.user_id === data.userId)
           ? prev
           : [...prev, {
+              id: `livekit-${data.userId}`,
+              user_id: data.userId,
               role: 'audience',
               position: null,
+              user: {
+                id: data.userId,
+                display_name: data.userName,
+                avatar_url: data.userAvatar || null,
                 user_level: data.userLevel,
               },
             }]);
         fetchParticipants();
         setJoinMessages(prev => [...prev.slice(-20), {
+          id: `livekit_join_${Date.now()}_${data.userId}`,
+          userId: data.userId,
+          userName: data.userName,
+          userLevel: data.userLevel,
+          avatarUrl: data.userAvatar,
+          type: 'join' as const,
+          timestamp: new Date(),
         }]);
         // F2 — Client-side `party_room_messages` insert REMOVED.
         // DB trigger `trg_party_participants_announce_join` now writes the
@@ -1205,11 +1241,14 @@ const PartyRoom = () => {
         // F5 — Always trigger entry namebar for every viewer (gradient fallback
         // in useEntryAnimations when no equipped URL). Chamet-parity.
         addEntryAnimation({
+          userId: data.userId,
           displayName: data.userName,
+          avatarUrl: data.userAvatar,
           level: data.userLevel,
           entranceUrl: data.entranceAnimationUrl || undefined,
           entryNameBarUrl: data.entryNameBarUrl || undefined,
           vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+          soundUrl: data.entranceSoundUrl || undefined,
           rankCode: data.rankCode || undefined,
         });
         return;
@@ -1267,9 +1306,13 @@ const PartyRoom = () => {
           const userLevel = getRequiredDisplayLevel(leftParticipant?.user);
           const userAvatar = normalizeProfileMediaUrl(leftParticipant?.user?.avatar_url) || leftParticipant?.user?.avatar_url || undefined;
           setJoinMessages(prev => [...prev.slice(-20), {
+            id: `lk_leave_${Date.now()}_${userId}`,
             userId,
             userName,
             userLevel,
+            avatarUrl: userAvatar,
+            type: 'leave' as const,
+            timestamp: new Date(),
           }]);
         }
         fetchParticipants();
@@ -1291,6 +1334,9 @@ const PartyRoom = () => {
         //      correctly without any REST refetch. Instant viewer update.
         if (data.background) {
           setCurrentBackground({
+            id: data.background.id,
+            image_url: data.background.image_url ?? null,
+            gradient_css: data.background.gradient_css ?? null,
           } as any);
           if (typeof data.background_url !== 'undefined') {
             setRoom(prev => prev ? { ...prev, background_url: data.background_url ?? null, background_id: data.background!.id } : prev);
@@ -1434,10 +1480,14 @@ const PartyRoom = () => {
         : { data: [] as any[] };
       const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, {
         ...profile,
+        avatar_url: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || null,
+        frame_id: profile.equipped_frame_id || profile.frame_id || null,
       }]));
       const hydratedParticipants = data.map((participant: any) => ({
         ...participant,
         // Section #12 pass-2: DB column is seat_number — expose it as `position` for app code.
+        position: participant.seat_number ?? null,
+        user: profileMap.get(participant.user_id) || null,
       }));
 
       setParticipants(hydratedParticipants as Participant[]);
@@ -1590,8 +1640,13 @@ const PartyRoom = () => {
             const userLevel = getRequiredDisplayLevel(prof);
             const userAvatar = normalizeProfileMediaUrl(prof?.avatar_url) || prof?.avatar_url || undefined;
             setJoinMessages(prev => [...prev.slice(-20), {
+              id: `pg_join_${Date.now()}_${uid}`,
+              userId: uid,
               userName,
               userLevel,
+              avatarUrl: userAvatar,
+              type: 'join' as const,
+              timestamp: new Date(),
             }]);
             try {
               const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl, rankCode } = await fetchUserEntryAnimations(
@@ -1603,6 +1658,15 @@ const PartyRoom = () => {
               );
               if (!isMountedRef.current) return;
               addEntryAnimation({
+                userId: uid,
+                displayName: userName,
+                avatarUrl: userAvatar,
+                level: userLevel,
+                entranceUrl: entranceAnimationUrl || undefined,
+                entryNameBarUrl: entryNameBarUrl || undefined,
+                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                soundUrl: entranceSoundUrl || undefined,
+                rankCode: rankCode || undefined,
               });
             } catch (e) {
               console.warn('[PartyRoom] participant fallback entry animation failed:', e);
@@ -1743,8 +1807,8 @@ const PartyRoom = () => {
           exitToLobby('/party-rooms');
           return;
         }
-        if (/Insufficient diamonds for entry fee/i.test(msg)) {
-          toast.error('Not enough diamonds for this room\'s entry fee');
+        if (/Insufficient coins for entry fee/i.test(msg)) {
+          toast.error('Not enough coins for this room\'s entry fee');
           exitToLobby('/party-rooms');
           return;
         }
@@ -1781,19 +1845,33 @@ const PartyRoom = () => {
 
       // TRIGGER entry/namebar for SELF using UNIFIED system (like gifts)
       addEntryAnimation({
+        userId: currentUser.id,
+        displayName: userName,
         avatarUrl,
+        level: userLevel,
+        entranceUrl: selfEntranceUrl || undefined,
+        entryNameBarUrl: selfNameBarUrl || undefined,
+        vehicleAnimationUrl: selfVehicleUrl || undefined,
+        soundUrl: selfEntranceSound || undefined,
+        rankCode: rankCode || undefined,
       });
 
       // PR-2 (P1-12): stash payload; effect below publishes once LiveKit
       // reports isConnected. Avoids the prior race where this packet went
       // out before the SFU was ready and was dropped server-side.
       const publishPayload: ParticipantJoinedPayload = {
+        type: 'participant_joined',
         roomId,
+        userId: currentUser.id,
         userName,
         userAvatar: avatarUrl,
         userLevel,
         entranceAnimationUrl: selfEntranceUrl || null,
         entranceSoundUrl: selfEntranceSound || null,
+        entryNameBarUrl: selfNameBarUrl || null,
+        vehicleAnimationUrl: selfVehicleUrl || null,
+        rankCode: rankCode || null,
+        timestamp: Date.now(),
       } as ParticipantJoinedPayload;
       pendingJoinPublishRef.current = () => {
         void publishPartyEvent(roomId, publishPayload).then((sent) => {
@@ -1948,11 +2026,13 @@ const PartyRoom = () => {
       setMyPosition(position);
       setShowSeatSelector(false);
       void publishPartyEvent(roomId, {
+        type: 'seat_action',
         roomId,
         action: 'approved',
         requester_id: currentUser.id,
         seat_position: position,
         request_id: `host-move-${currentUser.id}-${Date.now()}`,
+        timestamp: Date.now(),
       });
     } catch (error) {
       console.error('[PartyRoom] Host seat error:', error);
@@ -2003,7 +2083,10 @@ const PartyRoom = () => {
         .from('seat_requests')
         .insert({
           room_id: roomId,
+          user_id: currentUser.id,
+          requester_id: currentUser.id,
           seat_number: position,
+          seat_position: position,
           status: 'pending'
         } as any);
 
@@ -2024,8 +2107,13 @@ const PartyRoom = () => {
       
       // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
       void publishPartyEvent(roomId, {
+        type: 'seat_action',
         roomId,
+        action: 'new_request',
+        requester_id: currentUser.id,
+        seat_position: position,
         requester_name: currentUser.profile?.display_name || 'User',
+        timestamp: Date.now(),
       });
 
       // Safety-net Supabase Broadcast — guarantees host receives instantly
@@ -2035,6 +2123,14 @@ const PartyRoom = () => {
       } catch { /* ignore */ }
       
       setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        user_id: currentUser.id,
+        message: `requested Seat ${position + 1}`,
+        created_at: new Date().toISOString(),
+        type: 'seat_request',
+        user: {
+          display_name: currentUser.profile?.display_name,
+          avatar_url: currentUser.profile?.avatar_url
         }
       }]);
       
@@ -2139,7 +2235,13 @@ const PartyRoom = () => {
       // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
       // DB status update remains for persistence/late-join REST snapshots.
       void publishPartyEvent(roomId, {
+        type: 'seat_action',
         roomId,
+        action: 'approved',
+        requester_id: request.requester_id,
+        seat_position: request.seat_position,
+        request_id: request.id,
+        timestamp: Date.now(),
       });
 
       try {
@@ -2175,6 +2277,7 @@ const PartyRoom = () => {
 
     try {
       const { data: rpcData, error: rpcError } = await supabase.rpc('reject_seat_request', {
+        p_request_id: request.id,
       });
 
       const result = rpcData as { ok?: boolean; error?: string } | null;
@@ -2191,7 +2294,12 @@ const PartyRoom = () => {
 
       // Notify requester via LiveKit DataPacket
       void publishPartyEvent(roomId, {
+        type: 'seat_action',
         roomId,
+        action: 'rejected',
+        requester_id: request.requester_id,
+        request_id: request.id,
+        timestamp: Date.now(),
       });
 
       try {
@@ -2304,6 +2412,7 @@ const PartyRoom = () => {
       // pending seat requests, and inserts a live_bans row (default 60min)
       // so enter_party_room rejects them on rejoin.
       const { data: kickData, error: kickError } = await supabase.rpc('kick_party_participant', {
+        p_room_id: roomId,
         p_user_id: userId,
         p_reason: 'Kicked by host',
         p_ban_minutes: 60,
@@ -2341,6 +2450,7 @@ const PartyRoom = () => {
     if (!canManageUsers || !roomId) return;
     try {
       const { data: rpcRes, error: rpcErr } = await supabase.rpc('party_mute_seat', {
+        p_room_id: roomId,
         p_target_user_id: userId,
         p_muted: true,
       });
@@ -2524,7 +2634,12 @@ const PartyRoom = () => {
         backgroundUrl={currentBackground?.image_url || room.background_url || undefined}
         backgroundGradient={currentBackground?.gradient_css}
         hostInfo={room.host ? {
+          id: room.host.id,
           // Use host's actual position from participants, default to 0
+          position: participants.find(p => p.user_id === room.host?.id)?.position ?? 0,
+          displayName: room.host.display_name || 'Host',
+          avatarUrl: room.host.avatar_url || undefined,
+          level: getRequiredDisplayLevel(room.host),
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
           isSpeaking: room.host?.id ? activeSpeakers.has(room.host.id) : false,
@@ -2545,6 +2660,18 @@ const PartyRoom = () => {
           // Exclude the host from participants since hostInfo handles them
           .filter(p => p.position !== null && p.user_id !== room.host?.id)
           .map(p => ({
+            id: p.user_id,
+            position: p.position || 0,
+            displayName: p.user?.display_name || 'User',
+            avatarUrl: p.user?.avatar_url || undefined,
+            level: getRequiredDisplayLevel(p.user),
+            countryFlag: '🌍',
+            beansCount: seatBeansReceived[p.user_id] || 0,
+            isSpeaking: activeSpeakers.has(p.user_id),
+            isMuted: false,
+            isVideoOff: false,
+            isHost: false,
+            stream: getPeerStream(p.user_id)
           }))}
         maxSeats={
           // ✅ USE ADMIN PANEL SETTINGS - Priority over room.max_participants
@@ -2598,6 +2725,11 @@ const PartyRoom = () => {
         }}
         getPeerStream={getPeerStream}
         seatRequests={seatRequests.map(sr => ({
+          id: sr.id, // Request ID for lookup
+          user_id: sr.requester_id, // User ID for Accept/Reject callbacks
+          displayName: sr.requester?.display_name || 'User',
+          avatarUrl: sr.requester?.avatar_url || undefined,
+          level: getRequiredDisplayLevel(sr.requester),
           requestedAt: new Date(sr.created_at)
         }))}
         onAcceptSeatRequest={(userId) => {
@@ -2622,6 +2754,11 @@ const PartyRoom = () => {
           }
         }}
         viewers={participants.filter(p => p.position === null && p.user_id !== room.host_id).map(p => ({
+          id: p.user_id,
+          displayName: p.user?.display_name || 'User',
+          avatarUrl: p.user?.avatar_url || undefined,
+          level: getRequiredDisplayLevel(p.user),
+          countryFlag: '🌍',
           frameId: (p.user as any)?.frame_id || undefined
         }))}
         topViewers={
@@ -2634,6 +2771,11 @@ const PartyRoom = () => {
               .sort((a, b) => getRequiredDisplayLevel(b.user) - getRequiredDisplayLevel(a.user))
               .slice(0, 4)
               .map(p => ({
+                id: p.user_id, // userId for AvatarWithFrame
+                displayName: p.user?.display_name || 'User',
+                avatarUrl: p.user?.avatar_url || undefined,
+                level: getRequiredDisplayLevel(p.user),
+                frameId: (p.user as any)?.frame_id // Pass frame_id for proper frame rendering
               }));
             console.log('[PartyRoom] topViewers:', filtered.length, filtered);
             return filtered;
@@ -2652,6 +2794,8 @@ const PartyRoom = () => {
         isWaitingForApproval={myPendingRequest !== null}
         joinMessages={joinMessages}
         activeGame={room.room_type === 'game' && room.game_mode ? {
+          id: room.game_mode,
+          name: room.game_mode,
           isActive: true
         } : undefined}
         onOpenGame={() => setIsGameExpanded(true)}
@@ -2659,6 +2803,7 @@ const PartyRoom = () => {
         // This callback is invoked by UnifiedPartyRoom when a participant with equipped effects joins
         onTriggerEntryEffect={(params) => {
           console.log('[PartyRoom] 🎬 onTriggerEntryEffect RECEIVED:', {
+            user: params.displayName,
             hasEntranceUrl: !!params.entranceUrl,
             hasNameBarUrl: !!params.entryNameBarUrl,
             hasVehicleUrl: !!(params as any).vehicleAnimationUrl,
@@ -2676,6 +2821,14 @@ const PartyRoom = () => {
           console.log('[PartyRoom] 🎬 Using UNIFIED entry animation system');
           
           addEntryAnimation({
+            userId: params.userId,
+            displayName: params.displayName,
+            avatarUrl: params.avatarUrl,
+            level: params.level,
+            entranceUrl: params.entranceUrl,
+            entryNameBarUrl: params.entryNameBarUrl,
+            vehicleAnimationUrl: (params as any).vehicleAnimationUrl,
+            soundUrl: (params as any).soundUrl,
           });
         }}
       />
@@ -2774,13 +2927,21 @@ const PartyRoom = () => {
             const seatNumber = typeof p.position === 'number' ? p.position : -1;
             if (seatNumber < 0) return; // only seated participants
             seatedMap.set(uid, {
+              userId: uid,
+              displayName: p.user?.display_name ?? null,
+              avatarUrl: p.user?.avatar_url ?? null,
               seatNumber,
+              isHost: uid === hostId,
             });
           });
           // Always include host (even if missing from participants list yet).
           if (hostId && !seatedMap.has(hostId)) {
             seatedMap.set(hostId, {
+              userId: hostId,
+              displayName: room?.host?.display_name ?? null,
+              avatarUrl: room?.host?.avatar_url ?? null,
               seatNumber: 0,
+              isHost: true,
             });
           }
           const seats = Array.from(seatedMap.values());
@@ -2843,7 +3004,18 @@ const PartyRoom = () => {
               const senderAvatar = sendingUser?.profile?.avatar_url || undefined;
               const senderLevel = getRequiredDisplayLevel(sendingUser?.profile);
               const giftAnimationData = {
+                senderId: sendingUserId,
                 senderName,
+                giftName: gift.name,
+                giftIcon: gift.emoji,
+                giftImageUrl: gift.icon_url || undefined,
+                animationUrl: gift.animation_url || gift.icon_url || undefined,
+                animationFormat: gift.animation_format || null,
+                animationConfigUrl: gift.animation_config_url || undefined,
+                soundUrl: gift.sound_url || undefined,
+                giftColor: 'from-pink-500 to-purple-500',
+                count: count,
+                coins: gift.diamonds,
                 isOwnGift: true,
               };
               
@@ -2891,9 +3063,11 @@ const PartyRoom = () => {
                   const result = await sendGift({
                     giftId: gift.id,
                     gift,
+                    senderId: sendingUserId,
                     receiverId,
                     quantity: count,
                     context: 'party',
+                    roomId: sendingRoomId,
                   });
 
                   releasePendingCost();
@@ -2930,6 +3104,8 @@ const PartyRoom = () => {
                     const finalCost = result.transaction?.diamonds_spent ?? totalCost;
                     const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                     const { data: giftRow } = await supabase.from("party_room_messages").insert({
+                      room_id: sendingRoomId,
+                      user_id: sendingUserId,
                       content: giftChatMessage,
                       message_type: 'gift'
                     }).select('id').single();
@@ -2937,6 +3113,12 @@ const PartyRoom = () => {
                     if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                     void publishChatMessage('party', sendingRoomId, {
                       messageId: giftRow?.id || `gift-${Date.now()}`,
+                      userId: sendingUserId,
+                      displayName: senderName,
+                      avatarUrl: senderAvatar,
+                      userLevel: senderLevel,
+                      isHost: sendingUserId === sendingRoom.host_id,
+                      message: giftChatMessage,
                       messageType: 'gift',
                     });
                   }
@@ -2945,7 +3127,7 @@ const PartyRoom = () => {
                   console.error('[PartyGift] Background processing error:', err);
                   recordClientError({ label: "PartyRoom.giftChatMessage", message: err instanceof Error ? err.message : String(err) });
                   if (transactionSucceeded) return;
-                  // Refund diamonds only when the transaction itself failed before server success.
+                  // Refund coins only when the transaction itself failed before server success.
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   userCoinsRef.current += totalCost;
                   setUserCoins(userCoinsRef.current);

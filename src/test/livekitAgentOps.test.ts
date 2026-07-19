@@ -37,6 +37,7 @@ describe('Pkg139 livekitAgentOps', () => {
     const result = await listLiveKitAgentDispatches('live_x');
     expect(result).toHaveLength(1);
     expect(invokeMock).toHaveBeenCalledWith('livekit-agent-ops', {
+      body: { action: 'list_dispatches', roomName: 'live_x' },
     });
   });
 
@@ -50,10 +51,13 @@ describe('Pkg139 livekitAgentOps', () => {
 
   it('getLiveKitAgentDispatch returns dispatch payload', async () => {
     invokeMock.mockResolvedValue({
+      data: { dispatch: { id: 'd1', agentName: 'voice', room: 'live_x' } },
+      error: null,
     });
     const result = await getLiveKitAgentDispatch('d1', 'live_x');
     expect(result?.id).toBe('d1');
     expect(invokeMock).toHaveBeenCalledWith('livekit-agent-ops', {
+      body: { action: 'get_dispatch', dispatchId: 'd1', roomName: 'live_x' },
     });
   });
 
@@ -71,6 +75,7 @@ describe('Pkg139 livekitAgentOps', () => {
     const ok = await deleteLiveKitAgentDispatch('d1', 'live_x');
     expect(ok).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-agent-ops', {
+      body: { action: 'delete_dispatch', dispatchId: 'd1', roomName: 'live_x' },
     });
   });
 

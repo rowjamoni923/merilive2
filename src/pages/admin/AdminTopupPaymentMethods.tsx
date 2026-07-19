@@ -88,6 +88,14 @@ const AdminTopupPaymentMethods = () => {
   const resetForm = () => {
     setEditingMethod(null);
     setFormData({
+      name: '',
+      method_type: 'mobile_banking',
+      account_name: '',
+      account_number: '',
+      payment_number: '',
+      payment_instructions: '',
+      icon_url: '',
+      country_codes: '',
     });
   };
 
@@ -106,7 +114,15 @@ const AdminTopupPaymentMethods = () => {
         .map((c) => c.trim().toUpperCase())
         .filter(Boolean);
       const payload = {
+        name: formData.name,
+        method_type: formData.method_type,
+        account_name: formData.account_name || null,
+        account_number: formData.account_number || null,
+        payment_number: formData.payment_number || formData.account_number || null,
+        payment_instructions: formData.payment_instructions || null,
+        icon_url: formData.icon_url || null,
         logo_url: formData.icon_url || null,
+        country_codes: parsedCountries.length > 0 ? parsedCountries : null,
         additional_info: formData.icon_url ? { logo_url: formData.icon_url } : null,
         updated_at: new Date().toISOString(),
       };
@@ -142,6 +158,14 @@ const AdminTopupPaymentMethods = () => {
   const handleEdit = (method: PaymentMethod) => {
     setEditingMethod(method);
     setFormData({
+      name: method.name || '',
+      method_type: method.method_type || 'mobile_banking',
+      account_name: method.account_name || '',
+      account_number: method.account_number || '',
+      payment_number: method.payment_number || '',
+      payment_instructions: method.payment_instructions || '',
+      icon_url: method.icon_url || '',
+      country_codes: Array.isArray(method.country_codes) ? method.country_codes.join(',') : '',
     });
     setShowDialog(true);
   };
@@ -233,6 +257,7 @@ const AdminTopupPaymentMethods = () => {
       case 'binance': return 'bg-orange-500/20 text-orange-400';
       case 'epay': return 'bg-emerald-500/20 text-emerald-400';
       case 'upi': return 'bg-indigo-500/20 text-indigo-400';
+      default: return 'bg-purple-500/20 text-purple-400';
     }
   };
 

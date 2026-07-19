@@ -295,6 +295,7 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                 transition={{ duration: 1.5, ease: 'easeOut' }}
                 className="absolute w-3 h-3 rounded-full"
                 style={{
+                  background: i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#a855f7' : '#ec4899',
                   boxShadow: `0 0 8px ${i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#a855f7' : '#ec4899'}`,
                 }}
               />
@@ -306,6 +307,9 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
               transition={{ type: 'spring', stiffness: 200, damping: 15 }}
               className="p-6 rounded-3xl text-center pointer-events-none relative"
               style={{
+                background: 'linear-gradient(145deg, rgba(168,85,247,0.97), rgba(236,72,153,0.97))',
+                boxShadow: '0 0 80px rgba(168,85,247,0.6), 0 0 160px rgba(236,72,153,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.15)',
               }}
             >
               <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 2, ease: 'linear', repeat: Infinity }}>
@@ -340,12 +344,18 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
           transition={{ type: 'spring', stiffness: 280, damping: 22 }}
           className="w-full rounded-2xl overflow-hidden relative"
           style={{
+            background: 'linear-gradient(160deg, rgba(8,2,18,0.93) 0%, rgba(30,15,72,0.9) 50%, rgba(50,10,60,0.88) 100%)',
+            border: '1px solid rgba(168,85,247,0.25)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 24px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
           }}
         >
           {/* Animated top border gradient */}
           <motion.div
             className="absolute top-0 left-0 right-0 h-[2px]"
             style={{
+              background: isCompleted
                 ? 'linear-gradient(90deg, #22c55e, #10b981, #34d399, #22c55e)'
                 : 'linear-gradient(90deg, #a855f7, #ec4899, #f97316, #a855f7)',
               backgroundSize: '200% 100%',
@@ -370,6 +380,8 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
             style={{
               background:
                 'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.10) 50%, transparent 70%)',
+              animation: 'giftSendShine 4.2s ease-in-out infinite',
+              mixBlendMode: 'overlay',
             }}
           />
 
@@ -380,10 +392,13 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
               transition={{ duration: 2, repeat: Infinity }}
               className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 relative"
               style={{
+                background: isCompleted
                   ? 'linear-gradient(145deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15))'
                   : `linear-gradient(145deg, ${currentTask.icon_color}25, ${currentTask.icon_color}10)`,
+                border: isCompleted
                   ? '1.5px solid rgba(34,197,94,0.4)'
                   : `1.5px solid ${currentTask.icon_color}35`,
+                boxShadow: isCompleted
                   ? '0 0 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
                   : `0 0 12px ${currentTask.icon_color}15, inset 0 1px 0 rgba(255,255,255,0.05)`,
               }}
@@ -419,10 +434,12 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                         transition={{ duration: 1.6, repeat: isActive ? Infinity : 0 }}
                         className="relative w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0"
                         style={{
+                          background: isClaimed
                             ? 'linear-gradient(145deg, #22c55e, #10b981)'
                             : isActive
                               ? 'linear-gradient(145deg, #f59e0b, #f97316)'
                               : 'rgba(255,255,255,0.08)',
+                          boxShadow: isClaimed
                             ? '0 0 8px rgba(34,197,94,0.55)'
                             : isActive
                               ? '0 0 10px rgba(245,158,11,0.6), 0 0 18px rgba(249,115,22,0.35)'
@@ -441,6 +458,7 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                         <div
                           className="flex-1 h-[2px] mx-[2px] rounded-full"
                           style={{
+                            background: isClaimed
                               ? 'linear-gradient(90deg, #22c55e, #10b981)'
                               : 'rgba(255,255,255,0.06)',
                           }}
@@ -506,8 +524,10 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                     animate={{ width: `${percent}%` }}
                     transition={{ duration: 1, ease: 'easeOut' }}
                     style={{
+                      background: isCompleted
                         ? 'linear-gradient(90deg, #22c55e, #10b981, #34d399)'
                         : 'linear-gradient(90deg, #a855f7, #d946ef, #ec4899, #f97316)',
+                      boxShadow: isCompleted
                         ? '0 0 10px rgba(34,197,94,0.5)'
                         : '0 0 10px rgba(168,85,247,0.4), 0 0 20px rgba(236,72,153,0.2)',
                     }}
@@ -548,8 +568,10 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                 disabled={claiming}
                 className="flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-extrabold text-white relative overflow-hidden"
                 style={{
+                  background: 'linear-gradient(145deg, #a855f7, #d946ef, #ec4899)',
                   boxShadow:
                     '0 0 20px rgba(168,85,247,0.5), 0 6px 16px rgba(236,72,153,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  animation: 'giftSendBreathe 2.4s ease-in-out infinite',
                 }}
               >
                 {/* Pkg174 shine sweep */}
@@ -559,6 +581,8 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                   style={{
                     background:
                       'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+                    animation: 'giftSendShine 2.6s ease-in-out infinite',
+                    mixBlendMode: 'overlay',
                   }}
                 />
                 <motion.span

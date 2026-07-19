@@ -154,6 +154,15 @@ const AdminInvitationSettings = () => {
         toast.success('Tier updated');
       } else {
         const insertData = {
+          tier_name: formData.tier_name?.trim() || 'New Tier',
+          min_invites: formData.min_invites ?? 1,
+          max_invites: formData.max_invites || null,
+          reward_beans: formData.reward_beans ?? 0,
+          reward_diamonds: formData.reward_diamonds ?? 0,
+          bonus_percentage: formData.bonus_percentage ?? 0,
+          badge_color: formData.badge_color || '#FFD700',
+          display_order: formData.display_order ?? 0,
+          is_active: formData.is_active ?? true
         };
         const { error } = await supabase
           .from('invitation_reward_tiers')
@@ -199,6 +208,15 @@ const AdminInvitationSettings = () => {
 
   const resetForm = () => {
     setFormData({
+      tier_name: '',
+      min_invites: 1,
+      max_invites: null,
+      reward_beans: 100,
+      reward_diamonds: 20,
+      bonus_percentage: 0,
+      badge_color: '#FFD700',
+      display_order: tiers.length,
+      is_active: true
     });
   };
 

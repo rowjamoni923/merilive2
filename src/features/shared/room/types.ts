@@ -59,7 +59,7 @@ export interface FlyingGiftData {
   soundUrl?: string;
   giftColor: string;
   count: number;
-  diamonds: number;
+  coins: number;
 }
 
 // ============= ROOM CONTEXT TYPES =============

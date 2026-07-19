@@ -28,6 +28,7 @@ async function mintSessionForEmail(admin: any, email: string) {
   const tokenHash = linkData?.properties?.hashed_token;
   if (!tokenHash) throw new Error("Failed to mint session token");
   const { data: verified, error: verifyError } = await admin.auth.verifyOtp({
+    type: "magiclink",
     token_hash: tokenHash,
   });
   if (verifyError || !verified?.session) {

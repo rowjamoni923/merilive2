@@ -170,6 +170,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                         background: isActive
                           ? 'radial-gradient(120% 100% at 50% 0%, rgba(249,115,22,0.35), transparent 60%), linear-gradient(180deg, rgba(236,72,153,0.25), rgba(168,85,247,0.18))'
                           : 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+                        boxShadow: isActive
                           ? '0 10px 24px -8px rgba(249,115,22,0.55), inset 0 1px 0 rgba(255,255,255,0.18)'
                           : 'inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 10px -6px rgba(0,0,0,0.5)',
                       }}
@@ -202,6 +203,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                 style={{
                   background:
                     'linear-gradient(180deg, rgba(249,115,22,0.18) 0%, rgba(236,72,153,0.14) 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
                 }}
               >
                 <Sparkles className="h-3.5 w-3.5 text-orange-300 flex-shrink-0" />

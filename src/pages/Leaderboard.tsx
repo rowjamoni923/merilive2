@@ -46,6 +46,7 @@ interface RewardTier {
   rank_from: number;
   rank_to: number;
   reward_diamonds: number;
+  reward_diamonds: number;
   reward_beans: number;
 }
 
@@ -115,6 +116,8 @@ const Leaderboard = () => {
   };
 
   const { data: rewardTiers = [] } = useQuery({
+    queryKey: ["leaderboard-rewards", getCategoryDbKey(), periodType],
+    queryFn: async () => {
       const { data } = await supabase
         .from("leaderboard_reward_config")
         .select("rank_from, rank_to, reward_diamonds, reward_diamonds, reward_beans")
@@ -128,6 +131,8 @@ const Leaderboard = () => {
   });
 
   const { data: podiumFrames = [] } = useQuery({
+    queryKey: ["podium-frames", getCategoryDbKey()],
+    queryFn: async () => {
       const { data } = await supabase
         .from("leaderboard_podium_frames")
         .select("rank_position, frame_url, frame_type")
@@ -136,6 +141,7 @@ const Leaderboard = () => {
         .order("rank_position");
       return (data || []) as PodiumFrame[];
     },
+    enabled: activeCategory !== "pk_competition",
   });
 
   const getPodiumFrame = (rank: number): PodiumFrame | undefined => {
@@ -160,27 +166,41 @@ const Leaderboard = () => {
   };
 
   const { data: hostRankings = [], isLoading: loadingHosts } = useQuery({
+    queryKey: ["host-rankings-v2", periodType],
+    queryFn: async () => {
       const { data, error } = await supabase.rpc('get_host_earnings_leaderboard', { p_period_type: periodType });
       if (error) { console.error('Host leaderboard error:', error); return []; }
       return (data || []) as RankingData[];
     },
+    enabled: activeCategory === "host_earning",
+    staleTime: 60_000, // 1 min cache - leaderboard data doesn't change every second
   });
 
   const { data: gameRankings = [], isLoading: loadingGames } = useQuery({
+    queryKey: ["game-rankings-v2", periodType],
+    queryFn: async () => {
       const { data, error } = await supabase.rpc('get_game_rankings_leaderboard', { p_period_type: periodType });
       if (error) { console.error('Game leaderboard error:', error); return []; }
       return (data || []) as RankingData[];
     },
+    enabled: activeCategory === "game_ranking",
+    staleTime: 60_000,
   });
 
   const { data: gifterRankings = [], isLoading: loadingGifters } = useQuery({
+    queryKey: ["gifter-rankings-v2", periodType],
+    queryFn: async () => {
       const { data, error } = await supabase.rpc('get_top_gifters_leaderboard', { p_period_type: periodType });
       if (error) { console.error('Gifter leaderboard error:', error); return []; }
       return (data || []) as RankingData[];
     },
+    enabled: activeCategory === "top_gifter",
+    staleTime: 60_000,
   });
 
   const { data: pkCompetitions = [], isLoading: loadingPK } = useQuery({
+    queryKey: ["pk-competitions-active"],
+    queryFn: async () => {
       const { data } = await supabase
         .from("pk_competitions")
         .select("id, title, description, start_date, end_date, status, competition_type")
@@ -190,10 +210,13 @@ const Leaderboard = () => {
         .limit(10);
       return (data || []) as (PKCompetition & { competition_type: string })[];
     },
+    enabled: activeCategory === "pk_competition",
   });
 
   const activePK = pkCompetitions.find(c => c.status === "active") || pkCompetitions[0];
   const { data: pkParticipants = [], isLoading: loadingPKParts } = useQuery({
+    queryKey: ["pk-participants-dynamic", activePK?.id, activePK?.competition_type],
+    queryFn: async () => {
       if (!activePK) return [];
       const startDate = activePK.start_date;
       const endDate = activePK.end_date;
@@ -225,13 +248,17 @@ const Leaderboard = () => {
         frame_id: pMap[uid]?.frame_id || null, stat_value: val,
       })) as RankingData[];
     },
+    enabled: activeCategory === "pk_competition" && !!activePK,
   });
 
   const { data: pkRewards = [] } = useQuery({
+    queryKey: ["pk-rewards", activePK?.id],
+    queryFn: async () => {
       if (!activePK) return [];
       const { data } = await supabase.from("pk_competition_rewards").select("rank_from, rank_to, reward_diamonds, reward_beans, reward_diamonds").eq("competition_id", activePK.id).eq("is_active", true).order("rank_from");
       return (data || []) as RewardTier[];
     },
+    enabled: activeCategory === "pk_competition" && !!activePK,
   });
 
   useEffect(() => {
@@ -351,6 +378,7 @@ const Leaderboard = () => {
         className="flex-shrink-0 z-20"
         style={{ 
           paddingTop: isMobile ? `${safeAreaInsets.top}px` : undefined,
+          background: '#ffffff',
           borderBottom: '1px solid rgba(15,23,42,0.08)',
           boxShadow: '0 2px 12px rgba(15,23,42,0.04)',
         }}
@@ -400,9 +428,15 @@ const Leaderboard = () => {
                   isActive ? "text-white" : "text-slate-600 hover:-translate-y-0.5"
                 )}
                 style={isActive ? {
+                  background: cat.activeGrad,
+                  boxShadow: `0 6px 16px -4px ${cat.shadow}, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.18)`,
                   borderRadius: '10px',
                   border: '1px solid rgba(255,255,255,0.45)',
                 } : {
+                  background: '#ffffff',
+                  border: '1px solid rgba(15,23,42,0.08)',
+                  borderRadius: '10px',
+                  boxShadow: '0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
                 }}
               >
                 {customIcons?.[`leaderboard_${cat.id}_icon`] ? (
@@ -431,7 +465,13 @@ const Leaderboard = () => {
                     isActive ? "text-amber-950" : "text-slate-600 hover:-translate-y-0.5"
                   )}
                   style={isActive ? {
+                    background: 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%)',
+                    boxShadow: '0 6px 16px -4px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(146,64,14,0.18)',
+                    border: '1px solid rgba(245,158,11,0.5)',
                   } : {
+                    background: '#ffffff',
+                    border: '1px solid rgba(15,23,42,0.08)',
+                    boxShadow: '0 2px 6px -2px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
                   }}
                 >
                   {p === "daily" ? "Day" : p === "weekly" ? "Week" : "Month"}
@@ -751,8 +791,10 @@ const Leaderboard = () => {
                     transition={{ delay: index * 0.02, duration: 0.3 }}
                     className="flex items-center gap-3 rounded-xl p-3 transition-all touch-manipulation bg-white"
                     style={{
+                      border: rank <= 10 
                         ? '1px solid rgba(251,191,36,0.30)'
                         : '1px solid rgba(15,23,42,0.08)',
+                      boxShadow: rank <= 10
                         ? '0 2px 10px rgba(251,191,36,0.10)'
                         : '0 1px 4px rgba(15,23,42,0.04)',
                     }}
@@ -859,6 +901,7 @@ const Leaderboard = () => {
                         className="inline-flex items-center justify-center min-w-[52px] px-2.5 py-1 rounded-lg font-bold text-[12px] shadow-sm"
                         style={{
                           color: '#ffffff',
+                          background: i === 0 ? 'linear-gradient(135deg,#f59e0b,#d97706)'
                             : i === 1 ? 'linear-gradient(135deg,#94a3b8,#64748b)'
                             : i === 2 ? 'linear-gradient(135deg,#b45309,#92400e)'
                             : 'linear-gradient(135deg,#475569,#334155)'
@@ -899,6 +942,8 @@ const Leaderboard = () => {
               onClick={() => setShowRules(false)}
               className="w-full py-3 rounded-full font-bold text-white text-sm transition-all active:scale-95"
               style={{
+                background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
+                boxShadow: '0 4px 20px rgba(168,85,247,0.4)',
               }}
             >
               Got it

@@ -293,6 +293,7 @@ export const PKBattlePanel = ({
               <h2
                 className="text-xl font-extrabold tracking-wide"
                 style={{
+                  background: 'linear-gradient(90deg, #fca5a5, #fde68a 50%, #93c5fd)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -326,6 +327,9 @@ export const PKBattlePanel = ({
                 placeholder="Search hosts..."
                 className="w-full rounded-full text-white placeholder:text-white/50 pl-10 border-white/10 focus-visible:ring-2 focus-visible:ring-pink-500/50"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.05) 100%)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                 }}
               />
@@ -337,6 +341,8 @@ export const PKBattlePanel = ({
               <div
                 className="flex items-center gap-1 p-1 rounded-full"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
                 }}
               >
                 {PK_DURATION_PRESETS.map((p) => {
@@ -353,6 +359,8 @@ export const PKBattlePanel = ({
                       style={
                         active
                           ? {
+                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                              boxShadow: '0 2px 8px -2px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
                             }
                           : undefined
                       }
@@ -401,7 +409,9 @@ export const PKBattlePanel = ({
                     key={host.id}
                     className="relative flex items-center gap-3 p-3 rounded-2xl overflow-hidden"
                     style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
                       border: '1px solid rgba(255,255,255,0.06)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
                     }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -412,6 +422,7 @@ export const PKBattlePanel = ({
                       <div
                         className="w-14 h-14 rounded-full overflow-hidden"
                         style={{
+                          boxShadow: '0 0 0 2px rgba(236,72,153,0.85), 0 0 0 4px rgba(236,72,153,0.25), 0 6px 16px -4px rgba(236,72,153,0.45)',
                         }}
                       >
                         <img loading="lazy" decoding="async" 
@@ -422,6 +433,8 @@ export const PKBattlePanel = ({
                       <div
                         className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-bold text-black"
                         style={{
+                          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                          boxShadow: '0 2px 6px -1px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
                         }}
                       >
                         Lv{host.user_level}
@@ -438,7 +451,9 @@ export const PKBattlePanel = ({
                         <Badge
                           className="border-0 text-[10px] font-bold tracking-wide px-1.5 py-0"
                           style={{
+                            background: 'linear-gradient(135deg, rgba(239,68,68,0.30), rgba(244,63,94,0.22))',
                             color: '#fecaca',
+                            boxShadow: 'inset 0 0 0 1px rgba(248,113,113,0.35)',
                           }}
                         >
                           • LIVE
@@ -455,11 +470,14 @@ export const PKBattlePanel = ({
                       disabled={sendingRequest === host.id}
                       className="relative overflow-hidden text-white font-bold rounded-full px-4 py-2 text-sm flex items-center gap-1 disabled:opacity-60"
                       style={{
+                        background: 'linear-gradient(95deg, #ec4899 0%, #a855f7 100%)',
+                        boxShadow: '0 6px 18px -4px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',
                       }}
                     >
                       <div
                         className="absolute inset-0 pointer-events-none"
                         style={{
+                          background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.28) 50%, transparent 58%)',
                           animation: 'giftSendShine 2.8s ease-in-out infinite',
                         }}
                       />
@@ -489,11 +507,16 @@ export const PKBattlePanel = ({
               disabled={sendingRandom || isRandomSearching}
               className="w-full h-12 relative overflow-hidden text-white font-bold rounded-2xl text-base flex items-center justify-center gap-2 disabled:opacity-70"
               style={{
+                background: 'linear-gradient(95deg, #f59e0b 0%, #f97316 50%, #ec4899 100%)',
+                boxShadow: '0 10px 28px -8px rgba(249,115,22,0.65), 0 4px 12px -2px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.30)',
+                animation: 'giftSendBreathe 2.4s ease-in-out infinite',
               }}
             >
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
+                  background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.30) 50%, transparent 58%)',
+                  animation: 'giftSendShine 2.6s ease-in-out infinite',
                 }}
               />
               {sendingRandom || isRandomSearching ? (
