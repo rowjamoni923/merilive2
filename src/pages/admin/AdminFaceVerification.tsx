@@ -713,6 +713,98 @@ const AdminFaceVerification = () => {
     });
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  // BULK auto-approve / auto-reject / re-run AI. Runs sequentially so
+  // the admin RPC's per-row guards + notifications stay intact; shows
+  // live progress and a summary toast at the end.
+  // ─────────────────────────────────────────────────────────────────
+  const runBulkDecision = async (
+    action: 'approve' | 'reject',
+    opts: { asRole?: 'host' | 'user'; reason?: string } = {},
+  ) => {
+    if (bulkProgress) return;
+    const targets = filteredSubmissions.filter((s) => selectedIds.has(s.id) && canManuallyReview(s));
+    if (targets.length === 0) {
+      toast({ title: 'Nothing to process', description: 'Select at least one row that can be reviewed.' });
+      return;
+    }
+    const verb = action === 'approve' ? 'Approve' : 'Reject';
+    if (!window.confirm(`${verb} ${targets.length} submission(s)? This cannot be undone.`)) return;
+
+    setBulkProgress({ total: targets.length, done: 0, ok: 0, fail: 0 });
+    setProcessing(true);
+    lockAdminRealtimeTables(['face_verification_submissions'], 4000);
+    let ok = 0; let fail = 0;
+    for (let i = 0; i < targets.length; i++) {
+      const sub = targets[i];
+      const resolvedRole = opts.asRole || (sub.verification_type === 'host' ? 'host' : 'user');
+      const resolvedReason = action === 'reject'
+        ? (opts.reason?.trim() || 'Bulk rejected by admin')
+        : `[BULK] ${opts.reason?.trim() || 'Bulk approval by admin'}`;
+      try {
+        const { data, error } = await supabase.rpc('admin_process_face_verification', {
+          _submission_id: sub.id,
+          _action: action,
+          _reason: resolvedReason,
+          _approve_as: resolvedRole,
+          _set_gender: action === 'approve' ? (resolvedRole === 'host' ? 'female' : 'male') : null,
+        });
+        if (error || (data as any)?.success === false) fail++; else ok++;
+      } catch { fail++; }
+      setBulkProgress({ total: targets.length, done: i + 1, ok, fail });
+    }
+    setProcessing(false);
+    setBulkProgress(null);
+    clearSelection();
+    invalidateStatusCountsCache('face_verification_submissions');
+    fetchSubmissions();
+    toast({
+      title: `Bulk ${action === 'approve' ? 'approve' : 'reject'} complete`,
+      description: `${ok} succeeded • ${fail} failed`,
+      variant: fail > 0 ? 'destructive' : 'default',
+    });
+  };
+
+  const runBulkRerunAi = async () => {
+    if (bulkProgress) return;
+    const targets = filteredSubmissions.filter((s) => selectedIds.has(s.id));
+    if (targets.length === 0) {
+      toast({ title: 'Nothing to re-run', description: 'Select at least one row.' });
+      return;
+    }
+    if (!window.confirm(`Re-run AI analysis on ${targets.length} submission(s)?`)) return;
+    const adminToken = getAdminSessionToken();
+    if (!adminToken) { toast({ title: 'Admin session missing', variant: 'destructive' }); return; }
+    const projectId = (import.meta as any).env?.VITE_SUPABASE_PROJECT_ID;
+    const url = `https://${projectId}.supabase.co/functions/v1/admin-rerun-face-verify`;
+    setBulkProgress({ total: targets.length, done: 0, ok: 0, fail: 0 });
+    setProcessing(true);
+    let ok = 0; let fail = 0;
+    for (let i = 0; i < targets.length; i++) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+          body: JSON.stringify({ submissionId: targets[i].id }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.error) fail++; else ok++;
+      } catch { fail++; }
+      setBulkProgress({ total: targets.length, done: i + 1, ok, fail });
+    }
+    setProcessing(false);
+    setBulkProgress(null);
+    clearSelection();
+    invalidateStatusCountsCache('face_verification_submissions');
+    fetchSubmissions();
+    toast({
+      title: 'Bulk AI re-run complete',
+      description: `${ok} succeeded • ${fail} failed`,
+      variant: fail > 0 ? 'destructive' : 'default',
+    });
+  };
+
+
   // Bucketing is delegated to the shared admin status-count module so this page
   // stays in lock-step with AdminHostApplications & friends: every status maps
   // to exactly one of pending / approved / rejected (anything not explicitly
