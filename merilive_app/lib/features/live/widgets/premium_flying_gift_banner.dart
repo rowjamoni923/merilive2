@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Flutter port of `PremiumFlyingGiftBanner.tsx` — top-of-screen flying banner
-/// that celebrates high-value gift sends (>=100 coins). Slides in from right,
+/// that celebrates high-value gift sends (>=100 Diamonds). Slides in from right,
 /// pauses 2.4s, slides out to left. Colors tier by gift value.
 class PremiumFlyingGift {
   final String senderName;

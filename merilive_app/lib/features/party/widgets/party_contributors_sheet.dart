@@ -25,7 +25,7 @@ class PartyContributorsSheet extends StatefulWidget {
 class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
   bool _loading = true;
   List<_Row> _rows = const [];
-  int _totalCoins = 0;
+  int _totalDiamonds = 0;
 
   @override
   void initState() {
@@ -73,13 +73,13 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
                 userId: e.key,
                 name: (profileMap[e.key]?['display_name'] as String?) ?? 'User',
                 avatar: profileMap[e.key]?['avatar_url'] as String?,
-                coins: e.value,
+                diamonds: e.value,
               ))
           .toList()
-        ..sort((a, b) => b.coins.compareTo(a.coins));
+        ..sort((a, b) => b.diamonds.compareTo(a.diamonds));
       if (mounted) setState(() {
         _rows = list.take(50).toList();
-        _totalCoins = total;
+        _totalDiamonds = total;
         _loading = false;
       });
     } catch (_) {
@@ -126,7 +126,7 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
                       fontSize: 15,
                       fontWeight: FontWeight.w700)),
               const Spacer(),
-              Text('$_totalCoins💰',
+              Text('$_totalDiamonds💎',
                   style: const TextStyle(
                       color: Color(0xFFFACC15),
                       fontSize: 13,
@@ -184,7 +184,7 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                Text('${r.coins}💰',
+                                Text('${r.diamonds}💎',
                                     style: const TextStyle(
                                         color: Color(0xFFFACC15),
                                         fontSize: 13,
@@ -206,9 +206,9 @@ class _Row {
       {required this.userId,
       required this.name,
       required this.avatar,
-      required this.coins});
+      required this.diamonds});
   final String userId;
   final String name;
   final String? avatar;
-  int coins;
+  int diamonds;
 }

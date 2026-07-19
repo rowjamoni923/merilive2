@@ -528,10 +528,10 @@
         <argument android:name="competitionId" app:argType="string" />
     </fragment>
 
-    <!-- Agency Coin Trader -->
-    <fragment android:id="@+id/agencyCoinTraderFragment"
-        android:name="com.merilive.app.ui.agency.AgencyCoinTraderFragment"
-        android:label="Coin Trader" />
+    <!-- Agency Diamond Trader -->
+    <fragment android:id="@+id/agencyDiamondTraderFragment"
+        android:name="com.merilive.app.ui.agency.AgencyDiamondTraderFragment"
+        android:label="Diamond Trader" />
 
     <!-- Tags -->
     <fragment android:id="@+id/tagsFragment"

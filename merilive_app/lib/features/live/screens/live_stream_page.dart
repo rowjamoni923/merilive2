@@ -1199,7 +1199,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 diamonds: (_stream?['total_diamonds_earned'] as num?)?.toInt() ?? 0,
               ),
             ),
-            // A2 + B5 — Flying gift capsule stack (top-left below coin chip).
+            // A2 + B5 — Flying gift capsule stack (top-left below Diamond chip).
             // Bigo/Chamet-style tier-gradient capsule stack (≤3 visible,
             // 44px offset, count-up on combo merge, 3.5s dismiss window).
             Positioned(

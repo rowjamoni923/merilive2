@@ -9,7 +9,7 @@ class LottieGiftEffectData {
   final String giftName;
   final String iconUrl;
   final int durationMs;
-  final int value; // coin value
+  final int value; // Diamond value
   final String senderName;
   final int count;
 

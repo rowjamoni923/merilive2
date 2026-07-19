@@ -13,12 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.merilive.app.databinding.FragmentAgencyCoinTraderBinding
+import com.merilive.app.databinding.FragmentAgencyDiamondTraderBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.functions.Functions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -28,16 +27,16 @@ import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AgencyCoinTraderFragment : Fragment() {
+class AgencyDiamondTraderFragment : Fragment() {
 
-    private var _binding: FragmentAgencyCoinTraderBinding? = null
+    private var _binding: FragmentAgencyDiamondTraderBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: AgencyCoinTraderViewModel by viewModels()
+    private val viewModel: AgencyDiamondTraderViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentAgencyCoinTraderBinding.inflate(inflater, container, false)
+        _binding = FragmentAgencyDiamondTraderBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -50,8 +49,8 @@ class AgencyCoinTraderFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.traders.collect { list ->
                 binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-                binding.rvTraders.adapter = CoinTraderAdapter(list) { trader ->
-                    viewModel.initiateTrade(trader.id)
+                binding.rvTraders.adapter = DiamondTraderAdapter(list) { trader ->
+                    viewModel.showTopUpNotice(trader.displayName)
                 }
             }
         }
@@ -74,13 +73,12 @@ class AgencyCoinTraderFragment : Fragment() {
 }
 
 @HiltViewModel
-class AgencyCoinTraderViewModel @Inject constructor(
+class AgencyDiamondTraderViewModel @Inject constructor(
     private val auth: Auth,
     private val postgrest: Postgrest,
-    private val functions: Functions,
 ) : ViewModel() {
 
-    private val _traders = MutableStateFlow<List<CoinTrader>>(emptyList())
+    private val _traders = MutableStateFlow<List<DiamondTrader>>(emptyList())
     val traders = _traders.asStateFlow()
 
     private val _tradeResult = MutableStateFlow("")
@@ -96,10 +94,10 @@ class AgencyCoinTraderViewModel @Inject constructor(
                             eq("is_verified", true)
                         }
                     }
-                    .decodeList<CoinTraderResponse>()
+                    .decodeList<DiamondTraderResponse>()
 
                 _traders.value = result.map {
-                    CoinTrader(
+                    DiamondTrader(
                         id = it.id,
                         displayName = it.profiles?.display_name ?: "Trader",
                         avatarUrl = it.profiles?.avatar_url,
@@ -114,25 +112,12 @@ class AgencyCoinTraderViewModel @Inject constructor(
         }
     }
 
-    fun initiateTrade(traderId: String) {
-        viewModelScope.launch {
-            try {
-                val userId = auth.currentSessionOrNull()?.user?.id ?: return@launch
-                val body = buildJsonObject {
-                    put("trader_id", traderId)
-                    put("user_id", userId)
-                    put("trade_type", "buy")
-                }
-                functions.invoke("initiate-coin-trade", body)
-                _tradeResult.value = "✅ Trade request sent!"
-            } catch (e: Exception) {
-                _tradeResult.value = "❌ ${e.message}"
-            }
-        }
+    fun showTopUpNotice(traderName: String) {
+        _tradeResult.value = "Open Recharge to submit a Diamond top-up order with $traderName."
     }
 }
 
-data class CoinTrader(
+data class DiamondTrader(
     val id: String,
     val displayName: String,
     val avatarUrl: String?,
@@ -142,27 +127,27 @@ data class CoinTrader(
 )
 
 @Serializable
-data class CoinTraderResponse(
+data class DiamondTraderResponse(
     val id: String,
     val wallet_balance: Double? = null,
     val buy_rate: Double? = null,
     val sell_rate: Double? = null,
     val is_active: Boolean? = null,
     val is_verified: Boolean? = null,
-    val profiles: CoinTraderProfileRef? = null,
+    val profiles: DiamondTraderProfileRef? = null,
 )
 
 @Serializable
-data class CoinTraderProfileRef(
+data class DiamondTraderProfileRef(
     val display_name: String? = null,
     val avatar_url: String? = null,
     val app_uid: String? = null,
 )
 
-class CoinTraderAdapter(
-    private val items: List<CoinTrader>,
-    private val onTrade: (CoinTrader) -> Unit,
-) : RecyclerView.Adapter<CoinTraderAdapter.VH>() {
+class DiamondTraderAdapter(
+    private val items: List<DiamondTrader>,
+    private val onTrade: (DiamondTrader) -> Unit,
+) : RecyclerView.Adapter<DiamondTraderAdapter.VH>() {
     inner class VH(itemView: View) : RecyclerView.ViewHolder(itemView)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val tv = android.widget.TextView(parent.context).apply {
@@ -174,7 +159,7 @@ class CoinTraderAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val t = items[position]
         (holder.itemView as android.widget.TextView).text =
-            "💰 ${t.displayName} — Buy: ${t.buyRate} | Sell: ${t.sellRate}"
+            "💎 ${t.displayName} — Buy: ${t.buyRate} | Sell: ${t.sellRate}"
         holder.itemView.setOnClickListener { onTrade(t) }
     }
     override fun getItemCount() = items.size
