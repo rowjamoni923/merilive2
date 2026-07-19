@@ -207,7 +207,7 @@ export default function LuckyWheelTestPage() {
         if (wr.success) {
           sfx(() => {
             luckyWheelAudio.win(winSeg.multiplier);
-            setTimeout(() => luckyWheelAudio.coinDrop(), 200);
+            setTimeout(() => luckyWheelAudio.diamondDrop(), 200);
           });
           setConfettiTick((t) => t + 1);
           toast({

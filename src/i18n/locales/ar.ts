@@ -178,7 +178,7 @@ const ar = {
     noAnswer: "لا إجابة",
     busy: "مشغول",
     callDuration: "مدة المكالمة",
-    coinsPerMin: "Diamonds/min",
+    diamondsPerMin: "Diamonds/min",
   },
   party: {
     title: "غرف الحفلات",
@@ -361,7 +361,7 @@ const ar = {
     newMessage: "رسالة جديدة",
     newFollower: "متابع جديد",
     giftReceived: "تم استلام هدية",
-    coinsSent: "Diamonds sent successfully",
+    diamondsSent: "Diamonds sent successfully",
     profileUpdated: "تم تحديث الملف الشخصي",
     errorOccurred: "حدث خطأ",
     tryAgain: "يرجى المحاولة مرة أخرى",

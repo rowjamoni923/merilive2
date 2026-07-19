@@ -683,7 +683,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   // Flying diamonds state
   const [flyingDiamonds, setFlyingDiamonds] = useState<{ id: string; startPos: { x: number; y: number }; endPos: { x: number; y: number } }[]>([]);
   
-  const coinDisplayRef = useRef<HTMLDivElement>(null);
+  const diamondDisplayRef = useRef<HTMLDivElement>(null);
 
   // Fetch games
   useEffect(() => {
@@ -790,11 +790,11 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     }
 
     // Animate diamond flying away
-    if (coinDisplayRef.current) {
-      const rect = coinDisplayRef.current.getBoundingClientRect();
-      const coinId = Date.now().toString();
+    if (diamondDisplayRef.current) {
+      const rect = diamondDisplayRef.current.getBoundingClientRect();
+      const diamondId = Date.now().toString();
       setFlyingDiamonds(prev => [...prev, {
-        id: coinId,
+        id: diamondId,
         startPos: { x: rect.left, y: rect.top },
         endPos: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
       }]);
@@ -962,12 +962,12 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       </AnimatePresence>
 
       {/* Flying Diamonds */}
-      {flyingDiamonds.map(coin => (
+      {flyingDiamonds.map(diamond => (
         <FloatingDiamond
-          key={coin.id}
-          startPos={coin.startPos}
-          endPos={coin.endPos}
-          onComplete={() => removeFlyingDiamond(coin.id)}
+          key={diamond.id}
+          startPos={diamond.startPos}
+          endPos={diamond.endPos}
+          onComplete={() => removeFlyingDiamond(diamond.id)}
         />
       ))}
 
@@ -1062,7 +1062,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
             <div className="flex items-center gap-1">
               {/* Compact Diamonds Display */}
               <div 
-                ref={coinDisplayRef}
+                ref={diamondDisplayRef}
                 className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded text-[10px]"
               >
                 <Gem className="w-2.5 h-2.5 text-amber-400" />

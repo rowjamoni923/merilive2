@@ -201,7 +201,7 @@ const TreasureChestIcon = ({ size = 64 }: { size?: number }) => (
       {cx:56, cy:98, rx:5, ry:2.5},
       {cx:144, cy:98, rx:5, ry:2.5},
     ].map((c, i) => (
-      <g key={`coin-${i}`}>
+      <g key={`diamond-${i}`}>
         <ellipse cx={c.cx} cy={c.cy} rx={c.rx} ry={c.ry} fill="url(#goldDark)" stroke="#B8860B" strokeWidth="0.5" opacity={0.9 - i * 0.05} />
         <ellipse cx={c.cx} cy={c.cy - 0.5} rx={c.rx - 1.5} ry={c.ry - 1} fill="url(#goldTrim)" opacity="0.4" />
       </g>

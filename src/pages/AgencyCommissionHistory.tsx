@@ -61,7 +61,7 @@ const AgencyCommissionHistory = () => {
     totalTransactions: 0
   };
   const [loading, setLoading] = useState(!(hadCommCache && hadStatsCache));
-  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(9000); // Default: 9000 beans = $1 (matching AgencyDashboard)
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(9000); // Default: 9000 beans = $1 (matching AgencyDashboard)
 
   useEffect(() => {
     fetchData();
@@ -171,7 +171,7 @@ const AgencyCommissionHistory = () => {
   };
 
   const beansToUsd = (beans: number) => {
-    return (beans / coinsToUsdRate).toFixed(2);
+    return (beans / diamondsToUsdRate).toFixed(2);
   };
 
   const formatDate = (dateString: string) => {

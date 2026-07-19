@@ -850,7 +850,7 @@ const LiveStream = () => {
     if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
     const viewerCount: number = Number(streamData?.viewer_count ?? 0) || 0;
     const diamondCount: number = Number(
-      streamData?.total_diamonds ?? streamData?.coin_count ?? 0
+      streamData?.total_diamonds ?? streamData?.diamond_count ?? 0
     ) || 0;
     const title: string = String(streamData?.title || hostInfo?.name || '').slice(0, 60);
     let cancelled = false;
@@ -862,7 +862,7 @@ const LiveStream = () => {
       } catch { /* noop — web / non-live */ }
     })();
     return () => { cancelled = true; };
-  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_diamonds, streamData?.coin_count, streamData?.title, hostInfo?.name]);
+  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_diamonds, streamData?.diamond_count, streamData?.title, hostInfo?.name]);
 
   // ========== Pkg105: HOST HARD-BLOCK (LiveKit track-subscription permissions) ==========
   // Host-only. Fetches `blocked_users` (where blocker_id = host) on mount + when

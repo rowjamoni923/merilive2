@@ -323,7 +323,7 @@ const AdminRechargeHistory = () => {
       const gatewayRecords: RechargeRecord[] = (gatewayRes.data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        diamond_amount: r.coins_to_receive || 0,
+        diamond_amount: r.diamonds_to_receive || 0,
         amount_usd: r.amount_usd || 0,
         amount_local: r.amount_local || 0,
         currency_code: r.currency_code || 'USD',

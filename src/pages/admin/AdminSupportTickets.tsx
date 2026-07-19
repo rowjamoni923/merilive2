@@ -109,7 +109,7 @@ const isAiSummarySupportMessage = (content?: string) =>
 
 const buildFallbackSupportSuggestions = (message: string): string[] => {
   const lower = message.toLowerCase();
-  if (/refund|payment|purchase|coin|diamond|recharge|top.?up/.test(lower)) {
+  if (/refund|payment|purchase|diamond|diamond|recharge|top.?up/.test(lower)) {
     return [
       "Thanks for contacting us. We understand this payment issue is important, and we are checking your transaction details now.",
       "Please share the transaction ID, payment method, amount, and time so we can verify it quickly.",

@@ -25,7 +25,7 @@ interface CallState {
   remoteUserLevel: number;
   hostId: string | null;
   duration: number;
-  coinsPerMinute: number;
+  diamondsPerMinute: number;
   totalDiamondsSpent: number;
   hostEarned: number;
   callerRemainingDiamonds: number;
@@ -48,7 +48,7 @@ const INITIAL_CALL_STATE: CallState = {
   remoteUserLevel: 1,
   hostId: null,
   duration: 0,
-  coinsPerMinute: 0,
+  diamondsPerMinute: 0,
   totalDiamondsSpent: 0,
   hostEarned: 0,
   callerRemainingDiamonds: 0,
@@ -376,7 +376,7 @@ export function usePrivateCall(userId: string | null) {
             ...prev,
             totalDiamondsSpent: callInfo.total_diamonds_deducted || 0,
             hostEarned: callInfo.host_earned || 0,
-            coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
+            diamondsPerMinute: callInfo.diamonds_per_minute || prev.diamondsPerMinute,
           }));
         }
       } catch (err) {
@@ -555,7 +555,7 @@ export function usePrivateCall(userId: string | null) {
       // PARALLEL: Fetch user diamonds, host info, and admin call settings simultaneously
       // NOTE: Do NOT query the host's `profiles` row directly — RLS blocks non-owner SELECT.
       // Host busy/blocked/face-verified checks all run server-side inside `start_private_call` RPC.
-      // ZERO-COIN: single spend wallet = diamonds.
+      // ZERO-DIAMOND: single spend wallet = diamonds.
       const [userProfileRes, hostProfileRes, callRatesSetting] = await Promise.all([
         supabase.from('profiles').select('diamonds, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', userId).single(),
         supabase.from('profiles_public').select('display_name, avatar_url, is_online, user_level, host_level, max_user_level, gender, is_host, call_rate_per_minute').eq('id', hostId).maybeSingle(),
@@ -697,7 +697,7 @@ export function usePrivateCall(userId: string | null) {
         remoteUserName: hostProfile?.display_name || 'Host',
         remoteUserAvatar: hostProfile?.avatar_url,
         remoteUserLevel: getRequiredDisplayLevel(hostProfile),
-        coinsPerMinute: resolvedDiamondsPerMinute,
+        diamondsPerMinute: resolvedDiamondsPerMinute,
         totalDiamondsSpent: 0,
         hostEarned: 0,
       }));
@@ -909,7 +909,7 @@ export function usePrivateCall(userId: string | null) {
         setCallState(prev => ({
           ...prev,
           remoteUserId: callData.caller_id || prev.remoteUserId,
-          coinsPerMinute: callData.diamonds_per_minute || prev.coinsPerMinute,
+          diamondsPerMinute: callData.diamonds_per_minute || prev.diamondsPerMinute,
           hostId: userId || prev.hostId,
         }));
       }
@@ -970,7 +970,7 @@ export function usePrivateCall(userId: string | null) {
               ...prev,
               totalDiamondsSpent: callInfo.total_diamonds_deducted || 0,
               hostEarned: callInfo.host_earned || 0,
-              coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
+              diamondsPerMinute: callInfo.diamonds_per_minute || prev.diamondsPerMinute,
             }));
           }
         } catch (err) {

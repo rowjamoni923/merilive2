@@ -134,10 +134,10 @@ const Invitation = () => {
         return;
       }
 
-      const coinsAwarded = Number(result?.diamonds ?? 0);
+      const diamondsAwarded = Number(result?.diamonds ?? 0);
       const beansAwarded = Number(result?.beans ?? 0);
       const parts: string[] = [];
-      if (coinsAwarded > 0) parts.push(`+${coinsAwarded.toLocaleString()} 💎 Diamonds`);
+      if (diamondsAwarded > 0) parts.push(`+${diamondsAwarded.toLocaleString()} 💎 Diamonds`);
       if (beansAwarded > 0) parts.push(`+${beansAwarded.toLocaleString()} 🌱 Beans`);
 
       toast.success(`🎉 ${tier.tier_name} Reward Claimed! ${parts.join(' & ')}`);

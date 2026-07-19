@@ -99,7 +99,7 @@ export const luckyWheelAudio = {
     o.stop(c.currentTime + 0.65);
   },
 
-  coinDrop() {
+  diamondDrop() {
     const c = getCtx();
     if (!c || !masterGain) return;
     [880, 1175, 1568].forEach((freq, i) => {

@@ -66,7 +66,7 @@ interface ActiveCallScreenProps {
   remoteUserAvatar: string | null;
   remoteUserLevel?: number;
   duration: number;
-  coinsPerMinute: number;
+  diamondsPerMinute: number;
   totalDiamondsSpent?: number;
   hostEarned?: number;
   callerRemainingDiamonds?: number;
@@ -86,7 +86,7 @@ export function ActiveCallScreen({
   remoteUserAvatar,
   remoteUserLevel = 20,
   duration,
-  coinsPerMinute,
+  diamondsPerMinute,
   totalDiamondsSpent = 0,
   hostEarned = 0,
   callerRemainingDiamonds = 0,

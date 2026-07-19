@@ -1095,7 +1095,7 @@ const CreateParty = () => {
                   setRoomEntryFee(Number.isFinite(v) ? Math.max(0, Math.min(100000, Math.floor(v))) : 0);
                 }}
               />
-              <p className="text-xs text-muted-foreground">Viewers pay this from their coin balance to join.</p>
+              <p className="text-xs text-muted-foreground">Viewers pay this from their diamond balance to join.</p>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

@@ -148,7 +148,7 @@ export default function AdminAgencyDetail() {
   const [selectedHost, setSelectedHost] = useState<AgencyHost | null>(null);
   const [removeReason, setRemoveReason] = useState("");
   const [diamondAmount, setDiamondAmount] = useState("");
-  const [coinNote, setDiamondNote] = useState("");
+  const [diamondNote, setDiamondNote] = useState("");
   const [newLevel, setNewLevel] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   
@@ -281,7 +281,7 @@ export default function AdminAgencyDetail() {
       const { error } = await supabase.rpc("admin_add_agency_diamonds", {
         _agency_id: agency.id,
         _amount: parseFloat(diamondAmount),
-        _note: coinNote || null
+        _note: diamondNote || null
       });
 
       if (error) throw error;
@@ -994,7 +994,7 @@ export default function AdminAgencyDetail() {
             />
             <Textarea
               placeholder="Note (optional)"
-              value={coinNote}
+              value={diamondNote}
               onChange={(e) => setDiamondNote(e.target.value)}
               className="bg-slate-50 border-slate-200 text-slate-900"
             />

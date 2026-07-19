@@ -104,7 +104,7 @@ interface EpayWithdrawal {
    const [actionType, setActionType] = useState<'complete' | 'reject'>('complete');
    const [actionNotes, setActionNotes] = useState("");
    const [searchQuery, setSearchQuery] = useState("");
-   const [coinsToUsdRate, setDiamondsToUsdRate] = useState(9000);
+   const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(9000);
  
    useEffect(() => {
      fetchEpayWithdrawals();
@@ -235,7 +235,7 @@ interface EpayWithdrawal {
    const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
    const totalPendingUsd = withdrawals
      .filter(w => w.status === 'pending')
-     .reduce((sum, w) => sum + (w.payment_details?.usd_amount || w.amount / coinsToUsdRate), 0);
+     .reduce((sum, w) => sum + (w.payment_details?.usd_amount || w.amount / diamondsToUsdRate), 0);
  
    const filteredWithdrawals = withdrawals.filter(w =>
      w.agency?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -314,7 +314,7 @@ interface EpayWithdrawal {
                    {filteredWithdrawals.map((w) => {
                      const pd = w.payment_details;
                      const currencyInfo = getCurrencyInfo(pd?.currency_code || "USD");
-                     const usdAmount = pd?.usd_amount || (w.amount / coinsToUsdRate);
+                     const usdAmount = pd?.usd_amount || (w.amount / diamondsToUsdRate);
                      
                      return (
                        <TableRow key={w.id} className="hover:bg-gray-50">
@@ -417,7 +417,7 @@ interface EpayWithdrawal {
                  <div className="flex justify-between">
                    <span className="text-gray-600">Amount (USD):</span>
                    <span className="font-bold text-lg">
-                     ${(selectedWithdrawal.payment_details?.usd_amount || selectedWithdrawal.amount / coinsToUsdRate).toFixed(2)}
+                     ${(selectedWithdrawal.payment_details?.usd_amount || selectedWithdrawal.amount / diamondsToUsdRate).toFixed(2)}
                    </span>
                  </div>
                  <div className="flex justify-between">

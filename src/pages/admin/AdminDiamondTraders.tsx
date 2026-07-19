@@ -153,7 +153,7 @@ const AdminDiamondTraders = () => {
     });
 
     if (updateError) {
-      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.DiamondtradersFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }

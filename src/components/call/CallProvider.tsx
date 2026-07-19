@@ -787,7 +787,7 @@ export function CallProvider({ children }: CallProviderProps) {
             remoteUserLevel={callState.remoteUserLevel ?? 1}
             callStatus={callState.status}
             duration={callState.duration}
-            coinsPerMinute={callState.coinsPerMinute}
+            diamondsPerMinute={callState.diamondsPerMinute}
             totalDiamondsSpent={callState.totalDiamondsSpent}
             hostEarned={callState.hostEarned}
             callerRemainingDiamonds={callState.callerRemainingDiamonds}

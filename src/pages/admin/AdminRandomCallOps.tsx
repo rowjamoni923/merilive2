@@ -31,10 +31,10 @@ export default function AdminRandomCallOps() {
     callsToday: 0,
     completedToday: 0,
     shortToday: 0,
-    coinsToday: 0,
+    diamondsToday: 0,
     beansToday: 0,
     callsWeek: 0,
-    coinsWeek: 0,
+    diamondsWeek: 0,
     beansWeek: 0,
     suspendedHosts: 0,
   });
@@ -108,10 +108,10 @@ export default function AdminRandomCallOps() {
       callsToday: today.length,
       completedToday: completed.length,
       shortToday: short.length,
-      coinsToday: today.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
+      diamondsToday: today.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
       beansToday: today.reduce((s: number, r: any) => s + (r.beans_awarded || 0), 0),
       callsWeek: week.length,
-      coinsWeek: week.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
+      diamondsWeek: week.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
       beansWeek: week.reduce((s: number, r: any) => s + (r.beans_awarded || 0), 0),
       suspendedHosts: suspCount || 0,
     });
@@ -239,9 +239,9 @@ export default function AdminRandomCallOps() {
         <Stat label="Waiting in queue" value={stats.queuedNow} color="text-cyan-600" />
         <Stat label="Suspended hosts" value={stats.suspendedHosts} color="text-rose-600" />
         <Stat label="Calls today" value={stats.callsToday} sub={`${stats.completedToday} billed · ${stats.shortToday} < 40s`} />
-        <Stat label="Diamonds charged (today)" value={stats.coinsToday.toLocaleString()} />
+        <Stat label="Diamonds charged (today)" value={stats.diamondsToday.toLocaleString()} />
         <Stat label="Beans paid (today)" value={stats.beansToday.toLocaleString()} />
-        <Stat label="Diamonds charged (7d)" value={stats.coinsWeek.toLocaleString()} />
+        <Stat label="Diamonds charged (7d)" value={stats.diamondsWeek.toLocaleString()} />
         <Stat label="Beans paid (7d)" value={stats.beansWeek.toLocaleString()} />
       </div>
 

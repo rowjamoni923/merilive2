@@ -54,11 +54,11 @@ interface CommissionSettings {
     agency_percent: number;
     min_payout: number;
     commission_tiers: CommissionTier[];
-    coins_to_dollar_rate: number;
+    diamonds_to_dollar_rate: number;
   };
   transfer_schedule: TransferSchedule;
   diamond_exchange: DiamondExchangeSettings;
-  coin_trader: DiamondTraderSettings;
+  diamond_trader: DiamondTraderSettings;
   party_room_defaults: {
     max_video_participants: number;
     max_audio_participants: number;
@@ -102,7 +102,7 @@ export default function AdminCommissions() {
           { min_earnings: 100000, percent: 7 },
           { min_earnings: 500000, percent: 10 }
         ],
-        coins_to_dollar_rate: 10000
+        diamonds_to_dollar_rate: 10000
       };
 
       // Auto-initialize agency_commission if not exists
@@ -135,7 +135,7 @@ export default function AdminCommissions() {
           exchange_fee_percent: 5,
           min_exchange_amount: 1000
         },
-        coin_trader: settingsMap.coin_trade_settings || {
+        diamond_trader: settingsMap.diamond_trade_settings || {
           buy_rate: 9500,
           sell_rate: 10500,
           min_trade_amount: 1000,
@@ -237,8 +237,8 @@ export default function AdminCommissions() {
 
   const handleDiamondTraderChange = (field: string, value: number | boolean) => {
     if (!settings) return;
-    const newTrader = { ...settings.coin_trader, [field]: value };
-    setSettings({ ...settings, coin_trader: newTrader });
+    const newTrader = { ...settings.diamond_trader, [field]: value };
+    setSettings({ ...settings, diamond_trader: newTrader });
   };
 
   if (loading) {
@@ -526,11 +526,11 @@ export default function AdminCommissions() {
                   <Input
                     type="number"
                     min={100}
-                    value={settings?.agency_commission.coins_to_dollar_rate || 10000}
-                    onChange={(e) => handleAgencyCommissionChange("coins_to_dollar_rate", parseInt(e.target.value) || 10000)}
+                    value={settings?.agency_commission.diamonds_to_dollar_rate || 10000}
+                    onChange={(e) => handleAgencyCommissionChange("diamonds_to_dollar_rate", parseInt(e.target.value) || 10000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
-                  <p className="text-xs text-slate-500 mt-1">{settings?.agency_commission.coins_to_dollar_rate || 10000} Beans = $1</p>
+                  <p className="text-xs text-slate-500 mt-1">{settings?.agency_commission.diamonds_to_dollar_rate || 10000} Beans = $1</p>
                 </div>
               </div>
             </CardContent>
@@ -946,11 +946,11 @@ export default function AdminCommissions() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={settings?.coin_trader.enabled || false}
+                    checked={settings?.diamond_trader.enabled || false}
                     onChange={(e) => handleDiamondTraderChange("enabled", e.target.checked)}
                     className="w-5 h-5 rounded"
                   />
-                  <span className="text-slate-600 text-sm">{settings?.coin_trader.enabled ? 'Active' : 'Inactive'}</span>
+                  <span className="text-slate-600 text-sm">{settings?.diamond_trader.enabled ? 'Active' : 'Inactive'}</span>
                 </label>
               </div>
 
@@ -965,7 +965,7 @@ export default function AdminCommissions() {
                   <Input
                     type="number"
                     min={1}
-                    value={settings?.coin_trader.buy_rate || 9500}
+                    value={settings?.diamond_trader.buy_rate || 9500}
                     onChange={(e) => handleDiamondTraderChange("buy_rate", parseInt(e.target.value) || 9500)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
@@ -984,7 +984,7 @@ export default function AdminCommissions() {
                   <Input
                     type="number"
                     min={1}
-                    value={settings?.coin_trader.sell_rate || 10500}
+                    value={settings?.diamond_trader.sell_rate || 10500}
                     onChange={(e) => handleDiamondTraderChange("sell_rate", parseInt(e.target.value) || 10500)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
@@ -1003,12 +1003,12 @@ export default function AdminCommissions() {
                   <Input
                     type="number"
                     min={100}
-                    value={settings?.coin_trader.min_trade_amount || 1000}
+                    value={settings?.diamond_trader.min_trade_amount || 1000}
                     onChange={(e) => handleDiamondTraderChange("min_trade_amount", parseInt(e.target.value) || 1000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    Minimum {settings?.coin_trader.min_trade_amount || 1000} beans to trade
+                    Minimum {settings?.diamond_trader.min_trade_amount || 1000} beans to trade
                   </p>
                 </div>
               </div>
@@ -1023,16 +1023,16 @@ export default function AdminCommissions() {
                   <p className="text-slate-600 text-sm text-center mb-3">Agency Profit per $10 Trade</p>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <p className="text-blue-400 font-bold text-lg">{((settings?.coin_trader.buy_rate || 9500) * 10).toLocaleString()}</p>
+                      <p className="text-blue-400 font-bold text-lg">{((settings?.diamond_trader.buy_rate || 9500) * 10).toLocaleString()}</p>
                       <p className="text-slate-500 text-xs">Bought Beans ($10)</p>
                     </div>
                     <div>
-                      <p className="text-green-400 font-bold text-lg">{((settings?.coin_trader.sell_rate || 10500) * 10).toLocaleString()}</p>
+                      <p className="text-green-400 font-bold text-lg">{((settings?.diamond_trader.sell_rate || 10500) * 10).toLocaleString()}</p>
                       <p className="text-slate-500 text-xs">Sold Beans ($10)</p>
                     </div>
                     <div>
                       <p className="text-amber-400 font-bold text-lg">
-                        {(((settings?.coin_trader.sell_rate || 10500) - (settings?.coin_trader.buy_rate || 9500)) * 10).toLocaleString()}
+                        {(((settings?.diamond_trader.sell_rate || 10500) - (settings?.diamond_trader.buy_rate || 9500)) * 10).toLocaleString()}
                       </p>
                       <p className="text-slate-500 text-xs">Profit Beans</p>
                     </div>
@@ -1041,7 +1041,7 @@ export default function AdminCommissions() {
               </div>
 
               <Button
-                onClick={() => saveSetting("diamond_trade_settings", settings?.coin_trader)}
+                onClick={() => saveSetting("diamond_trade_settings", settings?.diamond_trader)}
                 disabled={saving === "diamond_trade_settings"}
                 className="w-full bg-emerald-500 hover:bg-emerald-600"
               >

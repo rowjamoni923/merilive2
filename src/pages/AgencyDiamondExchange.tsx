@@ -991,7 +991,7 @@ const AgencyDiamondExchange = () => {
                 {selectedUser && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Coin Amount</Label>
+                      <Label className="text-slate-500">Diamond Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-info-600" />
                         <Input
@@ -1126,7 +1126,7 @@ const AgencyDiamondExchange = () => {
                 {selectedTargetAgency && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Coin Amount</Label>
+                      <Label className="text-slate-500">Diamond Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-600" />
                         <Input

@@ -489,7 +489,7 @@ export default function MatchCall() {
   const maxRate = Number(settings?.host_max_rate_diamonds_per_min ?? settings?.default_host_rate_diamonds_per_min ?? 0);
   const preauthMin = Number(settings?.preauth_minutes_hold ?? 2);
   const holdAmount = Math.max(0, maxRate * preauthMin);
-  const profileBalance = Number(profile?.diamonds ?? 0); // ZERO-COIN: Diamonds is the single spend wallet.
+  const profileBalance = Number(profile?.diamonds ?? 0); // ZERO-DIAMOND: Diamonds is the single spend wallet.
   const profileIsVip = Number(profile?.vip_tier ?? 0) > 0 || !!profile?.current_vip_tier_id;
 
   return (

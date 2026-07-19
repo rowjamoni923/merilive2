@@ -135,7 +135,7 @@ export default function AdminWithdrawals() {
   const [actionNotes, setActionNotes] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(10000);
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [helperPlatformFee, setHelperPlatformFee] = useState(10);
   const [globalCounts, setGlobalCounts] = useState({ pending: 0, approved: 0, totalPendingAmount: 0 });
   const actionGuardRef = useRef<Set<string>>(new Set());
@@ -174,9 +174,9 @@ export default function AdminWithdrawals() {
       .maybeSingle();
     
     if (data?.setting_value) {
-      const settings = data.setting_value as { coins_to_dollar_rate?: number };
-      if (settings.coins_to_dollar_rate) {
-        setDiamondsToUsdRate(settings.coins_to_dollar_rate);
+      const settings = data.setting_value as { diamonds_to_dollar_rate?: number };
+      if (settings.diamonds_to_dollar_rate) {
+        setDiamondsToUsdRate(settings.diamonds_to_dollar_rate);
       }
     }
 
@@ -408,7 +408,7 @@ export default function AdminWithdrawals() {
 
     const rows = filteredWithdrawals.map(w => {
       const pd = w.payment_details;
-      const usdAmount = pd?.usd_amount || (w.amount / coinsToUsdRate);
+      const usdAmount = pd?.usd_amount || (w.amount / diamondsToUsdRate);
       return [
         w.id,
         w.agency?.name || "",
@@ -502,7 +502,7 @@ export default function AdminWithdrawals() {
           <tbody>
             ${filteredWithdrawals.map(w => {
               const pd = w.payment_details;
-              const usdAmount = pd?.usd_amount || (w.amount / coinsToUsdRate);
+              const usdAmount = pd?.usd_amount || (w.amount / diamondsToUsdRate);
               const currencyInfo = getCurrencyInfo(pd?.currency_code || "USD");
               return `
                 <tr>
@@ -550,7 +550,7 @@ export default function AdminWithdrawals() {
 
   const totalBeans = filteredWithdrawals.reduce((sum, w) => sum + w.amount, 0);
   const totalUsd = filteredWithdrawals.reduce((sum, w) => {
-    const usd = w.payment_details?.usd_amount || (w.amount / coinsToUsdRate);
+    const usd = w.payment_details?.usd_amount || (w.amount / diamondsToUsdRate);
     return sum + usd;
   }, 0);
 
@@ -733,7 +733,7 @@ export default function AdminWithdrawals() {
                 <TableBody>
                   {filteredWithdrawals.map((withdrawal) => {
                     const pd = withdrawal.payment_details;
-                    const usdAmount = pd?.usd_amount || (withdrawal.amount / coinsToUsdRate);
+                    const usdAmount = pd?.usd_amount || (withdrawal.amount / diamondsToUsdRate);
                     const currencyInfo = getCurrencyInfo(pd?.currency_code || "USD");
                     
                     return (
@@ -909,7 +909,7 @@ export default function AdminWithdrawals() {
                 <div className="flex justify-between">
                   <span className="text-slate-600">Payable USD:</span>
                   <span className="font-bold text-green-400">
-                    ${resolveNetWithdrawalUsd(selectedWithdrawal, coinsToUsdRate).toFixed(2)}
+                    ${resolveNetWithdrawalUsd(selectedWithdrawal, diamondsToUsdRate).toFixed(2)}
                   </span>
                 </div>
                 {selectedWithdrawal.payment_details?.currency_code && (
@@ -1083,7 +1083,7 @@ export default function AdminWithdrawals() {
             <DialogDescription className="text-slate-600">
               {selectedWithdrawal?.agency?.name} - {formatBeans(selectedWithdrawal ? resolveNetWithdrawalBeans(selectedWithdrawal) : 0)} Beans
               <span className="text-green-400 ml-2">
-                (${(selectedWithdrawal ? resolveNetWithdrawalUsd(selectedWithdrawal, coinsToUsdRate) : 0).toFixed(2)})
+                (${(selectedWithdrawal ? resolveNetWithdrawalUsd(selectedWithdrawal, diamondsToUsdRate) : 0).toFixed(2)})
               </span>
             </DialogDescription>
           </DialogHeader>

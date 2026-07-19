@@ -2989,7 +2989,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div className="text-center py-10">
                     <History className="w-10 h-10 text-body mx-auto mb-2" />
                     <p className="text-body text-sm">No transfer history yet</p>
-                    <p className="text-body text-xs mt-1">Your coin trade transfers will appear here</p>
+                    <p className="text-body text-xs mt-1">Your diamond trade transfers will appear here</p>
                   </div>
                 ) : (
                   transferHistory.map((tx) => {

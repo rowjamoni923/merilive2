@@ -116,7 +116,7 @@ export default function AdminPricingHub() {
   });
 
   // Beans → Diamonds exchange (app_settings.diamond_exchange)
-  const [coinExchange, setDiamondExchange] = useState<any>(null);
+  const [diamondExchange, setDiamondExchange] = useState<any>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -345,12 +345,12 @@ export default function AdminPricingHub() {
           </div>
           <div className="rounded border border-border/40 p-2">
             <div className="text-muted-foreground">Beans → USD</div>
-            <div className="text-base font-bold text-primary">{withdrawal?.coins_to_dollar_rate || "—"}</div>
+            <div className="text-base font-bold text-primary">{withdrawal?.diamonds_to_dollar_rate || "—"}</div>
             <div className="text-[10px] text-muted-foreground">beans per $1</div>
           </div>
           <div className="rounded border border-border/40 p-2">
             <div className="text-muted-foreground">Exchange Fee</div>
-            <div className="text-base font-bold text-primary">{coinExchange?.exchange_fee_percent != null ? `${coinExchange.exchange_fee_percent}%` : "—"}</div>
+            <div className="text-base font-bold text-primary">{diamondExchange?.exchange_fee_percent != null ? `${diamondExchange.exchange_fee_percent}%` : "—"}</div>
             <div className="text-[10px] text-muted-foreground">Beans → Diamonds</div>
           </div>
           <div className="rounded border border-border/40 p-2">
@@ -696,9 +696,9 @@ export default function AdminPricingHub() {
                 <Field label="Beans → USD rate" hint="9000 means 9000 beans = $1">
                   <Input
                     type="number"
-                    value={NUM(withdrawal?.coins_to_dollar_rate)}
+                    value={NUM(withdrawal?.diamonds_to_dollar_rate)}
                     onChange={(e) =>
-                      setWithdrawal({ ...(withdrawal ?? {}), coins_to_dollar_rate: inputNumber(e.target.value) })
+                      setWithdrawal({ ...(withdrawal ?? {}), diamonds_to_dollar_rate: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -750,14 +750,14 @@ export default function AdminPricingHub() {
                     }
                   />
                 </Field>
-                <Field label="coins_to_dollar_rate" hint="Same as withdrawal_settings — keep in sync">
+                <Field label="diamonds_to_dollar_rate" hint="Same as withdrawal_settings — keep in sync">
                   <Input
                     type="number"
-                    value={NUM(agencyCommission?.coins_to_dollar_rate)}
+                    value={NUM(agencyCommission?.diamonds_to_dollar_rate)}
                     onChange={(e) =>
                       setAgencyCommission({
                         ...agencyCommission,
-                        coins_to_dollar_rate: inputNumber(e.target.value),
+                        diamonds_to_dollar_rate: inputNumber(e.target.value),
                       })
                     }
                   />
@@ -924,9 +924,9 @@ export default function AdminPricingHub() {
                   <Input
                     type="number"
                     step="0.01"
-                    value={NUM(coinExchange?.beans_to_diamonds_rate)}
+                    value={NUM(diamondExchange?.beans_to_diamonds_rate)}
                     onChange={(e) =>
-                      setDiamondExchange({ ...(coinExchange ?? {}), beans_to_diamonds_rate: inputNumber(e.target.value) })
+                      setDiamondExchange({ ...(diamondExchange ?? {}), beans_to_diamonds_rate: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -934,24 +934,24 @@ export default function AdminPricingHub() {
                   <Input
                     type="number"
                     step="0.1"
-                    value={NUM(coinExchange?.exchange_fee_percent)}
+                    value={NUM(diamondExchange?.exchange_fee_percent)}
                     onChange={(e) =>
-                      setDiamondExchange({ ...(coinExchange ?? {}), exchange_fee_percent: inputNumber(e.target.value) })
+                      setDiamondExchange({ ...(diamondExchange ?? {}), exchange_fee_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
                 <Field label="Min exchange amount (beans)">
                   <Input
                     type="number"
-                    value={NUM(coinExchange?.min_exchange_amount)}
+                    value={NUM(diamondExchange?.min_exchange_amount)}
                     onChange={(e) =>
-                      setDiamondExchange({ ...(coinExchange ?? {}), min_exchange_amount: inputNumber(e.target.value) })
+                      setDiamondExchange({ ...(diamondExchange ?? {}), min_exchange_amount: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
               </div>
               <Button
-                onClick={() => saveSection("diamond_exchange", coinExchange, "Beans→Diamonds exchange")}
+                onClick={() => saveSection("diamond_exchange", diamondExchange, "Beans→Diamonds exchange")}
                 disabled={saving === "diamond_exchange"}
               >
                 <Save className="h-4 w-4 mr-2" />

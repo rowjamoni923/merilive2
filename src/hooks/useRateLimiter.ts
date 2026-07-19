@@ -104,7 +104,7 @@ export function useRateLimiter() {
    */
   const limiters = {
     giftSend: () => checkRateLimit('gift_send', { maxRequests: 30, windowSeconds: 60 }),
-    coinTransfer: () => checkRateLimit('diamond_transfer', { maxRequests: 10, windowSeconds: 60 }),
+    diamondTransfer: () => checkRateLimit('diamond_transfer', { maxRequests: 10, windowSeconds: 60 }),
     message: () => checkRateLimit('message_send', { maxRequests: 60, windowSeconds: 60 }),
     login: () => checkRateLimit('login_attempt', { maxRequests: 5, windowSeconds: 300 }),
     apiCall: () => checkRateLimit('api_call', { maxRequests: 100, windowSeconds: 60 }),

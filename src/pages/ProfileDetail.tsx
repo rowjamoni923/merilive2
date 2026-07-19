@@ -449,7 +449,7 @@ const ProfileDetail = () => {
       supabase.from("topup_helpers").select("id, trader_level, payroll_enabled").eq("user_id", targetId).eq("is_active", true).eq("is_verified", true).maybeSingle(),
     ]);
 
-    // Set current user diamonds (ZERO-COIN: single spend wallet)
+    // Set current user diamonds (ZERO-DIAMOND: single spend wallet)
     setCurrentUserDiamonds((currentUserProfileResult?.data as any)?.diamonds || 0);
 
     // Set slideshow interval

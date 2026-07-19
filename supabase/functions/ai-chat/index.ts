@@ -69,7 +69,7 @@ serve(async (req) => {
 You can help with:
 - How to use the app (calls, live streams, gifts, games)
 - Account settings, levels, VIP features
-- Coin purchases and diamond balance
+- Diamond purchases and diamond balance
 - Agency information
 - Reporting issues
 Keep answers concise, friendly, and in the user's language (Bengali, Hindi, English, etc.).

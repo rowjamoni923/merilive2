@@ -671,7 +671,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   
   // Diamond fly animation
   const { diamonds: flyingDiamonds, addDiamond } = useFlyingDiamonds();
-  const coinDisplayRef = useRef<HTMLDivElement>(null);
+  const diamondDisplayRef = useRef<HTMLDivElement>(null);
 
   const handleWin = async (amount: number) => {
     if (!amount || amount <= 0) return;

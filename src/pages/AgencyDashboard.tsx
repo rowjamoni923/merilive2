@@ -266,7 +266,7 @@ const AgencyDashboard = () => {
   const [subAgentLink, setSubAgentLink] = useState("");
   const [subAgencyInviteLink, setSubAgencyInviteLink] = useState("");
   const [hostJoinLink, setHostJoinLink] = useState("");
-  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
   const [localExchangeRate, setLocalExchangeRate] = useState(1); // Default USD rate
   const [localCurrency, setLocalCurrency] = useState({ code: 'USD', symbol: '$', flag: '🇺🇸' });
   const [userCountryCode, setUserCountryCode] = useState('US');
@@ -830,9 +830,9 @@ const AgencyDashboard = () => {
   const myBeans = agency.beans_balance || 0;
   
   // Correct USD calculation: beans / rate = USD
-  const usdValue = agencyBeansBalance / coinsToUsdRate;
+  const usdValue = agencyBeansBalance / diamondsToUsdRate;
   const localValue = usdValue * localExchangeRate;
-  const myBeansUsdValue = myBeans / coinsToUsdRate;
+  const myBeansUsdValue = myBeans / diamondsToUsdRate;
 
   const getLevelInfo = (level: string) => {
     // Use database tier info if available, otherwise fallback to defaults
@@ -1233,7 +1233,7 @@ const AgencyDashboard = () => {
                 <span className="text-xs text-white/80">Exchange Rate</span>
               </div>
               <span className="text-[10px] font-semibold">
-                {fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
+                {fmtNum(diamondsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
               </span>
             </div>
 
@@ -1299,7 +1299,7 @@ const AgencyDashboard = () => {
                                 </div>
                                 <div>
                                   <p className="text-xs font-semibold text-white">
-                                    {(w.amount / coinsToUsdRate).toFixed(2)} USD
+                                    {(w.amount / diamondsToUsdRate).toFixed(2)} USD
                                   </p>
                                   <p className="text-[10px] text-slate-400">
                                     {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}

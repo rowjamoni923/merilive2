@@ -1618,12 +1618,12 @@ export default function AdminLayout() {
       const ratingRewardsCount = toCount(counts.rating_reward_claims_pending);
       const leaderboardRewardsCount = toCount(counts.leaderboard_reward_history_pending);
       const agencyTransfersCount = toCount(counts.agency_earnings_transfers_pending);
-      const coinTransfersCount = toCount(counts.coin_transfers_pending);
+      const diamondTransfersCount = toCount(counts.diamond_transfers_pending);
 
       const helperManagementCount = toCount(counts.helper_upgrade_requests_pending) + toCount(counts.helper_topup_requests_pending) + helperAppCount + helperWithdrawalCount;
       const userHubCount = hostAppCount + userVerifyCount + userReportsCount;
       const agencyHubCount = agencyWithdrawalCount + agencyTransfersCount;
-      const financeCount = helperRepliesCount + payrollCount + coinTransfersCount;
+      const financeCount = helperRepliesCount + payrollCount + diamondTransfersCount;
       const supportCount = toCount(counts.support_tickets_live_open);
       const contentCount = ratingRewardsCount + leaderboardRewardsCount;
       
@@ -1654,7 +1654,7 @@ export default function AdminLayout() {
         // Calling
         '/admin/pricing-hub': 0,
         // Diamond & Finance
-        '/admin/diamond-trader-hub': coinTransfersCount,
+        '/admin/diamond-trader-hub': diamondTransfersCount,
         '/admin/finance': financeCount,
         '/admin/payroll-orders': payrollCount,
         '/admin/recharge-history': 0,

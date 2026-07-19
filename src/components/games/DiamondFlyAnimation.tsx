@@ -11,27 +11,27 @@ interface FlyingDiamond {
   amount: number;
 }
 
-interface CoinFlyAnimationProps {
+interface DiamondFlyAnimationProps {
   diamonds: FlyingDiamond[];
   onComplete?: (id: number) => void;
 }
 
-export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationProps) => {
+export const DiamondFlyAnimation = ({ diamonds, onComplete }: DiamondFlyAnimationProps) => {
   return (
     <AnimatePresence>
-      {diamonds.map((coin) => (
+      {diamonds.map((diamond) => (
         <motion.div
-          key={coin.id}
+          key={diamond.id}
           className="fixed z-[100] pointer-events-none"
           initial={{ 
-            x: coin.startX, 
-            y: coin.startY, 
+            x: diamond.startX, 
+            y: diamond.startY, 
             scale: 1,
             opacity: 1 
           }}
           animate={{ 
-            x: coin.endX, 
-            y: coin.endY, 
+            x: diamond.endX, 
+            y: diamond.endY, 
             scale: 0.5,
             opacity: 0.8
           }}
@@ -42,11 +42,11 @@ export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationPr
             type: "spring",
             stiffness: 100
           }}
-          onAnimationComplete={() => onComplete?.(coin.id)}
+          onAnimationComplete={() => onComplete?.(diamond.id)}
         >
           <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-yellow-400 px-2 py-1 rounded-full shadow-lg shadow-amber-500/50">
             <Gem className="w-4 h-4 text-amber-900" />
-            <span className="text-amber-900 font-bold text-xs">{coin.amount.toLocaleString()}</span>
+            <span className="text-amber-900 font-bold text-xs">{diamond.amount.toLocaleString()}</span>
           </div>
         </motion.div>
       ))}

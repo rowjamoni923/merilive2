@@ -176,7 +176,7 @@ const AgencyTransferHistory = () => {
   const transfers = transfersCache ?? [];
   const commissions = commissionsCache ?? [];
   const [loading, setLoading] = useState(!(hadTransfersCache && hadCommCache));
-  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(10000);
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [activeTab, setActiveTab] = useState<'earnings' | 'commission'>('earnings');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -198,8 +198,8 @@ const AgencyTransferHistory = () => {
         .maybeSingle();
       
       if (settingsData?.setting_value) {
-        const cs = settingsData.setting_value as unknown as { coins_to_dollar_rate?: number };
-        if (cs?.coins_to_dollar_rate) setDiamondsToUsdRate(cs.coins_to_dollar_rate);
+        const cs = settingsData.setting_value as unknown as { diamonds_to_dollar_rate?: number };
+        if (cs?.diamonds_to_dollar_rate) setDiamondsToUsdRate(cs.diamonds_to_dollar_rate);
       }
 
       const { data: agencyData } = await supabase
@@ -268,7 +268,7 @@ const AgencyTransferHistory = () => {
     }
   };
 
-  const beansToUsd = (beans: number) => (beans / coinsToUsdRate).toFixed(2);
+  const beansToUsd = (beans: number) => (beans / diamondsToUsdRate).toFixed(2);
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', {
