@@ -463,7 +463,7 @@ export function LiveTeenPattiGame({
     }
     
     if (betAmount > userDiamonds) {
-      console.log('[TeenPatti] Not enough coins');
+      console.log('[TeenPatti] Not enough diamonds');
       return;
     }
 

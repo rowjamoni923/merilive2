@@ -545,7 +545,7 @@ const AgencyDiamondExchange = () => {
         
         toast({
           title: "Transfer Successful! 💎",
-          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedUser.display_name || selectedUser.app_uid}'s top-up balance`,
+          description: `Sent ${diamonds.toLocaleString()} diamonds to ${selectedUser.display_name || selectedUser.app_uid}'s top-up balance`,
         });
         
         setDiamondsToSend("");
@@ -576,7 +576,7 @@ const AgencyDiamondExchange = () => {
         
         toast({
           title: "Transfer Successful! 💎",
-          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedTargetAgency.owner_name || selectedTargetAgency.name}'s trader wallet`,
+          description: `Sent ${diamonds.toLocaleString()} diamonds to ${selectedTargetAgency.owner_name || selectedTargetAgency.name}'s trader wallet`,
         });
         
         setDiamondsToSend("");
@@ -1271,7 +1271,7 @@ const AgencyDiamondExchange = () => {
                   <p>Are you sure?</p>
                   <div className="bg-brand-500/10 p-4 rounded-lg border border-brand-500/20">
                     <p className="text-sm text-slate-800">
-                      Sending <span className="font-semibold text-brand-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> coins to{" "}
+                      Sending <span className="font-semibold text-brand-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> diamonds to{" "}
                       <span className="font-semibold">{selectedTargetAgency.owner_name || selectedTargetAgency.name}</span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">Code: {selectedTargetAgency.agency_code}</p>
@@ -1285,7 +1285,7 @@ const AgencyDiamondExchange = () => {
                   <p>Are you sure?</p>
                   <div className="bg-info-500/10 p-4 rounded-lg border border-info-500/20">
                     <p className="text-sm text-slate-800">
-                      Sending <span className="font-semibold text-info-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> coins to{" "}
+                      Sending <span className="font-semibold text-info-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> diamonds to{" "}
                       <span className="font-semibold">{selectedUser?.display_name || selectedUser?.app_uid}</span>
                     </p>
                     <p className="text-xs text-info-700 mt-1">Destination: user top-up balance</p>

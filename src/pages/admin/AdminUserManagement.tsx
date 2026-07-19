@@ -185,7 +185,7 @@ interface UserProfile {
   is_online: boolean | null;
   is_blocked: boolean | null;
   blocked_reason: string | null;
-  coins: number | null;
+  diamonds: number | null;
   user_level: number | null;
   host_level: number | null;
   total_earnings: number | null;
@@ -1440,7 +1440,7 @@ export default function AdminUserManagement() {
         last_seen_at: profile.last_seen_at,
         user_level: profile.user_level,
         host_level: profile.host_level,
-        coins: profile.diamonds,
+        diamonds: profile.diamonds,
         total_earnings: profile.total_earnings,
         pending_earnings: profile.pending_earnings,
         total_consumption: profile.total_consumption,
@@ -1492,10 +1492,10 @@ export default function AdminUserManagement() {
   };
 
   // Helper functions
-  const formatCoins = (coins: number) => {
-    if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
-    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
-    return coins.toString();
+  const formatCoins = (diamonds: number) => {
+    if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
+    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
+    return diamonds.toString();
   };
 
   const totalPages = Math.ceil(totalUsers / pageSize);

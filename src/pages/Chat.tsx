@@ -978,7 +978,7 @@ const Chat = () => {
     
     const totalCost = gift.diamonds * count;
     
-    // Check coins immediately (use cached value)
+    // Check diamonds immediately (use cached value)
     if (userDiamonds < totalCost) {
       toast.error("Not enough diamonds!");
       return;
@@ -1029,7 +1029,7 @@ const Chat = () => {
       soundUrl: giftSoundUrl || undefined,
       giftColor: 'bg-pink-500/50',
       count,
-      coins: gift.diamonds,
+      diamonds: gift.diamonds,
       isOwnGift: true,
       beansEarned: estimatedBeansEarned,
     });
@@ -1499,7 +1499,7 @@ const Chat = () => {
       }
       setCurrentUserId(user.id);
       
-      // Parallel fetch - coins + conversations + groups at once
+      // Parallel fetch - diamonds + conversations + groups at once
       const [profileResult, helperResult] = await Promise.all([
         supabase.from('profiles').select('diamonds, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_agency_owner').eq('id', user.id).single(),
         supabase.from('topup_helpers').select('id').eq('user_id', user.id).eq('is_active', true).eq('is_verified', true).maybeSingle(),
@@ -1774,7 +1774,7 @@ const Chat = () => {
       soundUrl: soundUrl || undefined,
       giftColor: 'bg-pink-500/50',
       count,
-      coins: perGiftCoins,
+      diamonds: perGiftCoins,
       isOwnGift: isSelf,
       isReceiverGift: !isSelf,
     });
@@ -2891,7 +2891,7 @@ const Chat = () => {
                                 giftIconUrl={inlineIconUrl || undefined}
                                 giftEmoji={emoji}
                                 count={giftCount}
-                                coins={totalDiamonds}
+                                diamonds={totalDiamonds}
                                 isSelf={isMine}
                                 surface="chat"
                                 compact

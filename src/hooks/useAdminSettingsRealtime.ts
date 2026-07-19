@@ -39,7 +39,7 @@ export interface Gift {
 
 export interface DiamondPackage {
   id: string;
-  coins: number; // DB column name - represents diamonds
+  diamonds: number; // DB column name - represents diamonds
   base_diamonds: number;
   price_usd: number;
   bonus_percentage: number | null;
@@ -318,7 +318,7 @@ const refreshDiamondPackages = async () => {
 
     return {
       ...pkg,
-      coins: normalizedCoins,
+      diamonds: normalizedCoins,
       base_diamonds: normalizedBaseCoins,
       bonus_percentage: normalizedBonusPercentage,
       price_usd: Number(pkg.price_usd ?? 0),

@@ -870,8 +870,8 @@ const HelperDashboard = () => {
     
     setTransferProcessing(true);
     try {
-      // Use tiered deduction RPC: agency → helper wallet → profile coins
-      // CRITICAL: Use 'agency_to_user' so RPC tries agency balance first, then helper wallet, then personal coins
+      // Use tiered deduction RPC: agency → helper wallet → profile diamonds
+      // CRITICAL: Use 'agency_to_user' so RPC tries agency balance first, then helper wallet, then personal diamonds
       const { data: result, error } = await supabase
         .rpc('helper_transfer_diamonds_to_user', {
           _sender_id: helperData.user_id,
@@ -931,7 +931,7 @@ const HelperDashboard = () => {
     
     setTransferProcessing(true);
     try {
-      // Use atomic agency-to-agency transfer RPC (tiered deduction: agency → helper wallet → profile coins)
+      // Use atomic agency-to-agency transfer RPC (tiered deduction: agency → helper wallet → profile diamonds)
       const { data: result, error } = await supabase
         .rpc('helper_transfer_diamonds_to_agency', {
           _sender_id: helperData.user_id,
@@ -1903,8 +1903,8 @@ const HelperDashboard = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          const coins = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
-                          if (!coins || coins < 500000) {
+                          const diamonds = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
+                          if (!diamonds || diamonds < 500000) {
                             toast({ title: "Select amount", description: "Choose a package or enter a custom amount (min 5,00,000)", variant: "destructive" });
                             return;
                           }
@@ -1935,8 +1935,8 @@ const HelperDashboard = () => {
                   helperId={helperId}
                   helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
                   helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
-                  onCredited={(coins) => {
-                    setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
+                  onCredited={(diamonds) => {
+                    setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + diamonds } : prev);
                     setShowTopupForm(false);
                     setSelectedDiamondPackage(null);
                     setCustomDiamondAmount('');

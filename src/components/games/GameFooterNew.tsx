@@ -680,7 +680,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [winAmount, setWinAmount] = useState(0);
   const [lossAmount, setLossAmount] = useState(0);
   
-  // Flying coins state
+  // Flying diamonds state
   const [flyingCoins, setFlyingCoins] = useState<{ id: string; startPos: { x: number; y: number }; endPos: { x: number; y: number } }[]>([]);
   
   const coinDisplayRef = useRef<HTMLDivElement>(null);
@@ -691,7 +691,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     fetchUserCoins();
     
     const refreshFromCache = () => {
-      getBalanceWithFetch().then((coins) => setUserCoins(coins)).catch(() => {});
+      getBalanceWithFetch().then((diamonds) => setUserCoins(diamonds)).catch(() => {});
     };
     const onOwnBeansUpdated = () => refreshFromCache();
     window.addEventListener('own-beans-updated', onOwnBeansUpdated);
@@ -766,7 +766,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       return { success: false, error: 'Not logged in' };
     }
 
-    // Deduct coins immediately
+    // Deduct diamonds immediately
     const { data: profile } = await supabase
       .from('profiles')
       .select('diamonds')

@@ -155,9 +155,9 @@ export function GiftContributorsPanel({
       const d = (e as CustomEvent<any>).detail;
       if (!d || d.scope !== 'party' || d.id !== roomId) return;
       const senderId = d.senderId;
-      const coins = Number(d.totalDiamonds ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
-      if (!senderId || coins <= 0) return;
-      const hostBeans = Math.floor(coins * hostCommissionPercent / 100);
+      const diamonds = Number(d.totalDiamonds ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
+      if (!senderId || diamonds <= 0) return;
+      const hostBeans = Math.floor(diamonds * hostCommissionPercent / 100);
       setContributors((prev) => {
         const map = new Map(prev.map((c) => [c.userId, { ...c }]));
         const existing = map.get(senderId);

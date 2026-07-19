@@ -665,7 +665,7 @@ const FullScreenGiftAnimation = ({
               transition={{ duration: 1, repeat: Infinity }}
             >
               <span>💰</span>
-              <span>{(gift.diamond_value * quantity).toLocaleString()} coins</span>
+              <span>{(gift.diamond_value * quantity).toLocaleString()} diamonds</span>
             </motion.p>
           </motion.div>
 

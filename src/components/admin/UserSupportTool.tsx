@@ -29,7 +29,7 @@ interface UserResult {
   is_verified: boolean | null;
   is_blocked: boolean | null;
   blocked_reason: string | null;
-  coins: number | null;
+  diamonds: number | null;
   diamonds: number | null;
   user_level: number | null;
   host_level: number | null;

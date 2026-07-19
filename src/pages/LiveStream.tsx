@@ -287,7 +287,7 @@ const LiveStream = () => {
   const [currentUser, setCurrentUser] = useState<{
     gender: string;
     id: string;
-    coins: number;
+    diamonds: number;
     is_host?: boolean;
     is_agency_owner?: boolean | null;
     is_topup_helper?: boolean | null;
@@ -730,8 +730,8 @@ const LiveStream = () => {
   }, [id, currentUserId, isHost]);
 
 
-  const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
-    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
+  const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, diamonds?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${diamonds || 0}:${count || 1}`;
   }, []);
 
   const markOptimisticGiftCount = useCallback((key: string, beans: number) => {
@@ -842,14 +842,14 @@ const LiveStream = () => {
   }, [isHost, isHostVerified, id, showLiveEndSummary, streamStartTime]);
 
   // Phase I — push viewer/coin counts into the native LIVE foreground-service
-  // notification ("🔴 LIVE · {viewers} watching · 💎 {coins}"). Bigo/Chamet
+  // notification ("🔴 LIVE · {viewers} watching · 💎 {diamonds}"). Bigo/Chamet
   // pattern: notification stays fresh while host is broadcasting. No-op on
   // web/iOS and when broadcastMode !== 'live' (controller / plugin guards).
   // Debounced via React batching; updateLiveStats is cheap (single intent).
   useEffect(() => {
     if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
     const viewerCount: number = Number(streamData?.viewer_count ?? 0) || 0;
-    const coinCount: number = Number(
+    const diamondCount: number = Number(
       streamData?.total_diamonds ?? streamData?.coin_count ?? 0
     ) || 0;
     const title: string = String(streamData?.title || hostInfo?.name || '').slice(0, 60);
@@ -858,7 +858,7 @@ const LiveStream = () => {
       try {
         const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
         if (cancelled) return;
-        await nativeLiveKitController.updateLiveStats({ viewerCount, coinCount, title });
+        await nativeLiveKitController.updateLiveStats({ viewerCount, diamondCount, title });
       } catch { /* noop — web / non-live */ }
     })();
     return () => { cancelled = true; };
@@ -1278,7 +1278,7 @@ const LiveStream = () => {
         setCurrentUser({
           gender: profile.gender || "male",
           id: cachedUser!.id,
-          coins: profileCoins,
+          diamonds: profileCoins,
           is_host: profile.is_host === true,
           is_agency_owner: (profile as any).is_agency_owner === true,
           is_topup_helper: !!helperProfileRes.data,
@@ -1864,7 +1864,7 @@ const LiveStream = () => {
         soundUrl: data.giftSoundUrl || undefined,
         giftColor: 'bg-pink-500/50',
         count: data.count || 1,
-        coins: data.giftCoins || 0,
+        diamonds: data.giftCoins || 0,
         isReceiverGift: isHost,
       });
 
@@ -3066,7 +3066,7 @@ const LiveStream = () => {
           name: profile.display_name || "User",
           avatar: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || "",
           level: getRequiredDisplayLevel(profile),
-          coins: 0,
+          diamonds: 0,
           beans: 0,
           isFollowing,
           isVIP: getRequiredDisplayLevel(profile) >= 30,
@@ -3177,12 +3177,12 @@ const LiveStream = () => {
   };
 
   const gifts = [
-    { id: "1", name: "Rose", icon: "🌹", coins: 10 },
-    { id: "2", name: "Heart", icon: "❤️", coins: 50 },
-    { id: "3", name: "Kiss", icon: "💋", coins: 100 },
-    { id: "4", name: "Diamond", icon: "💎", coins: 500 },
-    { id: "5", name: "Crown", icon: "👑", coins: 1000 },
-    { id: "6", name: "Rocket", icon: "🚀", coins: 5000 },
+    { id: "1", name: "Rose", icon: "🌹", diamonds: 10 },
+    { id: "2", name: "Heart", icon: "❤️", diamonds: 50 },
+    { id: "3", name: "Kiss", icon: "💋", diamonds: 100 },
+    { id: "4", name: "Diamond", icon: "💎", diamonds: 500 },
+    { id: "5", name: "Crown", icon: "👑", diamonds: 1000 },
+    { id: "6", name: "Rocket", icon: "🚀", diamonds: 5000 },
   ];
 
   // PK Battle handlers
@@ -3646,7 +3646,7 @@ const LiveStream = () => {
       gift: {
         id: gift.id,
         name: gift.name,
-        coins: gift.diamonds,
+        diamonds: gift.diamonds,
         category: 'popular',
         icon_url: (gift as any).icon_url || (gift as any).icon,
         animation_url: (gift as any).animation_url,
@@ -5025,7 +5025,7 @@ const LiveStream = () => {
             soundUrl: gift.sound_url || undefined,
             giftColor: "bg-pink-500/50",
             count: count,
-            coins: gift.diamonds,
+            diamonds: gift.diamonds,
             isOwnGift: true,
           });
           
@@ -5154,7 +5154,7 @@ const LiveStream = () => {
               console.error('[Gift] Background processing error:', err);
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
               if (transactionSucceeded) return;
-              // Refund coins on complete failure
+              // Refund diamonds on complete failure
               userCoinsRef.current += totalCost;
               setUserCoins(userCoinsRef.current);
               toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);

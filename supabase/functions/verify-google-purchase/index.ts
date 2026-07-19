@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ 
       success: true, 
-      coins: creditedDiamonds,
+      diamonds: creditedDiamonds,
       newBalance,
       orderId: purchaseData.orderId,
       alreadyProcessed: Boolean(processData.alreadyProcessed),

@@ -285,7 +285,7 @@ const PartyRoom = () => {
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
-  // Per-participant SENT coin totals (sender_id -> total coins spent in this room)
+  // Per-participant SENT coin totals (sender_id -> total diamonds spent in this room)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
   // PR-2.3 (G) — Per-seat RECEIVED beans (receiver_id -> beans earned).
   // Mirrors Chamet/Bigo: each co-host seat shows their own earnings, host
@@ -456,11 +456,11 @@ const PartyRoom = () => {
   
   // Gift broadcast channel ref for instant sync
   const giftBroadcastChannelRef = useRef<any>(null);
-  const optimisticGiftCountsRef = useRef<Map<string, { beans: number; coins: number; expiresAt: number }>>(new Map());
-  const getPartyGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
-    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
+  const optimisticGiftCountsRef = useRef<Map<string, { beans: number; diamonds: number; expiresAt: number }>>(new Map());
+  const getPartyGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, diamonds?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${diamonds || 0}:${count || 1}`;
   }, []);
-  const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, coins: number) => {
+  const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, diamonds: number) => {
     const now = Date.now();
     optimisticGiftCountsRef.current.set(key, { beans, diamonds, expiresAt: now + 15000 });
     optimisticGiftCountsRef.current.forEach((value, staleKey) => {
@@ -670,7 +670,7 @@ const PartyRoom = () => {
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
 
-          // Per-participant gift contribution tracking (sender -> coins spent)
+          // Per-participant gift contribution tracking (sender -> diamonds spent)
           const perUser: Record<string, number> = {};
           // PR-2.3 (G) — per-seat received beans (receiver -> beans earned)
           const perReceiver: Record<string, number> = {};
@@ -724,7 +724,7 @@ const PartyRoom = () => {
           if (Date.now() - lkMark < 5000) return; // LiveKit fast-path won
           // Safety-net apply
           const beans = Number(row.receiver_beans ?? Math.floor((row.diamond_amount || 0) * hostCommissionPercentRef.current / 100));
-          const coins = Number(row.total_diamonds ?? row.diamond_amount ?? 0);
+          const diamonds = Number(row.total_diamonds ?? row.diamond_amount ?? 0);
           if (beans > 0) {
             setTotalRoomBeans(prev => prev + beans);
             if (row.receiver_id) {
@@ -742,10 +742,10 @@ const PartyRoom = () => {
               } catch { /* ignore */ }
             }
           }
-          if (row.sender_id && coins > 0) {
+          if (row.sender_id && diamonds > 0) {
             setParticipantBeans(prev => ({
               ...prev,
-              [row.sender_id]: (prev[row.sender_id] || 0) + coins,
+              [row.sender_id]: (prev[row.sender_id] || 0) + diamonds,
             }));
           }
           console.log('[PartyRoom] Gift safety-net applied (LK missed):', row.id, '+', beans);
@@ -1167,7 +1167,7 @@ const PartyRoom = () => {
         soundUrl: giftData.giftSoundUrl || undefined,
         giftColor: 'from-pink-500 to-purple-500',
         count: giftData.count || 1,
-        coins: giftData.giftCoins || 0,
+        diamonds: giftData.giftCoins || 0,
         isReceiverGift: giftData.receiverId ? giftData.receiverId === cuid : false,
       });
 
@@ -1807,8 +1807,8 @@ const PartyRoom = () => {
           exitToLobby('/party-rooms');
           return;
         }
-        if (/Insufficient coins for entry fee/i.test(msg)) {
-          toast.error('Not enough coins for this room\'s entry fee');
+        if (/Insufficient diamonds for entry fee/i.test(msg)) {
+          toast.error('Not enough diamonds for this room\'s entry fee');
           exitToLobby('/party-rooms');
           return;
         }
@@ -3015,7 +3015,7 @@ const PartyRoom = () => {
                 soundUrl: gift.sound_url || undefined,
                 giftColor: 'from-pink-500 to-purple-500',
                 count: count,
-                coins: gift.diamonds,
+                diamonds: gift.diamonds,
                 isOwnGift: true,
               };
               
@@ -3127,7 +3127,7 @@ const PartyRoom = () => {
                   console.error('[PartyGift] Background processing error:', err);
                   recordClientError({ label: "PartyRoom.giftChatMessage", message: err instanceof Error ? err.message : String(err) });
                   if (transactionSucceeded) return;
-                  // Refund coins only when the transaction itself failed before server success.
+                  // Refund diamonds only when the transaction itself failed before server success.
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   userCoinsRef.current += totalCost;
                   setUserCoins(userCoinsRef.current);

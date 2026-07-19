@@ -228,7 +228,7 @@ export function useNativeCallBillingSync({
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
             (payload) => {
-              const next = Number((payload.new as { coins?: number } | null)?.diamonds ?? balance);
+              const next = Number((payload.new as { diamonds?: number } | null)?.diamonds ?? balance);
               if (Number.isFinite(next)) {
                 balance = next;
                 maybePush();

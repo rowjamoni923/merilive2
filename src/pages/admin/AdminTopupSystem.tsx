@@ -48,7 +48,7 @@ interface UserProfile {
   display_name: string;
   avatar_url: string;
   app_uid: string;
-  coins: number;
+  diamonds: number;
   diamonds: number;
   is_host: boolean;
   is_verified: boolean;

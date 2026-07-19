@@ -6,7 +6,7 @@ export interface TopupHistoryEntry {
   action_type: string;
   target_type: string | null;
   target_id: string | null;
-  /** What was credited: diamonds / coins / beans / wallet_balance / ... */
+  /** What was credited: diamonds / diamonds / beans / wallet_balance / ... */
   field: string;
   /** Positive = credit, negative = debit. Always populated. */
   delta: number;

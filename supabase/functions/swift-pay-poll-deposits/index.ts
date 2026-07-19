@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
       let creditRes: any = null;
 
       // Bug #2: credit-time campaign re-validation. Industry anchor = payment-confirm time, not init time.
-      // If the campaign expired/became ineligible between init and credit, credit only the BASE coins
+      // If the campaign expired/became ineligible between init and credit, credit only the BASE diamonds
       // (skip bonus_diamonds) so the user still receives their paid value without an unearned bonus.
       let creditDiamonds = row.diamonds_amount;
       let campaignReeval: any = null;
@@ -254,7 +254,7 @@ Deno.serve(async (req) => {
       }
 
       credited++;
-      results.push({ id: row.id, credited: true, coins: creditDiamonds, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
+      results.push({ id: row.id, credited: true, diamonds: creditDiamonds, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
     } catch (e) {
       console.error("[swift-pay-poll-deposits] row error", row.id, e);
       results.push({ id: row.id, error: (e as Error).message });

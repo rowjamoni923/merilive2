@@ -87,8 +87,8 @@ export const formatCompactNumber = (
 };
 
 /**
- * Format a number as beans/coins display
- * @param beans - The number of beans/coins
+ * Format a number as beans/diamonds display
+ * @param beans - The number of beans/diamonds
  */
 export const formatBeans = (beans: number | undefined | null): string => {
   return formatNumber(beans, { maxDecimals: 0 });

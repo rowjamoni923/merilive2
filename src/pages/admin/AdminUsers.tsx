@@ -70,7 +70,7 @@ interface UserProfile {
   is_online: boolean | null;
   is_blocked: boolean | null;
   blocked_reason: string | null;
-  coins: number | null;
+  diamonds: number | null;
   user_level: number | null;
   host_level: number | null;
   total_earnings: number | null;

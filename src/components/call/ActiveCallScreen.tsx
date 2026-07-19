@@ -303,7 +303,7 @@ export function ActiveCallScreen({
   // The actual deduction happens on the backend every 60 seconds
   // We only show the ACTUAL billed amounts from the database (updated every 5s)
   // NO calculations or interpolation - Admin panel settings are the only source
-  // totalCoinsSpent = actual coins deducted from caller (set by admin: e.g., 2000/min)
+  // totalCoinsSpent = actual diamonds deducted from caller (set by admin: e.g., 2000/min)
   // hostEarned = actual beans credited to host (admin commission: e.g., 60% = 1200 beans)
   const displayedCoinsSpent = totalCoinsSpent;
   const displayedHostEarned = hostEarned;
@@ -520,7 +520,7 @@ export function ActiveCallScreen({
     return () => window.clearTimeout(t);
   }, [isOpen, callId, callStatus, isConnected, onEndCall]);
 
-  // Fetch user coins, display name AND host photos
+  // Fetch user diamonds, display name AND host photos
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!userId) return;
@@ -619,7 +619,7 @@ export function ActiveCallScreen({
         soundUrl: detail.giftSoundUrl || undefined,
         giftColor: "bg-pink-500/50",
         count: detail.count || 1,
-        coins: detail.giftCoins || 0,
+        diamonds: detail.giftCoins || 0,
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
@@ -633,7 +633,7 @@ export function ActiveCallScreen({
           message: encodeInlineGiftMarker({
             giftName: detail.giftName || 'Gift',
             count: detail.count || 1,
-            coins: detail.giftCoins || 0,
+            diamonds: detail.giftCoins || 0,
             iconUrl: detail.giftIconUrl || '',
           }),
           timestamp: Date.now(),
@@ -679,9 +679,9 @@ export function ActiveCallScreen({
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const formatCoins = (coins: number) => {
-    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
-    return coins.toString();
+  const formatCoins = (diamonds: number) => {
+    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
+    return diamonds.toString();
   };
 
   // Gift sending via unified gifting service (single source of truth)
@@ -725,7 +725,7 @@ export function ActiveCallScreen({
         soundUrl: gift.sound_url || undefined,
         giftColor: "bg-pink-500/50",
         count,
-        coins: gift.diamonds,
+        diamonds: gift.diamonds,
         isOwnGift: true,
       });
       // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
@@ -738,7 +738,7 @@ export function ActiveCallScreen({
           message: encodeInlineGiftMarker({
             giftName: gift.name,
             count,
-            coins: gift.diamonds,
+            diamonds: gift.diamonds,
             iconUrl: gift.icon_url || '',
           }),
           timestamp: Date.now(),
@@ -1539,7 +1539,7 @@ export function ActiveCallScreen({
                       giftName={giftMarker.giftName}
                       giftIconUrl={giftMarker.iconUrl || undefined}
                       count={giftMarker.count}
-                      coins={giftMarker.diamonds}
+                      diamonds={giftMarker.diamonds}
                       isSelf={isMe}
                       surface="overlay"
                       compact

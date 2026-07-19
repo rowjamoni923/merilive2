@@ -13,7 +13,7 @@ interface ManualTopupCardProps {
   helperId: string;
   traderLevel: number;
   /** Called after diamonds credited so the parent can refresh wallet display */
-  onCredited?: (coins: number) => void;
+  onCredited?: (diamonds: number) => void;
   /** Auto-open the inline form on mount */
   defaultOpen?: boolean;
 }
@@ -350,8 +350,8 @@ export default function ManualTopupCard({
           helperId={helperId}
           helperCustomCoins={effectiveCoins}
           helperCustomPriceUsd={Number(calculateUSD(effectiveCoins).toFixed(2))}
-          onCredited={(coins) => {
-            onCredited?.(coins);
+          onCredited={(diamonds) => {
+            onCredited?.(diamonds);
             setShowForm(false);
             setSelectedPackage(null);
             setCustomAmount("");

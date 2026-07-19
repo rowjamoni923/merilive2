@@ -165,7 +165,7 @@ export const sendLevelUpNotification = async (
 };
 
 /**
- * Send notification when coins are added
+ * Send notification when diamonds are added
  */
 export const sendCoinsAddedNotification = async (
   userId: string,

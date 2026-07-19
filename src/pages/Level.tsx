@@ -97,7 +97,7 @@ interface UserProfile {
   total_consumption: number | null;
   total_earnings: number | null;
   total_recharged: number | null;
-  coins: number | null;
+  diamonds: number | null;
   user_level: number | null;
   host_level?: number | null;
   max_user_level?: number | null;

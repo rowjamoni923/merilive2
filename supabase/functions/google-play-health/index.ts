@@ -188,7 +188,7 @@ serve(async (req) => {
         productId: p.product_id,
         priceUsd: p.price_usd,
         resolved: !!info?.diamonds,
-        coins: info?.diamonds,
+        diamonds: info?.diamonds,
         error: infoErr?.message,
       });
     }

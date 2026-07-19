@@ -189,7 +189,7 @@ export function useGlobalLiveGame({
       setUserBalance(result.new_balance);
       toast({
         title: "Bet Placed!",
-        description: `${betAmount} coins on ${betValue?.toUpperCase()}`,
+        description: `${betAmount} diamonds on ${betValue?.toUpperCase()}`,
       });
     }
 
@@ -212,7 +212,7 @@ export function useGlobalLiveGame({
     });
 
     if (!error) {
-      // Refetch user balance to show updated coins
+      // Refetch user balance to show updated diamonds
       await fetchUserBalance();
       
       // Show result phase

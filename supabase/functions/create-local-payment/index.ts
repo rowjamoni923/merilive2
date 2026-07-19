@@ -276,7 +276,7 @@ serve(async (req) => {
       throw new Error(`Unsupported gateway: ${gatewayType}`);
     }
 
-    console.log(`[LocalPayment] Created ${gatewayType} session | order: ${order.id} | user: ${user.id} | ${currency} ${localAmount} | coins: ${totalDiamonds}`);
+    console.log(`[LocalPayment] Created ${gatewayType} session | order: ${order.id} | user: ${user.id} | ${currency} ${localAmount} | diamonds: ${totalDiamonds}`);
 
     return new Response(JSON.stringify({ 
       url: paymentUrl, 

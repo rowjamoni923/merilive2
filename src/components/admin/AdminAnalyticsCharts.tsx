@@ -35,7 +35,7 @@ type TimeRange = "7d" | "30d" | "90d";
 
 interface AnalyticsData {
   user_growth: { date: string; new_users: number; new_hosts: number; total_users: number }[];
-  gift_revenue: { date: string; coins: number; transactions: number }[];
+  gift_revenue: { date: string; diamonds: number; transactions: number }[];
   call_activity: { date: string; calls: number; total_minutes: number }[];
   recharge_revenue: { date: string; revenue: number; count: number }[];
   agency_distribution: { active: number; inactive: number; blocked: number };
@@ -51,7 +51,7 @@ interface AnalyticsData {
 const COLORS = {
   users: "#8b5cf6",
   hosts: "#ec4899",
-  coins: "#f59e0b",
+  diamonds: "#f59e0b",
   calls: "#06b6d4",
   revenue: "#10b981",
   pie: ["#10b981", "#94a3b8", "#ef4444"],

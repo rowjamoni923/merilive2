@@ -62,7 +62,7 @@ async function dispatchOne(detail: DispatchDetail) {
     type: asset.type,
     url: asset.url,
     soundUrl: asset.soundUrl,
-    coins: asset.diamonds * qty,
+    diamonds: asset.diamonds * qty,
     priority: priority + Math.min(100, qty),
   });
 }

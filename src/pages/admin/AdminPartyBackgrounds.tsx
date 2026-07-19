@@ -57,7 +57,7 @@ interface PartyBackground {
   category: string;
   is_premium: boolean;
   is_active: boolean;
-  price_diamonds: number; // DB uses diamonds not coins
+  price_diamonds: number; // DB uses diamonds not diamonds
   display_order: number;
   min_level?: number; // Minimum user level required (0 = no restriction)
   created_at: string;

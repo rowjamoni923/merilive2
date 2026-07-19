@@ -1584,7 +1584,7 @@ function CampaignFloatingButton() {
           onOpenChange={(open) => setShowSwiftPayModal(open)}
           packages={matchedPackage ? [{
             id: matchedPackage.id,
-            coins: matchedPackage.diamonds_amount,
+            diamonds: matchedPackage.diamonds_amount,
             price_usd: matchedPackage.price_usd,
           }] : []}
           userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}

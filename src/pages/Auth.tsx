@@ -840,7 +840,7 @@ const Auth = () => {
     options: { requireHost?: boolean; maxAttempts?: number } = {}
   ) => {
     // Strip server-protected columns (profiles triggers raise on direct mutation of these).
-    // is_verified / is_host / host_status / host_level / coins / beans / diamonds / total_*
+    // is_verified / is_host / host_status / host_level / diamonds / beans / diamonds / total_*
     // / registration_ip / last_login_ip / device_id / is_banned / is_blocked / is_deleted /
     // agency_id / call_rate_per_minute / is_face_verified can only be touched via SECDEF RPCs.
     // gender/host mapping is finalized through finalize_signup_profile; direct client

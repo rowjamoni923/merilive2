@@ -3,7 +3,7 @@
  * Phase 3B Step 2 — Pre-call balance gate.
  *
  * Called by the Android/web client BEFORE initiating a private call.
- * Verifies the caller has at least MIN_PREPAY_MINUTES worth of coins,
+ * Verifies the caller has at least MIN_PREPAY_MINUTES worth of diamonds,
  * and freezes the rate snapshot on the private_calls row.
  *
  * Body: { call_id: string }
@@ -173,7 +173,7 @@ serve(async (req) => {
     const minRequired = viewerRate * MIN_PREPAY_MINUTES;
 
     // Check balance
-    // Check balance — Pillar C: spend authority spans coins OR diamonds
+    // Check balance — Pillar C: spend authority spans diamonds OR diamonds
     // (whichever is higher), matching random-call-enqueue and billing-tick.
     const { data: profile, error: profErr } = await admin
       .from("profiles")

@@ -256,10 +256,10 @@ export default function AdminHosts() {
 
   const filteredHosts = hosts;
 
-  const formatCoins = (coins: number) => {
-    if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
-    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
-    return coins.toString();
+  const formatCoins = (diamonds: number) => {
+    if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
+    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
+    return diamonds.toString();
   };
 
   return (

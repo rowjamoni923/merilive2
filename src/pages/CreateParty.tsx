@@ -1075,12 +1075,12 @@ const CreateParty = () => {
           <DialogHeader>
             <DialogTitle>Entry Fee</DialogTitle>
             <DialogDescription>
-              Optionally charge an entry fee in coins. The room stays public for everyone.
+              Optionally charge an entry fee in diamonds. The room stays public for everyone.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="room-entry-fee">Entry fee (coins)</Label>
+              <Label htmlFor="room-entry-fee">Entry fee (diamonds)</Label>
               <Input
                 id="room-entry-fee"
                 type="number"

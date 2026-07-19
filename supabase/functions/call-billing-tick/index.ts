@@ -161,9 +161,9 @@ serve(async (req) => {
             .select("diamonds")
             .eq("id", callRow.caller_id)
             .maybeSingle();
-          const coins = Number(prof?.diamonds ?? 0);
+          const diamonds = Number(prof?.diamonds ?? 0);
           const rate = Number(callRow.viewer_rate_per_min);
-          const remainingMinutes = rate > 0 ? Math.floor(coins / rate) : 0;
+          const remainingMinutes = rate > 0 ? Math.floor(diamonds / rate) : 0;
           // Industry pattern: pre-warn at 2 min, critical at 1 min.
           if (remainingMinutes <= 2) {
             signals.push({

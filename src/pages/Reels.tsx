@@ -708,7 +708,7 @@ const Reels = () => {
       senderName: 'You',
       giftColor: 'from-pink-500 to-purple-500',
       count,
-      coins: gift.diamonds,
+      diamonds: gift.diamonds,
       isOwnGift: true,
     });
 

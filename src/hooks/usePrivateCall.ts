@@ -397,7 +397,7 @@ export function usePrivateCall(userId: string | null) {
   // twice, spawning duplicate billing timers and duplicate toasts.
 
 
-  // Function to deduct coins per minute
+  // Function to deduct diamonds per minute
   const deductCoinsPerMinute = useCallback(async (callId: string) => {
     // Don't process if call ended
     if (callEndedRef.current || currentCallIdRef.current !== callId) {
@@ -411,7 +411,7 @@ export function usePrivateCall(userId: string | null) {
       });
 
       if (error) {
-        console.error('Error deducting coins:', error);
+        console.error('Error deducting diamonds:', error);
         return;
       }
 
@@ -915,7 +915,7 @@ export function usePrivateCall(userId: string | null) {
       }
 
       // Fetch caller profile in background - non-blocking
-      // 🔒 Pkg86 audit fix: cross-user read → profiles_public (RLS-safe, no coins leak)
+      // 🔒 Pkg86 audit fix: cross-user read → profiles_public (RLS-safe, no diamonds leak)
       const callerProfilePromise = callData?.caller_id
         ? supabase
             .from('profiles_public')
@@ -1056,7 +1056,7 @@ export function usePrivateCall(userId: string | null) {
   }, [toast]);
 
   // End the current call - INSTANT response
-  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/coins change every second)
+  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/diamonds change every second)
   const callStateRef = useRef(callState);
   callStateRef.current = callState;
 
@@ -1196,7 +1196,7 @@ export function usePrivateCall(userId: string | null) {
   // That can accidentally end a real connected call after resume/remount.
   // Calls should end ONLY by:
   // 1) user/host manual end
-  // 2) insufficient coins billing cutoff
+  // 2) insufficient diamonds billing cutoff
   // 3) explicit timeout/missed flow for unanswered calls
 
   // ============ CHECK FOR PENDING CALLS ON MOUNT/FOCUS ============

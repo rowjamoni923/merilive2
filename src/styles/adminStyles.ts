@@ -61,7 +61,7 @@ export const sectionGradients = {
   callPricing: "from-blue-600 via-cyan-500 to-teal-500",
   
   // Coin & Trader System - Gold/Yellow
-  coins: "from-yellow-500 via-amber-500 to-orange-500",
+  diamonds: "from-yellow-500 via-amber-500 to-orange-500",
   topup: "from-amber-600 via-yellow-500 to-orange-500",
   paymentGateways: "from-green-500 via-emerald-500 to-teal-500",
   traders: "from-orange-500 via-amber-500 to-yellow-500",

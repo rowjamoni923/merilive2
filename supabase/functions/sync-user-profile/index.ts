@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
       app_uid: meta.app_uid || null,
       device_id: metadataDeviceId,
       is_verified: Boolean(user.email_confirmed_at),
-      coins: 0,
+      diamonds: 0,
       diamonds: 0,
       beans: 0,
       beans_balance: 0,

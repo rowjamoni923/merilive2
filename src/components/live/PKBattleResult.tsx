@@ -15,7 +15,7 @@ interface PKBattleResultProps {
   mvpName?: string | null;
   mvpAvatar?: string | null;
   mvpCoins?: number | null;
-  /** P4: Bigo-parity reward badge — coins the local user earned from the 70/30 loser-score split. Winner-only. */
+  /** P4: Bigo-parity reward badge — diamonds the local user earned from the 70/30 loser-score split. Winner-only. */
   rewardDiamonds?: number | null;
   onClose: () => void;
 }

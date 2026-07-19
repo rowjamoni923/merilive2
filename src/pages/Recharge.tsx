@@ -2086,7 +2086,7 @@ const Recharge = () => {
         data: {
           transaction_id: transaction.id,
           amount: localAmount,
-          coins: standardGatewayCoins,
+          diamonds: standardGatewayCoins,
           gateway: selectedGateway.name
         }
       });
@@ -4089,7 +4089,7 @@ const Recharge = () => {
             initialPackageId={mericashInitialPackageId}
             packages={packages.map((p: any) => ({
               id: p.id,
-              coins: p.diamonds,
+              diamonds: p.diamonds,
               bonus_percentage: p.bonus_percentage,
               price_usd: Number(p.price ?? p.price_usd ?? 0),
               name: p.name,

@@ -10,7 +10,7 @@ import { Loader2, Search, User, Building2, Receipt, Wallet } from "lucide-react"
 type UserHit = {
   id: string; username: string | null; display_name: string | null;
   email: string | null; phone_number: string | null;
-  beans: number | null; diamonds: number | null; coins: number | null; created_at: string;
+  beans: number | null; diamonds: number | null; diamonds: number | null; created_at: string;
 };
 type AgencyHit = { id: string; name: string; agency_code: string | null; owner_id: string };
 type LedgerHit = {

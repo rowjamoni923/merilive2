@@ -120,7 +120,7 @@ const hi = {
     friends: "दोस्त",
     visitors: "विज़िटर",
     level: "लेवल",
-    coins: "Diamonds",
+    diamonds: "Diamonds",
     beans: "बीन्स",
     diamonds: "डायमंड",
     wallet: "वॉलेट",

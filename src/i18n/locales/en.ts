@@ -127,7 +127,7 @@ const en = {
     friends: "Friends",
     visitors: "Visitors",
     level: "Level",
-    coins: "Diamonds",
+    diamonds: "Diamonds",
     beans: "Beans",
     diamonds: "Diamonds",
     wallet: "Wallet",

@@ -1,5 +1,5 @@
 // Random Call — enqueue / instant-match
-// - Pre-authorizes coins (2 min hold @ host max rate)
+// - Pre-authorizes diamonds (2 min hold @ host max rate)
 // - Inserts caller into random_call_queue
 // - Attempts atomic claim_match
 // - If matched: creates session, broadcasts incoming_call to host

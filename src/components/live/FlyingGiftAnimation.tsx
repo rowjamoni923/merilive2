@@ -18,7 +18,7 @@ export interface FlyingGift {
   giftImageUrl?: string;
   giftColor: string;
   count: number;
-  coins: number;
+  diamonds: number;
   animationUrl?: string;
   animationFormat?: string | null;
   animationConfigUrl?: string | null;

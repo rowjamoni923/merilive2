@@ -229,7 +229,7 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
                     <Sparkles className="w-5 h-5 text-yellow-400" />
                   </motion.div>
                 </h2>
-                <p className="text-sm text-white/60">Play & win coins instantly!</p>
+                <p className="text-sm text-white/60">Play & win diamonds instantly!</p>
               </div>
             </div>
             <motion.button

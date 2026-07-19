@@ -1546,10 +1546,10 @@ const Level5HelperDashboard = () => {
                     helperId={helperData.id}
                     traderLevel={helperData?.trader_level || 5}
                     defaultOpen={true}
-                    onCredited={(coins) => {
+                    onCredited={(diamonds) => {
                       setHelperData((prev: any) =>
                         prev
-                          ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins }
+                          ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + diamonds }
                           : prev
                       );
                       setShowManualTopupDialog(false);

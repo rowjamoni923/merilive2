@@ -110,7 +110,7 @@ interface ProfileData {
   host_level?: number | null;
   previous_host_level?: number | null;
   weekly_earnings?: number | null;
-  coins?: number | null;
+  diamonds?: number | null;
   tags: string[] | null;
   frame_id?: string | null;
   total_recharged?: number | null;
@@ -1959,7 +1959,7 @@ const ProfileDetail = () => {
             soundUrl: (gift as any).sound_url || undefined,
             giftColor: 'from-pink-500 to-purple-500',
             count,
-            coins: gift.diamonds,
+            diamonds: gift.diamonds,
             isOwnGift: true,
           });
 

@@ -49,7 +49,7 @@ interface SearchResult {
   avatar?: string;
   isBlocked?: boolean;
   balances: {
-    coins?: number;
+    diamonds?: number;
     beans?: number;
     diamonds?: number;
     pending_earnings?: number;
@@ -320,7 +320,7 @@ export default function AdminBalanceDeduction() {
               avatar: profile.avatar_url || undefined,
               isBlocked: profile.is_blocked || false,
               balances: {
-                coins: profile.diamonds || 0,
+                diamonds: profile.diamonds || 0,
                 total_earnings: profile.total_earnings || 0,
                 pending_earnings: profile.pending_earnings || 0
               },
@@ -567,7 +567,7 @@ export default function AdminBalanceDeduction() {
       target_type = 'profile';
       target_id = selectedResult.id;
       const profileFieldMap: Record<string, string> = {
-        coins: 'diamonds',
+        diamonds: 'diamonds',
         total_earnings: 'total_earnings',
         pending_earnings: 'pending_earnings',
         beans: 'beans',

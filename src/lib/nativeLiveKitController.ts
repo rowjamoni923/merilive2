@@ -321,7 +321,7 @@ class NativeLiveKitController {
    * Phase I — update Bigo-style LIVE foreground notification. No-op on
    * web/iOS or when broadcastMode !== 'live'. Cheap; safe per realtime tick.
    */
-  async updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<void> {
+  async updateLiveStats(opts: { viewerCount?: number; diamondCount?: number; title?: string }): Promise<void> {
     try { await NativeLiveKit.updateLiveStats(opts); }
     catch { /* not implemented on web/iOS */ }
   }
@@ -337,7 +337,7 @@ class NativeLiveKitController {
     }
     this.busy = true;
     try {
-      try { await this.updateLiveStats({ viewerCount: 0, coinCount: 0, title: '' }); } catch { /* noop */ }
+      try { await this.updateLiveStats({ viewerCount: 0, diamondCount: 0, title: '' }); } catch { /* noop */ }
       try { await NativeLiveKit.detachAll(); } catch { /* noop */ }
       try { await NativeLiveKit.disconnect(); } catch { /* noop */ }
     } finally {

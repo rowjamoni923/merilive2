@@ -204,7 +204,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }, [profile?.display_name, profile?.username, currentUser?.user_metadata?.username, currentUser?.user_metadata?.full_name, currentUser?.user_metadata?.name]);
 
   const resolvedDiamondBalance = useMemo(() => {
-    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.diamonds ?? 0)); // DU-3: diamonds canonical; coins fallback until DU-5
+    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.diamonds ?? 0)); // DU-3: diamonds canonical; diamonds fallback until DU-5
     return balanceInitialized ? cachedBalance : profileBalance;
   }, [balanceInitialized, cachedBalance, profile?.diamonds, (profile as any)?.diamonds]);
 
@@ -1003,7 +1003,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             // here — the signup trigger sets host_status='pending_face' for
             // every new female account before any submission exists, which
             // would otherwise flash a false "Under Review" banner on the very
-            // first realtime payload (coins/last_seen/anything).
+            // first realtime payload (diamonds/last_seen/anything).
             if (payload?.is_face_verified === true) {
               setFaceVerificationPending(false);
               setFaceVerificationStatus('approved');
@@ -1513,7 +1513,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       if (result.user_deducted > 0) {
         const newPersonalBalance = Math.max(0, resolvedDiamondBalance - result.user_deducted);
         updateCachedBalance(newPersonalBalance);
-        setProfile((prev: any) => prev ? { ...prev, coins: newPersonalBalance } : prev);
+        setProfile((prev: any) => prev ? { ...prev, diamonds: newPersonalBalance } : prev);
       }
       if (result.agency_deducted > 0 && agencyData) {
         setAgencyData(prev => prev ? { ...prev, diamond_balance: (prev.diamond_balance || 0) - result.agency_deducted } : null);

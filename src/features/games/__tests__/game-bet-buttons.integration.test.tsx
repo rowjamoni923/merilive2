@@ -79,7 +79,7 @@ function installDefaultSupabaseMocks() {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({
-      data: { id: USER_ID, coins: 50_000, display_name: "Tester" },
+      data: { id: USER_ID, diamonds: 50_000, display_name: "Tester" },
       error: null,
     }),
     insert: vi.fn().mockResolvedValue({ data: null, error: null }),

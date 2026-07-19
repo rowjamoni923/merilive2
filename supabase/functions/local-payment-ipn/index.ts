@@ -351,13 +351,13 @@ serve(async (req) => {
         type: "recharge_success",
         title: "💎 Diamonds Added!",
         message: `${totalDiamonds.toLocaleString()} diamonds added via ${gatewayType === 'sslcommerz' ? 'SSLCommerz' : 'AamarPay'}!`,
-        data: { order_id: orderId, coins: totalDiamonds, gateway: gatewayType },
+        data: { order_id: orderId, diamonds: totalDiamonds, gateway: gatewayType },
       });
 
       console.log(`[IPN] ✅ SUCCESS: ${totalDiamonds} diamonds → user ${userId} (${result.balance_before} → ${result.balance_after})`);
 
       return Response.redirect(
-        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalDiamonds}`,
+        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&diamonds=${totalDiamonds}`,
         302
       );
 

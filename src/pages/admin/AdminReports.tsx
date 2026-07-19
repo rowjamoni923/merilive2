@@ -77,7 +77,7 @@ export default function AdminReports() {
         return {
           date: d.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
           users: Number(row.users || 0),
-          coins: Number(row.diamonds || 0),
+          diamonds: Number(row.diamonds || 0),
           streams: Number(row.streams || 0),
         };
       });
@@ -98,10 +98,10 @@ export default function AdminReports() {
     }
   };
 
-  const formatCoins = (coins: number) => {
-    if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
-    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
-    return coins.toString();
+  const formatCoins = (diamonds: number) => {
+    if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
+    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
+    return diamonds.toString();
   };
 
   const StatCard = ({ 

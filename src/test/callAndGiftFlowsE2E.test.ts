@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 /* ───────────────────────── Fakes ──────────────────────────────────── */
 
-type Profile = { id: string; coins: number; beans: number; is_host: boolean; host_percent?: number };
+type Profile = { id: string; diamonds: number; beans: number; is_host: boolean; host_percent?: number };
 
 interface PrivateCall {
   id: string;
@@ -36,7 +36,7 @@ interface GiftTx {
   sender_id: string;
   receiver_id: string;
   gift_id: string;
-  coins: number;
+  diamonds: number;
   beans_credited: number;
   room_id: string;
   room_type: 'live' | 'party' | 'chat';
@@ -160,16 +160,16 @@ class FakeSupabase {
 
   /* ── RPC: process_gift_transaction (Pkg23 atomic) ───────────────── */
   async process_gift_transaction({ senderId, receiverId, giftId, diamonds, roomId, roomType }: {
-    senderId: string; receiverId: string; giftId: string; coins: number;
+    senderId: string; receiverId: string; giftId: string; diamonds: number;
     roomId: string; roomType: 'live' | 'party' | 'chat';
   }) {
     const sender = this.profiles.get(senderId);
     const recv   = this.profiles.get(receiverId);
     if (!sender || !recv) return { ok: false, reason: 'profile_not_found' };
-    if (sender.diamonds < coins) return { ok: false, reason: 'insufficient_diamonds' };
+    if (sender.diamonds < diamonds) return { ok: false, reason: 'insufficient_diamonds' };
     const hostPct = recv.host_percent ?? this.appSettings.host_percent_default;
-    const beans = recv.is_host ? Math.floor(coins * hostPct / 100) : 0;
-    sender.diamonds -= coins;
+    const beans = recv.is_host ? Math.floor(diamonds * hostPct / 100) : 0;
+    sender.diamonds -= diamonds;
     recv.beans   += beans;
     const tx: GiftTx = {
       id: this.uid(), sender_id: senderId, receiver_id: receiverId,
@@ -241,9 +241,9 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     sb = new FakeSupabase();
-    caller = { id: 'u-caller', coins: 5_000, beans: 0, is_host: false };
-    host   = { id: 'u-host',   coins: 0,     beans: 0, is_host: true, host_percent: 60 };
-    viewer = { id: 'u-viewer', coins: 10_000, beans: 0, is_host: false };
+    caller = { id: 'u-caller', diamonds: 5_000, beans: 0, is_host: false };
+    host   = { id: 'u-host',   diamonds: 0,     beans: 0, is_host: true, host_percent: 60 };
+    viewer = { id: 'u-viewer', diamonds: 10_000, beans: 0, is_host: false };
     sb.seedProfile(caller);
     sb.seedProfile(host);
     sb.seedProfile(viewer);
@@ -403,7 +403,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('live room: debits sender, credits host beans at admin %, broadcasts to room', async () => {
       const r = await sb.process_gift_transaction({
         senderId: viewer.id, receiverId: host.id, giftId: 'g-rose',
-        coins: 1_000, roomId: 'room-live-1', roomType: 'live',
+        diamonds: 1_000, roomId: 'room-live-1', roomType: 'live',
       });
       expect(r.ok).toBe(true);
       expect(r.beansCredited).toBe(600);                 // 60% of 1000
@@ -416,28 +416,28 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('party room: same path, broadcast topic switches to party:*', async () => {
       const r = await sb.process_gift_transaction({
         senderId: viewer.id, receiverId: host.id, giftId: 'g-crown',
-        coins: 500, roomId: 'room-party-7', roomType: 'party',
+        diamonds: 500, roomId: 'room-party-7', roomType: 'party',
       });
       expect(r.ok).toBe(true);
       expect(sb.broadcasts.some(b => b.topic === 'party:room-party-7' && b.event === 'gift')).toBe(true);
     });
 
     it('credits 0 beans when receiver is not a host (Pkg28 zero-default)', async () => {
-      const otherUser: Profile = { id: 'u-other', coins: 0, beans: 0, is_host: false };
+      const otherUser: Profile = { id: 'u-other', diamonds: 0, beans: 0, is_host: false };
       sb.seedProfile(otherUser);
       const r = await sb.process_gift_transaction({
         senderId: viewer.id, receiverId: otherUser.id, giftId: 'g-rose',
-        coins: 1_000, roomId: 'r', roomType: 'live',
+        diamonds: 1_000, roomId: 'r', roomType: 'live',
       });
       expect(r.beansCredited).toBe(0);
       expect(sb.profiles.get(otherUser.id)!.beans).toBe(0);
     });
 
-    it('rejects when sender lacks coins — no debit, no broadcast', async () => {
+    it('rejects when sender lacks diamonds — no debit, no broadcast', async () => {
       viewer.diamonds = 100; sb.seedProfile(viewer);
       const r = await sb.process_gift_transaction({
         senderId: viewer.id, receiverId: host.id, giftId: 'g-yacht',
-        coins: 50_000, roomId: 'room-live-1', roomType: 'live',
+        diamonds: 50_000, roomId: 'room-live-1', roomType: 'live',
       });
       expect(r).toEqual({ ok: false, reason: 'insufficient_diamonds' });
       expect(sb.profiles.get(viewer.id)!.diamonds).toBe(100);
@@ -446,11 +446,11 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     });
 
     it('concurrent gifts to same host are both credited (no lost update)', async () => {
-      const v2: Profile = { id: 'u-viewer2', coins: 10_000, beans: 0, is_host: false };
+      const v2: Profile = { id: 'u-viewer2', diamonds: 10_000, beans: 0, is_host: false };
       sb.seedProfile(v2);
       await Promise.all([
-        sb.process_gift_transaction({ senderId: viewer.id, receiverId: host.id, giftId: 'g1', coins: 1_000, roomId: 'r', roomType: 'live' }),
-        sb.process_gift_transaction({ senderId: v2.id,     receiverId: host.id, giftId: 'g2', coins: 2_000, roomId: 'r', roomType: 'live' }),
+        sb.process_gift_transaction({ senderId: viewer.id, receiverId: host.id, giftId: 'g1', diamonds: 1_000, roomId: 'r', roomType: 'live' }),
+        sb.process_gift_transaction({ senderId: v2.id,     receiverId: host.id, giftId: 'g2', diamonds: 2_000, roomId: 'r', roomType: 'live' }),
       ]);
       expect(sb.profiles.get(host.id)!.beans).toBe(600 + 1200);
       expect(sb.gifts).toHaveLength(2);
@@ -468,7 +468,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     await sb.process_gift_transaction({
       senderId: viewer.id, receiverId: host.id, giftId: 'g-rose',
-      coins: 1_000, roomId: 'room-live-1', roomType: 'live',
+      diamonds: 1_000, roomId: 'room-live-1', roomType: 'live',
     });
     const settled = await sb.settle_private_call(start.callId!, 60);
 

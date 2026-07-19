@@ -31,7 +31,7 @@ export interface ViewerProfile {
   name: string;
   avatar: string;
   level?: number;
-  coins?: number;
+  diamonds?: number;
   beans?: number;
   isFollowing?: boolean;
   isVIP?: boolean;

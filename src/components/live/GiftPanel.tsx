@@ -27,7 +27,7 @@ export interface GiftData {
   name: string;
   nameBn: string;
   emoji: string;
-  coins: number;
+  diamonds: number;
   category: string;
   animationType: 'basic' | 'premium' | 'luxury' | 'legendary';
   icon_url?: string | null;
@@ -57,10 +57,10 @@ export const giftCategories: GiftCategory[] = [
 ];
 
 // Format diamond value
-export const formatCoinValue = (coins: number): string => {
-  if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
-  if (coins >= 1000) return `${(coins / 1000).toFixed(coins >= 10000 ? 0 : 1)}K`;
-  return coins.toString();
+export const formatCoinValue = (diamonds: number): string => {
+  if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
+  if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(diamonds >= 10000 ? 0 : 1)}K`;
+  return diamonds.toString();
 };
 
 // Re-export for backward compatibility
@@ -238,7 +238,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         name: gift.name,
         nameBn: gift.name,
         emoji: '', // No defaults - only DB assets
-        coins: gift.diamond_value,
+        diamonds: gift.diamond_value,
         category: gift.category || 'wall',
         animationType: getAnimationType(gift.diamond_value),
         icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),

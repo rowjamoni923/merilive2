@@ -143,7 +143,7 @@ interface NativeLiveKitPlugin {
     canHardReconnect?: boolean;
   }>;
   setSurviveActivityDestroy(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
-  updateLiveStats(opts: { viewerCount?: number; coinCount?: number; title?: string }): Promise<{ updated: boolean }>;
+  updateLiveStats(opts: { viewerCount?: number; diamondCount?: number; title?: string }): Promise<{ updated: boolean }>;
   refreshToken(opts: { token: string }): Promise<{ refreshed: boolean }>;
   setSubscriberVideoQuality(opts: { enabled?: boolean; quality?: string; source?: string }): Promise<{ applied: boolean }>;
   setRemoteVideoSubscribed(opts: { sid?: string; subscribed?: boolean; source?: string }): Promise<{ applied: boolean }>;
