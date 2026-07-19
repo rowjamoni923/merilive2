@@ -911,7 +911,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       case 'plinko':
       case 'mines':
       case 'dice':
-      case 'coinflip':
+      case 'toss_match':
       case 'hilo':
       case 'wheel':
       case 'roulette':
