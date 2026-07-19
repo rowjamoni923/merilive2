@@ -208,12 +208,10 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       const payload = detail.payload || {};
       if (payload.profile_id && payload.profile_id !== userId) return;
 
-      const coins = payload.coins;
-      const diamonds = payload.diamonds;
-      if (coins !== undefined || diamonds !== undefined) {
+      const diamonds = payload.diamonds ?? payload.coins; // ZERO-COIN: accept legacy `coins` payload field until DB drop, but treat as diamonds.
+      if (diamonds !== undefined) {
         balanceCache.userId = userId;
-        // DU-3: prefer diamonds; max() fallback stays until DU-5 retires the coins column.
-        updateCachedBalance(Math.max(Number(diamonds || 0), Number(coins || 0)));
+        updateCachedBalance(Number(diamonds || 0));
       }
 
       if (payload.beans !== undefined && typeof window !== 'undefined') {
