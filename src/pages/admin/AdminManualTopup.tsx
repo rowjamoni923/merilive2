@@ -208,7 +208,7 @@ const AdminManualTopup = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={() => navigate('/admin/coins')}>
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-white/20" onClick={() => navigate('/admin/diamonds')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>

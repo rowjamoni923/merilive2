@@ -176,7 +176,7 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('helper')) return '/admin/helper-management';
   if (type.includes('topup') || type.includes('coin_purchase')) return '/admin/topup-system';
-  if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/coin-traders';
+  if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/diamond-traders';
   if (type.includes('report') || type.includes('violation')) return '/admin/live-bans';
   if (type.includes('security')) return '/admin/logs';
   if (type === 'system') return '/admin/settings';
@@ -577,42 +577,42 @@ const navGroups: NavGroup[] = [
       {
         label: "Diamond Trader Hub",
         icon: Coins,
-        path: "/admin/coin-trader-hub",
+        path: "/admin/diamond-trader-hub",
         hubKey: "trader-hub",
         description: "Landing page for Diamond Trader system — bundles Topup, Payment Gateways, and Helpers.",
       },
       {
         label: "Diamond Traders",
         icon: Coins,
-        path: "/admin/coin-traders",
+        path: "/admin/diamond-traders",
         hubKey: "trader-hub",
         description: "List of approved Diamond Traders (helpers who sell diamonds) with their balances and stats.",
       },
       {
         label: "Trader Approvals",
         icon: Coins,
-        path: "/admin/coin-traders/approvals",
+        path: "/admin/diamond-traders/approvals",
         hubKey: "trader-hub",
         description: "Approve or revoke Level 1–5 helper-traders for UID top-up permission; review recent approval changes.",
       },
       {
         label: "Trader Orders",
         icon: ShoppingBag,
-        path: "/admin/coin-traders/orders",
+        path: "/admin/diamond-traders/orders",
         hubKey: "trader-hub",
         description: "Diamond purchase orders placed with traders — status, payment proof, dispute resolution.",
       },
       {
         label: "Trader Transactions",
         icon: Activity,
-        path: "/admin/coin-traders/transactions",
+        path: "/admin/diamond-traders/transactions",
         hubKey: "trader-hub",
         description: "Audit log of every diamond movement to/from traders for accounting reconciliation.",
       },
       {
         label: "Diamonds Management",
         icon: Coins,
-        path: "/admin/coins",
+        path: "/admin/diamonds",
         hubKey: "finance-hub",
         description: "Manually adjust any user's diamond balance with full audit trail (refunds, corrections, gifts).",
       },
@@ -1654,7 +1654,7 @@ export default function AdminLayout() {
         // Calling
         '/admin/pricing-hub': 0,
         // Coin & Finance
-        '/admin/coin-trader-hub': coinTransfersCount,
+        '/admin/diamond-trader-hub': coinTransfersCount,
         '/admin/finance': financeCount,
         '/admin/payroll-orders': payrollCount,
         '/admin/recharge-history': 0,

@@ -1591,10 +1591,15 @@ const App = () => {
                   <Route path="approvals" element={<AdminRouteGuard routeSegment="agencies"><AdminUnifiedApprovals /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
                   <Route path="super-admin-management" element={<AdminRouteGuard routeSegment="super-admin-management"><AdminSuperAdminManagement /></AdminRouteGuard>} />
-                  <Route path="coin-traders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminCoinTraders /></AdminRouteGuard>} />
-                  <Route path="coin-traders/approvals" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
-                  <Route path="coin-traders/orders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderOrders /></AdminRouteGuard>} />
-                  <Route path="coin-traders/transactions" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderTransactions /></AdminRouteGuard>} />
+                  <Route path="diamond-traders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminCoinTraders /></AdminRouteGuard>} />
+                  <Route path="diamond-traders/approvals" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
+                  <Route path="diamond-traders/orders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderOrders /></AdminRouteGuard>} />
+                  <Route path="diamond-traders/transactions" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderTransactions /></AdminRouteGuard>} />
+                  {/* Legacy coin-* redirects (Zero-Coin Wave B1) */}
+                  <Route path="coin-traders" element={<Navigate to="/admin/diamond-traders" replace />} />
+                  <Route path="coin-traders/approvals" element={<Navigate to="/admin/diamond-traders/approvals" replace />} />
+                  <Route path="coin-traders/orders" element={<Navigate to="/admin/diamond-traders/orders" replace />} />
+                  <Route path="coin-traders/transactions" element={<Navigate to="/admin/diamond-traders/transactions" replace />} />
                   <Route path="animation-store" element={<AdminRouteGuard routeSegment="animation-store"><AdminAnimationStore /></AdminRouteGuard>} />
                   <Route path="manual-topup" element={<AdminRouteGuard routeSegment="manual-topup"><AdminManualTopup /></AdminRouteGuard>} />
                   <Route path="topup-system" element={<AdminRouteGuard routeSegment="topup-system"><AdminTopupSystem /></AdminRouteGuard>} />
@@ -1651,7 +1656,8 @@ const App = () => {
                   <Route path="ai-image-studio" element={<AdminRouteGuard routeSegment="ai-image-studio"><AdminAiImageStudio /></AdminRouteGuard>} />
                   <Route path="reports" element={<AdminRouteGuard routeSegment="reports"><AdminReports /></AdminRouteGuard>} />
                   <Route path="logs" element={<AdminRouteGuard routeSegment="logs"><AdminLogs /></AdminRouteGuard>} />
-                  <Route path="coins" element={<AdminRouteGuard routeSegment="coins"><AdminCoins /></AdminRouteGuard>} />
+                  <Route path="diamonds" element={<AdminRouteGuard routeSegment="coins"><AdminCoins /></AdminRouteGuard>} />
+                  <Route path="coins" element={<Navigate to="/admin/diamonds" replace />} />
                   <Route path="payment-gateways" element={<AdminRouteGuard routeSegment="payment-gateways"><AdminPaymentGateways /></AdminRouteGuard>} />
                   <Route path="transfer-scheduler" element={<AdminRouteGuard routeSegment="transfer-scheduler"><AdminTransferScheduler /></AdminRouteGuard>} />
                   <Route path="agency-commission-log" element={<AdminRouteGuard routeSegment="agency-commission-log"><AdminAgencyCommissionLog /></AdminRouteGuard>} />
@@ -1710,7 +1716,8 @@ const App = () => {
                   <Route path="finance" element={<AdminRouteGuard routeSegment="finance"><AdminFinance /></AdminRouteGuard>} />
                   <Route path="game-management" element={<AdminRouteGuard routeSegment="game-management"><AdminGameManagement /></AdminRouteGuard>} />
                   <Route path="party-management" element={<AdminRouteGuard routeSegment="party-management"><AdminPartyManagement /></AdminRouteGuard>} />
-                  <Route path="coin-trader-hub" element={<AdminRouteGuard routeSegment="coin-trader-hub"><AdminCoinTraderHub /></AdminRouteGuard>} />
+                  <Route path="diamond-trader-hub" element={<AdminRouteGuard routeSegment="coin-trader-hub"><AdminCoinTraderHub /></AdminRouteGuard>} />
+                  <Route path="coin-trader-hub" element={<Navigate to="/admin/diamond-trader-hub" replace />} />
                   <Route path="content-management" element={<AdminRouteGuard routeSegment="content-management"><AdminContentManagement /></AdminRouteGuard>} />
                   <Route path="agency-hub" element={<AdminRouteGuard routeSegment="agency-hub"><AdminAgencyHub /></AdminRouteGuard>} />
                   <Route path="app-settings-hub" element={<AdminRouteGuard routeSegment="app-settings-hub"><AdminAppSettingsHub /></AdminRouteGuard>} />
