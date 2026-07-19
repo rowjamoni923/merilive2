@@ -407,7 +407,7 @@ const AdminRewardsManagement = () => {
                         value={firstRechargeConfig.bonus_multiplier}
                         onChange={(e) => setFirstRechargeConfig({ ...firstRechargeConfig, bonus_multiplier: parseFloat(e.target.value) || 2 })}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">e.g. 2.0 = double coins, 3.0 = triple</p>
+                      <p className="text-xs text-muted-foreground mt-1">e.g. 2.0 = double diamonds, 3.0 = triple</p>
                     </div>
                     <div>
                       <Label>Bonus Label</Label>
