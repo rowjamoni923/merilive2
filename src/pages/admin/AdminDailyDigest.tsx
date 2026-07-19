@@ -101,7 +101,7 @@ export default function AdminDailyDigest() {
           <Card className="border-slate-200">
             <CardHeader><CardTitle className="text-slate-900">Currency flow ({range}d)</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              {(["beans", "diamonds", "coins"] as const).map(c => {
+              {(["beans", "diamonds", "diamonds"] as const).map(c => {
                 const v = summary.byCurr[c] || { credit: 0, debit: 0 };
                 const net = v.credit - v.debit;
                 return (

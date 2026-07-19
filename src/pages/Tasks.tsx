@@ -26,7 +26,7 @@ interface DailyTask {
   requirement_type: string;
   requirement_value: number;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
   icon_name: string;
   icon_color: string;
 }
@@ -412,7 +412,7 @@ const Tasks = () => {
       }
 
       const earnedBeans = Number((result as any)?.beans ?? task.reward_beans ?? 0);
-      const earnedCoins = Number((result as any)?.coins ?? task.reward_coins ?? 0);
+      const earnedCoins = Number((result as any)?.diamonds ?? task.reward_diamonds ?? 0);
 
       // Force balance refresh on next balance check
       updateCachedBalance(0);
@@ -766,9 +766,9 @@ const Tasks = () => {
                               +{task.reward_beans} Beans
                             </span>
                           )}
-                          {task.reward_coins > 0 && (
+                          {task.reward_diamonds > 0 && (
                             <span className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-2 py-0.5 rounded-full font-medium">
-                              +{task.reward_coins} 💎 Diamonds
+                              +{task.reward_diamonds} 💎 Diamonds
                             </span>
                           )}
                         </>

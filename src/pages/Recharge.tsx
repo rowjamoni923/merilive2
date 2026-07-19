@@ -1021,7 +1021,7 @@ const Recharge = () => {
       console.log('[Recharge] Android detected, initializing PlayStoreBilling via registerPlugin...');
 
       // Refresh package map from DB before initializing — keeps Play Store
-      // product IDs/prices in sync with the admin-edited coin_packages table.
+      // product IDs/prices in sync with the admin-edited diamond_packages table.
       loadPlayStoreProducts().finally(() => {
       playStoreBilling.initialize().then(async (available) => {
         console.log('[Recharge] Play Store Billing initialize result:', available);
@@ -1418,7 +1418,7 @@ const Recharge = () => {
   // Keep helper cards static; do not auto-rotate pages
 
   // Pkg83-ext: removed static `helpers-online-status-realtime` channel
-  // (profiles/topup_helpers/coin_transfers/helper_accepted_payment_methods not
+  // (profiles/topup_helpers/diamond_transfers/helper_accepted_payment_methods not
   // in publication — was silent no-op). Visibility refetch on tab return.
   // No-auto-refresh: helper list refreshes on tab switch only.
 
@@ -1430,13 +1430,13 @@ const Recharge = () => {
       if (user) {
         setUserId(user.id);
         const [profileRes, firstRechargeRes, bonusConfigRes] = await Promise.all([
-          supabase.from('profiles').select('coins, country_code, app_uid, is_agency_owner').eq('id', user.id).single(),
+          supabase.from('profiles').select('diamonds, country_code, app_uid, is_agency_owner').eq('id', user.id).single(),
           supabase.from('first_recharge_claims').select('id').eq('user_id', user.id).maybeSingle(),
           supabase.from('first_recharge_bonus').select('id, bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
         ]);
 
         if (profileRes.data) {
-          updateCachedBalance(profileRes.data.coins || 0);
+          updateCachedBalance(profileRes.data.diamonds || 0);
           if (profileRes.data.country_code) {
             console.log('[Recharge] Using profile country_code:', profileRes.data.country_code);
             setUserCountryCode(profileRes.data.country_code);
@@ -1641,7 +1641,7 @@ const Recharge = () => {
       return;
     }
 
-    const productId = playStoreBilling.getProductIdForCoins(selectedPackage.coins);
+    const productId = playStoreBilling.getProductIdForCoins(selectedPackage.diamonds);
     if (!productId) {
       toast({
         title: "Product Not Available",
@@ -1663,7 +1663,7 @@ const Recharge = () => {
         
         toast({
           title: "🎉 Purchase Successful!",
-          description: `${formatNumber(selectedPackage.coins)} diamonds added to your account`,
+          description: `${formatNumber(selectedPackage.diamonds)} diamonds added to your account`,
         });
         
         // Mark campaign as purchased if navigated from campaign
@@ -1704,7 +1704,7 @@ const Recharge = () => {
       return;
     }
 
-    const productId = playStoreBilling.getProductIdForCoins(pkg.coins);
+    const productId = playStoreBilling.getProductIdForCoins(pkg.diamonds);
     if (!productId) {
       toast({
         title: "Product Not Available",
@@ -1722,7 +1722,7 @@ const Recharge = () => {
         await fetchUserData();
         toast({
           title: "🎉 Purchase Successful!",
-          description: `${formatNumber(pkg.coins)} diamonds added to your account`,
+          description: `${formatNumber(pkg.diamonds)} diamonds added to your account`,
         });
       } else {
         toast({
@@ -1889,7 +1889,7 @@ const Recharge = () => {
         const helper = currentHelperMethod.helper as any;
 
         // Best-effort pre-flight (real guard is atomic deduct_helper_wallet below).
-        if (helper.wallet_balance < selectedPackage.coins) {
+        if (helper.wallet_balance < selectedPackage.diamonds) {
           throw new Error("Merchant doesn't have enough diamonds. Please try another payment method.");
         }
 
@@ -1898,7 +1898,7 @@ const Recharge = () => {
         const normalizedTxnId = transactionId.trim();
 
         // CRITICAL: insert the order as PENDING first. We only flip to COMPLETED
-        // after both deduct_helper_wallet and helper_add_coins_to_user actually
+        // after both deduct_helper_wallet and helper_add_diamonds_to_user actually
         // succeed. Previously we wrote 'completed' up front, so any downstream
         // failure left the row falsely marked completed even though the helper
         // was never debited or the user was never credited.
@@ -1908,7 +1908,7 @@ const Recharge = () => {
             helper_id: helper.id,
             user_id: userId,
             package_id: selectedPackage.id,
-            coin_amount: selectedPackage.coins,
+            diamond_amount: selectedPackage.diamonds,
             amount_usd: selectedPackage.price_usd,
             amount_local: localAmount,
             currency_code: currencyRate?.currency_code || 'USD',
@@ -1937,15 +1937,15 @@ const Recharge = () => {
 
         // ATOMIC: single SECURITY DEFINER RPC does deduct(helper+agency fallback)
         // + credit(buyer) + promote(order→completed) under one DB transaction.
-        // Replaces the broken pair-of-RPCs flow: helper_add_coins_to_user
+        // Replaces the broken pair-of-RPCs flow: helper_add_diamonds_to_user
         // required an admin/helper JWT and was always returning "Not authorized"
         // for the END USER, leaving every order stuck. The new RPC checks
         // user_id = auth.uid() and only finalizes 'pending' orders.
         const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
-          ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
+          ? Math.floor(selectedPackage.diamonds * selectedPackage.bonus_percentage / 100)
           : 0;
-        let bonusCoins = 0;
-        let totalCoinsToAdd = selectedPackage.coins;
+        let bonusDiamonds = 0;
+        let totalCoinsToAdd = selectedPackage.diamonds;
 
         const { data: finalizeResult, error: finalizeError } = await supabase
           .rpc('user_complete_instant_helper_topup' as any, {
@@ -1973,13 +1973,13 @@ const Recharge = () => {
           const { data: bonusResult, error: bonusError } = await supabase.rpc('claim_first_recharge_bonus_and_credit' as any, {
             _user_id: userId,
             _bonus_id: firstRechargeBonusId,
-            _original_amount: selectedPackage.coins,
+            _original_amount: selectedPackage.diamonds,
             _bonus_amount: candidateBonusCoins,
           });
           const bonusData = bonusResult as any;
           if (!bonusError && bonusData?.success && !bonusData?.already_claimed) {
-            bonusCoins = Number(bonusData.bonus_amount || candidateBonusCoins);
-            totalCoinsToAdd += bonusCoins;
+            bonusDiamonds = Number(bonusData.bonus_amount || candidateBonusCoins);
+            totalCoinsToAdd += bonusDiamonds;
           } else if (bonusError) {
             console.warn('[Recharge] First recharge bonus credit skipped:', bonusError.message);
           }
@@ -1991,7 +1991,7 @@ const Recharge = () => {
           user_id: userId,
           type: 'payment_completed',
           title: '🎉 Diamonds Added!',
-          message: `${formatNumber(totalCoinsToAdd)} diamonds have been added to your account instantly!${bonusCoins > 0 ? ` (includes +${bonusCoins} first recharge bonus!)` : ''}`,
+          message: `${formatNumber(totalCoinsToAdd)} diamonds have been added to your account instantly!${bonusDiamonds > 0 ? ` (includes +${bonusDiamonds} first recharge bonus!)` : ''}`,
           data: {
             order_id: helperOrder.id,
             diamonds: totalCoinsToAdd
@@ -2002,7 +2002,7 @@ const Recharge = () => {
 
         toast({
           title: "🎉 Instant Success!",
-          description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusCoins > 0 ? ` (+${formatNumber(bonusCoins)} bonus!)` : ''}`,
+          description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusDiamonds > 0 ? ` (+${formatNumber(bonusDiamonds)} bonus!)` : ''}`,
         });
 
         // Mark campaign as purchased if navigated from campaign
@@ -2034,10 +2034,10 @@ const Recharge = () => {
       }
 
       const standardGatewayCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
-        ? Math.floor(selectedPackage.coins + (selectedPackage.coins * selectedPackage.bonus_percentage / 100))
-        : selectedPackage.coins;
+        ? Math.floor(selectedPackage.diamonds + (selectedPackage.diamonds * selectedPackage.bonus_percentage / 100))
+        : selectedPackage.diamonds;
       const standardGatewayBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
-        ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
+        ? Math.floor(selectedPackage.diamonds * selectedPackage.bonus_percentage / 100)
         : 0;
 
       // Standard payment flow - create transaction record using the live schema.
@@ -2058,10 +2058,10 @@ const Recharge = () => {
           status: 'pending',
           gateway_response: {
             gateway_code: selectedGateway.gateway_code,
-            package_coins: selectedPackage.coins,
+            package_coins: selectedPackage.diamonds,
             bonus_percentage: selectedPackage.bonus_percentage,
             is_first_recharge: isFirstRecharge,
-            bonus_coins: standardGatewayBonusCoins,
+            bonus_diamonds: standardGatewayBonusCoins,
             sender_number: senderNumber,
             payment_proof_url: paymentProof,
             user_transaction_id: transactionId
@@ -2082,7 +2082,7 @@ const Recharge = () => {
         user_id: userId,
         type: 'payment_pending',
         title: '💳 New Payment Pending',
-        message: `Payment of ${convertToLocalCurrency(selectedPackage.price_usd)} for ${formatNumber(selectedPackage.coins)} diamonds is awaiting approval.`,
+        message: `Payment of ${convertToLocalCurrency(selectedPackage.price_usd)} for ${formatNumber(selectedPackage.diamonds)} diamonds is awaiting approval.`,
         data: {
           transaction_id: transaction.id,
           amount: localAmount,
@@ -2197,7 +2197,7 @@ const Recharge = () => {
           .insert({
             helper_id: selectedHelperMethod.helper_id,
             user_id: userId,
-            coin_amount: selectedPackage.coins,
+            diamond_amount: selectedPackage.diamonds,
             amount_usd: selectedPackage.price_usd,
             amount_local: localAmount,
             currency_code: currencyRate?.currency_code || 'USD',
@@ -3462,20 +3462,20 @@ const Recharge = () => {
                         {isFirstRecharge && pkg.bonus_percentage > 0 ? (
                           <>
                             <div className="text-xl font-black bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-                              {formatNumber(Math.floor(pkg.coins + (pkg.coins * pkg.bonus_percentage / 100)))}
+                              {formatNumber(Math.floor(pkg.diamonds + (pkg.diamonds * pkg.bonus_percentage / 100)))}
                             </div>
                             <div className="text-[11px] text-heading line-through font-medium">
-                              {formatNumber(pkg.coins)}
+                              {formatNumber(pkg.diamonds)}
                             </div>
                           </>
                         ) : (
                           <>
                             <div className="text-xl font-black text-heading">
-                              {formatNumber(pkg.coins)}
+                              {formatNumber(pkg.diamonds)}
                             </div>
-                            {pkg.coins !== pkg.base_coins && (
+                            {pkg.diamonds !== pkg.base_diamonds && (
                               <div className="text-[11px] text-heading line-through font-medium">
-                                {formatNumber(pkg.base_coins)}
+                                {formatNumber(pkg.base_diamonds)}
                               </div>
                             )}
                           </>
@@ -3628,7 +3628,7 @@ const Recharge = () => {
                   {getGatewayIcon(selectedGateway.gateway_code)} {selectedGateway.name} Payment
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  Complete your payment to receive {formatNumber(selectedPackage.coins)} diamonds
+                  Complete your payment to receive {formatNumber(selectedPackage.diamonds)} diamonds
                 </DialogDescription>
               </DialogHeader>
 
@@ -3644,7 +3644,7 @@ const Recharge = () => {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">You'll receive</span>
                     <span className="font-semibold text-foreground">
-                      💎 {formatNumber(selectedPackage.coins)} Diamonds
+                      💎 {formatNumber(selectedPackage.diamonds)} Diamonds
                     </span>
                   </div>
                 </div>
@@ -3778,7 +3778,7 @@ const Recharge = () => {
               <div className="bg-purple-500/10 rounded-2xl p-4 border border-purple-500/20 mb-6">
                 <div className="flex items-center justify-center gap-2 text-lg font-bold text-purple-600">
                   <Diamond className="w-5 h-5" />
-                  {formatNumber(selectedPackage.coins)} Diamonds
+                  {formatNumber(selectedPackage.diamonds)} Diamonds
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">Will be added after verification</p>
               </div>
@@ -3823,7 +3823,7 @@ const Recharge = () => {
                 </div>
 
                 <p className="text-xs text-amber-100/80 mb-3">
-                  Pay via {selectedHelperMethod.method_name} to receive {formatNumber(selectedPackage.coins)} diamonds
+                  Pay via {selectedHelperMethod.method_name} to receive {formatNumber(selectedPackage.diamonds)} diamonds
                 </p>
 
                 <div className="rounded-2xl bg-white/[0.04] border border-amber-400/15 p-3 mb-3">
@@ -3836,7 +3836,7 @@ const Recharge = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-amber-100/70">You'll receive</span>
                     <span className="text-sm font-semibold text-amber-50">
-                      💎 {formatNumber(selectedPackage.coins)} Diamonds
+                      💎 {formatNumber(selectedPackage.diamonds)} Diamonds
                     </span>
                   </div>
                 </div>
@@ -4056,7 +4056,7 @@ const Recharge = () => {
               <div className="bg-gradient-to-r from-amber-500/15 to-amber-400/10 rounded-2xl p-4 border border-amber-400/25 mb-6">
                 <div className="flex items-center justify-center gap-2 text-lg font-bold text-amber-200">
                   <Diamond className="w-5 h-5" />
-                  {formatNumber(selectedPackage.coins)} Diamonds
+                  {formatNumber(selectedPackage.diamonds)} Diamonds
                 </div>
                 <p className="text-sm text-amber-100/70 mt-1">Will be credited after helper approves</p>
               </div>
@@ -4089,7 +4089,7 @@ const Recharge = () => {
             initialPackageId={mericashInitialPackageId}
             packages={packages.map((p: any) => ({
               id: p.id,
-              coins: p.coins,
+              coins: p.diamonds,
               bonus_percentage: p.bonus_percentage,
               price_usd: Number(p.price ?? p.price_usd ?? 0),
               name: p.name,

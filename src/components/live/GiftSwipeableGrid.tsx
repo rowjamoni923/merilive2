@@ -199,7 +199,7 @@ const GiftItem = memo(({
             ? "bg-gradient-to-r from-white/60 to-white/40"
             : "bg-gradient-to-r from-cyan-300 to-purple-400"
         )}>
-          {formatCoinValue(gift.coins)}
+          {formatCoinValue(gift.diamonds)}
         </span>
       </div>
     </button>

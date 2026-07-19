@@ -17,7 +17,7 @@ import { warmGiftUrlsForInstantPlay } from '@/utils/instantGiftWarmup';
 interface GiftCacheItem {
   id: string;
   name: string;
-  coin_value: number;
+  diamond_value: number;
   category: string;
   icon_url: string | null;
   animation_url: string | null;
@@ -89,10 +89,10 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
     try {
       const { data, error } = await supabase
         .from('gifts')
-        .select('id, name, coin_value, category, icon_url, animation_url, animation_format, animation_config_url, sound_url, display_order, min_level')
+        .select('id, name, diamond_value, category, icon_url, animation_url, animation_format, animation_config_url, sound_url, display_order, min_level')
         .eq('is_active', true)
         .order('display_order', { ascending: true })
-        .order('coin_value', { ascending: true });
+        .order('diamond_value', { ascending: true });
 
       if (error) {
         console.error('[GiftPrefetch] Error:', error);

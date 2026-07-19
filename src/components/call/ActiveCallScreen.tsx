@@ -120,7 +120,7 @@ export function ActiveCallScreen({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [remoteStreamReady, setRemoteStreamReady] = useState(false);
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
   const [isSwapped, setIsSwapped] = useState(false);
@@ -272,8 +272,8 @@ export function ActiveCallScreen({
   const endingRef = useRef(false);
 
   useEffect(() => {
-    userCoinsRef.current = userCoins;
-  }, [userCoins]);
+    userCoinsRef.current = userDiamonds;
+  }, [userDiamonds]);
   
   // ✅ REAL-TIME: Fetch and subscribe to gift commission
   useEffect(() => {
@@ -526,12 +526,12 @@ export function ActiveCallScreen({
       if (!userId) return;
       const { data } = await supabase
         .from('profiles') // guard-ok: owner-only balance read for authenticated caller/host, not cross-user.
-        .select('coins, display_name, avatar_url, user_level')
+        .select('diamonds, display_name, avatar_url, user_level')
         .eq('id', userId)
         .single();
       if (data) {
-        userCoinsRef.current = data.coins || 0;
-        setUserCoins(data.coins || 0);
+        userCoinsRef.current = data.diamonds || 0;
+        setUserCoins(data.diamonds || 0);
         if (data.display_name) setMyDisplayName(data.display_name);
         if (data.avatar_url) setMyAvatarUrl(normalizeProfileMediaUrl(data.avatar_url) || data.avatar_url);
         if (data.user_level) setMyLevel(data.user_level);
@@ -690,7 +690,7 @@ export function ActiveCallScreen({
     // Section#5 pass-3 (Bug M): swallow duplicate rapid taps.
     if (sendingGiftRef.current) return;
 
-    const totalCost = gift.coins * count;
+    const totalCost = gift.diamonds * count;
     const availableCoins = userCoinsRef.current;
     if (availableCoins < totalCost) {
       toast.error("Not enough diamonds!");
@@ -725,7 +725,7 @@ export function ActiveCallScreen({
         soundUrl: gift.sound_url || undefined,
         giftColor: "bg-pink-500/50",
         count,
-        coins: gift.coins,
+        coins: gift.diamonds,
         isOwnGift: true,
       });
       // Unified chat trace — same canonical InlineGiftRow as DM/Live/Party
@@ -738,7 +738,7 @@ export function ActiveCallScreen({
           message: encodeInlineGiftMarker({
             giftName: gift.name,
             count,
-            coins: gift.coins,
+            coins: gift.diamonds,
             iconUrl: gift.icon_url || '',
           }),
           timestamp: Date.now(),
@@ -1539,7 +1539,7 @@ export function ActiveCallScreen({
                       giftName={giftMarker.giftName}
                       giftIconUrl={giftMarker.iconUrl || undefined}
                       count={giftMarker.count}
-                      coins={giftMarker.coins}
+                      coins={giftMarker.diamonds}
                       isSelf={isMe}
                       surface="overlay"
                       compact
@@ -1745,7 +1745,7 @@ export function ActiveCallScreen({
         isOpen={showGiftPanel}
         onClose={() => setShowGiftPanel(false)}
         onSendGift={handleSendGift}
-        userCoins={userCoins}
+        userDiamonds={userDiamonds}
       />
       
       {/* Flying Gift Animations */}

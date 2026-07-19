@@ -160,7 +160,7 @@ export const AdminAnalyticsCharts = memo(() => {
 
   const chartGiftRevenue = data?.gift_revenue?.map(d => ({
     date: formatDate(d.date),
-    Diamonds: d.coins,
+    Diamonds: d.diamonds,
   })) || [];
 
   const chartCallActivity = data?.call_activity?.map(d => ({
@@ -211,7 +211,7 @@ export const AdminAnalyticsCharts = memo(() => {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <SummaryCard icon={DollarSign} label="Revenue" value={formatNumber(summary.total_revenue_period)} color={COLORS.revenue} />
-          <SummaryCard icon={Gift} label="Gifts (Diamonds)" value={formatNumber(summary.total_gifts_period)} color={COLORS.coins} />
+          <SummaryCard icon={Gift} label="Gifts (Diamonds)" value={formatNumber(summary.total_gifts_period)} color={COLORS.diamonds} />
           <SummaryCard icon={Phone} label="Calls" value={formatNumber(summary.total_calls_period)} color={COLORS.calls} />
           <SummaryCard icon={Users} label="New Users" value={formatNumber(summary.total_new_users_period)} color={COLORS.users} />
           <SummaryCard icon={Zap} label="New Hosts" value={formatNumber(summary.total_new_hosts_period)} color={COLORS.hosts} />
@@ -305,8 +305,8 @@ export const AdminAnalyticsCharts = memo(() => {
                     <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorCoins" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={COLORS.coins} stopOpacity={0.9} />
-                          <stop offset="100%" stopColor={COLORS.coins} stopOpacity={0.3} />
+                          <stop offset="0%" stopColor={COLORS.diamonds} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={COLORS.diamonds} stopOpacity={0.3} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />

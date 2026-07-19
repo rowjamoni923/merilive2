@@ -45,7 +45,7 @@ interface RankingData {
 interface RewardTier {
   rank_from: number;
   rank_to: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_diamonds: number;
   reward_beans: number;
 }
@@ -120,7 +120,7 @@ const Leaderboard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("leaderboard_reward_config")
-        .select("rank_from, rank_to, reward_coins, reward_diamonds, reward_beans")
+        .select("rank_from, rank_to, reward_diamonds, reward_diamonds, reward_beans")
         .eq("category", getCategoryDbKey())
         .eq("period_type", periodType)
         .eq("is_active", true)
@@ -161,7 +161,7 @@ const Leaderboard = () => {
     const parts: string[] = [];
     if (reward.reward_beans > 0) parts.push(`${formatNumber(reward.reward_beans)} Beans`);
     if (reward.reward_diamonds > 0) parts.push(`${formatNumber(reward.reward_diamonds)} 💎`);
-    if (reward.reward_coins > 0) parts.push(`${formatNumber(reward.reward_coins)} 💰`);
+    if (reward.reward_diamonds > 0) parts.push(`${formatNumber(reward.reward_diamonds)} 💰`);
     return parts.join(' + ');
   };
 
@@ -223,12 +223,12 @@ const Leaderboard = () => {
       const compType = (activePK as any).competition_type || "gift_receiving";
       let stats: Record<string, number> = {};
 
-      if (compType === "gift_sending" || compType === "coins_spent") {
-        const { data: gifts } = await supabase.from("gift_transactions").select("sender_id, coin_amount").gte("created_at", startDate).lte("created_at", endDate);
-        (gifts || []).forEach(g => { if (g.sender_id) stats[g.sender_id] = (stats[g.sender_id] || 0) + (g.coin_amount || 0); });
+      if (compType === "gift_sending" || compType === "diamonds_spent") {
+        const { data: gifts } = await supabase.from("gift_transactions").select("sender_id, diamond_amount").gte("created_at", startDate).lte("created_at", endDate);
+        (gifts || []).forEach(g => { if (g.sender_id) stats[g.sender_id] = (stats[g.sender_id] || 0) + (g.diamond_amount || 0); });
       } else if (compType === "gift_receiving" || compType === "beans_earned") {
-        const { data: gifts } = await supabase.from("gift_transactions").select("receiver_id, coin_amount").gte("created_at", startDate).lte("created_at", endDate);
-        (gifts || []).forEach(g => { if (g.receiver_id) { stats[g.receiver_id] = (stats[g.receiver_id] || 0) + Math.floor((g.coin_amount || 0) * 0.6); } });
+        const { data: gifts } = await supabase.from("gift_transactions").select("receiver_id, diamond_amount").gte("created_at", startDate).lte("created_at", endDate);
+        (gifts || []).forEach(g => { if (g.receiver_id) { stats[g.receiver_id] = (stats[g.receiver_id] || 0) + Math.floor((g.diamond_amount || 0) * 0.6); } });
       } else {
         const { data: parts } = await supabase.from("pk_participants").select("user_id, score").eq("competition_id", activePK.id).order("score", { ascending: false }).limit(50);
         (parts || []).forEach(p => { stats[p.user_id] = p.score || 0; });
@@ -255,7 +255,7 @@ const Leaderboard = () => {
     queryKey: ["pk-rewards", activePK?.id],
     queryFn: async () => {
       if (!activePK) return [];
-      const { data } = await supabase.from("pk_competition_rewards").select("rank_from, rank_to, reward_diamonds, reward_beans, reward_coins").eq("competition_id", activePK.id).eq("is_active", true).order("rank_from");
+      const { data } = await supabase.from("pk_competition_rewards").select("rank_from, rank_to, reward_diamonds, reward_beans, reward_diamonds").eq("competition_id", activePK.id).eq("is_active", true).order("rank_from");
       return (data || []) as RewardTier[];
     },
     enabled: activeCategory === "pk_competition" && !!activePK,
@@ -335,7 +335,7 @@ const Leaderboard = () => {
       case "top_gifter": return "💰";
       case "pk_competition": {
         const ct = (activePK as any)?.competition_type;
-        if (ct === "gift_sending" || ct === "coins_spent") return "💰";
+        if (ct === "gift_sending" || ct === "diamonds_spent") return "💰";
         if (ct === "gift_receiving" || ct === "beans_earned") return "B";
         return "⭐";
       }
@@ -494,7 +494,7 @@ const Leaderboard = () => {
                 <span className="text-[9px] px-2 py-0.5 rounded-full text-amber-700 font-semibold" style={{ background: 'rgba(251,191,36,0.18)' }}>
                   {activePK.competition_type === "gift_sending" ? "🎁 Sending"
                     : activePK.competition_type === "gift_receiving" ? "💝 Receiving"
-                    : activePK.competition_type === "coins_spent" ? "💰 Diamonds"
+                    : activePK.competition_type === "diamonds_spent" ? "💰 Diamonds"
                     : activePK.competition_type === "beans_earned" ? "Beans"
                     : "⚡ Custom"}
                 </span>

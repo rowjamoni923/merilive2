@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
   const recoveryCutoffIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   let query = admin
     .from("swift_pay_topups")
-    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, campaign_id, created_at, last_polled_at, raw_payload")
+    .select("id, user_id, external_user_id, diamonds_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, campaign_id, created_at, last_polled_at, raw_payload")
     .in("status", ["pending", "paid", "expired"])
     .gte("created_at", recoveryCutoffIso)
     .order("created_at", { ascending: true })
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       // Bug #2: credit-time campaign re-validation. Industry anchor = payment-confirm time, not init time.
       // If the campaign expired/became ineligible between init and credit, credit only the BASE coins
       // (skip bonus_diamonds) so the user still receives their paid value without an unearned bonus.
-      let creditCoins = row.coins_amount;
+      let creditDiamonds = row.diamonds_amount;
       let campaignReeval: any = null;
       if ((row as any).campaign_id && targetType === "user_diamond") {
         const { data: vRes } = await admin.rpc("validate_campaign_for_user", {
@@ -189,9 +189,9 @@ Deno.serve(async (req) => {
         const v = vRes as any;
         // "already_redeemed" is OK here — it's THIS topup's own row written by the trigger on a prior retry.
         if (v && v.ok === false && v.reason !== "campaign_already_redeemed") {
-          const baseCoins = Number(v.base_coins ?? row.coins_amount);
-          creditCoins = Math.max(0, baseCoins);
-          campaignReeval = { stripped_bonus: true, reason: v.reason, base_coins: creditCoins, original_coins: row.coins_amount };
+          const baseDiamonds = Number(v.base_diamonds ?? row.diamonds_amount);
+          creditDiamonds = Math.max(0, baseDiamonds);
+          campaignReeval = { stripped_bonus: true, reason: v.reason, base_diamonds: creditDiamonds, original_diamonds: row.diamonds_amount };
           console.warn("[swift-pay-poll-deposits] campaign no longer eligible at credit time", row.id, v.reason);
           // Detach campaign_id so the post-credit trigger does not mark it redeemed.
           await admin.from("swift_pay_topups").update({ campaign_id: null }).eq("id", row.id);
@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
       if (targetType === "helper_wallet" && (row as any).target_helper_id) {
         const { data, error } = await admin.rpc("credit_helper_wallet_from_swift_pay", {
           p_helper_id: (row as any).target_helper_id,
-          p_diamonds: creditCoins,
+          p_diamonds: creditDiamonds,
           p_topup_id: row.id,
         });
         creditErr = error;
@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
       } else {
         const { data, error } = await admin.rpc("safe_credit_diamonds", {
           p_user_id: row.user_id,
-          p_amount: creditCoins,
+          p_amount: creditDiamonds,
           p_gateway: "swift_pay",
           p_order_id: row.id,
           p_transaction_id: row.payment_id ?? row.id,
@@ -254,7 +254,7 @@ Deno.serve(async (req) => {
       }
 
       credited++;
-      results.push({ id: row.id, credited: true, coins: creditCoins, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
+      results.push({ id: row.id, credited: true, coins: creditDiamonds, target: targetType, result: creditRes, auto_grant: autoGrantResult, campaign_reeval: campaignReeval });
     } catch (e) {
       console.error("[swift-pay-poll-deposits] row error", row.id, e);
       results.push({ id: row.id, error: (e as Error).message });

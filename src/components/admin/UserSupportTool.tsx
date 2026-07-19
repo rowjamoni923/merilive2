@@ -59,7 +59,7 @@ interface FaceVerification {
   created_at: string;
 }
 
-const PROFILE_SELECT_FIELDS = "id, display_name, avatar_url, app_uid, is_host, is_verified, is_blocked, blocked_reason, coins, diamonds, user_level, host_level, gender, country_flag, country_name, is_face_verified, agency_id, total_earnings, created_at";
+const PROFILE_SELECT_FIELDS = "id, display_name, avatar_url, app_uid, is_host, is_verified, is_blocked, blocked_reason, diamonds, diamonds, user_level, host_level, gender, country_flag, country_name, is_face_verified, agency_id, total_earnings, created_at";
 
 export default function UserSupportTool() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -231,7 +231,7 @@ export default function UserSupportTool() {
       const { data, error } = await supabase.rpc("admin_adjust_balance", {
         _target_type: "profile",
         _target_id: selectedUser.id,
-        _field: "coins",
+        _field: "diamonds",
         _delta: diamondAction === "add" ? amount : -amount,
         _reason: diamondNote || "Support action",
       });

@@ -45,7 +45,7 @@ interface RankingReward {
   ranking_type: string;
   period_type: string;
   rank_position: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_badge: string | null;
   min_income_requirement: number;
   created_at: string;
@@ -84,7 +84,7 @@ const AdminRankingRewards = () => {
   // Form state for adding/editing
   const [formData, setFormData] = useState({
     rank_position: 1,
-    reward_coins: 10000,
+    reward_diamonds: 10000,
     reward_badge: '',
     min_income_requirement: 0,
   });
@@ -134,7 +134,7 @@ const AdminRankingRewards = () => {
           ranking_type: fullRankingType,
           period_type: activePeriod,
           rank_position: formData.rank_position,
-          reward_coins: formData.reward_coins,
+          reward_diamonds: formData.reward_diamonds,
           reward_badge: formData.reward_badge || null,
           min_income_requirement: formData.min_income_requirement,
         });
@@ -161,7 +161,7 @@ const AdminRankingRewards = () => {
       const { error } = await supabase
         .from('ranking_rewards')
         .update({
-          reward_coins: formData.reward_coins,
+          reward_diamonds: formData.reward_diamonds,
           reward_badge: formData.reward_badge || null,
           min_income_requirement: formData.min_income_requirement,
         })
@@ -202,7 +202,7 @@ const AdminRankingRewards = () => {
   const openEditDialog = (reward: RankingReward) => {
     setFormData({
       rank_position: reward.rank_position,
-      reward_coins: reward.reward_coins,
+      reward_diamonds: reward.reward_diamonds,
       reward_badge: reward.reward_badge || '',
       min_income_requirement: reward.min_income_requirement,
     });
@@ -212,7 +212,7 @@ const AdminRankingRewards = () => {
   const resetForm = () => {
     setFormData({
       rank_position: filteredRewards.length + 1,
-      reward_coins: 10000,
+      reward_diamonds: 10000,
       reward_badge: '',
       min_income_requirement: 0,
     });
@@ -360,7 +360,7 @@ const AdminRankingRewards = () => {
                       <div className="flex items-center gap-2">
                         <Gem className="w-4 h-4 text-cyan-400" />
                         <span className="font-bold text-foreground">
-                          {formatNumber(reward.reward_coins)}
+                          {formatNumber(reward.reward_diamonds)}
                         </span>
                       </div>
                       {reward.reward_badge && (
@@ -459,8 +459,8 @@ const AdminRankingRewards = () => {
               <Label>Reward Diamonds</Label>
               <Input
                 type="number"
-                value={formData.reward_coins}
-                onChange={(e) => setFormData({ ...formData, reward_coins: parseInt(e.target.value) || 0 })}
+                value={formData.reward_diamonds}
+                onChange={(e) => setFormData({ ...formData, reward_diamonds: parseInt(e.target.value) || 0 })}
                 placeholder="10000"
               />
             </div>

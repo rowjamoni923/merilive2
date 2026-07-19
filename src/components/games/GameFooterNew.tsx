@@ -183,7 +183,7 @@ const LossDisplay = ({ show, amount, onComplete }: { show: boolean; amount: numb
 // Dragon Tiger Game Component
 const DragonTigerGame = ({
   betAmount,
-  userCoins,
+  userDiamonds,
   phase,
   timeLeft,
   onPlaceBet,
@@ -253,7 +253,7 @@ const DragonTigerGame = ({
   };
 
   const handlePlaceBet = async (type: 'dragon' | 'tiger' | 'tie') => {
-    if (phase !== 'betting' || betAmount > userCoins || betPlaced) return;
+    if (phase !== 'betting' || betAmount > userDiamonds || betPlaced) return;
     
     setSelectedBet(type);
     setBetPlaced(true);
@@ -332,10 +332,10 @@ const DragonTigerGame = ({
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => handlePlaceBet('dragon')}
-            disabled={betAmount > userCoins}
+            disabled={betAmount > userDiamonds}
             className={cn(
               "flex-1 py-1.5 rounded-lg font-bold text-white text-xs",
-              betAmount > userCoins ? "bg-gray-600/50" : "bg-gradient-to-br from-red-500 to-red-700"
+              betAmount > userDiamonds ? "bg-gray-600/50" : "bg-gradient-to-br from-red-500 to-red-700"
             )}
           >
             🐉 2x
@@ -344,10 +344,10 @@ const DragonTigerGame = ({
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => handlePlaceBet('tie')}
-            disabled={betAmount > userCoins}
+            disabled={betAmount > userDiamonds}
             className={cn(
               "px-3 py-1.5 rounded-lg font-bold text-white text-xs",
-              betAmount > userCoins ? "bg-gray-600/50" : "bg-gradient-to-br from-purple-500 to-purple-700"
+              betAmount > userDiamonds ? "bg-gray-600/50" : "bg-gradient-to-br from-purple-500 to-purple-700"
             )}
           >
             TIE 8x
@@ -356,10 +356,10 @@ const DragonTigerGame = ({
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => handlePlaceBet('tiger')}
-            disabled={betAmount > userCoins}
+            disabled={betAmount > userDiamonds}
             className={cn(
               "flex-1 py-1.5 rounded-lg font-bold text-white text-xs",
-              betAmount > userCoins ? "bg-gray-600/50" : "bg-gradient-to-br from-orange-500 to-orange-700"
+              betAmount > userDiamonds ? "bg-gray-600/50" : "bg-gradient-to-br from-orange-500 to-orange-700"
             )}
           >
             🐅 2x
@@ -390,7 +390,7 @@ const DragonTigerGame = ({
 };
 
 // Crash/Aviator Game Component - Fixed stable version
-const CrashGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss }: any) => {
+const CrashGame = ({ betAmount, userDiamonds, phase, onPlaceBet, onWin, onLoss }: any) => {
   const [multiplier, setMultiplier] = useState(1.00);
   const [crashed, setCrashed] = useState(false);
   const [cashedOut, setCashedOut] = useState(false);
@@ -470,7 +470,7 @@ const CrashGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss }: a
   }, [phase, hasBet, isPlaying, betAmount, onLoss]);
 
   const handlePlaceBet = async () => {
-    if (phase !== 'betting' || hasBet || betAmount > userCoins) return;
+    if (phase !== 'betting' || hasBet || betAmount > userDiamonds) return;
     
     const result = await onPlaceBet('crash', 'bet');
     if (result?.success) {
@@ -531,10 +531,10 @@ const CrashGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss }: a
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handlePlaceBet}
-          disabled={betAmount > userCoins}
+          disabled={betAmount > userDiamonds}
           className={cn(
             "w-full py-2 rounded-lg font-bold text-white text-sm",
-            betAmount > userCoins ? "bg-gray-600/50" : "bg-gradient-to-r from-green-500 to-emerald-600"
+            betAmount > userDiamonds ? "bg-gray-600/50" : "bg-gradient-to-r from-green-500 to-emerald-600"
           )}
         >
           🚀 Place Bet ({formatBet(betAmount)})
@@ -568,7 +568,7 @@ const CrashGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss }: a
 };
 
 // Compact Generic Game Component
-const GenericGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss, gameId, gameName, gameEmoji }: any) => {
+const GenericGame = ({ betAmount, userDiamonds, phase, onPlaceBet, onWin, onLoss, gameId, gameName, gameEmoji }: any) => {
   const [hasBet, setHasBet] = useState(false);
   const [result, setResult] = useState<'win' | 'lose' | null>(null);
   const [multiplier, setMultiplier] = useState(2);
@@ -597,7 +597,7 @@ const GenericGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss, g
   }, [phase, hasBet, result, betAmount, multiplier, onWin, onLoss]);
 
   const handlePlaceBet = async () => {
-    if (phase !== 'betting' || hasBet || betAmount > userCoins) return;
+    if (phase !== 'betting' || hasBet || betAmount > userDiamonds) return;
     const res = await onPlaceBet(gameId, 'bet');
     if (res?.success) {
       setHasBet(true);
@@ -630,10 +630,10 @@ const GenericGame = ({ betAmount, userCoins, phase, onPlaceBet, onWin, onLoss, g
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handlePlaceBet}
-          disabled={betAmount > userCoins}
+          disabled={betAmount > userDiamonds}
           className={cn(
             "w-full py-2 rounded-lg font-bold text-white text-sm",
-            betAmount > userCoins ? "bg-gray-600/50" : "bg-gradient-to-r from-green-500 to-emerald-600"
+            betAmount > userDiamonds ? "bg-gray-600/50" : "bg-gradient-to-r from-green-500 to-emerald-600"
           )}
         >
           🎲 Bet ({formatBet(betAmount)})
@@ -664,7 +664,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [loading, setLoading] = useState(true);
   const { buildGameUrl } = useGameToken();
   const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [showGamePicker, setShowGamePicker] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
@@ -746,8 +746,8 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const fetchUserCoins = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase.from('profiles').select('coins').eq('id', user.id).single();
-      if (data) setUserCoins(data.coins);
+      const { data } = await supabase.from('profiles').select('diamonds').eq('id', user.id).single();
+      if (data) setUserCoins(data.diamonds);
     }
   };
 
@@ -755,7 +755,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     if (phase !== 'betting') {
       return { success: false, error: 'Betting is closed' };
     }
-    if (betAmount > userCoins) {
+    if (betAmount > userDiamonds) {
       toast.error('Not enough diamonds!');
       return { success: false, error: 'Not enough diamonds' };
     }
@@ -769,16 +769,16 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     // Deduct coins immediately
     const { data: profile } = await supabase
       .from('profiles')
-      .select('coins')
+      .select('diamonds')
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.coins < betAmount) {
+    if (!profile || profile.diamonds < betAmount) {
       toast.error('Not enough diamonds!');
       return { success: false, error: 'Not enough diamonds' };
     }
 
-    const { data: deductData, error } = await supabase.rpc('deduct_coins', {
+    const { data: deductData, error } = await supabase.rpc('deduct_diamonds', {
       p_user_id: user.id,
       p_amount: betAmount,
     });
@@ -810,7 +810,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Credit winnings using process_game_win (allows self-crediting, unlike add_coins which requires admin)
+    // Credit winnings using process_game_win (allows self-crediting, unlike add_diamonds which requires admin)
     const { data: winData, error: winError } = await supabase.rpc('process_game_win', {
       p_user_id: user.id,
       p_amount: amount,
@@ -856,7 +856,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const renderGame = () => {
     const props = {
       betAmount,
-      userCoins,
+      userDiamonds,
       phase,
       timeLeft,
       onPlaceBet: handlePlaceBet,
@@ -923,9 +923,9 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       case 'aviator':
         return <CrashGame {...props} />;
       case 'lucky_number':
-        return <LuckyNumberGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userCoins={userCoins} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateCoins={(newBal) => { setUserCoins(newBal); fetchUserCoins(); }} onGameWin={(amt) => handleWin(amt)} />;
+        return <LuckyNumberGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userDiamonds={userDiamonds} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateCoins={(newBal) => { setUserCoins(newBal); fetchUserCoins(); }} onGameWin={(amt) => handleWin(amt)} />;
       case 'rocket_race':
-        return <RocketRaceGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userCoins={userCoins} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateCoins={(newBal) => { setUserCoins(newBal); fetchUserCoins(); }} onGameWin={(amt) => handleWin(amt)} />;
+        return <RocketRaceGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userDiamonds={userDiamonds} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateCoins={(newBal) => { setUserCoins(newBal); fetchUserCoins(); }} onGameWin={(amt) => handleWin(amt)} />;
       case 'lucky28':
       case 'plinko':
       case 'mines':
@@ -1067,16 +1067,16 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
               >
                 <Coins className="w-2.5 h-2.5 text-amber-400" />
                 <motion.span 
-                  key={userCoins}
+                  key={userDiamonds}
                   initial={{ scale: 1.05 }}
                   animate={{ scale: 1 }}
                   className="text-amber-300 font-bold"
                 >
-                  {userCoins >= 1000000 
-                    ? `${(userCoins / 1000000).toFixed(1)}M` 
-                    : userCoins >= 1000 
-                      ? `${(userCoins / 1000).toFixed(0)}K` 
-                      : userCoins}
+                  {userDiamonds >= 1000000 
+                    ? `${(userDiamonds / 1000000).toFixed(1)}M` 
+                    : userDiamonds >= 1000 
+                      ? `${(userDiamonds / 1000).toFixed(0)}K` 
+                      : userDiamonds}
                 </motion.span>
               </div>
 
@@ -1156,12 +1156,12 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
                     key={amount}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setBetAmount(amount)}
-                    disabled={amount > userCoins}
+                    disabled={amount > userDiamonds}
                     className={cn(
                       "flex-1 py-2 rounded-lg font-bold text-sm transition-all",
                       betAmount === amount
                         ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30"
-                        : amount > userCoins
+                        : amount > userDiamonds
                           ? "bg-white/5 text-white/30"
                           : "bg-white/10 text-white/80 hover:bg-white/20"
                     )}

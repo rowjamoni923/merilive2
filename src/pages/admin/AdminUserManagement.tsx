@@ -1417,11 +1417,11 @@ export default function AdminUserManagement() {
       const [followersRes, followingRes, giftsRes, callsRes] = await Promise.all([
         supabase.from('followers').select('id', { count: 'exact', head: true }).eq('following_id', userId),
         supabase.from('followers').select('id', { count: 'exact', head: true }).eq('follower_id', userId),
-        supabase.from('gift_transactions').select('coin_value').eq('receiver_id', userId),
+        supabase.from('gift_transactions').select('diamond_value').eq('receiver_id', userId),
         supabase.from('private_calls').select('id', { count: 'exact', head: true }).or(`caller_id.eq.${userId},receiver_id.eq.${userId}`),
       ]);
 
-      const totalGiftsReceived = giftsRes.data?.reduce((sum: number, g: any) => sum + (g.coin_value || 0), 0) || 0;
+      const totalGiftsReceived = giftsRes.data?.reduce((sum: number, g: any) => sum + (g.diamond_value || 0), 0) || 0;
 
       const result = {
         id: profile.id,
@@ -1440,7 +1440,7 @@ export default function AdminUserManagement() {
         last_seen_at: profile.last_seen_at,
         user_level: profile.user_level,
         host_level: profile.host_level,
-        coins: profile.coins,
+        coins: profile.diamonds,
         total_earnings: profile.total_earnings,
         pending_earnings: profile.pending_earnings,
         total_consumption: profile.total_consumption,
@@ -1782,7 +1782,7 @@ export default function AdminUserManagement() {
                           <TableCell className="hidden lg:table-cell">
                             <div className="flex items-center gap-1 text-yellow-500 font-bold">
                               <Coins className="w-4 h-4" />
-                              <span>{user.coins?.toLocaleString() || 0}</span>
+                              <span>{user.diamonds?.toLocaleString() || 0}</span>
                             </div>
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
@@ -3427,7 +3427,7 @@ export default function AdminUserManagement() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg p-3 bg-slate-50">
                   <p className="text-xs text-slate-400">Diamonds</p>
-                  <p className="font-bold text-amber-400">{selectedUser.coins?.toLocaleString() || 0}</p>
+                  <p className="font-bold text-amber-400">{selectedUser.diamonds?.toLocaleString() || 0}</p>
                 </div>
                 <div className="rounded-lg p-3 bg-slate-50">
                   <p className="text-xs text-slate-400">Level</p>
@@ -3779,7 +3779,7 @@ export default function AdminUserManagement() {
                 </div>
                 <div className="bg-amber-500/10 rounded-lg p-3 border border-amber-500/30">
                   <p className="text-amber-400 text-xs uppercase">Diamonds</p>
-                  <p className="text-amber-300 font-bold">{selectedBlockedUser.coins?.toLocaleString() || 0}</p>
+                  <p className="text-amber-300 font-bold">{selectedBlockedUser.diamonds?.toLocaleString() || 0}</p>
                 </div>
                 <div className="bg-purple-500/10 rounded-lg p-3 border border-purple-500/30">
                   <p className="text-purple-400 text-xs uppercase">Level</p>

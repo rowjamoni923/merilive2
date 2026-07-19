@@ -92,7 +92,7 @@ export const ChametStyleViewerPanel = ({
             max_user_level,
             gender,
             is_host,
-            coins,
+            diamonds,
             frame_id,
             country_flag
           )
@@ -114,7 +114,7 @@ export const ChametStyleViewerPanel = ({
           avatarUrl: pv.profiles?.avatar_url,
           level: getRequiredDisplayLevel(pv.profiles),
           countryFlag: pv.profiles?.country_flag || '🌍',
-          isVIP: (pv.profiles?.coins || 0) >= 10000,
+          isVIP: (pv.profiles?.diamonds || 0) >= 10000,
           frameId: pv.profiles?.frame_id || undefined,
         }));
         setRealtimeViewers(viewerList);

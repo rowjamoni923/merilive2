@@ -18,9 +18,9 @@ const PaymentSuccess = () => {
   const [verifying, setVerifying] = useState(true);
   const [result, setResult] = useState<{
     success: boolean;
-    total_coins?: number;
-    base_coins?: number;
-    bonus_coins?: number;
+    total_diamonds?: number;
+    base_diamonds?: number;
+    bonus_diamonds?: number;
     already_processed?: boolean;
     error?: string;
     needsManualProof?: boolean;
@@ -44,14 +44,14 @@ const PaymentSuccess = () => {
         if (orderId) {
           const { data: order } = await supabase
             .from('helper_orders')
-            .select('status, coin_amount')
+            .select('status, diamond_amount')
             .eq('id', orderId)
             .maybeSingle();
 
           if (order?.status === 'completed') {
             setResult({
               success: true,
-              total_coins: order.coin_amount || 0,
+              total_diamonds: order.diamond_amount || 0,
               already_processed: searchParams.get('already') === 'true',
             });
           } else if (order?.status === 'failed') {
@@ -60,14 +60,14 @@ const PaymentSuccess = () => {
             // Still pending — let helper review manually
             setResult({
               success: true,
-              total_coins: 0,
+              total_diamonds: 0,
               needsManualProof: true,
             });
           }
 
           const { data: profile } = await supabase
-            .from("profiles").select("coins").eq("id", session.user.id).single();
-          if (profile) updateCachedBalance(profile.coins || 0);
+            .from("profiles").select("diamonds").eq("id", session.user.id).single();
+          if (profile) updateCachedBalance(profile.diamonds || 0);
           window.dispatchEvent(new CustomEvent('balance-refresh'));
           return;
         }
@@ -233,17 +233,17 @@ const PaymentSuccess = () => {
  <h2 className="text-2xl font-bold text-slate-900">
               {result.already_processed ? "Already Credited!" : "Payment Successful! 🎉"}
             </h2>
-            {result.total_coins ? (
+            {result.total_diamonds ? (
               <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-amber-200/60 space-y-3">
                 <div className="flex items-center justify-center gap-2">
                   <Diamond className="w-6 h-6 text-cyan-400" />
- <span className="text-3xl font-bold text-slate-900">{formatNumber(result.total_coins)}</span>
+ <span className="text-3xl font-bold text-slate-900">{formatNumber(result.total_diamonds)}</span>
                 </div>
                 <p className="text-slate-500 text-sm">Diamonds credited to your account</p>
-                {result.bonus_coins && result.bonus_coins > 0 && (
+                {result.bonus_diamonds && result.bonus_diamonds > 0 && (
                   <div className="bg-amber-500/20 rounded-xl px-3 py-2 border border-amber-500/30">
                     <p className="text-amber-300 text-xs font-semibold">
-                      🎁 Includes +{formatNumber(result.bonus_coins)} First Recharge Bonus!
+                      🎁 Includes +{formatNumber(result.bonus_diamonds)} First Recharge Bonus!
                     </p>
                   </div>
                 )}

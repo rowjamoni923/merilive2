@@ -20,9 +20,9 @@ interface RandomCallSettings {
   min_billable_seconds: number;
   free_trial_seconds: number;
   host_split_pct: number;
-  host_min_rate_coins_per_min: number;
-  host_max_rate_coins_per_min: number;
-  default_host_rate_coins_per_min: number;
+  host_min_rate_diamonds_per_min: number;
+  host_max_rate_diamonds_per_min: number;
+  default_host_rate_diamonds_per_min: number;
   ring_timeout_seconds: number;
   match_timeout_seconds: number;
   price_change_cooldown_seconds: number;
@@ -39,7 +39,7 @@ interface RandomCallSettings {
   min_host_level_for_pool: number;
   preauth_minutes_hold: number;
   livekit_room_max_seconds: number;
-  coins_to_usd_rate: number;
+  diamonds_to_usd_rate: number;
   beans_to_usd_rate: number;
   score_weight_verification: number;
   score_weight_vip: number;
@@ -147,7 +147,7 @@ export default function AdminRandomCallSettings() {
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-xs">
-          <strong>Random Call rule:</strong> 1st minute = <strong>{s.default_host_rate_coins_per_min ?? 500}💎/min</strong> from caller, host earns <strong>{Math.round((s.default_host_rate_coins_per_min ?? 500) * (s.host_split_pct ?? 0.5))}💎</strong> ({Math.round((s.host_split_pct ?? 0.5) * 100)}% share). Min billable: {s.min_billable_seconds ?? 40}s — calls below this are free. At {s.random_window_seconds ?? 60}s the call auto-converts to a Private Call billed at the <strong>host's own per-minute rate</strong> (level-based). If the caller doesn't have at least <strong>{s.convert_min_balance_seconds ?? 60}s of diamonds</strong> at conversion, the call ends instantly for both sides. Server-enforced by <code>settle_random_call()</code> + <code>convert_random_to_private()</code>.
+          <strong>Random Call rule:</strong> 1st minute = <strong>{s.default_host_rate_diamonds_per_min ?? 500}💎/min</strong> from caller, host earns <strong>{Math.round((s.default_host_rate_diamonds_per_min ?? 500) * (s.host_split_pct ?? 0.5))}💎</strong> ({Math.round((s.host_split_pct ?? 0.5) * 100)}% share). Min billable: {s.min_billable_seconds ?? 40}s — calls below this are free. At {s.random_window_seconds ?? 60}s the call auto-converts to a Private Call billed at the <strong>host's own per-minute rate</strong> (level-based). If the caller doesn't have at least <strong>{s.convert_min_balance_seconds ?? 60}s of diamonds</strong> at conversion, the call ends instantly for both sides. Server-enforced by <code>settle_random_call()</code> + <code>convert_random_to_private()</code>.
         </AlertDescription>
       </Alert>
 
@@ -197,13 +197,13 @@ export default function AdminRandomCallSettings() {
               </Field>
               <Field label="Default host rate (diamonds/min)" hint="Fallback per-minute rate when host has none set on their profile.">
 
-                <Input type="number" value={s.default_host_rate_coins_per_min} onChange={(e) => update("default_host_rate_coins_per_min", NUM(e.target.value))} />
+                <Input type="number" value={s.default_host_rate_diamonds_per_min} onChange={(e) => update("default_host_rate_diamonds_per_min", NUM(e.target.value))} />
               </Field>
               <Field label="Host rate FLOOR (diamonds/min)" hint="Lowest price a host can set.">
-                <Input type="number" value={s.host_min_rate_coins_per_min} onChange={(e) => update("host_min_rate_coins_per_min", NUM(e.target.value))} />
+                <Input type="number" value={s.host_min_rate_diamonds_per_min} onChange={(e) => update("host_min_rate_diamonds_per_min", NUM(e.target.value))} />
               </Field>
               <Field label="Host rate CEILING (diamonds/min)" hint="Highest price a host can set.">
-                <Input type="number" value={s.host_max_rate_coins_per_min} onChange={(e) => update("host_max_rate_coins_per_min", NUM(e.target.value))} />
+                <Input type="number" value={s.host_max_rate_diamonds_per_min} onChange={(e) => update("host_max_rate_diamonds_per_min", NUM(e.target.value))} />
               </Field>
               <Field label="Pre-auth hold (minutes)" hint="Diamonds held before caller enters queue (insufficient balance = rejected).">
                 <Input type="number" min={1} max={10} value={s.preauth_minutes_hold} onChange={(e) => update("preauth_minutes_hold", NUM(e.target.value))} />
@@ -334,7 +334,7 @@ export default function AdminRandomCallSettings() {
                 <Input type="number" min={0} max={120} value={s.vip_free_trial_bonus_seconds} onChange={(e) => update("vip_free_trial_bonus_seconds", NUM(e.target.value))} />
               </Field>
               <Field label="Diamonds per USD (display only)">
-                <Input type="number" value={s.coins_to_usd_rate} onChange={(e) => update("coins_to_usd_rate", NUM(e.target.value))} />
+                <Input type="number" value={s.diamonds_to_usd_rate} onChange={(e) => update("diamonds_to_usd_rate", NUM(e.target.value))} />
               </Field>
               <Field label="Beans per USD (display only)">
                 <Input type="number" value={s.beans_to_usd_rate} onChange={(e) => update("beans_to_usd_rate", NUM(e.target.value))} />

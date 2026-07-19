@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
  * `weekly_login_rewards_config` (admin-managed).
  */
 interface WeeklyConfig {
-  reward_type: "coins" | "diamonds" | "beans";
+  reward_type: "diamonds" | "diamonds" | "beans";
   reward_amount: number;
   label: string | null;
 }

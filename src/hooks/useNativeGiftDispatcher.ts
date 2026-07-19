@@ -54,7 +54,7 @@ async function dispatchOne(detail: DispatchDetail) {
   const asset = await resolveGiftAsset(detail.giftId);
   if (!asset) return;
   // Priority: high-coin gifts win; cap at +500.
-  const priority = Math.min(500, Math.floor(asset.coins / 100));
+  const priority = Math.min(500, Math.floor(asset.diamonds / 100));
   const qty = Math.max(1, Math.min(99, detail.quantity ?? 1));
   // Single enqueue per transaction — the native side multiplies internally
   // via repeat count if needed; we pass quantity-derived priority bump.
@@ -62,7 +62,7 @@ async function dispatchOne(detail: DispatchDetail) {
     type: asset.type,
     url: asset.url,
     soundUrl: asset.soundUrl,
-    coins: asset.coins * qty,
+    coins: asset.diamonds * qty,
     priority: priority + Math.min(100, qty),
   });
 }

@@ -130,7 +130,7 @@ export const getGameHistory = async (userId: string, limit: number = 50) => {
 export const getDiamondBalance = async (userId: string): Promise<number> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("coins")
+    .select("diamonds")
     .eq("id", userId)
     .single();
 
@@ -138,5 +138,5 @@ export const getDiamondBalance = async (userId: string): Promise<number> => {
     return 0;
   }
 
-  return data.coins || 0;
+  return data.diamonds || 0;
 };

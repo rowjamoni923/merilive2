@@ -58,7 +58,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || null);
   const [loading, setLoading] = useState(true);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [isPlaying, setIsPlaying] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
@@ -102,10 +102,10 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
     if (user) {
       const { data } = await supabase
         .from('profiles')
-        .select('coins')
+        .select('diamonds')
         .eq('id', user.id)
         .single();
-      if (data) setUserCoins(data.coins);
+      if (data) setUserCoins(data.diamonds);
     }
   };
 
@@ -113,7 +113,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    if (betAmount > userCoins) return null;
+    if (betAmount > userDiamonds) return null;
 
     setIsPlaying(true);
     
@@ -154,7 +154,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
       game: currentGame,
       betAmount,
       setBetAmount,
-      userCoins,
+      userDiamonds,
       isPlaying,
       onPlay: playGame,
       lastResult
@@ -229,7 +229,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
           <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded-full">
             <Coins className="w-3 h-3 text-amber-400" />
             <span className="text-amber-300 font-bold text-[10px]">
-              {userCoins.toLocaleString()}
+              {userDiamonds.toLocaleString()}
             </span>
           </div>
 
@@ -305,12 +305,12 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
               key={amount}
               whileTap={{ scale: 0.95 }}
               onClick={() => setBetAmount(amount)}
-              disabled={amount > userCoins}
+              disabled={amount > userDiamonds}
               className={cn(
                 "px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap",
                 betAmount === amount
                   ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
-                  : amount > userCoins
+                  : amount > userDiamonds
                     ? "bg-white/5 text-white/30 cursor-not-allowed"
                     : "bg-white/10 text-white/80 hover:bg-white/20"
               )}

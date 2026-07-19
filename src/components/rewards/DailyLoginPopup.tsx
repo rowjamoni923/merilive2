@@ -341,7 +341,7 @@ const DailyLoginPopup = () => {
                             : "text-slate-700"
                         )}
                       >
-                        {day.reward_coins}
+                        {day.reward_diamonds}
                       </span>
                     </motion.div>
                   );
@@ -390,7 +390,7 @@ const DailyLoginPopup = () => {
                         >
                           <Diamond3DIcon size={20} />
                           <span className="text-xl font-black text-amber-950 tabular-nums">
-                            {todayReward.reward_coins}
+                            {todayReward.reward_diamonds}
                           </span>
                         </div>
                         {todayReward.reward_diamonds > 0 && (

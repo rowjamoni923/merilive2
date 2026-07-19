@@ -41,7 +41,7 @@ const PUBLICATION_TABLES = new Set([
   'admin_notices', 'agency_withdrawals', 'conversations', 'group_messages', 'host_applications',
   'stream_viewers', 'party_rooms', 'party_room_participants', 'party_room_messages', 'seat_requests',
   'messages', 'app_settings', 'agency_performance', 'agency_hosts', 'agency_diamond_transactions',
-  'agency_earnings_transfers', 'agency_commission_history', 'coin_transactions', 'daily_login_claims',
+  'agency_earnings_transfers', 'agency_commission_history', 'diamond_transactions', 'daily_login_claims',
   'helper_notifications', 'helper_orders', 'helper_topup_requests', 'helper_upgrade_requests',
   'helper_withdrawal_requests', 'live_bans', 'live_frame_alerts', 'live_game_bets', 'live_game_rounds',
   'payroll_requests', 'rating_reward_claims', 'recharge_transactions', 'reel_comments', 'reel_likes',

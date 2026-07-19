@@ -15,7 +15,7 @@ interface CallRatingModalProps {
   remoteUserName: string;
   remoteUserAvatar: string | null;
   duration: number;
-  coinsSpent: number;
+  diamondsSpent: number;
   isHost: boolean;
 }
 
@@ -32,7 +32,7 @@ export function CallRatingModal({
   remoteUserName,
   remoteUserAvatar,
   duration,
-  coinsSpent,
+  diamondsSpent,
   isHost,
 }: CallRatingModalProps) {
   const { toast } = useToast();
@@ -61,11 +61,11 @@ export function CallRatingModal({
         // Fetch gifts received during call
         const { data: giftData } = await supabase
           .from('gift_transactions')
-          .select('coin_amount')
+          .select('diamond_amount')
           .eq('receiver_id', callData?.host_id)
           .gte('created_at', new Date(Date.now() - duration * 1000).toISOString());
         
-        const giftBeans = giftData?.reduce((sum, g) => sum + (g.coin_amount || 0), 0) || 0;
+        const giftBeans = giftData?.reduce((sum, g) => sum + (g.diamond_amount || 0), 0) || 0;
         
         setEarnings({
           callBeans,
@@ -308,7 +308,7 @@ export function CallRatingModal({
                 </h2>
                 <p className="text-slate-600 text-sm">
                   {formatDuration(duration)} | 
-                  {isHost ? ` Earned: ${formatNumber(earnings.totalBeans)} beans` : ` Spent: ${coinsSpent} diamonds`}
+                  {isHost ? ` Earned: ${formatNumber(earnings.totalBeans)} beans` : ` Spent: ${diamondsSpent} diamonds`}
                 </p>
               </div>
 

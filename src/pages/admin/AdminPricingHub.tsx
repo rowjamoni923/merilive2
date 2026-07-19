@@ -115,7 +115,7 @@ export default function AdminPricingHub() {
     enabled: true,
   });
 
-  // Beans → Diamonds exchange (app_settings.coin_exchange)
+  // Beans → Diamonds exchange (app_settings.diamond_exchange)
   const [coinExchange, setCoinExchange] = useState<any>(null);
 
   const loadAll = useCallback(async () => {
@@ -132,7 +132,7 @@ export default function AdminPricingHub() {
           "agency_withdrawal_fee",
           "helper_diamond_commission",
           "helper_fee_settings",
-          "coin_exchange",
+          "diamond_exchange",
           "trader_wallet_topup_rate",
           "auto_withdrawal_fee",
           "topup_trader_tier_min_wallet",
@@ -164,7 +164,7 @@ export default function AdminPricingHub() {
         helper_receives_percent: map.helper_fee_settings?.helper_receives_percent ?? "",
       });
 
-      setCoinExchange(map.coin_exchange ?? {});
+      setCoinExchange(map.diamond_exchange ?? {});
 
       const tw = map.trader_wallet_topup_rate;
       setTraderWalletTopupRate(
@@ -453,7 +453,7 @@ export default function AdminPricingHub() {
                       <div>• Charged to caller: <strong>{Number(callRates.default_rate) * 5} diamonds</strong></div>
                       <div>• Host earns: <strong>{Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} beans</strong> ({callRates.host_commission_percent}%)</div>
                       <div>• Company keeps: <strong>{Math.max(0, 100 - Number(callRates.host_commission_percent))}%</strong> = {Number(callRates.default_rate) * 5 - Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} diamonds</div>
-                      <div className="text-muted-foreground">If call &lt; {callRates.first_minute_grace_seconds || 21}s → host earns 0, company keeps full coins_per_minute.</div>
+                      <div className="text-muted-foreground">If call &lt; {callRates.first_minute_grace_seconds || 21}s → host earns 0, company keeps full diamonds_per_minute.</div>
                     </div>
                   )}
 
@@ -951,11 +951,11 @@ export default function AdminPricingHub() {
                 </Field>
               </div>
               <Button
-                onClick={() => saveSection("coin_exchange", coinExchange, "Beans→Diamonds exchange")}
-                disabled={saving === "coin_exchange"}
+                onClick={() => saveSection("diamond_exchange", coinExchange, "Beans→Diamonds exchange")}
+                disabled={saving === "diamond_exchange"}
               >
                 <Save className="h-4 w-4 mr-2" />
-                {saving === "coin_exchange" ? "Saving..." : "Save Exchange"}
+                {saving === "diamond_exchange" ? "Saving..." : "Save Exchange"}
               </Button>
             </CardContent>
           </Card>

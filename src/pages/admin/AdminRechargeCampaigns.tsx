@@ -46,12 +46,12 @@ interface Campaign {
   updated_at: string;
 }
 
-interface CoinPackage {
+interface DiamondPackage {
   id: string;
   name: string;
-  coins_amount: number;
+  diamonds_amount: number;
   price_usd: number;
-  bonus_coins: number | null;
+  bonus_diamonds: number | null;
   is_active: boolean | null;
   display_order: number | null;
 }
@@ -129,7 +129,7 @@ export default function AdminRechargeCampaigns() {
   const [form, setForm] = useState<Partial<Campaign>>(defaultForm);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [coinPackages, setCoinPackages] = useState<CoinPackage[]>([]);
+  const [diamondPackages, setCoinPackages] = useState<DiamondPackage[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate>(CAMPAIGN_TEMPLATES[0]);
 
@@ -150,11 +150,11 @@ export default function AdminRechargeCampaigns() {
 
   const fetchCoinPackages = useCallback(async () => {
     const { data } = await supabase
-      .from("coin_packages")
-      .select("id, name, coins_amount, price_usd, bonus_coins, is_active, display_order")
+      .from("diamond_packages")
+      .select("id, name, diamonds_amount, price_usd, bonus_diamonds, is_active, display_order")
       .eq("is_active", true)
       .order("display_order", { ascending: true });
-    setCoinPackages((data as CoinPackage[]) || []);
+    setCoinPackages((data as DiamondPackage[]) || []);
   }, []);
 
   useEffect(() => {
@@ -198,18 +198,18 @@ export default function AdminRechargeCampaigns() {
     const matchedTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === savedTemplateId);
     if (matchedTemplate) setSelectedTemplate(matchedTemplate);
     // Try to match a coin package
-    const matchedPkg = coinPackages.find(p => p.coins_amount === c.diamonds_amount && Math.abs(p.price_usd - c.original_price_usd) < 0.01);
+    const matchedPkg = diamondPackages.find(p => p.diamonds_amount === c.diamonds_amount && Math.abs(p.price_usd - c.original_price_usd) < 0.01);
     setSelectedPackageId(matchedPkg?.id || null);
     setDialogOpen(true);
   };
 
-  const selectPackage = (pkg: CoinPackage) => {
+  const selectPackage = (pkg: DiamondPackage) => {
     setSelectedPackageId(pkg.id);
     const pct = form.bonus_percentage || 0;
-    const bonusDiamonds = pct > 0 ? Math.round(pkg.coins_amount * pct / 100) : 0;
+    const bonusDiamonds = pct > 0 ? Math.round(pkg.diamonds_amount * pct / 100) : 0;
     setForm(prev => ({
       ...prev,
-      diamonds_amount: pkg.coins_amount,
+      diamonds_amount: pkg.diamonds_amount,
       original_price_usd: pkg.price_usd,
       bonus_diamonds: bonusDiamonds,
     }));
@@ -608,12 +608,12 @@ export default function AdminRechargeCampaigns() {
                 <p className="text-xs text-muted-foreground">
                   Select a top-up package — price & base diamonds auto-fill. Bonus calculated from percentage.
                 </p>
-                {coinPackages.length > 0 ? (
+                {diamondPackages.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {coinPackages.map(pkg => {
+                    {diamondPackages.map(pkg => {
                       const isSelected = selectedPackageId === pkg.id;
                       const bonusFromPct = (form.bonus_percentage || 0) > 0 
-                        ? Math.round(pkg.coins_amount * (form.bonus_percentage || 0) / 100)
+                        ? Math.round(pkg.diamonds_amount * (form.bonus_percentage || 0) / 100)
                         : 0;
                       return (
                         <button
@@ -634,7 +634,7 @@ export default function AdminRechargeCampaigns() {
                           <div className="text-lg font-bold text-primary">${pkg.price_usd.toFixed(2)}</div>
                           <div className="flex items-center gap-1 mt-1">
                             <Diamond className="w-3.5 h-3.5 text-blue-400" />
-                            <span className="text-sm font-semibold">{pkg.coins_amount.toLocaleString()}</span>
+                            <span className="text-sm font-semibold">{pkg.diamonds_amount.toLocaleString()}</span>
                           </div>
                           {bonusFromPct > 0 && (
                             <div className="text-xs text-emerald-400 font-semibold mt-0.5">

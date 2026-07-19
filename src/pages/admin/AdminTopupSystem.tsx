@@ -74,7 +74,7 @@ interface HelperOrder {
   id: string;
   helper_id: string;
   user_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   amount_usd: number;
   amount_local: number;
   currency_code: string;
@@ -89,7 +89,7 @@ interface Transaction {
   id: string;
   helper_id: string;
   transaction_type: string;
-  coin_amount: number;
+  diamond_amount: number;
   usd_amount: number;
   status: string;
   notes: string | null;
@@ -256,7 +256,7 @@ const AdminTopupSystem = () => {
   // 🔇 Silent realtime refresh — no spinner flicker, no profiles flood, debounced 1.5s
   // ❌ Removed 'profiles' (high-traffic, irrelevant) → was causing per-second refresh
   useAdminRealtime(
-    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions'],
+    ['helper_topup_requests', 'recharge_transactions', 'diamond_transactions'],
     () => loadAllData(false),
     'admin-topup-rt',
     { debounceMs: 1500 }
@@ -340,7 +340,7 @@ const AdminTopupSystem = () => {
       // Try exact match on app_uid first (handles numeric UIDs)
       const { data: exactMatch, error: exactError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, diamonds, diamonds, is_host, is_verified')
         .eq('app_uid', trimmedQuery)
         .limit(1);
       
@@ -355,7 +355,7 @@ const AdminTopupSystem = () => {
       // Try partial/contains match on app_uid (for partial UID search)
       const { data: uidContains } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, diamonds, diamonds, is_host, is_verified')
         .ilike('app_uid', `%${trimmedQuery}%`)
         .limit(10);
       
@@ -370,7 +370,7 @@ const AdminTopupSystem = () => {
       // Finally try display_name search
       const { data: nameMatch } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, diamonds, diamonds, is_host, is_verified')
         .ilike('display_name', `%${trimmedQuery}%`)
         .limit(10);
       
@@ -410,7 +410,7 @@ const AdminTopupSystem = () => {
       const { data, error } = await supabase.rpc('admin_adjust_balance', {
         _target_type: 'profile',
         _target_id: selectedUser.id,
-        _field: 'coins',
+        _field: 'diamonds',
         _delta: diamondAmount,
         _reason: note || null
       });
@@ -609,8 +609,8 @@ const AdminTopupSystem = () => {
       }
 
       if (action === 'approve' && !result.alreadyProcessed) {
-        const creditedCoins = Number(result.creditedCoins || order.coin_amount);
-        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `${creditedCoins.toLocaleString()} diamonds added to your account!`, 'coin_purchase_helper')
+        const creditedDiamonds = Number(result.creditedDiamonds || order.diamond_amount);
+        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `${creditedDiamonds.toLocaleString()} diamonds added to your account!`, 'diamond_purchase_helper')
       }
        
       toast({ title: "Success", description: `Order ${action === 'approve' ? 'approved' : 'rejected'}` });
@@ -1106,7 +1106,7 @@ const AdminTopupSystem = () => {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{order.coin_amount?.toLocaleString()} 💎</p>
+                              <p className="font-medium">{order.diamond_amount?.toLocaleString()} 💎</p>
                               <p className="text-xs text-slate-500">${order.amount_usd?.toFixed(2)}</p>
                             </div>
                           </TableCell>
@@ -1204,7 +1204,7 @@ const AdminTopupSystem = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <p className="font-medium">{txn.coin_amount?.toLocaleString()} 💎</p>
+                            <p className="font-medium">{txn.diamond_amount?.toLocaleString()} 💎</p>
                           </TableCell>
                           <TableCell>
                             <Badge className={cn(

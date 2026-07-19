@@ -437,12 +437,12 @@ const Shop = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("coins, user_level, avatar_url, frame_id, equipped_frame_id, display_name, username")
+        .select("diamonds, user_level, avatar_url, frame_id, equipped_frame_id, display_name, username")
         .eq("id", user.id)
         .single();
 
       if (profile) {
-        setUserDiamonds(profile.coins || 0);
+        setUserDiamonds(profile.diamonds || 0);
         setUserLevel(profile.user_level || 0);
         setUserAvatar(profile.avatar_url);
         setUserFrameId(profile.frame_id);

@@ -137,12 +137,12 @@ const isUnlockedByLevel = (requiredLevel: number | null | undefined, effectiveLe
 const isMonetizedAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
-  price_coins?: number | null;
+  price_diamonds?: number | null;
 }): boolean => {
   return Boolean(
     asset.is_premium ||
     (asset.price_diamonds ?? 0) > 0 ||
-    (asset.price_coins ?? 0) > 0,
+    (asset.price_diamonds ?? 0) > 0,
   );
 };
 
@@ -240,7 +240,7 @@ const VIP = () => {
       // Fetch user profile - include ALL equipped fields for unified selection logic
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("coins, display_name, username, avatar_url, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+        .select("diamonds, display_name, username, avatar_url, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -282,7 +282,7 @@ const VIP = () => {
       });
 
       if (profileData) {
-        setUserDiamonds(profileData.coins || 0);
+        setUserDiamonds(profileData.diamonds || 0);
         setVIPExpiresAt(profileData.vip_expires_at);
         setCurrentUserName((profileData as any)?.display_name || (profileData as any)?.username || "You");
         setCurrentUserAvatar((profileData as any)?.avatar_url || undefined);
@@ -375,7 +375,7 @@ const VIP = () => {
       // Fetch unlocked avatar frames only for the current role/level
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
-        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
+        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_diamonds")
         .eq("is_active", true)
         .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
         .order("min_level", { ascending: true });

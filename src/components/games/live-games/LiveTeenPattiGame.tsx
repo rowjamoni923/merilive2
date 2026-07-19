@@ -16,7 +16,7 @@ interface LiveTeenPattiGameProps {
   game: any;
   betAmount: number;
   setBetAmount: (amount: number) => void;
-  userCoins: number;
+  userDiamonds: number;
   phase: string;
   timeLeft: number;
   currentRound: any;
@@ -91,7 +91,7 @@ export function LiveTeenPattiGame({
   game,
   betAmount,
   setBetAmount,
-  userCoins,
+  userDiamonds,
   phase: externalPhase,
   timeLeft: externalTimeLeft,
   currentRound,
@@ -455,14 +455,14 @@ export function LiveTeenPattiGame({
 
   // Allow multiple bets on different hands - INSTANT response
   const handleSelectHand = (hand: "A" | "B" | "C") => {
-    console.log('[TeenPatti] handleSelectHand called:', { hand, autoPlayPhase, betAmount, userCoins });
+    console.log('[TeenPatti] handleSelectHand called:', { hand, autoPlayPhase, betAmount, userDiamonds });
     
     if (autoPlayPhase !== 'betting') {
       console.log('[TeenPatti] Not in betting phase, ignoring');
       return;
     }
     
-    if (betAmount > userCoins) {
+    if (betAmount > userDiamonds) {
       console.log('[TeenPatti] Not enough coins');
       return;
     }

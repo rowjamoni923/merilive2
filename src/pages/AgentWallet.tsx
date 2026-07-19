@@ -92,19 +92,19 @@ const AgentWallet = () => {
     const [agencyRes, helperRes, profileRes] = await Promise.all([
       supabase.from("agencies").select("diamond_balance, wallet_balance").eq("owner_id", uid).maybeSingle(),
       supabase.from("topup_helpers").select("wallet_balance").eq("user_id", uid).eq("is_verified", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("profiles").select("coins, beans").eq("id", uid).single(),
+      supabase.from("profiles").select("diamonds, beans").eq("id", uid).single(),
     ]);
 
     const agencyDiamonds = agencyRes.data?.diamond_balance || 0;
     const helperWallet = helperRes.data?.wallet_balance || 0;
-    const userCoins = profileRes.data?.coins || 0;
+    const userDiamonds = profileRes.data?.diamonds || 0;
     const userBeans = profileRes.data?.beans || 0;
 
     setWalletCache({
-      diamondBalance: agencyDiamonds + helperWallet + userCoins,
+      diamondBalance: agencyDiamonds + helperWallet + userDiamonds,
       agencyDiamondBalance: agencyDiamonds,
       helperWalletBalance: helperWallet,
-      profileCoins: userCoins,
+      profileCoins: userDiamonds,
       beansBalance: userBeans,
     });
   };
@@ -225,7 +225,7 @@ const AgentWallet = () => {
 
     // Use tiered transfer RPC (agency → helper wallet → personal coins)
     const { data: result, error } = await supabase
-      .rpc("helper_transfer_coins_to_user", {
+      .rpc("helper_transfer_diamonds_to_user", {
         _sender_id: (await supabase.auth.getSession()).data.session?.user?.id,
         _receiver_id: foundUser.id,
         _amount: amount,

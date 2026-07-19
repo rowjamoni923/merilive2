@@ -14,7 +14,7 @@ interface LiveLuckyNumberGameProps {
   game: any;
   betAmount: number;
   setBetAmount: (amount: number) => void;
-  userCoins: number;
+  userDiamonds: number;
   phase: string;
   timeLeft: number;
   currentRound: any;
@@ -62,7 +62,7 @@ export function LiveLuckyNumberGame({
   game,
   betAmount,
   setBetAmount,
-  userCoins,
+  userDiamonds,
   phase: externalPhase,
   timeLeft: externalTimeLeft,
   currentRound,
@@ -225,7 +225,7 @@ export function LiveLuckyNumberGame({
 
   const handleSelectNumber = (num: number) => {
     if (autoPlayPhase !== 'betting') return;
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
 
     const stake = betAmount;
     setSelectedNumbers(prev => new Set([...prev, num]));
@@ -410,7 +410,7 @@ export function LiveLuckyNumberGame({
             <motion.button
               key={num}
               onClick={() => handleSelectNumber(num)}
-              disabled={betAmount > userCoins || autoPlayPhase !== 'betting'}
+              disabled={betAmount > userDiamonds || autoPlayPhase !== 'betting'}
               whileHover={{ scale: autoPlayPhase === 'betting' ? 1.1 : 1 }}
               whileTap={{ scale: 0.95 }}
               className={cn(
@@ -419,7 +419,7 @@ export function LiveLuckyNumberGame({
                   ? "border-white/60 ring-2 ring-white/40" 
                   : "border-white/20",
                 winningNumber === num && "ring-4 ring-yellow-400 border-yellow-400",
-                (betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-60"
+                (betAmount > userDiamonds || autoPlayPhase !== 'betting') && "opacity-60"
               )}
             >
               {/* Background Gradient */}

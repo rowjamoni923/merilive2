@@ -14,7 +14,7 @@ import { usePersistedCache } from "@/hooks/usePersistedCache";
  interface RechargeOrder {
   id: string;
   amount_usd?: number;
-  coin_amount?: number;
+  diamond_amount?: number;
   payment_method?: string;
   status: string;
   created_at: string;
@@ -59,7 +59,7 @@ const RechargeHistory = () => {
       const { data: helperOrders, error: helperError } = await supabase
         .from('helper_orders')
         .select(`
-          id, coin_amount, amount_usd, amount_local, currency_code,
+          id, diamond_amount, amount_usd, amount_local, currency_code,
           payment_method, status, created_at, processed_at,
           user_payment_proof, helper_id
         `)
@@ -72,7 +72,7 @@ const RechargeHistory = () => {
       const { data: rechargeTxns, error: rechargeError } = await supabase
         .from('recharge_transactions')
         .select(`
-          id, coins_received, amount, payment_method, status,
+          id, diamonds_received, amount, payment_method, status,
           created_at, completed_at, transaction_id, purchase_source,
           google_order_id
         `)
@@ -107,7 +107,7 @@ const RechargeHistory = () => {
       // 4. Transform helper orders
       const fromHelpers: RechargeOrder[] = (helperOrders || []).map((order: any) => ({
         id: order.id,
-        coin_amount: order.coin_amount,
+        diamond_amount: order.diamond_amount,
         amount_usd: order.amount_usd,
         status: order.status === 'cancelled' ? 'rejected' : order.status,
         created_at: order.created_at,
@@ -122,7 +122,7 @@ const RechargeHistory = () => {
       // 5. Transform Google Play / gateway transactions
       const fromGoogle: RechargeOrder[] = (rechargeTxns || []).map((txn: any) => ({
         id: txn.id,
-        coin_amount: txn.coins_received,
+        diamond_amount: txn.diamonds_received,
         amount_usd: txn.amount,
         status: txn.status,
         created_at: txn.created_at,
@@ -384,7 +384,7 @@ const RechargeHistory = () => {
                     </div>
                     <div>
                       <p className="font-extrabold text-slate-800 text-lg leading-tight">
-                        +{request.coin_amount?.toLocaleString() || 0}
+                        +{request.diamond_amount?.toLocaleString() || 0}
                         <span className="text-purple-500 ml-1">💎</span>
                       </p>
                       <p className="text-slate-500 text-sm font-medium">

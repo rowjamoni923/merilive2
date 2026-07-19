@@ -97,15 +97,15 @@ const getNotificationIcon = (type: string, priority?: string) => {
     // Diamonds & Purchase - Top-up
     'topup_approved': { icon: Diamond, color: 'bg-gradient-to-br from-green-500 to-emerald-600' },
     'topup_rejected': { icon: Diamond, color: 'bg-red-500' },
-    'coin_purchase_helper': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-500 to-purple-600' },
-    'coin_purchase_direct': { icon: Coins, color: 'bg-gradient-to-br from-amber-500 to-orange-500' },
-    'coins_added': { icon: Coins, color: 'bg-yellow-500' },
-    'coins_received': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-400 to-blue-500' },
+    'diamond_purchase_helper': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-500 to-purple-600' },
+    'diamond_purchase_direct': { icon: Coins, color: 'bg-gradient-to-br from-amber-500 to-orange-500' },
+    'diamonds_added': { icon: Coins, color: 'bg-yellow-500' },
+    'diamonds_received': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-400 to-blue-500' },
     'payment_completed': { icon: Diamond, color: 'bg-gradient-to-br from-green-500 to-emerald-600' },
     'payment_pending': { icon: Diamond, color: 'bg-gradient-to-br from-amber-500 to-yellow-500' },
     
     // Diamond Exchange
-    'coin_exchange': { icon: Sparkles, color: 'bg-gradient-to-br from-amber-500 to-orange-600' },
+    'diamond_exchange': { icon: Sparkles, color: 'bg-gradient-to-br from-amber-500 to-orange-600' },
     'diamond_sent': { icon: Diamond, color: 'bg-purple-500' },
     
     // Withdrawal
@@ -199,16 +199,16 @@ const getNotificationLink = (notification: Notification): string | null => {
     // Coins & Top-up
     'topup_approved': '/recharge-history',
     'topup_rejected': '/recharge-history',
-    'coin_purchase_helper': '/recharge-history',
-    'coin_purchase_direct': '/recharge-history',
-    'coins_added': '/profile',
-    'coins_received': '/profile',
+    'diamond_purchase_helper': '/recharge-history',
+    'diamond_purchase_direct': '/recharge-history',
+    'diamonds_added': '/profile',
+    'diamonds_received': '/profile',
     'payment_completed': '/recharge-history',
     'payment_pending': '/recharge-history',
     
     // Diamond Exchange
-    'coin_exchange': '/agency-coin-exchange',
-    'diamond_sent': '/agency-coin-exchange',
+    'diamond_exchange': '/agency-diamond-exchange',
+    'diamond_sent': '/agency-diamond-exchange',
     
     // Withdrawal
     'withdrawal': '/agency-withdrawal',
@@ -541,12 +541,12 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
     : '';
 
   const notificationData = notification.data as any;
-  const isHelperPurchase = notification.type === 'coin_purchase_helper';
-  const isDirectPurchase = notification.type === 'coin_purchase_direct';
+  const isHelperPurchase = notification.type === 'diamond_purchase_helper';
+  const isDirectPurchase = notification.type === 'diamond_purchase_direct';
   const isTopupApproved = notification.type === 'topup_approved';
   const isWithdrawalApproved = notification.type === 'withdrawal_approved';
-  const isCoinExchange = notification.type === 'coin_exchange';
-  const isCoinsReceived = notification.type === 'coins_received';
+  const isCoinExchange = notification.type === 'diamond_exchange';
+  const isCoinsReceived = notification.type === 'diamonds_received';
   const isLevelUpgradeApproved = notification.type === 'level_upgrade_approved';
   const isCoinNotification = isHelperPurchase || isDirectPurchase || isTopupApproved || isCoinsReceived || isCoinExchange;
   const isLevelUp = notification.type === 'level_up' || isLevelUpgradeApproved;

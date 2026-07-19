@@ -134,11 +134,11 @@ const AdminCommissionCalculator = () => {
 
   // Calculate call earnings
   const calculateCallEarnings = (minutes: number) => {
-    const totalCoins = minutes * callPerMinuteRate;
+    const totalDiamonds = minutes * callPerMinuteRate;
     const hostPercent = 100 - callCompanyPercent;
-    const hostAmount = Math.round(totalCoins * hostPercent / 100);
-    const companyAmount = totalCoins - hostAmount;
-    return { totalCoins, hostAmount, companyAmount, hostPercent };
+    const hostAmount = Math.round(totalDiamonds * hostPercent / 100);
+    const companyAmount = totalDiamonds - hostAmount;
+    return { totalDiamonds, hostAmount, companyAmount, hostPercent };
   };
 
   const formatNumber = (num: number) => num.toLocaleString();

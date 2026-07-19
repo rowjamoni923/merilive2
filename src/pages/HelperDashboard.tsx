@@ -230,12 +230,12 @@ const HelperDashboard = () => {
   useEffect(() => {
     (async () => {
       const { data } = await supabase
-        .from('coin_packages')
-        .select('coins_amount, bonus_coins, price_usd')
+        .from('diamond_packages')
+        .select('diamonds_amount, bonus_diamonds, price_usd')
         .eq('is_active', true);
       if (data && data.length) {
         const best = Math.max(
-          ...data.map((p: any) => ((p.coins_amount ?? 0) + (p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd) || 1, 0.01))
+          ...data.map((p: any) => ((p.diamonds_amount ?? 0) + (p.bonus_diamonds ?? 0)) / Math.max(Number(p.price_usd) || 1, 0.01))
         );
         if (Number.isFinite(best) && best > 0) setUpgradeDiamondsPerUsd(Math.floor(best));
       }
@@ -482,7 +482,7 @@ const HelperDashboard = () => {
   const loadTransferHistory = async (userId: string) => {
     try {
       const { data: transfers } = await supabase
-        .from('coin_transfers')
+        .from('diamond_transfers')
         .select('*')
         .eq('sender_id', userId)
         .in('sender_type', ['trader_to_user', 'trader_to_agency'])
@@ -735,7 +735,7 @@ const HelperDashboard = () => {
           helper_id: helperData.id,
           user_id: helperData.user_id,
           amount_usd: usdAmount,
-          coin_amount: diamonds,
+          diamond_amount: diamonds,
           payment_method: topupPaymentMethod,
           payment_proof_url: proofUrl,
           transaction_id: topupTransactionId.trim(),
@@ -873,7 +873,7 @@ const HelperDashboard = () => {
       // Use tiered deduction RPC: agency → helper wallet → profile coins
       // CRITICAL: Use 'agency_to_user' so RPC tries agency balance first, then helper wallet, then personal coins
       const { data: result, error } = await supabase
-        .rpc('helper_transfer_coins_to_user', {
+        .rpc('helper_transfer_diamonds_to_user', {
           _sender_id: helperData.user_id,
           _receiver_id: searchedUser.id,
           _amount: amount,

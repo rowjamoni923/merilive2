@@ -73,7 +73,7 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'user_active_sessions',
   'profiles',
   'followers',
-  'coin_transactions',
+  'diamond_transactions',
   'payment_transactions',
   'game_transactions',
   'recharge_transactions',
@@ -107,7 +107,7 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'room_welcome_messages',
 
   // ===== Admin-managed pricing & economy =====
-  'coin_packages',
+  'diamond_packages',
   'recharge_campaigns',
   'first_recharge_bonus',
   'limited_time_offers',
@@ -229,7 +229,7 @@ const APP_REALTIME_PUBLICATION_TABLES = new Set<string>([
   'agency_diamond_transactions',
   'agency_earnings_transfers',
   'agency_commission_history',
-  'coin_transactions',
+  'diamond_transactions',
   'daily_login_claims',
   'helper_notifications',
   'helper_orders',
@@ -760,8 +760,8 @@ export const useUserRealtime = (
         // Profile updates
         if (table === 'profiles' && payload?.id === userId) {
           if (onProfileUpdate) onProfileUpdate(payload);
-          if (onBalanceUpdate && payload?.coins !== undefined) {
-            onBalanceUpdate(payload.coins);
+          if (onBalanceUpdate && payload?.diamonds !== undefined) {
+            onBalanceUpdate(payload.diamonds);
           }
         }
 

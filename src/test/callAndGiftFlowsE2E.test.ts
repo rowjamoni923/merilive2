@@ -26,7 +26,7 @@ interface PrivateCall {
   ended_at?: number;
   last_billing_at?: number;
   duration_seconds?: number;
-  coins_per_minute: number;
+  diamonds_per_minute: number;
   total_charge?: number;
   host_earning?: number;
 }
@@ -75,7 +75,7 @@ class FakeSupabase {
     if (!caller || !host) return { ok: false, reason: 'profile_not_found' };
     if (!host.is_host)    return { ok: false, reason: 'not_a_host' };
     // Pre-flight: caller must afford 1 minute up front.
-    if (caller.coins < coinsPerMinute) return { ok: false, reason: 'insufficient_coins' };
+    if (caller.diamonds < coinsPerMinute) return { ok: false, reason: 'insufficient_diamonds' };
 
     const call: PrivateCall = {
       id: this.uid(),
@@ -83,7 +83,7 @@ class FakeSupabase {
       host_id: hostId,
       status: 'ringing',
       started_at: Date.now(),
-      coins_per_minute: coinsPerMinute,
+      diamonds_per_minute: coinsPerMinute,
     };
     this.calls.set(call.id, call);
     this.broadcast(`call:${hostId}`, 'incoming', call);
@@ -102,8 +102,8 @@ class FakeSupabase {
     return { ok: true };
   }
 
-  /* ── RPC: deduct_call_coins_per_minute (server anti-double-charge gate) ── */
-  async deduct_call_coins_per_minute(callId: string, nowMs = Date.now()) {
+  /* ── RPC: deduct_call_diamonds_per_minute (server anti-double-charge gate) ── */
+  async deduct_call_diamonds_per_minute(callId: string, nowMs = Date.now()) {
     const c = this.calls.get(callId);
     if (!c) return { ok: false, reason: 'not_found' };
     if (c.status !== 'accepted') return { ok: false, reason: 'not_connected' };
@@ -113,17 +113,17 @@ class FakeSupabase {
 
     const caller = this.profiles.get(c.caller_id)!;
     const host = this.profiles.get(c.host_id)!;
-    if (caller.coins < c.coins_per_minute) return { ok: false, reason: 'insufficient_balance' };
+    if (caller.diamonds < c.diamonds_per_minute) return { ok: false, reason: 'insufficient_balance' };
 
     const hostPct = host.host_percent ?? this.appSettings.host_percent_default;
-    const hostEarn = Math.floor(c.coins_per_minute * hostPct / 100);
-    caller.coins -= c.coins_per_minute;
+    const hostEarn = Math.floor(c.diamonds_per_minute * hostPct / 100);
+    caller.diamonds -= c.diamonds_per_minute;
     host.beans += hostEarn;
     c.last_billing_at = nowMs;
     c.duration_seconds = (c.duration_seconds || 0) + 60;
-    c.total_charge = (c.total_charge || 0) + c.coins_per_minute;
+    c.total_charge = (c.total_charge || 0) + c.diamonds_per_minute;
     c.host_earning = (c.host_earning || 0) + hostEarn;
-    return { ok: true, coinsDeducted: c.coins_per_minute, hostEarn };
+    return { ok: true, coinsDeducted: c.diamonds_per_minute, hostEarn };
   }
 
   /* ── RPC: settle_private_call (Pkg23 21-second rule) ─────────────── */
@@ -138,16 +138,16 @@ class FakeSupabase {
     let charge = 0, hostEarn = 0;
     if (durationSec < 21) {
       // < 21s → full minute to company, host earns 0.
-      charge = c.coins_per_minute;
+      charge = c.diamonds_per_minute;
       hostEarn = 0;
     } else {
       const minutes = Math.ceil(durationSec / 60);
-      charge = minutes * c.coins_per_minute;
+      charge = minutes * c.diamonds_per_minute;
       hostEarn = Math.floor(charge * hostPct / 100);
     }
-    if (caller.coins < charge) charge = caller.coins; // cap at balance
+    if (caller.diamonds < charge) charge = caller.diamonds; // cap at balance
     if (durationSec >= 21) hostEarn = Math.floor(charge * hostPct / 100);
-    caller.coins -= charge;
+    caller.diamonds -= charge;
     host.beans  += hostEarn;
     c.status = 'ended';
     c.ended_at = Date.now();
@@ -159,21 +159,21 @@ class FakeSupabase {
   }
 
   /* ── RPC: process_gift_transaction (Pkg23 atomic) ───────────────── */
-  async process_gift_transaction({ senderId, receiverId, giftId, coins, roomId, roomType }: {
+  async process_gift_transaction({ senderId, receiverId, giftId, diamonds, roomId, roomType }: {
     senderId: string; receiverId: string; giftId: string; coins: number;
     roomId: string; roomType: 'live' | 'party' | 'chat';
   }) {
     const sender = this.profiles.get(senderId);
     const recv   = this.profiles.get(receiverId);
     if (!sender || !recv) return { ok: false, reason: 'profile_not_found' };
-    if (sender.coins < coins) return { ok: false, reason: 'insufficient_coins' };
+    if (sender.diamonds < coins) return { ok: false, reason: 'insufficient_diamonds' };
     const hostPct = recv.host_percent ?? this.appSettings.host_percent_default;
     const beans = recv.is_host ? Math.floor(coins * hostPct / 100) : 0;
-    sender.coins -= coins;
+    sender.diamonds -= coins;
     recv.beans   += beans;
     const tx: GiftTx = {
       id: this.uid(), sender_id: senderId, receiver_id: receiverId,
-      gift_id: giftId, coins, beans_credited: beans, room_id: roomId, room_type: roomType,
+      gift_id: giftId, diamonds, beans_credited: beans, room_id: roomId, room_type: roomType,
     };
     this.gifts.push(tx);
     this.broadcast(`${roomType}:${roomId}`, 'gift', tx);
@@ -267,7 +267,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       expect(settled.ok).toBe(true);
       expect(settled.charge).toBe(200);                // ceil(90/60)*100
       expect(settled.hostEarn).toBe(120);              // floor(200 * 60%)
-      expect(sb.profiles.get(caller.id)!.coins).toBe(4_800);
+      expect(sb.profiles.get(caller.id)!.diamonds).toBe(4_800);
       expect(sb.profiles.get(host.id)!.beans).toBe(120);
     });
 
@@ -292,11 +292,11 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     });
 
     it('rejects when caller cannot afford one minute', async () => {
-      caller.coins = 50; sb.seedProfile(caller);
+      caller.diamonds = 50; sb.seedProfile(caller);
       const r = await sb.start_private_call({
         callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
-      expect(r.reason).toBe('insufficient_coins');
+      expect(r.reason).toBe('insufficient_diamonds');
     });
 
     it('settle is idempotent — second call returns already_settled', async () => {
@@ -311,7 +311,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     });
 
     it('caps host beans to actually charged diamonds when caller balance is short at settle', async () => {
-      caller.coins = 150; sb.seedProfile(caller);
+      caller.diamonds = 150; sb.seedProfile(caller);
       const start = await sb.start_private_call({
         callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
@@ -330,11 +330,11 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
 
-      const first = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
-      const duplicate = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_500);
+      const first = await sb.deduct_call_diamonds_per_minute(start.callId!, 1_000_000);
+      const duplicate = await sb.deduct_call_diamonds_per_minute(start.callId!, 1_000_500);
       expect(first).toMatchObject({ ok: true, coinsDeducted: 100, hostEarn: 60 });
       expect(duplicate).toMatchObject({ ok: true, duplicateIgnored: true, coinsDeducted: 0, hostEarn: 0 });
-      expect(sb.profiles.get(caller.id)!.coins).toBe(4_900);
+      expect(sb.profiles.get(caller.id)!.diamonds).toBe(4_900);
       expect(sb.profiles.get(host.id)!.beans).toBe(60);
     });
 
@@ -346,9 +346,9 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
 
-      await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
-      await sb.deduct_call_coins_per_minute(start.callId!, 1_060_000);
-      expect(sb.profiles.get(caller.id)!.coins).toBe(4_600);
+      await sb.deduct_call_diamonds_per_minute(start.callId!, 1_000_000);
+      await sb.deduct_call_diamonds_per_minute(start.callId!, 1_060_000);
+      expect(sb.profiles.get(caller.id)!.diamonds).toBe(4_600);
       expect(sb.profiles.get(host.id)!.beans).toBe(180);
     });
   });
@@ -407,7 +407,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       });
       expect(r.ok).toBe(true);
       expect(r.beansCredited).toBe(600);                 // 60% of 1000
-      expect(sb.profiles.get(viewer.id)!.coins).toBe(9_000);
+      expect(sb.profiles.get(viewer.id)!.diamonds).toBe(9_000);
       expect(sb.profiles.get(host.id)!.beans).toBe(600);
       const evt = sb.broadcasts.find(b => b.topic === 'live:room-live-1' && b.event === 'gift');
       expect(evt?.payload.gift_id).toBe('g-rose');
@@ -434,13 +434,13 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     });
 
     it('rejects when sender lacks coins — no debit, no broadcast', async () => {
-      viewer.coins = 100; sb.seedProfile(viewer);
+      viewer.diamonds = 100; sb.seedProfile(viewer);
       const r = await sb.process_gift_transaction({
         senderId: viewer.id, receiverId: host.id, giftId: 'g-yacht',
         coins: 50_000, roomId: 'room-live-1', roomType: 'live',
       });
-      expect(r).toEqual({ ok: false, reason: 'insufficient_coins' });
-      expect(sb.profiles.get(viewer.id)!.coins).toBe(100);
+      expect(r).toEqual({ ok: false, reason: 'insufficient_diamonds' });
+      expect(sb.profiles.get(viewer.id)!.diamonds).toBe(100);
       expect(sb.profiles.get(host.id)!.beans).toBe(0);
       expect(sb.broadcasts.some(b => b.event === 'gift')).toBe(false);
     });

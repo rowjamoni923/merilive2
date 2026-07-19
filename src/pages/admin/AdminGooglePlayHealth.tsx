@@ -12,7 +12,7 @@ type CheckResult = {
   oauthToken?: { ok: boolean; tokenPrefix?: string; error?: string };
   googlePlayApi?: { ok: boolean; status?: number; bodyPreview?: string };
   products?: { ok: boolean; total: number; items: Array<{ productId: string; priceUsd: number; resolved: boolean; coins?: number; error?: string }> };
-  recentActivity?: { totalGooglePlayRecharges: number; lastFive: Array<{ id: string; user_id: string; google_product_id: string; coins_received: number; status: string; created_at: string }> };
+  recentActivity?: { totalGooglePlayRecharges: number; lastFive: Array<{ id: string; user_id: string; google_product_id: string; diamonds_received: number; status: string; created_at: string }> };
 };
 
 export default function AdminGooglePlayHealth() {
@@ -59,7 +59,7 @@ export default function AdminGooglePlayHealth() {
         </Button>
       </div>
       <p className="text-sm text-muted-foreground">
-        Verifies the full chain: service account JSON → OAuth2 token mint → Google Play Developer API reachability → coin_packages product resolution → recent recharge activity.
+        Verifies the full chain: service account JSON → OAuth2 token mint → Google Play Developer API reachability → diamond_packages product resolution → recent recharge activity.
       </p>
 
       {!data && !loading && (
@@ -91,7 +91,7 @@ export default function AdminGooglePlayHealth() {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>${p.priceUsd}</span>
-                      <Badge variant="secondary" className="text-[10px]">{p.coins?.toLocaleString() ?? "?"} 💎</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{p.diamonds?.toLocaleString() ?? "?"} 💎</Badge>
                     </div>
                   </div>
                 ))}
@@ -115,7 +115,7 @@ export default function AdminGooglePlayHealth() {
                     {r.recentActivity.lastFive.map((t) => (
                       <div key={t.id} className="text-xs border border-border rounded p-2 space-y-1">
                         <div className="flex justify-between"><span className="font-mono">{t.google_product_id}</span><Badge variant={t.status === "completed" ? "default" : "secondary"}>{t.status}</Badge></div>
-                        <div className="text-muted-foreground">User: <span className="font-mono">{t.user_id.slice(0, 8)}…</span> · +{t.coins_received?.toLocaleString()} 💎 · {new Date(t.created_at).toLocaleString()}</div>
+                        <div className="text-muted-foreground">User: <span className="font-mono">{t.user_id.slice(0, 8)}…</span> · +{t.diamonds_received?.toLocaleString()} 💎 · {new Date(t.created_at).toLocaleString()}</div>
                       </div>
                     ))}
                   </div>

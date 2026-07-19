@@ -144,9 +144,9 @@ const Level = () => {
       
       return subscribeToTables(
         subscriberId,
-        ['profiles', 'gift_transactions', 'coin_transactions', 'payment_transactions', 'level_animations', 'user_level_tiers', 'level_privileges'],
+        ['profiles', 'gift_transactions', 'diamond_transactions', 'payment_transactions', 'level_animations', 'user_level_tiers', 'level_privileges'],
         (table) => {
-          if (table === 'profiles' || table === 'gift_transactions' || table === 'coin_transactions' || table === 'payment_transactions') {
+          if (table === 'profiles' || table === 'gift_transactions' || table === 'diamond_transactions' || table === 'payment_transactions') {
             fetchUserLevel();
           } else if (table === 'level_animations') {
             fetchLevelAnimations();
@@ -237,20 +237,20 @@ const Level = () => {
       let totalPayment = 0;
       const PAGE_SIZE = 1000;
 
-      // Sum coin_transactions with pagination
+      // Sum diamond_transactions with pagination
       let page = 0;
       let hasMore = true;
       while (hasMore) {
         const { data, error } = await supabase
-          .from('coin_transactions')
-          .select('coins_amount')
+          .from('diamond_transactions')
+          .select('diamonds_amount')
           .eq('user_id', userId)
           .eq('status', 'completed')
           .in('transaction_type', ['recharge', 'self_recharge'])
           .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
         if (error) throw error;
         if (!data || data.length === 0) { hasMore = false; break; }
-        totalCoin += data.reduce((s, tx) => s + Number(tx.coins_amount ?? 0), 0);
+        totalCoin += data.reduce((s, tx) => s + Number(tx.diamonds_amount ?? 0), 0);
         if (data.length < PAGE_SIZE) hasMore = false;
         page++;
       }
@@ -314,7 +314,7 @@ const Level = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, coins, user_level, host_level, max_user_level, weekly_earnings')
+        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, diamonds, user_level, host_level, max_user_level, weekly_earnings')
         .eq('id', user.id)
         .single();
 

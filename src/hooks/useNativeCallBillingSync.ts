@@ -9,7 +9,7 @@
  *
  *   - `private_calls` row updates (server cron `bill_call_minute`
  *      writes `last_billed_minute`, `total_minutes_billed`).
- *   - The caller's wallet `profiles.coins` changes (recharge, gift, etc).
+ *   - The caller's wallet `profiles.diamonds` changes (recharge, gift, etc).
  *   - The call's `viewer_rate_per_min` is changed mid-call.
  *
  * Activity then runs a 1Hz local countdown so the low-balance banner
@@ -197,7 +197,7 @@ export function useNativeCallBillingSync({
       try {
         const { data: callRow } = await supabase
           .from('private_calls')
-          .select('caller_id, viewer_rate_per_min, coins_per_minute')
+          .select('caller_id, viewer_rate_per_min, diamonds_per_minute')
           .eq('id', callId)
           .maybeSingle();
         if (cancelled) return;
@@ -208,13 +208,13 @@ export function useNativeCallBillingSync({
         }
         const { data: profile } = await supabase
           .from('profiles')
-          .select('coins')
+          .select('diamonds')
           .eq('id', userId)
           .maybeSingle();
         if (cancelled) return;
-        balance = Number(profile?.coins ?? 0);
+        balance = Number(profile?.diamonds ?? 0);
         rate = Number(
-          callRow.viewer_rate_per_min ?? (callRow as { coins_per_minute?: number }).coins_per_minute ?? 0,
+          callRow.viewer_rate_per_min ?? (callRow as { diamonds_per_minute?: number }).diamonds_per_minute ?? 0,
         );
         maybePush();
         if (cancelled) return;
@@ -228,7 +228,7 @@ export function useNativeCallBillingSync({
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
             (payload) => {
-              const next = Number((payload.new as { coins?: number } | null)?.coins ?? balance);
+              const next = Number((payload.new as { coins?: number } | null)?.diamonds ?? balance);
               if (Number.isFinite(next)) {
                 balance = next;
                 maybePush();
@@ -245,9 +245,9 @@ export function useNativeCallBillingSync({
             (payload) => {
               const row = payload.new as {
                 viewer_rate_per_min?: number;
-                coins_per_minute?: number;
+                diamonds_per_minute?: number;
               } | null;
-              const nextRate = Number(row?.viewer_rate_per_min ?? row?.coins_per_minute ?? rate);
+              const nextRate = Number(row?.viewer_rate_per_min ?? row?.diamonds_per_minute ?? rate);
               if (Number.isFinite(nextRate) && nextRate > 0 && nextRate !== rate) {
                 rate = nextRate;
               }

@@ -175,8 +175,8 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/contact-violations';
   if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('helper')) return '/admin/helper-management';
-  if (type.includes('topup') || type.includes('coin_purchase')) return '/admin/topup-system';
-  if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/diamond-traders';
+  if (type.includes('topup') || type.includes('diamond_purchase')) return '/admin/topup-system';
+  if (type.includes('diamond_exchange') || type.includes('diamond_sent')) return '/admin/diamond-traders';
   if (type.includes('report') || type.includes('violation')) return '/admin/live-bans';
   if (type.includes('security')) return '/admin/logs';
   if (type === 'system') return '/admin/settings';
@@ -698,7 +698,7 @@ const navGroups: NavGroup[] = [
         icon: ScrollText,
         path: "/admin/wallet-ledger",
         hubKey: "finance-hub",
-        description: "Unified credit/debit ledger for every user — beans, diamonds, coins, all sources, all timestamps.",
+        description: "Unified credit/debit ledger for every user — beans, diamonds, diamonds, all sources, all timestamps.",
       },
       {
         label: "🎁 Rewards Audit",
@@ -2234,7 +2234,7 @@ export default function AdminLayout() {
       'helper_orders', 'live_bans', 'live_face_violations', 'host_conversion_requests',
       'chat_moderation_logs', 'host_contact_violations', 'helper_withdrawal_requests', 'notifications',
       'rating_reward_claims', 'leaderboard_reward_history', 'consumption_return_history',
-      'agency_earnings_transfers', 'coin_transfers', 'admin_users', 'admin_section_permissions'
+      'agency_earnings_transfers', 'diamond_transfers', 'admin_users', 'admin_section_permissions'
     ]);
 
     // Synthetic broadcast events from useAdminBroadcastSync (Pkg37) carry only
@@ -2559,7 +2559,7 @@ export default function AdminLayout() {
       case 'topup_request':
       case 'topup_approved':
       case 'topup_rejected':
-      case 'coin_purchase_helper':
+      case 'diamond_purchase_helper':
       case 'helper_topup_request':
         return <Coins className="w-4 h-4 text-yellow-500" />;
       case 'level_upgrade_approved':

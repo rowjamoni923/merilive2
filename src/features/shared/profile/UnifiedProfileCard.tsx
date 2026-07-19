@@ -280,7 +280,7 @@ export const UnifiedProfileCard = ({
                       <div className="flex items-center justify-center gap-0.5">
                         <span className="text-xs">🪙</span>
                         <span className="text-base font-bold text-white">
-                          {((profile.coins || 0) / 1000).toFixed(0)}K
+                          {((profile.diamonds || 0) / 1000).toFixed(0)}K
                         </span>
                       </div>
                       <div className="text-[10px] text-slate-400">Diamonds</div>

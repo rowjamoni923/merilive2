@@ -138,7 +138,7 @@ export function useGlobalAppSettings(): GlobalAppSettings {
   }, [raw, settings.minWithdrawalDollars, settings.withdrawalPlatformFeePercent]);
 
   const diamondExchange = useMemo<DiamondExchangeSettings | null>(() => {
-    const value = raw.coin_exchange;
+    const value = raw.diamond_exchange;
     if (!value) return null;
 
     return {

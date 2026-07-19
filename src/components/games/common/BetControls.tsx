@@ -3,7 +3,7 @@ import { Diamond } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BetControlsProps {
-  userCoins: number;
+  userDiamonds: number;
   betAmount: number;
   setBetAmount: (amount: number) => void;
   phase: string;
@@ -26,13 +26,13 @@ export const formatBetAmount = (amount: number): string => {
   return amount.toString();
 };
 
-export function DiamondBalanceDisplay({ userCoins }: { userCoins: number }) {
+export function DiamondBalanceDisplay({ userDiamonds }: { userDiamonds: number }) {
   return (
     <div className="flex items-center justify-center gap-2 mb-2">
       <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-full border border-cyan-500/50">
         <Diamond className="w-4 h-4 text-cyan-400" />
         <span className="text-cyan-300 font-bold text-sm">
-          {userCoins.toLocaleString()}
+          {userDiamonds.toLocaleString()}
         </span>
       </div>
     </div>
@@ -40,7 +40,7 @@ export function DiamondBalanceDisplay({ userCoins }: { userCoins: number }) {
 }
 
 export function PresetBetButtons({ 
-  userCoins, 
+  userDiamonds, 
   betAmount, 
   setBetAmount, 
   phase,
@@ -56,12 +56,12 @@ export function PresetBetButtons({
           key={amount}
           whileTap={{ scale: 0.95 }}
           onClick={() => setBetAmount(amount)}
-          disabled={amount > userCoins}
+          disabled={amount > userDiamonds}
           className={cn(
             "px-2 py-1 rounded-md text-[10px] font-bold transition-all",
             betAmount === amount
               ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
-              : amount > userCoins
+              : amount > userDiamonds
                 ? "bg-white/5 text-white/30 cursor-not-allowed"
                 : "bg-white/10 text-white/80 hover:bg-white/20"
           )}

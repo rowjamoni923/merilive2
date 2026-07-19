@@ -16,7 +16,7 @@ interface CoinFlyAnimationProps {
   onComplete?: (id: number) => void;
 }
 
-export const CoinFlyAnimation = ({ coins, onComplete }: CoinFlyAnimationProps) => {
+export const DiamondFlyAnimation = ({ coins, onComplete }: CoinFlyAnimationProps) => {
   return (
     <AnimatePresence>
       {coins.map((coin) => (

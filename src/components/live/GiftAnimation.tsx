@@ -277,7 +277,7 @@ export const GiftAnimation = ({ gift, senderName, count = 1, onComplete }: GiftA
             </p>
           </div>
           <div className="text-amber-300 font-bold text-lg">
-            💎 {gift.coins * count}
+            💎 {gift.diamonds * count}
           </div>
         </div>
       </motion.div>

@@ -13,9 +13,9 @@ const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolea
 const isFreeAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
-  price_coins?: number | null;
+  price_diamonds?: number | null;
 }) => {
-  return !asset.is_premium && (asset.price_diamonds ?? 0) <= 0 && (asset.price_coins ?? 0) <= 0;
+  return !asset.is_premium && (asset.price_diamonds ?? 0) <= 0 && (asset.price_diamonds ?? 0) <= 0;
 };
 
 type Candidate = { id: string; level: number };
@@ -135,7 +135,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           supabase.from('user_role_frames').select('frame_id').eq('user_id', userId),
           supabase
             .from('avatar_frames')
-            .select('id, min_level, level_required, target_type, is_premium, price_diamonds, price_coins')
+            .select('id, min_level, level_required, target_type, is_premium, price_diamonds, price_diamonds')
             .eq('is_active', true)
             .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`),
           supabase
@@ -144,15 +144,15 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
             .eq('is_active', true),
           supabase
             .from('entry_name_bars')
-            .select('id, level_required, is_premium, price_diamonds, price_coins')
+            .select('id, level_required, is_premium, price_diamonds, price_diamonds')
             .eq('is_active', true),
           supabase
             .from('entry_banners')
-            .select('id, level_required, is_premium, price_diamonds, price_coins')
+            .select('id, level_required, is_premium, price_diamonds, price_diamonds')
             .eq('is_active', true),
           supabase
             .from('vehicle_entrances' as any)
-            .select('id, level_required, is_premium, price_diamonds, price_coins')
+            .select('id, level_required, is_premium, price_diamonds, price_diamonds')
             .eq('is_active', true),
         ]);
 
@@ -203,7 +203,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         const nameBarCandidates = [
           ...((entryNameBarsRes.data || []) as any[])
-            .map((item) => ({ id: item.id, level: item.level_required ?? 1, free: !item.is_premium && (item.price_diamonds ?? 0) <= 0 && (item.price_coins ?? 0) <= 0 }))
+            .map((item) => ({ id: item.id, level: item.level_required ?? 1, free: !item.is_premium && (item.price_diamonds ?? 0) <= 0 && (item.price_diamonds ?? 0) <= 0 }))
             .filter((item) => item.free && item.level <= effectiveLevel && shouldShowLevelReward(item.level)),
           ...levelPrivileges
             .filter((item) => ['entry_bar', 'entry_name_bar', 'entry_bar_effect'].includes(item.privilege_type))

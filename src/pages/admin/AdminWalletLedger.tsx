@@ -12,7 +12,7 @@ import { toast } from "sonner";
 type LedgerRow = {
   id: number;
   user_id: string;
-  currency: "beans" | "diamonds" | "coins";
+  currency: "beans" | "diamonds" | "diamonds";
   delta: number;
   balance_before: number | null;
   balance_after: number | null;
@@ -35,7 +35,7 @@ const SOURCE_TYPES = [
   "coin_tx", "self_recharge", "unknown",
 ];
 
-const CURRENCIES = ["all", "beans", "diamonds", "coins"] as const;
+const CURRENCIES = ["all", "beans", "diamonds", "diamonds"] as const;
 
 export default function AdminWalletLedger() {
   const [searchParams] = useSearchParams();
@@ -126,7 +126,7 @@ export default function AdminWalletLedger() {
         <StatCard label="Movements" value={totals.count.toLocaleString()} />
         <StatCard label="Net Beans" value={totals.beans.toLocaleString()} tint={totals.beans >= 0 ? "emerald" : "rose"} />
         <StatCard label="Net Diamonds" value={totals.diamonds.toLocaleString()} tint={totals.diamonds >= 0 ? "emerald" : "rose"} />
-        <StatCard label="Net Diamonds (alias)" value={totals.coins.toLocaleString()} tint={totals.coins >= 0 ? "emerald" : "rose"} />
+        <StatCard label="Net Diamonds (alias)" value={totals.diamonds.toLocaleString()} tint={totals.diamonds >= 0 ? "emerald" : "rose"} />
       </div>
 
       <Card className="border-slate-200 shadow-sm">

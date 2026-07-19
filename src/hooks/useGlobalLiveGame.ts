@@ -68,11 +68,11 @@ export function useGlobalLiveGame({
     if (user) {
       const { data } = await supabase
         .from('profiles')
-        .select('coins')
+        .select('diamonds')
         .eq('id', user.id)
         .single();
-      if (data) setUserBalance(data.coins);
-      return data?.coins || 0;
+      if (data) setUserBalance(data.diamonds);
+      return data?.diamonds || 0;
     }
     return 0;
   }, []);

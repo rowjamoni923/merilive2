@@ -73,7 +73,7 @@ interface TradeHistory {
   user?: UserProfile;
 }
 
-const AgencyCoinTrader = () => {
+const AgencyDiamondTrader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [agency, setAgency] = useState<Agency | null>(null);
@@ -166,7 +166,7 @@ const AgencyCoinTrader = () => {
 
       // Fetch trade history
       const { data: historyData } = await supabase
-        .from('coin_transfers')
+        .from('diamond_transfers')
         .select('*')
         .eq('sender_id', agencyData.id)
         .order('created_at', { ascending: false })
@@ -177,7 +177,7 @@ const AgencyCoinTrader = () => {
         const userIds = historyData.map(h => h.receiver_id);
         const { data: users } = await supabase
           .from('profiles')
-          .select('id, display_name, avatar_url, username, app_uid, coins')
+          .select('id, display_name, avatar_url, username, app_uid, diamonds')
           .in('id', userIds);
 
         const enrichedHistory = historyData.map(h => ({
@@ -190,7 +190,7 @@ const AgencyCoinTrader = () => {
 
     } catch (error) {
       console.error('Error loading data:', error);
-      recordClientError({ label: "AgencyCoinTrader.enrichedHistory", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondTrader.enrichedHistory", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Failed to load data",
@@ -219,7 +219,7 @@ const AgencyCoinTrader = () => {
       setSearchResults(data || []);
     } catch (error) {
       console.error('Search error:', error);
-      recordClientError({ label: "AgencyCoinTrader.searchUsers", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondTrader.searchUsers", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setSearching(false);
     }
@@ -285,7 +285,7 @@ const AgencyCoinTrader = () => {
         // Agency buys coins from user - ATOMIC operations
         // 1. ATOMIC: Deduct from user's coins with FOR UPDATE locking
         const { data: deductResult, error: deductError } = await supabase
-          .rpc('deduct_coins_from_user', {
+          .rpc('deduct_diamonds_from_user', {
             p_user_id: selectedUser.id,
             p_amount: Math.floor(amount)
           });
@@ -311,7 +311,7 @@ const AgencyCoinTrader = () => {
 
         // 3. Record transaction
         await supabase
-          .from('coin_transfers')
+          .from('diamond_transfers')
           .insert({
             sender_id: agency.id,
             receiver_id: selectedUser.id,
@@ -331,7 +331,7 @@ const AgencyCoinTrader = () => {
         // This deducts agency/helper/user balance and credits the receiver atomically.
         const senderType = (agency?.diamond_balance ?? 0) >= amount ? 'agency_to_user' : 'trader_to_user';
         const { data: transferResult, error: transferError } = await supabase
-          .rpc('helper_transfer_coins_to_user', {
+          .rpc('helper_transfer_diamonds_to_user', {
             _sender_id: currentUserId,
             _receiver_id: selectedUser.id,
             _amount: Math.floor(amount),
@@ -346,7 +346,7 @@ const AgencyCoinTrader = () => {
 
         // 3. Record transaction
         await supabase
-          .from('coin_transfers')
+          .from('diamond_transfers')
           .insert({
             sender_id: agency.id,
             receiver_id: selectedUser.id,
@@ -368,7 +368,7 @@ const AgencyCoinTrader = () => {
 
     } catch (error: any) {
       console.error('Trade error:', error);
-      recordClientError({ label: "AgencyCoinTrader.addUserData", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondTrader.addUserData", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: error?.message || "Failed to process trade",
@@ -403,7 +403,7 @@ const AgencyCoinTrader = () => {
         .insert({
           user_id: agency.id, // Agency as user for this context
           helper_id: agency.id, // Will be reassigned by admin
-          coin_amount: amount,
+          diamond_amount: amount,
           amount_usd: dollarAmount,
           amount_local: dollarAmount,
           currency_code: 'USD',
@@ -426,7 +426,7 @@ const AgencyCoinTrader = () => {
 
     } catch (error) {
       console.error('Order error:', error);
-      recordClientError({ label: "AgencyCoinTrader.dollarAmount", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondTrader.dollarAmount", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Failed to submit order",
@@ -1115,4 +1115,4 @@ const AgencyCoinTrader = () => {
   );
 };
 
-export default AgencyCoinTrader;
+export default AgencyDiamondTrader;

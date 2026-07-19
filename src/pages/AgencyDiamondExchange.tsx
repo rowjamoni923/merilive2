@@ -92,7 +92,7 @@ const normalizeExchangeSettings = (settings?: Record<string, unknown>): Exchange
   };
 };
 
-const AgencyCoinExchange = () => {
+const AgencyDiamondExchange = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [agency, setAgency] = useState<Agency | null>(null);
@@ -133,7 +133,7 @@ const AgencyCoinExchange = () => {
 
   // Pkg83-ext: removed agency/profile/exchange-settings postgres_changes
   // channels (agencies/profiles/app_settings not in publication). Pkg37
-  // admin_broadcast pushes coin_exchange edits; own balances refresh on
+  // admin_broadcast pushes diamond_exchange edits; own balances refresh on
   // visibility + after mutations.
   useEffect(() => {
     if (!agency?.id || !ownerId) return;
@@ -156,10 +156,10 @@ const AgencyCoinExchange = () => {
       if (detail?.table !== 'app_settings') return;
       // Bust cache so we read the latest admin value (agency-specific, fall back to shared)
       invalidateAppSetting('agency_coin_exchange');
-      invalidateAppSetting('coin_exchange');
+      invalidateAppSetting('diamond_exchange');
       const value =
         (await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 })) ||
-        (await getAppSetting<Record<string, unknown>>('coin_exchange', { maxAgeMs: 0 }));
+        (await getAppSetting<Record<string, unknown>>('diamond_exchange', { maxAgeMs: 0 }));
       if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
@@ -210,7 +210,7 @@ const AgencyCoinExchange = () => {
       // Fetch agency-specific exchange settings (rate + 25% fee); fall back to user setting
       const settingsValue =
         (await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 })) ||
-        (await getAppSetting<Record<string, unknown>>('coin_exchange', { maxAgeMs: 0 }));
+        (await getAppSetting<Record<string, unknown>>('diamond_exchange', { maxAgeMs: 0 }));
       if (settingsValue) {
         setExchangeSettings(normalizeExchangeSettings(settingsValue));
       }
@@ -227,7 +227,7 @@ const AgencyCoinExchange = () => {
       setRecentTransactions(transactionsData || []);
     } catch (error) {
       console.error("Error fetching data:", error);
-      recordClientError({ label: "AgencyCoinExchange.settings", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondExchange.settings", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
     } finally {
       setIsLoading(false);
@@ -270,7 +270,7 @@ const AgencyCoinExchange = () => {
       setSearchResults(data || []);
     } catch (error) {
       console.error("Search error:", error);
-      recordClientError({ label: "AgencyCoinExchange.searchUsers", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondExchange.searchUsers", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -350,7 +350,7 @@ const AgencyCoinExchange = () => {
       });
     } catch (error) {
       console.error("Agency search error:", error);
-      recordClientError({ label: "AgencyCoinExchange.searchAgencyByOwnerUID", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondExchange.searchAgencyByOwnerUID", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Search Error",
         description: "Failed to search agency",
@@ -474,7 +474,7 @@ const AgencyCoinExchange = () => {
 
         if (rpcError) {
           console.error('RPC error:', rpcError);
-          recordClientError({ label: "AgencyCoinExchange.beans", message: rpcError instanceof Error ? rpcError.message : String(rpcError) });
+          recordClientError({ label: "AgencyDiamondExchange.beans", message: rpcError instanceof Error ? rpcError.message : String(rpcError) });
           toast({ title: "Exchange Failed", description: rpcError.message, variant: "destructive" });
           setIsProcessing(false);
           return;
@@ -501,7 +501,7 @@ const AgencyCoinExchange = () => {
         // Create notification for the exchange - ONLY after successful update
         await supabase.from('notifications').insert({
           user_id: ownerId,
-          type: 'coin_exchange',
+          type: 'diamond_exchange',
           title: 'Exchange Successful! ✨',
           message: `Converted ${beans.toLocaleString()} beans to ${diamondsToGet.toLocaleString()} diamonds.`,
           data: { beans: beans, diamonds: diamondsToGet, fee: feeAmount }
@@ -586,7 +586,7 @@ const AgencyCoinExchange = () => {
       }
     } catch (error) {
       console.error("Transaction error:", error);
-      recordClientError({ label: "AgencyCoinExchange.rpcResult", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "AgencyDiamondExchange.rpcResult", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Transfer Failed",
         description: error instanceof Error ? error.message : "Failed to complete transaction",
@@ -1323,4 +1323,4 @@ const AgencyCoinExchange = () => {
   );
 };
 
-export default AgencyCoinExchange;
+export default AgencyDiamondExchange;

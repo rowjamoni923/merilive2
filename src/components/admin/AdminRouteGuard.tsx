@@ -82,7 +82,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
 
   // Finance
   'finance': 'finance-hub',
-  'coins': 'finance-hub',
+  'diamonds': 'finance-hub',
   'topup-system': 'finance-hub',
   'manual-topup': 'finance-hub',
   'payment-gateways': 'finance-hub',
@@ -102,8 +102,8 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'host-conversion': 'finance-hub',
 
   // Traders
-  'coin-trader-hub': 'trader-hub',
-  'coin-traders': 'trader-hub',
+  'diamond-trader-hub': 'trader-hub',
+  'diamond-traders': 'trader-hub',
   'helper-management': 'trader-hub',
   'helper-applications': 'trader-hub',
   'helper-requests': 'trader-hub',

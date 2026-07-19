@@ -52,7 +52,7 @@ export const FerrisWheelGame = () => {
         setUserId(user.id);
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("id, coins, display_name")
+          .select("id, diamonds, display_name")
           .eq("id", user.id)
           .single();
         if (profileData) {
@@ -314,7 +314,7 @@ export const FerrisWheelGame = () => {
         <div className="bg-white/80 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2 shadow">
           <span className="text-gray-600 text-sm">Gold balance</span>
           <Diamond className="w-4 h-4 text-pink-500" />
-          <span className="font-bold text-gray-800">{(profile?.coins || 0).toLocaleString()}</span>
+          <span className="font-bold text-gray-800">{(profile?.diamonds || 0).toLocaleString()}</span>
         </div>
         <div className="bg-white/80 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2 shadow">
           <span className="text-gray-600 text-sm">Today's profit</span>

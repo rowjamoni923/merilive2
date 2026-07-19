@@ -34,7 +34,7 @@ export default function AdminGlobalSearch() {
 
     const userQ = supabase
       .from("profiles")
-      .select("id,username,display_name,email,phone_number,beans,diamonds,coins,created_at")
+      .select("id,username,display_name,email,phone_number,beans,diamonds,diamonds,created_at")
       .or(
         [
           isUuid ? `id.eq.${s}` : null,
@@ -107,7 +107,7 @@ export default function AdminGlobalSearch() {
                     <td className="text-slate-500">{u.email || "—"}</td>
                     <td className="text-slate-500">{u.phone_number || "—"}</td>
                     <td>{Number(u.beans ?? 0).toLocaleString()}</td>
-                    <td>{Math.max(Number(u.diamonds ?? 0), Number(u.coins ?? 0)).toLocaleString()}</td>
+                    <td>{Math.max(Number(u.diamonds ?? 0), Number(u.diamonds ?? 0)).toLocaleString()}</td>
                     <td className="text-slate-500">{new Date(u.created_at).toLocaleDateString()}</td>
                     <td>
                       <Link to={`/admin/users/${u.id}/wallet`} className="text-blue-600 hover:underline inline-flex items-center gap-1">

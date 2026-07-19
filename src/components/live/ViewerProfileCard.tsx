@@ -177,7 +177,7 @@ export const ViewerProfileCard = ({
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <span className="text-lg">💎</span>
                       <span className="text-xl font-bold text-foreground">
-                        {(viewer.coins || 0).toLocaleString()}
+                        {(viewer.diamonds || 0).toLocaleString()}
                       </span>
                     </div>
                     <span className="text-xs text-muted-foreground">Diamonds</span>

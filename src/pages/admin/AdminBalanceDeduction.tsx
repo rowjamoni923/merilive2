@@ -271,7 +271,7 @@ export default function AdminBalanceDeduction() {
         // First try exact match on app_uid (cast to text for comparison)
         const { data: exactProfiles, error: exactError } = await supabase
           .from('profiles')
-          .select('id, app_uid, display_name, avatar_url, is_host, is_blocked, coins, total_earnings, pending_earnings')
+          .select('id, app_uid, display_name, avatar_url, is_host, is_blocked, diamonds, total_earnings, pending_earnings')
           .eq('app_uid', trimmedQuery)
           .limit(10);
         
@@ -283,7 +283,7 @@ export default function AdminBalanceDeduction() {
           // Try partial match with ilike
           const { data: partialProfiles, error: partialError } = await supabase
             .from('profiles')
-            .select('id, app_uid, display_name, avatar_url, is_host, is_blocked, coins, total_earnings, pending_earnings')
+            .select('id, app_uid, display_name, avatar_url, is_host, is_blocked, diamonds, total_earnings, pending_earnings')
             .or(`app_uid.ilike.%${trimmedQuery}%,display_name.ilike.%${trimmedQuery}%`)
             .limit(10);
           
@@ -320,7 +320,7 @@ export default function AdminBalanceDeduction() {
               avatar: profile.avatar_url || undefined,
               isBlocked: profile.is_blocked || false,
               balances: {
-                coins: profile.coins || 0,
+                coins: profile.diamonds || 0,
                 total_earnings: profile.total_earnings || 0,
                 pending_earnings: profile.pending_earnings || 0
               },
@@ -485,7 +485,7 @@ export default function AdminBalanceDeduction() {
     
     if (result.type === 'user' || result.type === 'host') {
       // User's diamonds
-      fields.push({ key: 'coins', label: 'Diamonds', value: result.balances.coins || 0, icon: <Diamond className="w-4 h-4 text-blue-500" />, source: 'user' });
+      fields.push({ key: 'diamonds', label: 'Diamonds', value: result.balances.diamonds || 0, icon: <Diamond className="w-4 h-4 text-blue-500" />, source: 'user' });
       if (result.type === 'host') {
         fields.push({ key: 'total_earnings', label: 'Total Earnings (Beans)', value: result.balances.total_earnings || 0, icon: <Coins className="w-4 h-4 text-amber-500" />, source: 'user' });
         fields.push({ key: 'pending_earnings', label: 'Pending Earnings', value: result.balances.pending_earnings || 0, icon: <Coins className="w-4 h-4 text-orange-500" />, source: 'user' });
@@ -561,13 +561,13 @@ export default function AdminBalanceDeduction() {
       target_id = selectedResult.relatedHelper.id;
       db_field = fieldKey === 'helper_wallet' ? 'wallet_balance' : 'total_earnings';
     }
-    // Plain profile (user/host) — note: UI labels "coins" as Diamonds but the
-    // underlying column is profiles.coins (the in-app diamonds wallet).
+    // Plain profile (user/host) — note: UI labels "diamonds" as Diamonds but the
+    // underlying column is profiles.diamonds (the in-app diamonds wallet).
     else if (selectedResult.type === 'user' || selectedResult.type === 'host') {
       target_type = 'profile';
       target_id = selectedResult.id;
       const profileFieldMap: Record<string, string> = {
-        coins: 'coins',
+        coins: 'diamonds',
         total_earnings: 'total_earnings',
         pending_earnings: 'pending_earnings',
         beans: 'beans',

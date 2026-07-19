@@ -48,7 +48,7 @@ const EMPTY_TEMPLATE: Partial<ParcelTemplate> = {
   parcel_type: 'standard',
   unlock_condition: 'none',
   unlock_threshold: 0,
-  reward_type: 'coins',
+  reward_type: 'diamonds',
   reward_amount: 50,
   reward_label: '',
   expiry_hours: 24,
@@ -80,7 +80,7 @@ const UNLOCK_CONDITIONS = [
 ];
 
 const REWARD_TYPES = [
-  { value: 'coins', label: 'Diamonds' },
+  { value: 'diamonds', label: 'Diamonds' },
   { value: 'beans', label: 'Beans' },
   { value: 'vip_days', label: 'VIP Days' },
   { value: 'call_minutes', label: 'Call Minutes' },
@@ -160,7 +160,7 @@ const AdminParcelManagement = () => {
         parcel_type: editingTemplate.parcel_type || 'standard',
         unlock_condition: editingTemplate.unlock_condition || 'none',
         unlock_threshold: editingTemplate.unlock_threshold || 0,
-        reward_type: editingTemplate.reward_type || 'coins',
+        reward_type: editingTemplate.reward_type || 'diamonds',
         reward_amount: editingTemplate.reward_amount || 0,
         reward_label: editingTemplate.reward_label || null,
         expiry_hours: editingTemplate.expiry_hours || 24,

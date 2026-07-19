@@ -84,7 +84,7 @@ serve(async (req) => {
 
     // Fetch package
     const { data: pkg, error: pkgError } = await supabaseAdmin
-      .from("coin_packages")
+      .from("diamond_packages")
       .select("*")
       .eq("id", package_id)
       .eq("is_active", true)
@@ -112,15 +112,15 @@ serve(async (req) => {
       .maybeSingle();
 
     const isFirstRecharge = !firstRechargeData;
-    const baseCoins = pkg.coins_amount || pkg.coins || 0;
-    const bonusCoins = isFirstRecharge && (pkg.bonus_coins || 0) > 0
-      ? pkg.bonus_coins
+    const baseDiamonds = pkg.diamonds_amount || pkg.diamonds || 0;
+    const bonusDiamonds = isFirstRecharge && (pkg.bonus_diamonds || 0) > 0
+      ? pkg.bonus_diamonds
       : 0;
-    const totalCoins = baseCoins + bonusCoins;
+    const totalDiamonds = baseDiamonds + bonusDiamonds;
 
     const { data: agencyBalance } = await supabaseAdmin.rpc("get_agency_diamond_balance", { owner_user_id: paymentMethod.helper.user_id });
     const combinedHelperBalance = Number(paymentMethod.helper.wallet_balance || 0) + Number(agencyBalance || 0);
-    if (combinedHelperBalance < totalCoins) throw new Error("Payment helper is not available right now");
+    if (combinedHelperBalance < totalDiamonds) throw new Error("Payment helper is not available right now");
 
     // Generate unique transaction ID
     const txnId = `ML${Date.now()}_${crypto.randomUUID().slice(0, 8)}_${user.id.substring(0, 8)}`;
@@ -131,7 +131,7 @@ serve(async (req) => {
       .insert({
         helper_id: paymentMethod.helper_id,
         user_id: user.id,
-        coin_amount: totalCoins,
+        diamond_amount: totalDiamonds,
         amount_usd: pkg.price_usd,
         amount_local: localAmount,
         currency_code: currency,
@@ -142,9 +142,9 @@ serve(async (req) => {
           gateway: gatewayType,
           txn_id: txnId,
           is_first_recharge: isFirstRecharge,
-          bonus_coins: bonusCoins,
-          base_coins: baseCoins,
-          total_coins: totalCoins,
+          bonus_diamonds: bonusDiamonds,
+          base_diamonds: baseDiamonds,
+          total_diamonds: totalDiamonds,
           payment_method_id: payment_method_id,
           origin_url: returnOrigin,
         },
@@ -190,12 +190,12 @@ serve(async (req) => {
       formData.append("cus_city", "Dhaka");
       formData.append("cus_country", "Bangladesh");
       formData.append("shipping_method", "NO");
-      formData.append("product_name", `${totalCoins} Diamonds`);
+      formData.append("product_name", `${totalDiamonds} Diamonds`);
       formData.append("product_category", "Digital Goods");
       formData.append("product_profile", "digital-goods");
       formData.append("value_a", order.id); // order_id
       formData.append("value_b", user.id); // user_id
-      formData.append("value_c", totalCoins.toString()); // total_coins
+      formData.append("value_c", totalDiamonds.toString()); // total_diamonds
       formData.append("value_d", payment_method_id); // payment_method_id
 
       const sslRes = await fetch(baseUrl, {
@@ -240,7 +240,7 @@ serve(async (req) => {
         tran_id: txnId,
         amount: localAmount.toString(),
         currency: currency,
-        desc: `${totalCoins} Diamonds - MeriLive`,
+        desc: `${totalDiamonds} Diamonds - MeriLive`,
         cus_name: user.email?.split("@")[0] || "Customer",
         cus_email: user.email || "customer@merilive.app",
         cus_phone: "01700000000",
@@ -253,7 +253,7 @@ serve(async (req) => {
         type: "json",
         opt_a: order.id,
         opt_b: user.id,
-        opt_c: totalCoins.toString(),
+        opt_c: totalDiamonds.toString(),
         opt_d: payment_method_id,
       };
 
@@ -276,7 +276,7 @@ serve(async (req) => {
       throw new Error(`Unsupported gateway: ${gatewayType}`);
     }
 
-    console.log(`[LocalPayment] Created ${gatewayType} session | order: ${order.id} | user: ${user.id} | ${currency} ${localAmount} | coins: ${totalCoins}`);
+    console.log(`[LocalPayment] Created ${gatewayType} session | order: ${order.id} | user: ${user.id} | ${currency} ${localAmount} | coins: ${totalDiamonds}`);
 
     return new Response(JSON.stringify({ 
       url: paymentUrl, 

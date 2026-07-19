@@ -82,8 +82,8 @@ export const ViewerListPanel = ({
           display_name: sv.profiles?.display_name || "Anonymous",
           avatar_url: sv.profiles?.avatar_url,
           user_level: getRequiredDisplayLevel(sv.profiles),
-          coins: sv.profiles?.coins || 0,
-          is_vip: (sv.profiles?.coins || 0) >= 10000,
+          coins: sv.profiles?.diamonds || 0,
+          is_vip: (sv.profiles?.diamonds || 0) >= 10000,
           joined_at: sv.joined_at,
         }));
         console.log('[ViewerListPanel] Processed viewers:', viewerList.length);

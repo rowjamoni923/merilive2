@@ -259,9 +259,9 @@ export function useRealtimeEarnings(userId: string | null) {
 
     const fetchEarnings = async () => {
       const [todayRes, weekRes, monthRes, profileRes, giftsRes] = await Promise.all([
-        supabase.from('gift_transactions').select('coin_amount').eq('receiver_id', userId).gte('created_at', today),
-        supabase.from('gift_transactions').select('coin_amount').eq('receiver_id', userId).gte('created_at', weekStart),
-        supabase.from('gift_transactions').select('coin_amount').eq('receiver_id', userId).gte('created_at', monthStart),
+        supabase.from('gift_transactions').select('diamond_amount').eq('receiver_id', userId).gte('created_at', today),
+        supabase.from('gift_transactions').select('diamond_amount').eq('receiver_id', userId).gte('created_at', weekStart),
+        supabase.from('gift_transactions').select('diamond_amount').eq('receiver_id', userId).gte('created_at', monthStart),
         supabase.from('profiles').select('total_earnings').eq('id', userId).single(),
         supabase
           .from('gift_transactions')
@@ -272,9 +272,9 @@ export function useRealtimeEarnings(userId: string | null) {
       ]);
 
       if (cancelled) return;
-      setTodayEarnings(todayRes.data?.reduce((s, t: any) => s + (t.coin_amount || 0), 0) || 0);
-      setWeekEarnings(weekRes.data?.reduce((s, t: any) => s + (t.coin_amount || 0), 0) || 0);
-      setMonthEarnings(monthRes.data?.reduce((s, t: any) => s + (t.coin_amount || 0), 0) || 0);
+      setTodayEarnings(todayRes.data?.reduce((s, t: any) => s + (t.diamond_amount || 0), 0) || 0);
+      setWeekEarnings(weekRes.data?.reduce((s, t: any) => s + (t.diamond_amount || 0), 0) || 0);
+      setMonthEarnings(monthRes.data?.reduce((s, t: any) => s + (t.diamond_amount || 0), 0) || 0);
       setTotalEarnings((profileRes.data as any)?.total_earnings || 0);
       setRecentGifts(giftsRes.data || []);
       setLastUpdate(new Date());
@@ -300,7 +300,7 @@ export function useRealtimeEarnings(userId: string | null) {
           if (cancelled) return;
           const row: any = payload.new;
           const createdAt = row?.created_at;
-          const coin = Number(row?.coin_amount || 0);
+          const coin = Number(row?.diamond_amount || 0);
           if (coin > 0) {
             if (createdAt >= today) setTodayEarnings((v) => v + coin);
             if (createdAt >= weekStart) setWeekEarnings((v) => v + coin);

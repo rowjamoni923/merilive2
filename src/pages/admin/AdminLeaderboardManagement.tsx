@@ -33,7 +33,7 @@ interface RewardConfig {
   period_type: string;
   rank_from: number;
   rank_to: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_diamonds: number;
   reward_beans: number;
   is_active: boolean;
@@ -246,11 +246,11 @@ const AdminLeaderboardManagement = () => {
       rank_from: newFrom,
       rank_to: newTo,
       rank_position: newFrom,
-      reward_coins: 0,
+      reward_diamonds: 0,
       reward_diamonds: 0,
       reward_beans: 0,
       reward_amount: 0,
-      reward_type: 'coins',
+      reward_type: 'diamonds',
       is_active: true,
     });
 
@@ -531,8 +531,8 @@ const AdminLeaderboardManagement = () => {
                     leaderboard_type: selectedCategory,
                     category: selectedCategory, period_type: selectedPeriod,
                     rank_from: t.from, rank_to: t.to, rank_position: t.from,
-                    reward_coins: 0, reward_diamonds: 0, reward_beans: 0,
-                    reward_amount: 0, reward_type: 'coins', is_active: true,
+                    reward_diamonds: 0, reward_diamonds: 0, reward_beans: 0,
+                    reward_amount: 0, reward_type: 'diamonds', is_active: true,
                   });
                 }
                 toast.success("Reward tiers created (set values manually)");
@@ -682,7 +682,7 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
     rank_to: String(reward.rank_to ?? 0),
     reward_beans: String(reward.reward_beans ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
-    reward_coins: String(reward.reward_coins ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
   });
 
   // Sync when upstream row identity/values change (e.g. after refetch from another edit)
@@ -692,10 +692,10 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
       rank_to: String(reward.rank_to ?? 0),
       reward_beans: String(reward.reward_beans ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
-      reward_coins: String(reward.reward_coins ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_coins]);
+  }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_diamonds]);
 
   const commit = (field: keyof typeof draft) => {
     const raw = draft[field];
@@ -767,7 +767,7 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
             </div>
             <div>
               <Label className="text-slate-500 text-[10px]">Diamonds 💰</Label>
-              {numInput("reward_coins")}
+              {numInput("reward_diamonds")}
             </div>
             <div className="col-span-1 flex items-end justify-end gap-1">
               <Button variant="destructive" size="sm" onClick={onDelete}>
@@ -790,7 +790,7 @@ const RecentDistributions = () => {
     const fetchHistory = async () => {
       const { data } = await supabase
         .from("leaderboard_reward_history")
-        .select("id, user_id, agency_id, category, period_type, period_label, rank_position, reward_diamonds, reward_beans, reward_coins, stat_value, sent_at")
+        .select("id, user_id, agency_id, category, period_type, period_label, rank_position, reward_diamonds, reward_beans, reward_diamonds, stat_value, sent_at")
         .order("sent_at", { ascending: false })
         .limit(50);
       
@@ -861,7 +861,7 @@ const RecentDistributions = () => {
               <span className="text-slate-500">{periodLabel(h.period_type)}</span>
               {h.reward_beans > 0 && <span className="text-green-400">🫘{h.reward_beans.toLocaleString()}</span>}
               {h.reward_diamonds > 0 && <span className="text-blue-400">💎{h.reward_diamonds.toLocaleString()}</span>}
-              {h.reward_coins > 0 && <span className="text-yellow-400">🪙{h.reward_coins.toLocaleString()}</span>}
+              {h.reward_diamonds > 0 && <span className="text-yellow-400">🪙{h.reward_diamonds.toLocaleString()}</span>}
             </div>
           </div>
         ))}

@@ -136,7 +136,7 @@ const Reels = () => {
   const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<Comment['user'] | null>(null);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [isHost, setIsHost] = useState(false);
   const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -184,8 +184,8 @@ const Reels = () => {
   });
   
   useEffect(() => {
-    userCoinsRef.current = userCoins;
-  }, [userCoins]);
+    userCoinsRef.current = userDiamonds;
+  }, [userDiamonds]);
   useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
@@ -220,7 +220,7 @@ const Reels = () => {
         setCurrentUserId(user.id);
         // Fetch profile and categories in parallel
         const [profileRes, categoriesRes] = await Promise.all([
-          supabase.from('profiles').select('is_host, gender, coins, display_name, avatar_url, user_level, host_level, max_user_level').eq('id', user.id).single(),
+          supabase.from('profiles').select('is_host, gender, diamonds, display_name, avatar_url, user_level, host_level, max_user_level').eq('id', user.id).single(),
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
@@ -234,8 +234,8 @@ const Reels = () => {
           gender: (profileRes.data as any).gender,
           is_host: profileRes.data.is_host,
         } : null);
-        userCoinsRef.current = profileRes.data?.coins || 0;
-        setUserCoins(profileRes.data?.coins || 0);
+        userCoinsRef.current = profileRes.data?.diamonds || 0;
+        setUserCoins(profileRes.data?.diamonds || 0);
         if (categoriesRes.data) {
           setCategories(categoriesRes.data);
           reelsCache.categories = categoriesRes.data;
@@ -682,7 +682,7 @@ const Reels = () => {
       return;
     }
 
-    const totalCost = gift.coins * count;
+    const totalCost = gift.diamonds * count;
     const availableCoins = userCoinsRef.current;
     if (totalCost > availableCoins) {
       toast.error("Not enough diamonds!");
@@ -708,7 +708,7 @@ const Reels = () => {
       senderName: 'You',
       giftColor: 'from-pink-500 to-purple-500',
       count,
-      coins: gift.coins,
+      coins: gift.diamonds,
       isOwnGift: true,
     });
 
@@ -736,11 +736,11 @@ const Reels = () => {
 
       const { data: updatedProfile } = await supabase
         .from('profiles')
-        .select('coins')
+        .select('diamonds')
         .eq('id', sendingUserId)
         .single();
       if (updatedProfile) {
-        userCoinsRef.current = updatedProfile.coins || 0;
+        userCoinsRef.current = updatedProfile.diamonds || 0;
         setUserCoins(userCoinsRef.current);
         updateCachedBalance(userCoinsRef.current);
       }
@@ -1238,7 +1238,7 @@ const Reels = () => {
             isOpen={showGiftPanel}
             onClose={() => setShowGiftPanel(false)}
             onSendGift={handleSendGift}
-            userCoins={userCoins}
+            userDiamonds={userDiamonds}
           />
         </Suspense>
       )}

@@ -6819,7 +6819,7 @@ body[data-route-group="agency"] a[href]:not([data-no-tap-feedback]):active {
 /* Pass 6: descendant white-text rescue. When a neon gradient parent is
    neutralized to white, any child using `text-white` / `text-white/xx` was
    still rendering white-on-white (invisible amounts / labels on
-   AdminTopupSystem / AdminManualTopup / AdminCoinTraders / AdminCommissions
+   AdminTopupSystem / AdminManualTopup / AdminDiamondTraders / AdminCommissions
    stat cards + hero bars). Force readable slate ink inside neutralized
    gradient blocks, but keep exceptions for elements that carry their OWN
    solid color surface (badges, sub-chips). */

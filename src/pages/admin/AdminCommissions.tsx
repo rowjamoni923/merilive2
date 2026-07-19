@@ -57,7 +57,7 @@ interface CommissionSettings {
     coins_to_dollar_rate: number;
   };
   transfer_schedule: TransferSchedule;
-  coin_exchange: DiamondExchangeSettings;
+  diamond_exchange: DiamondExchangeSettings;
   coin_trader: DiamondTraderSettings;
   party_room_defaults: {
     max_video_participants: number;
@@ -130,7 +130,7 @@ export default function AdminCommissions() {
           time: '00:00',
           enabled: true
         },
-        coin_exchange: settingsMap.coin_exchange || {
+        diamond_exchange: settingsMap.diamond_exchange || {
           beans_to_diamonds_rate: 100,
           exchange_fee_percent: 5,
           min_exchange_amount: 1000
@@ -231,8 +231,8 @@ export default function AdminCommissions() {
 
   const handleDiamondExchangeChange = (field: string, value: number) => {
     if (!settings) return;
-    const newExchange = { ...settings.coin_exchange, [field]: value };
-    setSettings({ ...settings, coin_exchange: newExchange });
+    const newExchange = { ...settings.diamond_exchange, [field]: value };
+    setSettings({ ...settings, diamond_exchange: newExchange });
   };
 
   const handleCoinTraderChange = (field: string, value: number | boolean) => {
@@ -785,12 +785,12 @@ export default function AdminCommissions() {
                   <Input
                     type="number"
                     min={1}
-                    value={settings?.coin_exchange.beans_to_diamonds_rate || 100}
+                    value={settings?.diamond_exchange.beans_to_diamonds_rate || 100}
                     onChange={(e) => handleDiamondExchangeChange("beans_to_diamonds_rate", parseInt(e.target.value) || 100)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    {settings?.coin_exchange.beans_to_diamonds_rate || 100} Beans = 1 Diamond
+                    {settings?.diamond_exchange.beans_to_diamonds_rate || 100} Beans = 1 Diamond
                   </p>
                 </div>
 
@@ -804,12 +804,12 @@ export default function AdminCommissions() {
                     type="number"
                     min={0}
                     max={50}
-                    value={settings?.coin_exchange.exchange_fee_percent || 5}
+                    value={settings?.diamond_exchange.exchange_fee_percent || 5}
                     onChange={(e) => handleDiamondExchangeChange("exchange_fee_percent", parseInt(e.target.value) || 5)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    {settings?.coin_exchange.exchange_fee_percent || 5}% deducted during exchange
+                    {settings?.diamond_exchange.exchange_fee_percent || 5}% deducted during exchange
                   </p>
                 </div>
 
@@ -822,12 +822,12 @@ export default function AdminCommissions() {
                   <Input
                     type="number"
                     min={100}
-                    value={settings?.coin_exchange.min_exchange_amount || 1000}
+                    value={settings?.diamond_exchange.min_exchange_amount || 1000}
                     onChange={(e) => handleDiamondExchangeChange("min_exchange_amount", parseInt(e.target.value) || 1000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    Minimum {settings?.coin_exchange.min_exchange_amount || 1000} beans to exchange
+                    Minimum {settings?.diamond_exchange.min_exchange_amount || 1000} beans to exchange
                   </p>
                 </div>
               </div>
@@ -853,8 +853,8 @@ export default function AdminCommissions() {
                 </div>
 
                 {(() => {
-                  const fee = settings?.coin_exchange.exchange_fee_percent || 5;
-                  const rate = settings?.coin_exchange.beans_to_diamonds_rate || 100;
+                  const fee = settings?.diamond_exchange.exchange_fee_percent || 5;
+                  const rate = settings?.diamond_exchange.beans_to_diamonds_rate || 100;
                   const feeAmount = Math.floor(calcBeansInput * fee / 100);
                   const afterFee = calcBeansInput - feeAmount;
                   const diamonds = Math.floor(afterFee / rate);
@@ -913,12 +913,12 @@ export default function AdminCommissions() {
               </div>
 
               <Button
-                onClick={() => saveSetting("coin_exchange", settings?.coin_exchange)}
-                disabled={saving === "coin_exchange"}
+                onClick={() => saveSetting("diamond_exchange", settings?.diamond_exchange)}
+                disabled={saving === "diamond_exchange"}
                 className="w-full bg-amber-500 hover:bg-amber-600"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {saving === "coin_exchange" ? "Saving..." : "Save Exchange Settings"}
+                {saving === "diamond_exchange" ? "Saving..." : "Save Exchange Settings"}
               </Button>
             </CardContent>
           </Card>

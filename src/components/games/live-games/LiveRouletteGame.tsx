@@ -12,7 +12,7 @@ interface LiveRouletteGameProps {
   game: any;
   betAmount: number;
   setBetAmount: (amount: number) => void;
-  userCoins: number;
+  userDiamonds: number;
   phase: string;
   timeLeft: number;
   currentRound: any;
@@ -105,7 +105,7 @@ export function LiveRouletteGame({
   game,
   betAmount,
   setBetAmount,
-  userCoins,
+  userDiamonds,
   phase,
   timeLeft,
   currentRound,
@@ -412,7 +412,7 @@ export function LiveRouletteGame({
   // INSTANT multi-bet placement - fire-and-forget, never blocks other taps
   const handlePlaceBet = (type: string, value: string) => {
     if (autoPlayPhase !== 'betting') return;
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
 
     const currentBetAmount = betAmount;
 
@@ -533,7 +533,7 @@ export function LiveRouletteGame({
               whileTap={{ scale: 0.92 }}
               whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => handlePlaceBet('red', 'red')}
-              disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+              disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
               className={cn(
                 "relative h-14 rounded-xl font-bold disabled:opacity-40 flex flex-col items-center justify-center shadow-xl overflow-hidden",
                 "bg-gradient-to-br from-red-500 via-red-600 to-red-800 border-2",
@@ -558,7 +558,7 @@ export function LiveRouletteGame({
               whileTap={{ scale: 0.92 }}
               whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => handlePlaceBet('even', 'even')}
-              disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+              disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
               className={cn(
                 "relative h-14 rounded-xl font-bold disabled:opacity-40 flex flex-col items-center justify-center shadow-xl overflow-hidden",
                 "bg-gradient-to-br from-purple-500 via-purple-600 to-purple-800 border-2",
@@ -719,7 +719,7 @@ export function LiveRouletteGame({
               whileTap={{ scale: 0.92 }}
               whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => handlePlaceBet('zero', 'zero')}
-              disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+              disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
               className={cn(
                 "relative h-10 rounded-xl font-bold disabled:opacity-40 flex flex-col items-center justify-center shadow-xl overflow-hidden",
                 "bg-gradient-to-br from-green-500 via-green-600 to-green-800 border-2",
@@ -743,7 +743,7 @@ export function LiveRouletteGame({
               whileTap={{ scale: 0.92 }}
               whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => handlePlaceBet('black', 'black')}
-              disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+              disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
               className={cn(
                 "relative h-12 rounded-xl font-bold disabled:opacity-40 flex flex-col items-center justify-center shadow-xl overflow-hidden",
                 "bg-gradient-to-br from-gray-600 via-gray-800 to-gray-950 border-2",
@@ -767,7 +767,7 @@ export function LiveRouletteGame({
               whileTap={{ scale: 0.92 }}
               whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => handlePlaceBet('odd', 'odd')}
-              disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+              disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
               className={cn(
                 "relative h-12 rounded-xl font-bold disabled:opacity-40 flex flex-col items-center justify-center shadow-xl overflow-hidden",
                 "bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-800 border-2",
@@ -795,7 +795,7 @@ export function LiveRouletteGame({
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.02, y: -1 }}
             onClick={() => handlePlaceBet('low', 'low')}
-            disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+            disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
             className={cn(
               "relative h-10 rounded-xl font-bold disabled:opacity-40 shadow-lg overflow-hidden",
               "bg-gradient-to-br from-cyan-500 via-cyan-600 to-cyan-800 border-2",
@@ -818,7 +818,7 @@ export function LiveRouletteGame({
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.02, y: -1 }}
             onClick={() => handlePlaceBet('high', 'high')}
-            disabled={autoPlayPhase !== 'betting' || betAmount > userCoins}
+            disabled={autoPlayPhase !== 'betting' || betAmount > userDiamonds}
             className={cn(
               "relative h-10 rounded-xl font-bold disabled:opacity-40 shadow-lg overflow-hidden",
               "bg-gradient-to-br from-teal-500 via-teal-600 to-teal-800 border-2",

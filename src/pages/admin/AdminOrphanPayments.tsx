@@ -130,7 +130,7 @@ const AdminOrphanPayments = () => {
         status: r.status,
         user_ref: r.user_id?.slice(0, 8) || "—",
         user_id: r.user_id,
-        amount: `${r.coins_amount || 0} coins${r.amount_usd ? ` ($${r.amount_usd})` : ""}`,
+        amount: `${r.diamonds_amount || 0} coins${r.amount_usd ? ` ($${r.amount_usd})` : ""}`,
         method: "Google Play",
         reference: r.google_order_id || r.requested_order_id || `token…${r.purchase_token_suffix || ""}`,
         details: r,

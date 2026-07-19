@@ -158,10 +158,10 @@ serve(async (req) => {
         if (callRow?.caller_id && callRow?.viewer_rate_per_min) {
           const { data: prof } = await admin
             .from("profiles")
-            .select("coins")
+            .select("diamonds")
             .eq("id", callRow.caller_id)
             .maybeSingle();
-          const coins = Number(prof?.coins ?? 0);
+          const coins = Number(prof?.diamonds ?? 0);
           const rate = Number(callRow.viewer_rate_per_min);
           const remainingMinutes = rate > 0 ? Math.floor(coins / rate) : 0;
           // Industry pattern: pre-warn at 2 min, critical at 1 min.

@@ -18,7 +18,7 @@ interface ConsumptionTier {
   min_spend: number;
   max_spend: number | null;
   return_percentage: number;
-  max_return_coins: number | null;
+  max_return_diamonds: number | null;
   period_type: string;
 }
 
@@ -216,7 +216,7 @@ const Rewards = () => {
                       "text-xs font-bold",
                       isToday ? "text-amber-400" : isClaimed ? "text-green-400" : "text-slate-500"
                     )}>
-                      {day.reward_coins}
+                      {day.reward_diamonds}
                     </span>
                     {day.reward_diamonds > 0 && (
                       <span className="text-[9px] text-cyan-400 mt-0.5">+{day.reward_diamonds}💎</span>
@@ -233,7 +233,7 @@ const Rewards = () => {
                 disabled={loginReward.claiming}
                 className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
               >
-                {loginReward.claiming ? "Claiming..." : `🎁 Claim Day ${currentDay} (+${loginReward.todayReward.reward_coins} Diamonds)`}
+                {loginReward.claiming ? "Claiming..." : `🎁 Claim Day ${currentDay} (+${loginReward.todayReward.reward_diamonds} Diamonds)`}
               </Button>
             )}
 

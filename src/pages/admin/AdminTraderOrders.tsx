@@ -34,7 +34,7 @@ interface HelperOrder {
   id: string;
   helper_id: string;
   user_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   amount_usd: number;
   amount_local: number;
   currency_code: string;
@@ -139,13 +139,13 @@ const AdminTraderOrders = () => {
           .maybeSingle();
 
         // Send notification to user
-        const coinAmount = Number(result.creditedCoins || order.coin_amount);
-        const formattedAmount = coinAmount >= 100000 
-          ? `${(coinAmount / 100000).toFixed(1)}L` 
-        : coinAmount.toLocaleString();
+        const diamondAmount = Number(result.creditedDiamonds || order.diamond_amount);
+        const formattedAmount = diamondAmount >= 100000 
+          ? `${(diamondAmount / 100000).toFixed(1)}L` 
+        : diamondAmount.toLocaleString();
         
         const helperUser = helperData?.user as any;
-        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${formattedAmount} diamonds from ${helperUser?.display_name || 'Diamond Trader'}!`, 'coin_purchase_helper')
+        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${formattedAmount} diamonds from ${helperUser?.display_name || 'Diamond Trader'}!`, 'diamond_purchase_helper')
       }
 
       toast({ 
@@ -193,7 +193,7 @@ const AdminTraderOrders = () => {
                 { key: "id", label: "Order ID", weight: 1.3 },
                 { key: "user_id", label: "User", weight: 1.2, format: (_, r: any) => r.user?.display_name || r.user_id || "—" },
                 { key: "helper_id", label: "Helper", weight: 1.2, format: (_, r: any) => (r.helper as any)?.user?.display_name || r.helper_id || "—" },
-                { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "diamond_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
                 { key: "usd_amount", label: "USD", weight: 0.9, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
                 { key: "status", label: "Status", weight: 0.9 },
                 { key: "user_country_code", label: "Country", weight: 0.7 },
@@ -321,7 +321,7 @@ const AdminTraderOrders = () => {
                       <p className="text-sm text-slate-500">ID: {order.user?.app_uid}</p>
                       
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
-                        <span className="text-lg font-bold text-emerald-600">{order.coin_amount.toLocaleString()} 💎</span>
+                        <span className="text-lg font-bold text-emerald-600">{order.diamond_amount.toLocaleString()} 💎</span>
                         <span className="text-sm text-slate-600">
                           {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local.toFixed(0)}
                         </span>

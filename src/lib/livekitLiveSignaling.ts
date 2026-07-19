@@ -13,7 +13,7 @@
  * which covers host-crash / network-drop edge cases.
  *
  * Money/audit path is UNCHANGED: `live_streams` UPDATE
- * (is_active=false, ended_at, total_coins_earned) runs FIRST; this
+ * (is_active=false, ended_at, total_diamonds_earned) runs FIRST; this
  * module mirrors the truth to viewers without a Supabase round-trip.
  *
  * Cost guards:

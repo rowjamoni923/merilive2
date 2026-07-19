@@ -43,7 +43,7 @@ type HelperOrder = {
   helper_id: string;
   created_at: string;
   status: 'completed' | 'pending' | 'cancelled' | 'failed';
-  coin_amount?: number;
+  diamond_amount?: number;
 };
 type Helper = { id: string; is_active: boolean; is_verified: boolean };
 

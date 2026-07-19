@@ -1405,7 +1405,7 @@ const AgencyDashboard = () => {
         {/* Second Row - Diamond Exchange, Policy & History */}
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
-            onClick={() => navigate("/agency-coin-exchange")}
+            onClick={() => navigate("/agency-diamond-exchange")}
             className="bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <DiamondExchangeIcon3D />

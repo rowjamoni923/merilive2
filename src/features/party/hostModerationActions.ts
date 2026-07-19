@@ -52,7 +52,7 @@ export const recordPartyGiftSplit = (
   roomId: string,
   senderId: string,
   giftId: string,
-  totalCoins: number,
+  totalDiamonds: number,
   totalBeans: number,
   idempotencyKey?: string,
 ) =>
@@ -60,7 +60,7 @@ export const recordPartyGiftSplit = (
     p_room_id: roomId,
     p_sender_id: senderId,
     p_gift_id: giftId,
-    p_total_coins: totalCoins,
+    p_total_diamonds: totalDiamonds,
     p_total_beans: totalBeans,
     p_idempotency_key: idempotencyKey ?? null,
   });

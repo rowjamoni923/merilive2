@@ -62,7 +62,7 @@ interface CallEndedInfo {
   remoteUserAvatar: string | null;
   remoteUserLevel: number;
   duration: number;
-  coinsSpent: number;
+  diamondsSpent: number;
   hostEarned: number;
   isHost: boolean;
   endedBy: 'self' | 'remote' | 'system';
@@ -338,7 +338,7 @@ export function CallProvider({ children }: CallProviderProps) {
 
     const captureEndedInfo = async () => {
       let finalDuration = callState.duration;
-      let coinsSpent = callState.totalCoinsSpent;
+      let diamondsSpent = callState.totalCoinsSpent;
       let hostEarnedAmount = callState.hostEarned;
       // Honest-private-call fix (F-15 / F-04): default to 'normal' but
       // overwrite from the DB row whenever it is available.
@@ -349,7 +349,7 @@ export function CallProvider({ children }: CallProviderProps) {
         try {
           const { data: finalCallData } = await supabase
             .from('private_calls')
-            .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
+            .select('total_diamonds_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
             .eq('id', callState.callId)
             .single();
 
@@ -361,7 +361,7 @@ export function CallProvider({ children }: CallProviderProps) {
             } else if (finalCallData.duration_seconds) {
               finalDuration = finalCallData.duration_seconds;
             }
-            coinsSpent = finalCallData.total_coins_deducted || coinsSpent;
+            diamondsSpent = finalCallData.total_diamonds_deducted || diamondsSpent;
             hostEarnedAmount = finalCallData.host_earned || hostEarnedAmount;
             dbEndReasonRaw = (finalCallData as { end_reason?: string; final_status?: string }).end_reason
               ?? (finalCallData as { end_reason?: string; final_status?: string }).final_status
@@ -396,7 +396,7 @@ export function CallProvider({ children }: CallProviderProps) {
         remoteUserAvatar: remoteAvatar,
         remoteUserLevel: callState.remoteUserLevel ?? 1,
         duration: finalDuration,
-        coinsSpent,
+        diamondsSpent,
         hostEarned: hostEarnedAmount,
         isHost,
         endedBy: 'remote',
@@ -808,7 +808,7 @@ export function CallProvider({ children }: CallProviderProps) {
         remoteUserAvatar={callEndedInfo?.remoteUserAvatar || null}
         remoteUserLevel={callEndedInfo?.remoteUserLevel ?? 1}
         duration={callEndedInfo?.duration || 0}
-        coinsSpent={callEndedInfo?.coinsSpent || 0}
+        diamondsSpent={callEndedInfo?.diamondsSpent || 0}
         hostEarned={callEndedInfo?.hostEarned || 0}
         isHost={callEndedInfo?.isHost || false}
         endedBy={callEndedInfo?.endedBy || 'remote'}

@@ -194,8 +194,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
   const isSVGA = animationType === 'svga' && !svgaError;
   const completesFromPlayer = !!displayAnimationUrl && animationType !== 'image' && !svgaError;
   const needsFullscreenSlot = completesFromPlayer;
-  const isPremium = gift.coins >= 10000;
-  const isLuxury = gift.coins >= 1000;
+  const isPremium = gift.diamonds >= 10000;
+  const isLuxury = gift.diamonds >= 1000;
   const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
   const soundPlayedRef = useRef(false);
 

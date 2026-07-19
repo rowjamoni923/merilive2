@@ -61,7 +61,7 @@ export interface GiftSentPayload {
   giftSoundUrl?: string;
   giftCoins?: number;        // unit coins
   count?: number;
-  totalCoins?: number;       // unit × count
+  totalDiamonds?: number;       // unit × count
   receiverBeans?: number;    // optimistic beans credit for receiver
   /** Lucky-gift diamond bonus paid to the sender on this send. 0 when no win. */
   luckyBonus?: number;

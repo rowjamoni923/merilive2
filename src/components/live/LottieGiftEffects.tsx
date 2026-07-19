@@ -375,7 +375,7 @@ interface LottieGiftAnimationProps {
   giftType: string;
   giftName: string;
   senderName: string;
-  coinAmount: number;
+  diamondAmount: number;
   count?: number;
   onComplete: () => void;
 }
@@ -384,7 +384,7 @@ export const LottieGiftAnimation = ({
   giftType,
   giftName,
   senderName,
-  coinAmount,
+  diamondAmount,
   count = 1,
   onComplete,
 }: LottieGiftAnimationProps) => {
@@ -435,7 +435,7 @@ export const LottieGiftAnimation = ({
             </div>
 
             {/* Side animations for high-value gifts */}
-            {coinAmount >= 500 && (
+            {diamondAmount >= 500 && (
               <>
                 <div className="absolute left-10 top-1/3">
                   <Lottie
@@ -455,7 +455,7 @@ export const LottieGiftAnimation = ({
             )}
 
             {/* Extra confetti for premium gifts */}
-            {coinAmount >= 1000 && (
+            {diamondAmount >= 1000 && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Lottie
                   animationData={confettiExplosionAnimation}
@@ -525,7 +525,7 @@ export const LottieGiftAnimation = ({
               >
                 <span className="text-2xl">🪙</span>
                 <span className="text-amber-300 font-bold text-xl">
-                  {(coinAmount * count).toLocaleString()}
+                  {(diamondAmount * count).toLocaleString()}
                 </span>
               </motion.div>
             </div>

@@ -161,7 +161,7 @@ export default function AdminProfitAnalytics() {
   }, []);
 
   useEffect(() => {
-    supabase.rpc("get_official_coin_usd_rate").then(({ data }) => {
+    supabase.rpc("get_official_diamond_usd_rate").then(({ data }) => {
       if (typeof data === "number" || (typeof data === "string" && !isNaN(Number(data)))) {
         setCoinRate(Number(data));
       }

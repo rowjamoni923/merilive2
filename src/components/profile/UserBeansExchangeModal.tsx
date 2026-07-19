@@ -128,7 +128,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
     const { data: settingsRow } = await supabase
       .from('app_settings')
       .select('setting_value')
-      .eq('setting_key', 'coin_exchange')
+      .eq('setting_key', 'diamond_exchange')
       .maybeSingle();
     const settingsValue = parseAppSettingValue(settingsRow?.setting_value);
     const settings = normalizeCoinExchangeSettings(settingsValue);

@@ -40,7 +40,7 @@ interface LiveStream {
   is_active: boolean;
   viewer_count: number;
   total_gifts: number;
-  total_coins_earned: number;
+  total_diamonds_earned: number;
   started_at: string | null;
   created_at: string;
   host: {
@@ -140,7 +140,7 @@ export default function AdminStreams() {
   const [streams, setStreams] = useState<LiveStream[]>(() => getAdminCache<LiveStream[]>(cacheKeyFor('active')) || []);
   const [loading, setLoading] = useState(() => !getAdminCache(cacheKeyFor('active')));
   const [searchQuery, setSearchQuery] = useState("");
-  const [stats, setStats] = useState({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalCoins: 0 });
+  const [stats, setStats] = useState({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalDiamonds: 0 });
   const [watchingStream, setWatchingStream] = useState<LiveStream | null>(null);
   const [activeTab, setActiveTab] = useState("live");
   const [stopStreamDialog, setStopStreamDialog] = useState<{ streamId: string; hostId: string; hostName: string; hostAvatar: string | null } | null>(null);
@@ -177,7 +177,7 @@ export default function AdminStreams() {
       totalActive: activeStreams.length,
       totalViewers: activeStreams.reduce((sum, s) => sum + (s.viewer_count || 0), 0),
       totalGifts: activeStreams.reduce((sum, s) => sum + (s.total_gifts || 0), 0),
-      totalCoins: activeStreams.reduce((sum, s) => sum + (s.total_coins_earned || 0), 0),
+      totalDiamonds: activeStreams.reduce((sum, s) => sum + (s.total_diamonds_earned || 0), 0),
     });
   }, []);
 
@@ -191,13 +191,13 @@ export default function AdminStreams() {
       setLoading(false);
     } else {
       setStreams([]);
-      setStats({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalCoins: 0 });
+      setStats({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalDiamonds: 0 });
       setLoading(true);
     }
     try {
       let query = supabase
         .from("live_streams")
-        .select(`id, title, description, is_active, viewer_count, total_gifts, total_coins_earned, started_at, created_at, host:profiles!live_streams_host_id_fkey(id, display_name, avatar_url, is_verified)`)
+        .select(`id, title, description, is_active, viewer_count, total_gifts, total_diamonds_earned, started_at, created_at, host:profiles!live_streams_host_id_fkey(id, display_name, avatar_url, is_verified)`)
         .order("created_at", { ascending: false });
 
       if (statusFilter === "active") query = query.eq("is_active", true);
@@ -563,7 +563,7 @@ export default function AdminStreams() {
               </div>
               <div>
                 <p className="text-slate-600 text-[10px] sm:text-xs">Total Diamonds</p>
-                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{formatCoins(stats.totalCoins)}</p>
+                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{formatCoins(stats.totalDiamonds)}</p>
               </div>
             </div>
           </CardContent>
@@ -662,7 +662,7 @@ export default function AdminStreams() {
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm mb-3 sm:mb-4">
                         <div className="flex items-center gap-1 text-pink-500"><Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{stream.total_gifts || 0}</span></div>
-                        <div className="flex items-center gap-1 text-yellow-600"><Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{formatCoins(stream.total_coins_earned || 0)}</span></div>
+                        <div className="flex items-center gap-1 text-yellow-600"><Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{formatCoins(stream.total_diamonds_earned || 0)}</span></div>
                       </div>
                       <div className="flex gap-2">
                         {stream.is_active ? (

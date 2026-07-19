@@ -417,7 +417,7 @@ export function useLiveGameRound({
       // First get current coins (use maybeSingle to avoid throwing when row not found / RLS)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('coins')
+        .select('diamonds')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -429,7 +429,7 @@ export function useLiveGameRound({
         return { success: false, error: 'Could not verify balance, please retry' };
       }
 
-      if (profile && profile.coins < betAmount) {
+      if (profile && profile.diamonds < betAmount) {
         // Rollback optimistic update
         setBets(prev => prev.filter(b => b.id !== newBet.id));
         setMyBets(prev => prev.filter(b => b.id !== newBet.id));
@@ -439,7 +439,7 @@ export function useLiveGameRound({
       // PARALLEL: Atomic deduct coins and save bet history simultaneously
       const [updateResult, betInsertResult] = await Promise.all([
         // Atomic coin deduction (race-condition safe)
-        supabase.rpc('deduct_coins', { p_user_id: user.id, p_amount: betAmount }),
+        supabase.rpc('deduct_diamonds', { p_user_id: user.id, p_amount: betAmount }),
         
         // Save bet to history (fire-and-forget)
         supabase
@@ -470,7 +470,7 @@ export function useLiveGameRound({
       }
 
       console.log('[placeBet] ✅ SUCCESS in <100ms:', newBet.id);
-      return { success: true, new_balance: deductResult?.new_balance ?? ((profile?.coins ?? 0) - betAmount) };
+      return { success: true, new_balance: deductResult?.new_balance ?? ((profile?.diamonds ?? 0) - betAmount) };
     } catch (error) {
       console.error('[placeBet] ❌ Error:', error);
       // Rollback on any error

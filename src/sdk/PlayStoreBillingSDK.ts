@@ -48,8 +48,8 @@ interface PlayStoreProductConfig {
 }
 
 interface AdminPlayStoreProductRow {
-  coins_amount: number | null;
-  bonus_coins: number | null;
+  diamonds_amount: number | null;
+  bonus_diamonds: number | null;
   price_usd: number | string | null;
   product_id: string | null;
   is_active: boolean | null;
@@ -66,7 +66,7 @@ export interface PurchaseResult {
 // ============================================
 // Play Store Product Mapping
 // ============================================
-// Source of truth = `coin_packages` table (admin-editable).
+// Source of truth = `diamond_packages` table (admin-editable).
 // The values below mirror the current DB rows so synchronous callers
 // (components reading PLAY_STORE_PRODUCTS directly) get correct data
 // even before loadPlayStoreProducts() finishes its async DB fetch.
@@ -75,17 +75,17 @@ export interface PurchaseResult {
 const uniqueIds = (values: Array<string | null | undefined>): string[] =>
   Array.from(new Set(values.map((v) => String(v || '').trim()).filter(Boolean)));
 
-const makeProductConfig = (baseCoins: number, bonusCoins: number, productId: string, priceUsd: number): PlayStoreProductConfig => {
-  const totalCoins = baseCoins + bonusCoins;
+const makeProductConfig = (baseDiamonds: number, bonusDiamonds: number, productId: string, priceUsd: number): PlayStoreProductConfig => {
+  const totalDiamonds = baseDiamonds + bonusDiamonds;
   return {
     productId,
     priceUsd,
     aliases: uniqueIds([
       productId,
-      `diamonds_${baseCoins}`,
-      `coins_${baseCoins}`,
-      `diamonds_${totalCoins}`,
-      `coins_${totalCoins}`,
+      `diamonds_${baseDiamonds}`,
+      `coins_${baseDiamonds}`,
+      `diamonds_${totalDiamonds}`,
+      `coins_${totalDiamonds}`,
     ]),
   };
 };
@@ -102,7 +102,7 @@ export const PLAY_STORE_PRODUCTS: Record<number, PlayStoreProductConfig> = {
 export let ALL_PRODUCT_IDS: string[] = uniqueIds(Object.values(PLAY_STORE_PRODUCTS).flatMap(p => p.aliases));
 
 /**
- * Refresh PLAY_STORE_PRODUCTS from the `coin_packages` DB table so
+ * Refresh PLAY_STORE_PRODUCTS from the `diamond_packages` DB table so
  * admin price/product changes propagate without a code release.
  * Call once at app start (after Supabase client is ready). Safe to fail —
  * the hardcoded fallback above keeps the app working offline.
@@ -110,25 +110,25 @@ export let ALL_PRODUCT_IDS: string[] = uniqueIds(Object.values(PLAY_STORE_PRODUC
 export async function loadPlayStoreProducts(): Promise<void> {
   try {
     const { data, error } = await supabase
-      .from('coin_packages')
-      .select('coins_amount, bonus_coins, price_usd, product_id, is_active')
+      .from('diamond_packages')
+      .select('diamonds_amount, bonus_diamonds, price_usd, product_id, is_active')
       .eq('is_active', true);
     if (error || !data?.length) return;
 
     const next: Record<number, PlayStoreProductConfig> = {};
     for (const row of data as AdminPlayStoreProductRow[]) {
-      const baseCoins = Number(row.coins_amount || 0);
-      const bonusCoins = Number(row.bonus_coins || 0);
-      const totalCoins = baseCoins + bonusCoins;
+      const baseDiamonds = Number(row.diamonds_amount || 0);
+      const bonusDiamonds = Number(row.bonus_diamonds || 0);
+      const totalDiamonds = baseDiamonds + bonusDiamonds;
       const productId = String(row.product_id || '').trim();
-      if (!baseCoins || !productId || row.price_usd == null) continue;
+      if (!baseDiamonds || !productId || row.price_usd == null) continue;
 
-      const product = makeProductConfig(baseCoins, bonusCoins, productId, Number(row.price_usd));
+      const product = makeProductConfig(baseDiamonds, bonusDiamonds, productId, Number(row.price_usd));
 
       // Support both old UI lookups by base diamonds and new UI lookups by
       // total delivered diamonds (base + bonus) without breaking admin edits.
-      next[baseCoins] = product;
-      if (totalCoins !== baseCoins) next[totalCoins] = product;
+      next[baseDiamonds] = product;
+      if (totalDiamonds !== baseDiamonds) next[totalDiamonds] = product;
     }
     if (Object.keys(next).length === 0) return;
 
@@ -419,7 +419,7 @@ class PlayStoreBillingSDK {
         return { success: false, error: result.error || 'Server verification failed' };
       }
 
-      console.log('[PlayStoreBilling] ✅ Verified! Coins:', result.coins, 'Balance:', result.newBalance);
+      console.log('[PlayStoreBilling] ✅ Verified! Coins:', result.diamonds, 'Balance:', result.newBalance);
 
       if (result.newBalance !== undefined) {
         const { updateCachedBalance } = await import('@/hooks/useUserBalance');

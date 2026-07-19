@@ -49,13 +49,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Pkg342: lock down to admins with finance/coin-packages permission so this
+  // Pkg342: lock down to admins with finance/diamond-packages permission so this
   // endpoint cannot be abused to burn the LOVABLE_API_KEY quota (cost-DoS).
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   );
-  const adminCheck = await requireAdminSession(req, supabaseAdmin, { sectionKey: "coin-packages" });
+  const adminCheck = await requireAdminSession(req, supabaseAdmin, { sectionKey: "diamond-packages" });
   if (!adminCheck.ok) {
     return new Response(JSON.stringify({ success: false, error: adminCheck.error }), {
       status: adminCheck.status,

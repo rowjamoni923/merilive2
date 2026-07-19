@@ -297,7 +297,7 @@ export default function MatchCall() {
     if (broadcastChannelRef.current) { try { supabase.removeChannel(broadcastChannelRef.current); } catch (_) {} broadcastChannelRef.current = null; }
     if (broadcastTimeoutRef.current) { window.clearTimeout(broadcastTimeoutRef.current); broadcastTimeoutRef.current = null; }
 
-    const maxRateForHold = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
+    const maxRateForHold = Number(settings?.host_max_rate_diamonds_per_min ?? settings?.default_host_rate_diamonds_per_min ?? 0);
     const preauthMinutes = Number(settings?.preauth_minutes_hold ?? 0);
     const requiredBalance = Math.max(0, maxRateForHold * preauthMinutes);
     const currentBalance = await getBalanceWithFetch(true);
@@ -345,7 +345,7 @@ export default function MatchCall() {
         setPhase("prep");
         return;
       }
-      if (errPayload?.error === "insufficient_coins") {
+      if (errPayload?.error === "insufficient_diamonds") {
         if (timerRef.current) window.clearInterval(timerRef.current);
         setPhase("prep");
         navigate("/recharge", { replace: true });
@@ -451,7 +451,7 @@ export default function MatchCall() {
       if (timerRef.current) window.clearInterval(timerRef.current);
       const payload = await extractEdgeFnErrorPayload(e);
       const code = payload?.error;
-      if (code === "insufficient_coins") {
+      if (code === "insufficient_diamonds") {
         setPhase("prep");
         navigate("/recharge", { replace: true });
         return;
@@ -487,7 +487,7 @@ export default function MatchCall() {
   const estWait = hostsCount > 0
     ? Math.max(8, Math.min(60, Math.round(45 / Math.max(1, hostsCount))))
     : 45;
-  const maxRate = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
+  const maxRate = Number(settings?.host_max_rate_diamonds_per_min ?? settings?.default_host_rate_diamonds_per_min ?? 0);
   const preauthMin = Number(settings?.preauth_minutes_hold ?? 2);
   const holdAmount = Math.max(0, maxRate * preauthMin);
   const profileBalance = Number(profile?.diamonds ?? 0); // ZERO-COIN: Diamonds is the single spend wallet.
@@ -498,7 +498,7 @@ export default function MatchCall() {
       {isInCall && (
         <MatchCallOverlay
           randomWindowSeconds={settings?.random_window_seconds ?? 60}
-          hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 0}
+          hostRatePerMin={settings?.default_host_rate_diamonds_per_min ?? 0}
           autoConvert={settings?.auto_convert_to_private !== false}
           startedAt={activeSession?.started_at}
           sessionId={activeSession?.session_id ?? null}
@@ -509,7 +509,7 @@ export default function MatchCall() {
       )}
       <PreMatchPrep
         diamondBalance={profileBalance}
-        hostRatePerMin={settings?.default_host_rate_coins_per_min ?? 500}
+        hostRatePerMin={settings?.default_host_rate_diamonds_per_min ?? 500}
         requiredBalance={holdAmount}
         freeTrialSeconds={settings?.random_window_seconds ?? 60}
         minBillableSeconds={settings?.min_billable_seconds ?? 40}

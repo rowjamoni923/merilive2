@@ -103,11 +103,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { userId, coinAmount, reason, googleOrderId, productId } = await req.json();
+    const { userId, diamondAmount, reason, googleOrderId, productId } = await req.json();
 
-    if (!userId || !coinAmount || coinAmount <= 0) {
+    if (!userId || !diamondAmount || diamondAmount <= 0) {
       return new Response(
-        JSON.stringify({ success: false, error: "userId and coinAmount are required" }),
+        JSON.stringify({ success: false, error: "userId and diamondAmount are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     // Verify user exists
     const { data: profile } = await adminSupabase
       .from("profiles")
-      .select("id, display_name, coins, diamonds")
+      .select("id, display_name, diamonds, diamonds")
       .eq("id", userId)
       .maybeSingle();
 
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     // wallet ledger context, and duplicate Google Order ID protection atomically.
     const { data: recoveryData, error: recoveryError } = await adminSupabase.rpc("admin_recover_purchase_credit", {
       p_user_id: userId,
-      p_coin_amount: Math.floor(Number(coinAmount)),
+      p_diamond_amount: Math.floor(Number(diamondAmount)),
       p_google_order_id: googleOrderId || null,
       p_product_id: productId || null,
       p_reason: reason || "Purchase not delivered",
@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
     }
 
     const newBalance = Number(recoveryData.newBalance ?? 0);
-    const creditedCoins = Number(recoveryData.coinAmount ?? coinAmount);
+    const creditedDiamonds = Number(recoveryData.diamondAmount ?? diamondAmount);
     const firstRechargeBonusCoins = Number(recoveryData.firstRechargeBonusCoins ?? 0);
     const vipBonusDiamonds = Number(recoveryData.vipBonusDiamonds ?? 0);
 
@@ -167,9 +167,9 @@ Deno.serve(async (req) => {
       target_id: userId,
       target_type: "user",
       details: {
-        coin_amount: creditedCoins,
-        base_coins: recoveryData.baseCoins,
-        package_bonus_coins: recoveryData.packageBonusCoins,
+        diamond_amount: creditedDiamonds,
+        base_diamonds: recoveryData.baseDiamonds,
+        package_bonus_diamonds: recoveryData.packageBonusDiamonds,
         first_recharge_bonus_coins: firstRechargeBonusCoins,
         vip_bonus_diamonds: vipBonusDiamonds,
         price_usd: recoveryData.priceUsd,
@@ -182,14 +182,14 @@ Deno.serve(async (req) => {
       },
     });
 
-    console.log(`[admin-verify-purchase] ✅ Credited ${creditedCoins} coins to ${profile.display_name} (${userId}). New balance: ${newBalance}`);
+    console.log(`[admin-verify-purchase] ✅ Credited ${creditedDiamonds} coins to ${profile.display_name} (${userId}). New balance: ${newBalance}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        coinAmount: creditedCoins,
-        baseCoins: recoveryData.baseCoins,
-        packageBonusCoins: recoveryData.packageBonusCoins,
+        diamondAmount: creditedDiamonds,
+        baseDiamonds: recoveryData.baseDiamonds,
+        packageBonusDiamonds: recoveryData.packageBonusDiamonds,
         firstRechargeBonusCoins,
         vipBonusDiamonds,
         newBalance,

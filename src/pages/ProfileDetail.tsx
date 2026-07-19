@@ -251,7 +251,7 @@ interface GiftWithSender {
   gift_id: string;
   gift_name: string;
   gift_icon: string;
-  coin_amount: number;
+  diamond_amount: number;
   sender_id: string;
   sender_name: string;
   sender_avatar: string | null;
@@ -434,7 +434,7 @@ const ProfileDetail = () => {
       // Gifts sent
       supabase.from("gift_transactions").select("gift_id, gifts(name, icon_url)").eq("sender_id", targetId),
       // Gifts received
-      supabase.from("gift_transactions").select("id, gift_id, coin_amount, sender_id, created_at, gifts(name, icon_url)").eq("receiver_id", targetId).order("created_at", { ascending: false }),
+      supabase.from("gift_transactions").select("id, gift_id, diamond_amount, sender_id, created_at, gifts(name, icon_url)").eq("receiver_id", targetId).order("created_at", { ascending: false }),
       // Groups
       supabase.from("group_members").select("group_id, groups(id, name, avatar_url, member_count, description, group_type, is_active)").eq("user_id", targetId),
       // Followers count
@@ -535,7 +535,7 @@ const ProfileDetail = () => {
     })).slice(0, 5));
 
     // Process gifts received
-    const receivedCounts: Record<string, { name: string; icon: string; count: number; totalCoins: number }> = {};
+    const receivedCounts: Record<string, { name: string; icon: string; count: number; totalDiamonds: number }> = {};
     const giftSendersList: GiftWithSender[] = [];
 
     // Fetch sender profiles via profiles_public (RLS-safe for non-owner reads)
@@ -552,14 +552,14 @@ const ProfileDetail = () => {
     receivedTransactionsResult?.data?.forEach((t: any) => {
       const giftId = t.gift_id;
       if (!receivedCounts[giftId]) {
-        receivedCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "🎁", count: 0, totalCoins: 0 };
+        receivedCounts[giftId] = { name: t.gifts?.name || "Gift", icon: t.gifts?.icon_url || "🎁", count: 0, totalDiamonds: 0 };
       }
       receivedCounts[giftId].count++;
-      receivedCounts[giftId].totalCoins += t.coin_amount || 0;
+      receivedCounts[giftId].totalDiamonds += t.diamond_amount || 0;
       const sender = senderMap[t.sender_id];
       giftSendersList.push({
         id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "🎁",
-        coin_amount: t.coin_amount || 0, sender_id: t.sender_id,
+        diamond_amount: t.diamond_amount || 0, sender_id: t.sender_id,
         sender_name: sender?.display_name || sender?.username || "Anonymous",
         sender_avatar: sender?.avatar_url || null, sender_uid: sender?.app_uid || null, created_at: t.created_at
       });
@@ -1774,7 +1774,7 @@ const ProfileDetail = () => {
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-amber-600 font-bold">
                         <span className="text-lg">💎</span>
-                        <span className="text-sm">{gift.coin_amount}</span>
+                        <span className="text-sm">{gift.diamond_amount}</span>
                       </div>
   <p className="text-[10px] text-slate-500">
                         {new Date(gift.created_at).toLocaleDateString()}
@@ -1920,7 +1920,7 @@ const ProfileDetail = () => {
         hostName={profile?.display_name || 'Host'}
         hostAvatar={profile?.avatar_url || null}
         hostLevel={level}
-        userCoins={currentUserCoins}
+        userDiamonds={currentUserCoins}
       />
       
       {/* Gift Panel - Same as Live/Party/Chat */}
@@ -1929,7 +1929,7 @@ const ProfileDetail = () => {
         onClose={() => setShowGiftPanel(false)}
         onSendGift={async (gift: GiftData, count: number) => {
           if (!currentUser?.id || !userId) return;
-          const totalCost = gift.coins * count;
+          const totalCost = gift.diamonds * count;
           if (currentUserCoins < totalCost) {
             toast({
               title: "Not Enough Diamonds!",
@@ -1959,7 +1959,7 @@ const ProfileDetail = () => {
             soundUrl: (gift as any).sound_url || undefined,
             giftColor: 'from-pink-500 to-purple-500',
             count,
-            coins: gift.coins,
+            coins: gift.diamonds,
             isOwnGift: true,
           });
 
@@ -1986,7 +1986,7 @@ const ProfileDetail = () => {
 
           setShowGiftPanel(false);
         }}
-        userCoins={currentUserCoins}
+        userDiamonds={currentUserCoins}
       />
 
       {/* Full-screen SVGA Gift Animations (own gift instant feedback) */}

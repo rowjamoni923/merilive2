@@ -259,7 +259,7 @@ const PartyRoom = () => {
   // const [entranceUserId, setEntranceUserId] = useState<string | null>(null);
   // const [entranceUserInfo, setEntranceUserInfo] = useState<{...} | null>(null);
   const [isGameExpanded, setIsGameExpanded] = useState(true);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [myPendingRequest, setMyPendingRequest] = useState<number | null>(null);
   const [games, setGames] = useState<{id: string; name: string; emoji: string; color: string; description?: string}[]>([]);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -355,8 +355,8 @@ const PartyRoom = () => {
   }, [currentUser, room, roomId]);
 
   useEffect(() => {
-    userCoinsRef.current = userCoins;
-  }, [userCoins]);
+    userCoinsRef.current = userDiamonds;
+  }, [userDiamonds]);
 
   // Pkg424: Party participant heartbeat (30s) — keeps server-side "active" status fresh so
   // crashed/network-dropped participants are swept by cleanup_stale_party_participants_v2 cron
@@ -462,7 +462,7 @@ const PartyRoom = () => {
   }, []);
   const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, coins: number) => {
     const now = Date.now();
-    optimisticGiftCountsRef.current.set(key, { beans, coins, expiresAt: now + 15000 });
+    optimisticGiftCountsRef.current.set(key, { beans, diamonds, expiresAt: now + 15000 });
     optimisticGiftCountsRef.current.forEach((value, staleKey) => {
       if (value.expiresAt < now) optimisticGiftCountsRef.current.delete(staleKey);
     });
@@ -655,7 +655,7 @@ const PartyRoom = () => {
       try {
         const { data, error } = await supabase
           .from('gift_transactions')
-          .select('coin_amount, receiver_beans, sender_id, receiver_id')
+          .select('diamond_amount, receiver_beans, sender_id, receiver_id')
           .eq('party_room_id', roomId);
 
         if (error) {
@@ -665,8 +665,8 @@ const PartyRoom = () => {
         }
 
         if (data && data.length > 0) {
-          const totalGiftValue = data.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
-          const hostBeans = data.reduce((sum, tx) => sum + (tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100)), 0);
+          const totalGiftValue = data.reduce((sum, tx) => sum + (tx.diamond_amount || 0), 0);
+          const hostBeans = data.reduce((sum, tx) => sum + (tx.receiver_beans ?? Math.floor((tx.diamond_amount || 0) * hostCommissionPercent / 100)), 0);
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
 
@@ -676,10 +676,10 @@ const PartyRoom = () => {
           const perReceiver: Record<string, number> = {};
           data.forEach(tx => {
             if (tx.sender_id) {
-              perUser[tx.sender_id] = (perUser[tx.sender_id] || 0) + (tx.coin_amount || 0);
+              perUser[tx.sender_id] = (perUser[tx.sender_id] || 0) + (tx.diamond_amount || 0);
             }
             if (tx.receiver_id) {
-              const b = tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100);
+              const b = tx.receiver_beans ?? Math.floor((tx.diamond_amount || 0) * hostCommissionPercent / 100);
               perReceiver[tx.receiver_id] = (perReceiver[tx.receiver_id] || 0) + b;
             }
           });
@@ -723,8 +723,8 @@ const PartyRoom = () => {
           const lkMark = recentGiftDedupRef.current.get(dedupKey) || 0;
           if (Date.now() - lkMark < 5000) return; // LiveKit fast-path won
           // Safety-net apply
-          const beans = Number(row.receiver_beans ?? Math.floor((row.coin_amount || 0) * hostCommissionPercentRef.current / 100));
-          const coins = Number(row.total_coins ?? row.coin_amount ?? 0);
+          const beans = Number(row.receiver_beans ?? Math.floor((row.diamond_amount || 0) * hostCommissionPercentRef.current / 100));
+          const coins = Number(row.total_diamonds ?? row.diamond_amount ?? 0);
           if (beans > 0) {
             setTotalRoomBeans(prev => prev + beans);
             if (row.receiver_id) {
@@ -917,8 +917,8 @@ const PartyRoom = () => {
         if (userData) {
           setCurrentUser(userData);
           sessionAccessTokenRef.current = userData.access_token || null;
-                userCoinsRef.current = userData.profile?.coins || 0;
-          setUserCoins(userData.profile?.coins || 0);
+                userCoinsRef.current = userData.profile?.diamonds || 0;
+          setUserCoins(userData.profile?.diamonds || 0);
           
           // ✅ LEVEL CHECK: Block joining if user doesn't meet minimum level
           const isHost = roomData.data?.host_id === userData.id;
@@ -1148,7 +1148,7 @@ const PartyRoom = () => {
         sound_url: giftData.giftSoundUrl || null,
       } as any);
       const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.giftCoins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
-      const broadcastCoins = Number(giftData.totalCoins ?? (giftData.giftCoins || 0) * (giftData.count || 1));
+      const broadcastCoins = Number(giftData.totalDiamonds ?? (giftData.giftCoins || 0) * (giftData.count || 1));
       if (giftData.receiverId === cuid && broadcastBeans > 0) {
         window.dispatchEvent(new CustomEvent('own-beans-updated', {
           detail: { userId: cuid, beansDelta: broadcastBeans },
@@ -2978,7 +2978,7 @@ const PartyRoom = () => {
                 return;
               }
               
-              const totalCost = gift.coins * count;
+              const totalCost = gift.diamonds * count;
               const availableCoins = userCoinsRef.current;
               if (availableCoins < totalCost) {
                 toast.error("Not enough diamonds!");
@@ -3015,7 +3015,7 @@ const PartyRoom = () => {
                 soundUrl: gift.sound_url || undefined,
                 giftColor: 'from-pink-500 to-purple-500',
                 count: count,
-                coins: gift.coins,
+                coins: gift.diamonds,
                 isOwnGift: true,
               };
               
@@ -3031,7 +3031,7 @@ const PartyRoom = () => {
               // TWO envelopes with different `env.id` → 400ms dedupe missed them
               // → every other participant saw the flying-gift twice and the
               // room/sender bean counters incremented twice. GiftingService
-              // publish carries real `coinsSpent`/`hostReceived` from the RPC.
+              // publish carries real `diamondsSpent`/`hostReceived` from the RPC.
 
               markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
               setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
@@ -3084,14 +3084,14 @@ const PartyRoom = () => {
                   // Refresh actual balance from server (in case of discrepancy)
                   const { data: updatedProfile } = await supabase
                     .from("profiles") // guard-ok: owner-only self balance refresh after gift send
-                    .select("coins")
+                    .select("diamonds")
                     .eq("id", sendingUserId)
                     .single();
 
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   
                   if (updatedProfile && pendingGiftCostRef.current === 0) {
-                    userCoinsRef.current = updatedProfile.coins || 0;
+                    userCoinsRef.current = updatedProfile.diamonds || 0;
                     setUserCoins(userCoinsRef.current);
                     // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                     const { updateCachedBalance } = await import("@/hooks/useUserBalance");
@@ -3101,7 +3101,7 @@ const PartyRoom = () => {
                   // Save gift message to party_room_messages
                   if (result.success) {
                     const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
-                    const finalCost = result.transaction?.coins_spent ?? totalCost;
+                    const finalCost = result.transaction?.diamonds_spent ?? totalCost;
                     const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                     const { data: giftRow } = await supabase.from("party_room_messages").insert({
                       room_id: sendingRoomId,
@@ -3135,7 +3135,7 @@ const PartyRoom = () => {
                 }
               })();
             }}
-            userCoins={userCoins}
+            userDiamonds={userDiamonds}
           />
           </>
           );

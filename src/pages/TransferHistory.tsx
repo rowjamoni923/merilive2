@@ -57,7 +57,7 @@ const TransferHistory = () => {
 
     fetchTransfers();
 
-    // Pkg83-ext: removed static `transfer-history` channel (coin_transfers
+    // Pkg83-ext: removed static `transfer-history` channel (diamond_transfers
     // not in publication). Visibility refetch.
     const refetch = async () => {
       const { data } = await supabase.rpc("get_agency_transfer_history", { _limit: 100 });

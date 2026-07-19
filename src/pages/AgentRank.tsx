@@ -48,7 +48,7 @@ interface AgencyRanking {
 interface RankingReward {
   id: string;
   rank_position: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_badge: string | null;
   min_income_requirement: number;
 }
@@ -76,7 +76,7 @@ const AgentRank = () => {
     try {
       const { data, error } = await supabase
         .from('ranking_rewards')
-        .select('id, rank_position, reward_coins, reward_badge, min_income_requirement')
+        .select('id, rank_position, reward_diamonds, reward_badge, min_income_requirement')
         .eq('ranking_type', 'agency')
         .eq('period_type', periodType)
         .order('rank_position', { ascending: true });
@@ -348,7 +348,7 @@ const AgentRank = () => {
                       <div className="flex items-center justify-center gap-1">
                         <Gem className="w-3.5 h-3.5 text-cyan-600" />
                         <span className="text-sm font-black text-slate-900">
-                          {formatNumber(reward.reward_coins)}
+                          {formatNumber(reward.reward_diamonds)}
                         </span>
                       </div>
                       {reward.reward_badge && (
@@ -445,7 +445,7 @@ const AgentRank = () => {
                   {reward && (
                     <div className="flex items-center gap-0.5 mt-1">
                       <Gift className="w-3 h-3 text-amber-600" />
-                      <span className="text-[9px] text-amber-700 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                      <span className="text-[9px] text-amber-700 font-bold">+{formatNumber(reward.reward_diamonds)}</span>
                     </div>
                   )}
                 </motion.div>
@@ -534,7 +534,7 @@ const AgentRank = () => {
                     {reward && (
                       <div className="flex items-center gap-0.5">
                         <Gift className="w-2.5 h-2.5 text-amber-600" />
-                        <span className="text-[9px] text-amber-700 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                        <span className="text-[9px] text-amber-700 font-bold">+{formatNumber(reward.reward_diamonds)}</span>
                       </div>
                     )}
                   </div>

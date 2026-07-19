@@ -488,7 +488,7 @@ const AdminHelperManagement = () => {
       const result = data as { success?: boolean; error?: string; diamonds?: number; diamonds_credited?: number } | null;
       if (result?.success === false) throw new Error(result.error || 'Topup approval failed');
 
-      const credited = Number(result?.diamonds ?? result?.diamonds_credited ?? req.coin_amount ?? 0);
+      const credited = Number(result?.diamonds ?? result?.diamonds_credited ?? req.diamond_amount ?? 0);
       toast({ title: "Approved!", description: `${credited.toLocaleString()} diamonds added to wallet` });
     } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapprovetopupError", message: formatAdminError(error)});

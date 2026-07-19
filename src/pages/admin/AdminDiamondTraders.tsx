@@ -36,7 +36,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
-const AdminCoinTraders = () => {
+const AdminDiamondTraders = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("helpers");
@@ -93,7 +93,7 @@ const AdminCoinTraders = () => {
         totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
         visibleTraders: (data || []).filter((h: any) => h.is_active && h.is_verified && h.trader_level !== 5 && (h.wallet_balance || 0) >= 100000).length,
       }));
-    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error) }); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminDiamondTraders", message: formatAdminError(error) }); }
     finally { setLoading(false); }
   };
 
@@ -103,10 +103,10 @@ const AdminCoinTraders = () => {
         .from('helper_transactions')
         .select(`*, helper:topup_helpers(id, user_id, wallet_balance, user:profiles!topup_helpers_user_id_fkey(display_name, avatar_url))`)
         .order('created_at', { ascending: false }).limit(100);
-      const rows = (data || []).map((t: any) => ({ ...t, coin_amount: t.coin_amount ?? t.amount ?? 0, status: t.status ?? 'completed' }));
+      const rows = (data || []).map((t: any) => ({ ...t, diamond_amount: t.diamond_amount ?? t.amount ?? 0, status: t.status ?? 'completed' }));
       setTransactions(rows);
       setStats(prev => ({ ...prev, pendingTransactions: rows.filter((t: any) => t.status === 'pending').length }));
-    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error) }); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminDiamondTraders", message: formatAdminError(error) }); }
   };
 
   const searchUsers = async (query: string) => {
@@ -153,7 +153,7 @@ const AdminCoinTraders = () => {
     });
 
     if (updateError) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
@@ -162,7 +162,7 @@ const AdminCoinTraders = () => {
       return;
     }
 
-    console.log(`[CoinTraders] Helper ${helper.id} successfully ${action}d. Verified is_active=${newStatus}`);
+    console.log(`[DiamondTraders] Helper ${helper.id} successfully ${action}d. Verified is_active=${newStatus}`);
     toast({ title: "Success ✅", description: `Helper ${action === 'activate' ? 'activated' : 'deactivated'} successfully` });
     fetchHelpers();
   };
@@ -206,7 +206,7 @@ const AdminCoinTraders = () => {
       fetchTransactions();
 
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.TransferError", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.TransferError", message: formatAdminError(error)});
       toast({
         title: "Failed",
         description: error.message || "Transfer failed",
@@ -327,7 +327,7 @@ const AdminCoinTraders = () => {
                 { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
                 { key: "transaction_type", label: "Type", weight: 1.1 },
                 { key: "helper", label: "Trader", weight: 1.3, format: (_, r: any) => r.helper?.user?.display_name || "—" },
-                { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "diamond_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
                 { key: "status", label: "Status", weight: 0.9 },
               ]}
               meta={{
@@ -511,7 +511,7 @@ const AdminCoinTraders = () => {
                              txn.transaction_type === 'sell_to_user' ? 'Sold to User' : txn.transaction_type}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-semibold text-amber-600">{txn.coin_amount.toLocaleString()} 💎</TableCell>
+                        <TableCell className="font-semibold text-amber-600">{txn.diamond_amount.toLocaleString()} 💎</TableCell>
                         <TableCell>
                           {txn.status === 'completed' ? (
                             <Badge className="bg-green-100 text-green-700">Completed</Badge>
@@ -928,4 +928,4 @@ const AdminCoinTraders = () => {
   );
 };
 
-export default AdminCoinTraders;
+export default AdminDiamondTraders;

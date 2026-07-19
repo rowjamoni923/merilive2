@@ -70,7 +70,7 @@ serve(async (req) => {
     // Fetch call
     const { data: call, error: callErr } = await admin
       .from("private_calls")
-      .select("id, caller_id, host_id, status, coins_per_minute, viewer_rate_per_min, host_rate_per_min, platform_cut_percent")
+      .select("id, caller_id, host_id, status, diamonds_per_minute, viewer_rate_per_min, host_rate_per_min, platform_cut_percent")
       .eq("id", callId)
       .maybeSingle();
 
@@ -111,7 +111,7 @@ serve(async (req) => {
       });
     }
 
-    // Resolve viewer rate (frozen if already set, else from call.coins_per_minute / app_settings default)
+    // Resolve viewer rate (frozen if already set, else from call.diamonds_per_minute / app_settings default)
     let viewerRate: number = Number(call.viewer_rate_per_min ?? 0);
     let hostRate: number = Number(call.host_rate_per_min ?? 0);
     let platformPct: number = Number(call.platform_cut_percent ?? 0);
@@ -145,7 +145,7 @@ serve(async (req) => {
         });
       }
 
-      viewerRate = Math.max(Number(call.coins_per_minute ?? 0) || 0, 0);
+      viewerRate = Math.max(Number(call.diamonds_per_minute ?? 0) || 0, 0);
       if (!viewerRate) {
         return new Response(JSON.stringify({
           ok: false,
@@ -177,7 +177,7 @@ serve(async (req) => {
     // (whichever is higher), matching random-call-enqueue and billing-tick.
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("coins, diamonds")
+      .select("diamonds, diamonds")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -188,7 +188,7 @@ serve(async (req) => {
       });
     }
 
-    const balance = Math.max(Number(profile.coins ?? 0), Number(profile.diamonds ?? 0));
+    const balance = Math.max(Number(profile.diamonds ?? 0), Number(profile.diamonds ?? 0));
     if (balance < minRequired) {
       return new Response(JSON.stringify({
         ok: false,

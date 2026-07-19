@@ -439,7 +439,7 @@ export const PremiumViewerProfileCard = ({
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.4 }}
                         >
-                          {((viewer.coins || 0) / 1000).toFixed(0)}K
+                          {((viewer.diamonds || 0) / 1000).toFixed(0)}K
                         </motion.span>
                       </div>
                       <span className="text-xs text-muted-foreground">Diamonds</span>

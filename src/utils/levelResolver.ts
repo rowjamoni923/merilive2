@@ -98,13 +98,13 @@ export const resolveEffectiveUserRechargeTotal = async (
       sumPaginated(
         async (from, to) =>
           await supabase
-            .from("coin_transactions")
-            .select("coins_amount")
+            .from("diamond_transactions")
+            .select("diamonds_amount")
             .eq("user_id", userId)
             .eq("status", "completed")
             .in("transaction_type", ["recharge", "self_recharge"])
             .range(from, to),
-        (row) => Number(row?.coins_amount ?? 0),
+        (row) => Number(row?.diamonds_amount ?? 0),
       ),
       sumPaginated(
         async (from, to) =>

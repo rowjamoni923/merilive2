@@ -74,7 +74,7 @@ import { formatAdminError } from "@/utils/formatAdminError";
 interface GiftItem {
   id: string;
   name: string;
-  coin_value: number;
+  diamond_value: number;
   icon_url: string | null;
   animation_type: string | null;
   animation_url: string | null;
@@ -176,7 +176,7 @@ export default function AdminGifts() {
 
   const [formData, setFormData] = useState({
     name: "",
-    coin_value: 10,
+    diamond_value: 10,
     icon_url: "",
     animation_type: "svga",
     animation_url: "",
@@ -205,7 +205,7 @@ export default function AdminGifts() {
       const sorted = ((data as any[]) || []).slice().sort((a, b) => {
         const d = (a.display_order ?? 0) - (b.display_order ?? 0);
         if (d !== 0) return d;
-        return (a.coin_value ?? 0) - (b.coin_value ?? 0);
+        return (a.diamond_value ?? 0) - (b.diamond_value ?? 0);
       });
       setGifts(sorted as unknown as GiftItem[]);
       setAdminCache('admin_gifts', sorted as unknown as GiftItem[]);
@@ -567,7 +567,7 @@ export default function AdminGifts() {
     
     setFormData({
       name: gift.name,
-      coin_value: gift.coin_value,
+      diamond_value: gift.diamond_value,
       icon_url: effectiveIconUrl,
       animation_type: gift.animation_type || "svga",
       animation_url: gift.animation_url || "",
@@ -590,7 +590,7 @@ export default function AdminGifts() {
     setSelectedDefaultAnim(null);
     setFormData({
       name: "",
-      coin_value: 10,
+      diamond_value: 10,
       icon_url: "",
       animation_type: "svga",
       animation_url: "",
@@ -633,7 +633,7 @@ export default function AdminGifts() {
       
       const giftData: any = {
         name: formData.name,
-        coin_value: formData.coin_value,
+        diamond_value: formData.diamond_value,
         icon_url: formData.icon_url || null,
         animation_type: formData.animation_type,
         animation_url: formData.animation_url || null,
@@ -934,7 +934,7 @@ export default function AdminGifts() {
 
                     {/* Price */}
                     <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold border-amber-300 mb-2 md:mb-3 text-[10px] md:text-xs shadow-sm">
-                      {gift.coin_value?.toLocaleString()} 💎
+                      {gift.diamond_value?.toLocaleString()} 💎
                     </Badge>
 
                     {/* Animation Type - Hide on mobile */}
@@ -1084,8 +1084,8 @@ export default function AdminGifts() {
               <Label className="text-slate-300 font-medium text-sm md:text-base">Diamond Value</Label>
               <Input
                 type="number"
-                value={formData.coin_value}
-                onChange={(e) => setFormData({ ...formData, coin_value: parseInt(e.target.value) || 0 })}
+                value={formData.diamond_value}
+                onChange={(e) => setFormData({ ...formData, diamond_value: parseInt(e.target.value) || 0 })}
                 className="bg-slate-50 border-slate-200 text-slate-900 mt-1.5 md:mt-2 text-sm"
               />
             </div>

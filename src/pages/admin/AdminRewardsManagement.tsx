@@ -50,7 +50,7 @@ const AdminRewardsManagement = () => {
 
   // Weekly Login State
   const [weeklyConfig, setWeeklyConfig] = useState<any>(null);
-  const [weeklyDraft, setWeeklyDraft] = useState({ reward_type: "coins", reward_amount: "500", label: "", description: "", is_active: true });
+  const [weeklyDraft, setWeeklyDraft] = useState({ reward_type: "diamonds", reward_amount: "500", label: "", description: "", is_active: true });
 
   // Fetch all data
   const fetchAll = useCallback(async () => {
@@ -73,7 +73,7 @@ const AdminRewardsManagement = () => {
     if (weeklyRes.data) {
       setWeeklyConfig(weeklyRes.data);
       setWeeklyDraft({
-        reward_type: weeklyRes.data.reward_type || "coins",
+        reward_type: weeklyRes.data.reward_type || "diamonds",
         reward_amount: String(weeklyRes.data.reward_amount ?? 500),
         label: weeklyRes.data.label || "",
         description: weeklyRes.data.description || "",
@@ -127,7 +127,7 @@ const AdminRewardsManagement = () => {
     if (!firstRechargeConfig) return;
 
     const payload = {
-      bonus_coins: firstRechargeConfig.bonus_coins ?? 0,
+      bonus_diamonds: firstRechargeConfig.bonus_diamonds ?? 0,
       bonus_percentage: firstRechargeConfig.bonus_percentage ?? 0,
       bonus_multiplier: firstRechargeConfig.bonus_multiplier,
       bonus_label: firstRechargeConfig.bonus_label,
@@ -223,7 +223,7 @@ const AdminRewardsManagement = () => {
     const { error } = await supabase.from("limited_time_offers").insert({
       title: newOffer.title,
       description: newOffer.description,
-      coins_amount: 0,
+      diamonds_amount: 0,
       original_price: 0,
       offer_price: 0,
       bonus_percentage: newOffer.bonus_percentage,
@@ -329,7 +329,7 @@ const AdminRewardsManagement = () => {
                     onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
                     className="w-full h-9 rounded-md border bg-background px-3 text-sm"
                   >
-                    <option value="coins">Diamonds</option>
+                    <option value="diamonds">Diamonds</option>
                     <option value="diamonds">Diamonds</option>
                     <option value="beans">Beans</option>
                   </select>
@@ -683,20 +683,20 @@ const blurOnEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
 
 const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (field: string, value: any) => void }) => {
   const [draft, setDraft] = useState({
-    reward_coins: String(reward.reward_coins ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
     bonus_label: reward.bonus_label || "",
   });
 
   useEffect(() => {
     setDraft({
-      reward_coins: String(reward.reward_coins ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
       bonus_label: reward.bonus_label || "",
     });
-  }, [reward.id, reward.reward_coins, reward.reward_diamonds, reward.bonus_label]);
+  }, [reward.id, reward.reward_diamonds, reward.reward_diamonds, reward.bonus_label]);
 
-  const commitNumber = (field: "reward_coins" | "reward_diamonds") => {
+  const commitNumber = (field: "reward_diamonds" | "reward_diamonds") => {
     const next = draft[field] === "" ? 0 : Math.max(0, Number(draft[field]));
     if (!Number.isFinite(next) || next === Number(reward[field] ?? 0)) return;
     onCommit(field, next);
@@ -718,9 +718,9 @@ const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (fie
             type="number"
             inputMode="numeric"
             min={0}
-            value={draft.reward_coins}
-            onChange={(e) => setDraft((d) => ({ ...d, reward_coins: e.target.value }))}
-            onBlur={() => commitNumber("reward_coins")}
+            value={draft.reward_diamonds}
+            onChange={(e) => setDraft((d) => ({ ...d, reward_diamonds: e.target.value }))}
+            onBlur={() => commitNumber("reward_diamonds")}
             onKeyDown={blurOnEnter}
             className="h-8"
           />
@@ -763,7 +763,7 @@ const ConsumptionTierRow = ({ tier, onCommit, onDelete }: { tier: any; onCommit:
     min_spend: String(tier.min_spend ?? 0),
     max_spend: tier.max_spend == null ? "" : String(tier.max_spend),
     return_percentage: String(tier.return_percentage ?? 0),
-    max_return_coins: tier.max_return_coins == null ? "" : String(tier.max_return_coins),
+    max_return_diamonds: tier.max_return_diamonds == null ? "" : String(tier.max_return_diamonds),
   });
 
   useEffect(() => {
@@ -772,9 +772,9 @@ const ConsumptionTierRow = ({ tier, onCommit, onDelete }: { tier: any; onCommit:
       min_spend: String(tier.min_spend ?? 0),
       max_spend: tier.max_spend == null ? "" : String(tier.max_spend),
       return_percentage: String(tier.return_percentage ?? 0),
-      max_return_coins: tier.max_return_coins == null ? "" : String(tier.max_return_coins),
+      max_return_diamonds: tier.max_return_diamonds == null ? "" : String(tier.max_return_diamonds),
     });
-  }, [tier.id, tier.tier_name, tier.min_spend, tier.max_spend, tier.return_percentage, tier.max_return_coins]);
+  }, [tier.id, tier.tier_name, tier.min_spend, tier.max_spend, tier.return_percentage, tier.max_return_diamonds]);
 
   const commitText = () => {
     const next = draft.tier_name.trim() || "New Tier";
@@ -787,7 +787,7 @@ const ConsumptionTierRow = ({ tier, onCommit, onDelete }: { tier: any; onCommit:
     onCommit({ [field]: next });
   };
 
-  const commitNullableNumber = (field: "max_spend" | "max_return_coins") => {
+  const commitNullableNumber = (field: "max_spend" | "max_return_diamonds") => {
     const next = draft[field] === "" ? null : Math.max(0, Math.trunc(Number(draft[field])));
     if (next !== null && !Number.isFinite(next)) return;
     if (next !== (tier[field] ?? null)) onCommit({ [field]: next });
@@ -861,10 +861,10 @@ const ConsumptionTierRow = ({ tier, onCommit, onDelete }: { tier: any; onCommit:
             type="number"
             inputMode="numeric"
             min={0}
-            value={draft.max_return_coins}
+            value={draft.max_return_diamonds}
             placeholder="Unlimited"
-            onChange={(e) => setDraft((d) => ({ ...d, max_return_coins: e.target.value }))}
-            onBlur={() => commitNullableNumber("max_return_coins")}
+            onChange={(e) => setDraft((d) => ({ ...d, max_return_diamonds: e.target.value }))}
+            onBlur={() => commitNullableNumber("max_return_diamonds")}
             onKeyDown={blurOnEnter}
             className="h-8"
           />
