@@ -589,7 +589,7 @@ const AdminRewardsManagement = () => {
                     <Input
                       value={newOffer.description}
                       onChange={(e) => setNewOffer({ ...newOffer, description: e.target.value })}
-                      placeholder="Get extra coins on recharge!"
+                      placeholder="Get extra diamonds on recharge!"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
