@@ -18,11 +18,11 @@ type HealthRow = {
 const PIPELINE_LABELS: Record<string, { label: string; desc: string; ledgerSource: string }> = {
   daily_task_progress: { label: "Daily Tasks", desc: "Per-user daily task completion & reward claiming", ledgerSource: "task_reward" },
   new_host_live_bonus: { label: "New Host Live Bonus", desc: "Hourly live-time bonus for newly-approved hosts", ledgerSource: "new_host_live_bonus" },
-  daily_login_claims: { label: "Daily Login Rewards", desc: "Login streak coin/beans payout", ledgerSource: "daily_login" },
+  daily_login_claims: { label: "Daily Login Rewards", desc: "Login streak diamonds/beans payout", ledgerSource: "daily_login" },
   rating_reward_claims: { label: "Play Store Rating Rewards", desc: "Screenshot-verified rating claim", ledgerSource: "rating_reward" },
   invitation_reward_claims: { label: "Invitation Rewards", desc: "Inviter payout when friends sign up / recharge", ledgerSource: "invitation_reward" },
-  registration_bonus_claims: { label: "Registration Bonus", desc: "One-time signup welcome coins", ledgerSource: "registration_bonus" },
-  first_recharge_claims: { label: "First Recharge Bonus", desc: "Bonus coins on the user's first paid recharge", ledgerSource: "first_recharge_bonus" },
+  registration_bonus_claims: { label: "Registration Bonus", desc: "One-time signup welcome diamonds", ledgerSource: "registration_bonus" },
+  first_recharge_claims: { label: "First Recharge Bonus", desc: "Bonus diamonds on the user's first paid recharge", ledgerSource: "first_recharge_bonus" },
 };
 
 export default function AdminRewardsAudit() {
