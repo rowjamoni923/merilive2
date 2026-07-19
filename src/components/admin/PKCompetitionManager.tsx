@@ -194,7 +194,7 @@ const PKCompetitionManager = () => {
     const { error } = await supabase.from("pk_competition_rewards").insert({
       competition_id: selectedComp.id,
       rank_from: newFrom, rank_to: Math.min(newFrom + 4, 50),
-      reward_diamonds: 0, reward_beans: 0, reward_diamonds: 0, is_active: true,
+      reward_diamonds: 0, reward_beans: 0, is_active: true,
     });
     if (error) {
       toast.error(error.message || "Failed to add reward tier");

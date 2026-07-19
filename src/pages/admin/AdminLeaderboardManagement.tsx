@@ -529,7 +529,7 @@ const AdminLeaderboardManagement = () => {
                     leaderboard_type: selectedCategory,
                     category: selectedCategory, period_type: selectedPeriod,
                     rank_from: t.from, rank_to: t.to, rank_position: t.from,
-                    reward_diamonds: 0, reward_diamonds: 0, reward_beans: 0,
+                    reward_diamonds: 0, reward_beans: 0,
                     reward_amount: 0, reward_type: 'diamonds', is_active: true,
                   });
                 }
