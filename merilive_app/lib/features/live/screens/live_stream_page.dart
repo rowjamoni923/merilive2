@@ -175,7 +175,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       final stream = await _client
           .from('live_streams')
           .select(
-              'id, host_id, title, status, viewer_count, total_coins, coin_count')
+              'id, host_id, title, status, viewer_count, total_diamonds_earned')
           .eq('id', widget.streamId)
           .maybeSingle();
 
@@ -575,31 +575,31 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     }
   }
 
-  /// Phase I14 — accumulate per-sender coin totals for this session and
+  /// Phase I14 — accumulate per-sender Diamond totals for this session and
   /// push the top-5 into the overlay's `topGifters` list. Runs on every
   /// gift event (host + viewer tiles both see the same leaderboard).
   void _accrueTopGifter(LiveGiftEvent e) {
     final uid = e.senderId;
     if (uid == null || uid.isEmpty) return;
-    final delta = e.perUnitCoins * e.quantity;
+    final delta = e.perUnitDiamonds * e.quantity;
     if (delta <= 0) return;
     final existing = _gifterTotals[uid];
     _gifterTotals[uid] = _GifterTotal(
       userId: uid,
       name: e.senderName,
       avatarUrl: e.senderAvatar,
-      totalCoins: (existing?.totalCoins ?? 0) + delta,
+      totalDiamonds: (existing?.totalDiamonds ?? 0) + delta,
       lastAt: DateTime.now(),
     );
     final sorted = _gifterTotals.values.toList()
-      ..sort((a, b) => b.totalCoins.compareTo(a.totalCoins));
+      ..sort((a, b) => b.totalDiamonds.compareTo(a.totalDiamonds));
     _overlay.setTopGifters(sorted
         .take(5)
         .map((g) => GiftComboTrackerEntry(
               userId: g.userId,
               name: g.name,
               avatarUrl: g.avatarUrl,
-              totalCoins: g.totalCoins,
+              totalDiamonds: g.totalDiamonds,
               lastAt: g.lastAt,
             ))
         .toList());
@@ -621,20 +621,20 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       giftImageUrl: e.giftIcon,
       by: e.quantity,
     );
-    if (e.perUnitCoins >= 100) {
+    if (e.perUnitDiamonds >= 100) {
       _overlay.premiumFlyingGifts.push(PremiumFlyingGift(
         senderName: e.senderName,
         senderAvatarUrl: e.senderAvatar,
         giftName: e.giftName,
         giftImageUrl: e.giftIcon,
-        giftValue: e.perUnitCoins,
+        giftValue: e.perUnitDiamonds,
         count: e.quantity,
       ));
     }
     // Phase I14 — session leaderboard (host tile shows top 5 gifters).
     _accrueTopGifter(e);
 
-    if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
+    if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitDiamonds)) {
       return;
     }
     final receiverLabel =
@@ -648,12 +648,12 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       'url': e.animationUrl ?? e.giftIcon ?? '',
       'fallbackImage': e.giftIcon ?? '',
       'durationMs': 3500,
-      'priority': e.perUnitCoins,
+      'priority': e.perUnitDiamonds,
       'senderName': e.senderName,
       'receiverName': receiverLabel,
       'giftName': e.giftName,
       'quantity': e.quantity,
-      'coinValue': e.perUnitCoins,
+      'diamondValue': e.perUnitDiamonds,
       'surface': 'live',
     };
     final acceptedByNative = await NativeGiftBridge.instance.dispatch(payload);
@@ -984,7 +984,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     }
   }
 
-  // H5 P0 #3 — Show the post-battle result modal with 70/30 coin split
+  // H5 P0 #3 — Show the post-battle result modal with 70/30 Diamond split
   // (server-authoritative winner already resolved via `end_pk_battle` RPC;
   // we display the split derived from the losing team's score, matching
   // web `PKBattleResult.tsx`).
@@ -992,8 +992,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
     if (!mounted) return;
     final challengerWon = snap.winnerUserId == snap.challengerId;
     final loserScore = challengerWon ? snap.opponentScore : snap.challengerScore;
-    final winnerCoins = (loserScore * 0.7).round();
-    final loserCoins = (loserScore * 0.3).round();
+    final winnerDiamonds = (loserScore * 0.7).round();
+    final loserDiamonds = (loserScore * 0.3).round();
     final data = PKBattleResultData(
       hostName: snap.challengerName,
       hostAvatarUrl: snap.challengerAvatar,
@@ -1001,8 +1001,8 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       opponentName: snap.opponentName,
       opponentAvatarUrl: snap.opponentAvatar,
       opponentScore: snap.opponentScore,
-      winnerCoins: winnerCoins,
-      loserCoins: loserCoins,
+      winnerDiamonds: winnerDiamonds,
+      loserDiamonds: loserDiamonds,
     );
     await PKBattleResult.show(context, data);
   }
@@ -1043,7 +1043,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
       onClaim: (t) async {
         final err = await LiveTasksBridge.instance.claim(t.id);
         if (!mounted) return;
-        _snack(err ?? 'Reward claimed +${t.rewardCoins}');
+        _snack(err ?? 'Reward claimed +${t.rewardDiamonds}');
       },
     );
   }
@@ -1191,17 +1191,15 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 ),
               ),
             ),
-            // B3 — Host earnings / room-coin chip (top-left below header).
+            // B3 — Host earnings / room-Diamond chip (top-left below header).
             Positioned(
               top: MediaQuery.of(context).padding.top + 74,
               left: 12,
-              child: _CoinChip(
-                coins: (_stream?['total_coins'] as num?)?.toInt() ??
-                    (_stream?['coin_count'] as num?)?.toInt() ??
-                    0,
+              child: _DiamondChip(
+                diamonds: (_stream?['total_diamonds_earned'] as num?)?.toInt() ?? 0,
               ),
             ),
-            // A2 + B5 — Flying gift capsule stack (top-left below coin chip).
+            // A2 + B5 — Flying gift capsule stack (top-left below Diamond chip).
             // Bigo/Chamet-style tier-gradient capsule stack (≤3 visible,
             // 44px offset, count-up on combo merge, 3.5s dismiss window).
             Positioned(
@@ -1277,7 +1275,7 @@ class _LiveStreamPageState extends State<LiveStreamPage> {
                 child: NewHostBonusCard(
                   daysLeft: _bonusState.daysLeft,
                   minutesStreamed: _bonusState.minutesStreamed,
-                  coinsEarned: _bonusState.coinsEarned,
+                  diamondsEarned: _bonusState.diamondsEarned,
                   milestones: _bonusState.milestones,
                   onDismiss: () => setState(() => _bonusDismissed = true),
                 ),
@@ -1664,12 +1662,12 @@ class _FollowPill extends StatelessWidget {
   }
 }
 
-/// B3 — Compact host-earnings chip. Reads `total_coins` off the live_streams
+/// B3 — Compact host-earnings chip. Reads `total_diamonds_earned` off the live_streams
 /// row (which is kept fresh by realtime updates), formats compactly and
 /// animates on value change so a big gift feels earned.
-class _CoinChip extends StatelessWidget {
-  const _CoinChip({required this.coins});
-  final int coins;
+class _DiamondChip extends StatelessWidget {
+  const _DiamondChip({required this.diamonds});
+  final int diamonds;
 
   String _fmt(int n) {
     if (n < 1000) return '$n';
@@ -1682,7 +1680,7 @@ class _CoinChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      key: ValueKey(coins),
+      key: ValueKey(diamonds),
       tween: Tween(begin: 0.92, end: 1.0),
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutBack,
@@ -1712,7 +1710,7 @@ class _CoinChip extends StatelessWidget {
                 size: 14, color: Color(0xFFFBBF24)),
             const SizedBox(width: 4),
             Text(
-              _fmt(coins),
+              _fmt(diamonds),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -1736,12 +1734,12 @@ class _GifterTotal {
   final String userId;
   final String name;
   final String? avatarUrl;
-  final int totalCoins;
+  final int totalDiamonds;
   final DateTime lastAt;
   const _GifterTotal({
     required this.userId,
     required this.name,
-    required this.totalCoins,
+    required this.totalDiamonds,
     required this.lastAt,
     this.avatarUrl,
   });

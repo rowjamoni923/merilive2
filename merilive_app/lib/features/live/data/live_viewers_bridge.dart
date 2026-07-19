@@ -16,7 +16,7 @@ class LiveViewer {
     required this.displayName,
     required this.avatarUrl,
     required this.userLevel,
-    required this.coins,
+    required this.diamonds,
     required this.joinedAt,
     required this.isVip,
   });
@@ -25,7 +25,7 @@ class LiveViewer {
   final String displayName;
   final String? avatarUrl;
   final int userLevel;
-  final int coins;
+  final int diamonds;
   final DateTime joinedAt;
   final bool isVip;
 }
@@ -40,7 +40,7 @@ class LiveViewersBridge {
     final rows = await _client
         .from('stream_viewers')
         .select(
-            'viewer_id, joined_at, left_at, profiles!stream_viewers_viewer_id_fkey(id, display_name, avatar_url, user_level, host_level, max_user_level, coins)')
+            'viewer_id, joined_at, left_at, profiles!stream_viewers_viewer_id_fkey(id, display_name, avatar_url, user_level, host_level, max_user_level, diamonds)')
         .eq('stream_id', streamId)
         .filter('left_at', 'is', null)
         .order('joined_at', ascending: false);
@@ -48,7 +48,7 @@ class LiveViewersBridge {
     return (rows as List).map<LiveViewer>((raw) {
       final sv = raw as Map<String, dynamic>;
       final p = (sv['profiles'] as Map?)?.cast<String, dynamic>();
-      final coins = (p?['coins'] as num?)?.toInt() ?? 0;
+      final diamonds = (p?['diamonds'] as num?)?.toInt() ?? 0;
       final level = _displayLevel(p);
       DateTime joined;
       try {
@@ -61,9 +61,9 @@ class LiveViewersBridge {
         displayName: (p?['display_name'] ?? 'Anonymous').toString(),
         avatarUrl: p?['avatar_url']?.toString(),
         userLevel: level,
-        coins: coins,
+        diamonds: diamonds,
         joinedAt: joined,
-        isVip: coins >= 10000,
+        isVip: diamonds >= 10000,
       );
     }).toList();
   }

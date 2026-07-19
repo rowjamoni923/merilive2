@@ -56,8 +56,8 @@ data class GiftResponse(
     val icon_url: String? = null,
     val animation_url: String? = null,
     val animation_type: String? = null,
-    val coin_price: Int = 0,        // DB generated column synced from coin_value
-    val coin_value: Int = 0,        // actual DB column
+    val diamond_price: Int = 0,        // DB generated column synced from diamond_value
+    val diamond_value: Int = 0,        // actual DB column
     val category: String? = null,   // text field, NOT category_id
     val is_active: Boolean = true,
     val display_order: Int = 0,

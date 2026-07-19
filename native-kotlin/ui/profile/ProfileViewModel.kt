@@ -42,7 +42,7 @@ class ProfileViewModel @Inject constructor(
                 val result = postgrest.from("profiles")
                     .select(Columns.raw("""
                         id, app_uid, display_name, avatar_url, bio, gender, 
-                        user_level, coins, beans, diamonds, 
+                        user_level, beans, diamonds, 
                         is_verified, is_face_verified, is_host, 
                         country_name, country_flag, equipped_frame_id,
                         current_vip_tier_id, vip_expires_at, agency_id, is_agency_owner,
@@ -74,7 +74,7 @@ class ProfileViewModel @Inject constructor(
                     bio = result.bio,
                     gender = result.gender,
                     userLevel = result.user_level ?: 1,
-                    coins = result.coins ?: 0,
+                    diamonds = result.diamonds ?: 0,
                     beans = result.beans ?: 0,
                     diamonds = result.diamonds ?: 0,
                     isVip = result.current_vip_tier_id != null,
@@ -130,7 +130,6 @@ data class ProfileResponse(
     val bio: String? = null,
     val gender: String? = null,
     val user_level: Int? = null,
-    val coins: Int? = null,
     val beans: Int? = null,
     val diamonds: Int? = null,
     val is_verified: Boolean? = null,

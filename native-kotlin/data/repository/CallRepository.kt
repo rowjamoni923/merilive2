@@ -84,9 +84,9 @@ data class CallHistoryItem(
     val host_id: String,
     val status: String = "ended",
     val duration_seconds: Int? = null,
-    val coins_spent: Int? = null,
-    val coins_per_minute: Int? = null,
-    val total_coins_deducted: Int? = null,
+    val diamonds_spent: Int? = null,
+    val diamonds_per_minute: Int? = null,
+    val total_diamonds_deducted: Int? = null,
     val created_at: String? = null,
 )
 

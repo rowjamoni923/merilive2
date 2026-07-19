@@ -9,7 +9,7 @@ class LiveTask {
   final String title;
   final int progress;
   final int goal;
-  final int rewardCoins;
+  final int rewardDiamonds;
   final Duration? remaining; // null = no expiry
   final bool completed;
   final bool claimed;
@@ -18,7 +18,7 @@ class LiveTask {
     required this.title,
     required this.progress,
     required this.goal,
-    required this.rewardCoins,
+    required this.rewardDiamonds,
     this.remaining,
     this.completed = false,
     this.claimed = false,
@@ -171,7 +171,7 @@ class _LiveTasksCardState extends State<LiveTasksCard> {
                     const Icon(Icons.monetization_on,
                         color: Colors.white, size: 12),
                     const SizedBox(width: 3),
-                    Text('${t.rewardCoins}',
+                    Text('${t.rewardDiamonds}',
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,

@@ -23,7 +23,7 @@ class RechargeAdapter(
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvCoins: TextView = view.findViewById(R.id.tvCoins)
+        val tvDiamonds: TextView = view.findViewById(R.id.tvDiamonds)
         val tvPrice: TextView = view.findViewById(R.id.tvPrice)
         val btnBuy: MaterialButton = view.findViewById(R.id.btnBuy)
 
@@ -41,7 +41,7 @@ class RechargeAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
-        holder.tvCoins.text = "💎 ${item.diamonds}"
+        holder.tvDiamonds.text = "💎 ${item.diamonds}"
         holder.tvPrice.text = item.priceDisplay
     }
 }

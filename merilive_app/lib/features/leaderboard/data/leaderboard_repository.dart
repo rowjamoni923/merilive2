@@ -50,7 +50,7 @@ class LeaderboardRepository {
     if (category == LeaderboardCategory.pkCompetition) return const [];
     final res = await _client
         .from('leaderboard_reward_config')
-        .select('rank_from,rank_to,reward_coins,reward_diamonds,reward_beans')
+        .select('rank_from,rank_to,reward_diamonds,reward_beans')
         .eq('category', category.dbKey)
         .eq('period_type', period.dbKey)
         .eq('is_active', true)
@@ -79,7 +79,7 @@ class LeaderboardRepository {
   Future<List<RewardTier>> fetchPkRewardTiers(String competitionId) async {
     final res = await _client
         .from('pk_competition_rewards')
-        .select('rank_from,rank_to,reward_coins,reward_diamonds,reward_beans')
+        .select('rank_from,rank_to,reward_diamonds,reward_beans')
         .eq('competition_id', competitionId)
         .eq('is_active', true)
         .order('rank_from');
@@ -95,28 +95,28 @@ class LeaderboardRepository {
     final type = comp.competitionType;
     final stats = <String, num>{};
 
-    if (type == 'gift_sending' || type == 'coins_spent') {
+    if (type == 'gift_sending' || type == 'diamonds_spent') {
       final res = await _client
           .from('gift_transactions')
-          .select('sender_id,coin_amount')
+          .select('sender_id,diamond_amount')
           .gte('created_at', startIso)
           .lte('created_at', endIso);
       for (final row in (res as List).whereType<Map>()) {
         final id = row['sender_id']?.toString();
         if (id == null) continue;
-        stats[id] = (stats[id] ?? 0) + ((row['coin_amount'] as num?) ?? 0);
+        stats[id] = (stats[id] ?? 0) + ((row['diamond_amount'] as num?) ?? 0);
       }
     } else if (type == 'gift_receiving' || type == 'beans_earned') {
       final res = await _client
           .from('gift_transactions')
-          .select('receiver_id,coin_amount')
+          .select('receiver_id,diamond_amount')
           .gte('created_at', startIso)
           .lte('created_at', endIso);
       for (final row in (res as List).whereType<Map>()) {
         final id = row['receiver_id']?.toString();
         if (id == null) continue;
-        final coin = ((row['coin_amount'] as num?) ?? 0);
-        stats[id] = (stats[id] ?? 0) + (coin * 0.6).floor();
+        final diamond = ((row['diamond_amount'] as num?) ?? 0);
+        stats[id] = (stats[id] ?? 0) + (diamond * 0.6).floor();
       }
     } else {
       final res = await _client

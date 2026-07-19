@@ -25,7 +25,7 @@ class PartyContributorsSheet extends StatefulWidget {
 class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
   bool _loading = true;
   List<_Row> _rows = const [];
-  int _totalCoins = 0;
+  int _totalDiamonds = 0;
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
           .toIso8601String();
       final rows = await Supabase.instance.client
           .from('gift_transactions')
-          .select('sender_id, total_coins, coin_amount')
+          .select('sender_id, total_diamonds, diamond_amount')
           .eq('party_room_id', widget.roomId)
           .gte('created_at', since)
           .limit(500);
@@ -51,11 +51,11 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
       for (final r in (rows as List).cast<Map>()) {
         final uid = r['sender_id']?.toString();
         if (uid == null) continue;
-        final coins = (r['total_coins'] as num?)?.toInt() ??
-            (r['coin_amount'] as num?)?.toInt() ??
+        final diamonds = (r['total_diamonds'] as num?)?.toInt() ??
+            (r['diamond_amount'] as num?)?.toInt() ??
             0;
-        total += coins;
-        agg[uid] = (agg[uid] ?? 0) + coins;
+        total += diamonds;
+        agg[uid] = (agg[uid] ?? 0) + diamonds;
       }
       final ids = agg.keys.toList();
       final profileMap = <String, Map<String, dynamic>>{};
@@ -73,13 +73,13 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
                 userId: e.key,
                 name: (profileMap[e.key]?['display_name'] as String?) ?? 'User',
                 avatar: profileMap[e.key]?['avatar_url'] as String?,
-                coins: e.value,
+                diamonds: e.value,
               ))
           .toList()
-        ..sort((a, b) => b.coins.compareTo(a.coins));
+        ..sort((a, b) => b.diamonds.compareTo(a.diamonds));
       if (mounted) setState(() {
         _rows = list.take(50).toList();
-        _totalCoins = total;
+        _totalDiamonds = total;
         _loading = false;
       });
     } catch (_) {
@@ -126,7 +126,7 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
                       fontSize: 15,
                       fontWeight: FontWeight.w700)),
               const Spacer(),
-              Text('$_totalCoins💰',
+              Text('$_totalDiamonds💎',
                   style: const TextStyle(
                       color: Color(0xFFFACC15),
                       fontSize: 13,
@@ -184,7 +184,7 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                Text('${r.coins}💰',
+                                Text('${r.diamonds}💎',
                                     style: const TextStyle(
                                         color: Color(0xFFFACC15),
                                         fontSize: 13,
@@ -206,9 +206,9 @@ class _Row {
       {required this.userId,
       required this.name,
       required this.avatar,
-      required this.coins});
+      required this.diamonds});
   final String userId;
   final String name;
   final String? avatar;
-  int coins;
+  int diamonds;
 }

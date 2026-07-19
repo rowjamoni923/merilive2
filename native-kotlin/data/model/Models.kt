@@ -13,9 +13,8 @@ data class UserProfile(
     val gender: String? = null,
     val user_level: Int = 1,
     val host_level: Int = 0,
-    val coins: Int = 0,
-    val beans: Int = 0,
     val diamonds: Int = 0,
+    val beans: Int = 0,
     val isVip: Boolean = false,
     val is_verified: Boolean = false,
     val is_face_verified: Boolean = false,
@@ -64,8 +63,8 @@ data class Gift(
     val icon_url: String? = null,
     val animation_url: String? = null,
     val animation_type: String? = null,
-    val coin_price: Int = 0,
-    val coin_value: Int = 0,
+    val diamond_price: Int = 0,
+    val diamond_value: Int = 0,
     val category: String? = null,
     val is_active: Boolean = true,
     val display_order: Int = 0,
@@ -106,9 +105,9 @@ data class PrivateCall(
     val connected_at: String? = null,
     val ended_at: String? = null,
     val duration_seconds: Int? = null,
-    val coins_spent: Int? = null,
-    val coins_per_minute: Int? = null,
-    val total_coins_deducted: Int? = null,
+    val diamonds_spent: Int? = null,
+    val diamonds_per_minute: Int? = null,
+    val total_diamonds_deducted: Int? = null,
     val host_earned: Int? = null,
 )
 
@@ -201,9 +200,9 @@ data class VipPackage(
 data class RechargePackage(
     val id: String,
     val name: String,
-    val coins: Int,
+    val diamonds: Int,
     val price_bdt: Double,
-    val bonus_coins: Int = 0,
+    val bonus_diamonds: Int = 0,
     val is_popular: Boolean = false,
     val google_product_id: String? = null,
 )
@@ -311,7 +310,7 @@ data class LiveChatMessage(
 
 // Extension properties for Gift adapter compatibility
 val Gift.imageUrl: String? get() = icon_url
-val Gift.coinPrice: Int get() = coin_price
+val Gift.diamondPrice: Int get() = diamond_price
 
 // Extension properties for ChatMessage adapter compatibility
 val ChatMessage.senderId: String get() = sender_id
@@ -326,5 +325,5 @@ val LeaderboardEntry.avatarUrl: String? get() = avatar_url
 val ArSticker.previewImageUrl: String? get() = preview_image_url
 
 // Extension properties for RechargePackage adapter compatibility
-val RechargePackage.diamonds: Int get() = coins
+val RechargePackage.diamonds: Int get() = diamonds
 val RechargePackage.priceDisplay: String get() = "৳${price_bdt.toInt()}"

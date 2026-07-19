@@ -97,7 +97,7 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
   }
 
   Future<void> _onGiftEvent(LiveGiftEvent e) async {
-    if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitCoins)) {
+    if (!GiftAnimationConfig.instance.shouldPlayFullScreen(e.perUnitDiamonds)) {
       return;
     }
     final receiverLabel =
@@ -110,12 +110,12 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
       'url': e.animationUrl ?? e.giftIcon ?? '',
       'fallbackImage': e.giftIcon ?? '',
       'durationMs': 3500,
-      'priority': e.perUnitCoins,
+      'priority': e.perUnitDiamonds,
       'senderName': e.senderName,
       'receiverName': receiverLabel,
       'giftName': e.giftName,
       'quantity': e.quantity,
-      'coinValue': e.perUnitCoins,
+      'diamondValue': e.perUnitDiamonds,
       'surface': 'party',
     };
     final acceptedByNative =

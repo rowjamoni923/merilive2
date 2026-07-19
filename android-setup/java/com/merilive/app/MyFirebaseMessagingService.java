@@ -153,7 +153,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 break;
 
             case "topup":
-            case "coin_received":
+            case "diamond_received":
                 handleTopupNotification(data);
                 break;
 
@@ -344,7 +344,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         String title = "🎁 " + senderName;
         String body = "Sent you a " + safe(data, "giftName", "gift");
-        if (giftValue != null) body += " (" + giftValue + " coins)!";
+        if (giftValue != null) body += " (" + giftValue + " diamonds)!";
 
         int notifId = uniqueId();
         final String finalBody = body;
@@ -590,11 +590,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     // ═══════════════════════════════════════
-    //  TOPUP / COIN NOTIFICATION
+    //  TOPUP / DIAMOND NOTIFICATION
     // ═══════════════════════════════════════
 
     private void handleTopupNotification(Map<String, String> data) {
-        String title = safe(data, "title", "💰 Coins Received");
+        String title = safe(data, "title", "💰 Diamonds Received");
         String body = safe(data, "body", "Your balance has been updated");
 
         Intent intent = launchIntent();

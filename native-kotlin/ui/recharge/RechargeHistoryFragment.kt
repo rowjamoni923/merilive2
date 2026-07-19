@@ -83,7 +83,7 @@ class RechargeHistoryAdapter : androidx.recyclerview.widget.ListAdapter<Recharge
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = getItem(position)
         holder.binding.tvTitle.text = item.package_name ?: "Recharge"
-        holder.binding.tvAmount.text = "+${item.coins_amount} Coins"
+        holder.binding.tvAmount.text = "+${item.diamonds_amount} Diamonds"
         holder.binding.tvDate.text = item.created_at?.take(10) ?: ""
         holder.binding.tvStatus.text = item.status
     }
@@ -104,7 +104,7 @@ class RechargeHistoryViewModel @Inject constructor(
     fun loadHistory() {
         viewModelScope.launch {
             try {
-                val result = postgrest.from("coin_transactions")
+                val result = postgrest.from("diamond_transactions")
                     .select {
                         filter {
                             eq("user_id", currentUserId)
@@ -124,7 +124,7 @@ class RechargeHistoryViewModel @Inject constructor(
 data class RechargeHistoryItem(
     val id: String,
     val user_id: String,
-    val coins_amount: Long = 0,
+    val diamonds_amount: Long = 0,
     val transaction_type: String = "purchase",
     val status: String = "completed",
     val package_name: String? = null,

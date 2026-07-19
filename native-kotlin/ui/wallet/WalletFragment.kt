@@ -176,7 +176,7 @@ class WalletFragmentViewModel @Inject constructor(
 
                 val balanceDeferred = async {
                     postgrest.from("profiles")
-                        .select(Columns.raw("coins, beans, diamonds")) {
+                        .select(Columns.raw("diamonds, beans")) {
                             filter { eq("id", userId) }
                         }
                         .decodeSingle<BalanceResponse>()
@@ -196,9 +196,9 @@ class WalletFragmentViewModel @Inject constructor(
                 val transactions = txDeferred.await()
 
                 _walletState.value = WalletState.Success(
-                    diamonds = balance.coins ?: 0,
+                    diamonds = balance.diamonds ?: 0,
                     beans = balance.beans ?: 0,
-                    traderDiamonds = balance.diamonds ?: 0,
+                    traderDiamonds = 0,
                     transactions = transactions.map {
                         TransactionItem(
                             id = it.id,
@@ -230,9 +230,8 @@ class WalletFragmentViewModel @Inject constructor(
 
 @Serializable
 data class BalanceResponse(
-    val coins: Int? = null,
-    val beans: Int? = null,
     val diamonds: Int? = null,
+    val beans: Int? = null,
 )
 
 @Serializable

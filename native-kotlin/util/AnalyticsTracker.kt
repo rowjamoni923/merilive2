@@ -27,10 +27,10 @@ object AnalyticsTracker {
         ))
     }
 
-    fun trackGiftSent(giftId: String, coins: Long, receiverId: String) {
+    fun trackGiftSent(giftId: String, diamonds: Long, receiverId: String) {
         trackEvent("gift_sent", mapOf(
             "gift_id" to giftId,
-            "coins" to coins.toString(),
+            "diamonds" to diamonds.toString(),
             "receiver_id" to receiverId,
         ))
     }

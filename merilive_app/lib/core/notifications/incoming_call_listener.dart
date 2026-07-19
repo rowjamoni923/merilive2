@@ -273,7 +273,7 @@ class IncomingCallListener {
     try {
       final row = await client
           .from('private_calls')
-          .select('id, caller_id, host_id, status, created_at, call_type, coins_per_minute')
+          .select('id, caller_id, host_id, status, created_at, call_type, diamonds_per_minute')
           .eq('id', callId)
           .maybeSingle();
       if (row == null) return false;
@@ -319,7 +319,7 @@ class IncomingCallListener {
         '&avatar=${Uri.encodeComponent((caller?['avatar_url'] ?? '').toString())}'
         '&level=${(caller?['user_level'] ?? caller?['host_level'] ?? 1)}'
         '&type=${(row['call_type'] ?? 'video')}'
-        '&cpm=${row['coins_per_minute'] ?? 0}',
+        '&cpm=${row['diamonds_per_minute'] ?? 0}',
       );
       return true;
     } catch (e) {

@@ -99,7 +99,7 @@ class GiftAdapter(
         holder.binding.apply {
             ivGiftIcon.load(gift.icon_url) { crossfade(true) }
             tvGiftName.text = gift.name
-            tvGiftPrice.text = "${gift.coin_price} 💎"
+            tvGiftPrice.text = "${gift.diamond_price} 💎"
             root.setOnClickListener { onClick(gift) }
         }
     }

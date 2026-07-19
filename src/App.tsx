@@ -758,7 +758,7 @@ const App = () => {
     queryClient.prefetchQuery({
       queryKey: ['user-balance', userId],
       queryFn: async () => {
-        const { data } = await supabase.from('profiles').select('diamonds, beans, diamonds, pending_earnings').eq('id', userId).single();
+        const { data } = await supabase.from('profiles').select('diamonds, beans, pending_earnings').eq('id', userId).single();
         return data;
       },
       staleTime: 1000 * 60 * 2,

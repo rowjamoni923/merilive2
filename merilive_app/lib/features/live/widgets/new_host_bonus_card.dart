@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 /// Flutter port of `NewHostBonusCard.tsx` — top-of-Go-Live celebratory card
 /// for new hosts within their first 7 days. Shows current-week progress
-/// (minutes streamed, coins earned) toward tiered rewards.
+/// (minutes streamed, Diamonds earned) toward tiered rewards.
 class NewHostBonusMilestone {
   final String label;
   final int minutesGoal;
-  final int rewardCoins;
+  final int rewardDiamonds;
   final bool achieved;
   const NewHostBonusMilestone({
     required this.label,
     required this.minutesGoal,
-    required this.rewardCoins,
+    required this.rewardDiamonds,
     this.achieved = false,
   });
 }
@@ -19,7 +19,7 @@ class NewHostBonusMilestone {
 class NewHostBonusCard extends StatelessWidget {
   final int daysLeft;
   final int minutesStreamed;
-  final int coinsEarned;
+  final int diamondsEarned;
   final List<NewHostBonusMilestone> milestones;
   final VoidCallback? onDismiss;
   final VoidCallback? onLearnMore;
@@ -28,7 +28,7 @@ class NewHostBonusCard extends StatelessWidget {
     super.key,
     required this.daysLeft,
     required this.minutesStreamed,
-    required this.coinsEarned,
+    required this.diamondsEarned,
     required this.milestones,
     this.onDismiss,
     this.onLearnMore,
@@ -97,7 +97,7 @@ class NewHostBonusCard extends StatelessWidget {
             children: [
               _stat('$minutesStreamed', 'min streamed'),
               const SizedBox(width: 16),
-              _stat('$coinsEarned', 'coins earned'),
+              _stat('$diamondsEarned', 'Diamonds earned'),
             ],
           ),
           const SizedBox(height: 12),
@@ -171,7 +171,7 @@ class NewHostBonusCard extends StatelessWidget {
               const Icon(Icons.monetization_on,
                   color: Color(0xFFFDE68A), size: 12),
               const SizedBox(width: 2),
-              Text('${m.rewardCoins}',
+              Text('${m.rewardDiamonds}',
                   style: const TextStyle(
                       color: Color(0xFFFDE68A),
                       fontSize: 11,

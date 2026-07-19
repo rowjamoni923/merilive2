@@ -21,7 +21,7 @@ class CallHistoryAdapter(
             }
             binding.tvType.text = "📹 Video Call $statusIcon"
             binding.tvDate.text = item.created_at?.take(10) ?: ""
-            binding.tvAmount.text = if (item.coins_spent != null) "💎 ${item.coins_spent}" else "${item.duration_seconds ?: 0}s"
+            binding.tvAmount.text = if (item.diamonds_spent != null) "💎 ${item.diamonds_spent}" else "${item.duration_seconds ?: 0}s"
             binding.root.setOnClickListener { onClick(item) }
         }
     }

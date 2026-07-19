@@ -47,9 +47,9 @@ function getNotificationUrl(data) {
   if (type === 'party_invite') return data.room_id ? '/party/' + data.room_id : '/party-rooms';
 
   // Transactions
-  if (type === 'topup_approved' || type === 'topup_rejected' || type === 'coin_purchase_helper' || type === 'coin_purchase_direct' || type === 'payment_completed' || type === 'payment_pending') return '/recharge-history';
-  if (type === 'coins_added' || type === 'coins_received' || type === 'diamonds_credited') return '/profile';
-  if (type === 'coin_exchange' || type === 'diamond_sent') return '/agency-coin-exchange';
+  if (type === 'topup_approved' || type === 'topup_rejected' || type === 'diamond_purchase_helper' || type === 'diamond_purchase_direct' || type === 'payment_completed' || type === 'payment_pending') return '/recharge-history';
+  if (type === 'diamonds_added' || type === 'diamonds_received' || type === 'diamonds_credited') return '/profile';
+  if (type === 'diamond_exchange' || type === 'diamond_sent') return '/agency-diamond-exchange';
 
   // Withdrawal
   if (type === 'withdrawal' || type === 'withdrawal_approved' || type === 'withdrawal_rejected') return '/agency-withdrawal';
@@ -175,8 +175,8 @@ self.addEventListener('notificationclick', function(event) {
 // Makes repeat page loads near-instant (<100ms)
 // Pkg B pass-2: + HTML navigation cache with offline fallback
 // =============================================
-var ASSET_CACHE = 'meri-assets-v1';
-var HTML_CACHE = 'meri-html-v1';
+var ASSET_CACHE = 'meri-assets-v2';
+var HTML_CACHE = 'meri-html-v2';
 var ASSET_REGEX = /\.(?:css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
 var SCRIPT_ASSET_REGEX = /\.(?:js|mjs)(?:\?.*)?$/i;
 

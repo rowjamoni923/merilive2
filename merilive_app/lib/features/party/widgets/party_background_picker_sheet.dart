@@ -39,7 +39,7 @@ class _PartyBackgroundPickerSheetState
       final rows = await Supabase.instance.client
           .from('party_room_backgrounds')
           .select(
-              'id, name, image_url, thumbnail_url, gradient_css, is_free, price_coins')
+              'id, name, image_url, thumbnail_url, gradient_css, is_free, price_diamonds')
           .eq('is_active', true)
           .order('display_order', ascending: true)
           .limit(60);
@@ -52,7 +52,7 @@ class _PartyBackgroundPickerSheetState
                 thumb: (r['thumbnail_url'] as String?) ?? '',
                 gradientCss: (r['gradient_css'] as String?) ?? '',
                 isFree: r['is_free'] == true,
-                price: (r['price_coins'] as num?)?.toInt() ?? 0,
+                price: (r['price_diamonds'] as num?)?.toInt() ?? 0,
               ))
           // Accept rows that have EITHER a real image OR a gradient css.
           .where((b) => b.imageUrl.isNotEmpty || b.gradientCss.isNotEmpty)

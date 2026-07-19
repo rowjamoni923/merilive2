@@ -36,11 +36,11 @@ class GiftAnimationConfig {
     return _enabled;
   }
 
-  /// Returns true when a gift's per-unit coin value should trigger the
+  /// Returns true when a gift's per-unit Diamond value should trigger the
   /// full-screen animation pipeline.
-  bool shouldPlayFullScreen(int perUnitCoins) {
+  bool shouldPlayFullScreen(int perUnitDiamonds) {
     _ensureFresh();
-    return _enabled && perUnitCoins >= _threshold;
+    return _enabled && perUnitDiamonds >= _threshold;
   }
 
   /// Preload the config (call once during app bootstrap for zero cold-start

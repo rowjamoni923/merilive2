@@ -208,7 +208,7 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       const payload = detail.payload || {};
       if (payload.profile_id && payload.profile_id !== userId) return;
 
-      const diamonds = payload.diamonds ?? payload.diamonds; // ZERO-DIAMOND: accept legacy `diamonds` payload field until DB drop, but treat as diamonds.
+      const diamonds = payload.diamonds;
       if (diamonds !== undefined) {
         balanceCache.userId = userId;
         updateCachedBalance(Number(diamonds || 0));

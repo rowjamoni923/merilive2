@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 
 /// Flutter port of `GiftComboTracker.tsx` (host-side) — bottom-right stack
 /// showing top gifters in the current session. Auto-updates when new gift
-/// arrives. Max 5 rows, sorted by total coins descending.
+/// arrives. Max 5 rows, sorted by total Diamonds descending.
 class GiftComboTrackerEntry {
   final String userId;
   final String name;
   final String? avatarUrl;
-  final int totalCoins;
+  final int totalDiamonds;
   final DateTime lastAt;
   const GiftComboTrackerEntry({
     required this.userId,
     required this.name,
-    required this.totalCoins,
+    required this.totalDiamonds,
     required this.lastAt,
     this.avatarUrl,
   });
@@ -32,7 +32,7 @@ class GiftComboTracker extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
     final sorted = [...entries]
-      ..sort((a, b) => b.totalCoins.compareTo(a.totalCoins));
+      ..sort((a, b) => b.totalDiamonds.compareTo(a.totalDiamonds));
     final visible = sorted.take(5).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -109,7 +109,7 @@ class GiftComboTracker extends StatelessWidget {
           const Icon(Icons.monetization_on,
               color: Color(0xFFFDE68A), size: 10),
           const SizedBox(width: 2),
-          Text('${e.totalCoins}',
+          Text('${e.totalDiamonds}',
               style: const TextStyle(
                   color: Color(0xFFFDE68A),
                   fontSize: 11,

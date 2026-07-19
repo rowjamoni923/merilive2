@@ -36,7 +36,7 @@ class InvitationTierAdapter(
 
             val rewardParts = mutableListOf<String>()
             tier.reward_beans?.let { if (it > 0) rewardParts.add("+$it Beans") }
-            tier.reward_coins?.let { if (it > 0) rewardParts.add("+$it 💎") }
+            tier.reward_diamonds?.let { if (it > 0) rewardParts.add("+$it 💎") }
             tier.bonus_percentage?.let { if (it > 0) rewardParts.add("+${it.toInt()}%") }
             binding.tvReward.text = rewardParts.joinToString(" ")
 

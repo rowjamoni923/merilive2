@@ -16,14 +16,14 @@ class NewHostBonusState {
   final bool eligible;
   final int daysLeft;
   final int minutesStreamed;
-  final int coinsEarned;
+  final int diamondsEarned;
   final List<NewHostBonusMilestone> milestones;
 
   const NewHostBonusState({
     required this.eligible,
     required this.daysLeft,
     required this.minutesStreamed,
-    required this.coinsEarned,
+    required this.diamondsEarned,
     required this.milestones,
   });
 
@@ -31,7 +31,7 @@ class NewHostBonusState {
     eligible: false,
     daysLeft: 0,
     minutesStreamed: 0,
-    coinsEarned: 0,
+    diamondsEarned: 0,
     milestones: [],
   );
 }
@@ -54,8 +54,8 @@ class NewHostBonusBridge {
       final minutes = (res['minutes_streamed'] as num?)?.toInt() ??
           (res['minutes'] as num?)?.toInt() ??
           0;
-      final coins = (res['coins_earned'] as num?)?.toInt() ??
-          (res['coins'] as num?)?.toInt() ??
+      final diamonds = (res['diamonds_earned'] as num?)?.toInt() ??
+          (res['diamonds'] as num?)?.toInt() ??
           0;
       final rawMs = res['milestones'];
       final milestones = <NewHostBonusMilestone>[];
@@ -68,7 +68,7 @@ class NewHostBonusBridge {
               minutesGoal: (m['minutes_goal'] as num?)?.toInt() ??
                   (m['minutes'] as num?)?.toInt() ??
                   0,
-              rewardCoins: (m['reward_coins'] as num?)?.toInt() ??
+              rewardDiamonds: (m['reward_diamonds'] as num?)?.toInt() ??
                   (m['reward'] as num?)?.toInt() ??
                   0,
               achieved: (m['achieved'] as bool?) ?? false,
@@ -80,7 +80,7 @@ class NewHostBonusBridge {
         eligible: true,
         daysLeft: daysLeft,
         minutesStreamed: minutes,
-        coinsEarned: coins,
+        diamondsEarned: diamonds,
         milestones: milestones,
       );
     } catch (_) {

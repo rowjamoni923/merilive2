@@ -80,19 +80,19 @@ class PartyGiftBridge {
         gift = await _client
             .from('gifts')
             .select(
-                'id, name, icon_url, image_url, animation_url, animation_type, coin_cost, coin_price')
+                'id, name, icon_url, image_url, animation_url, animation_type, diamond_cost, diamond_price')
             .eq('id', giftId)
             .maybeSingle();
       }
 
       final quantity = (row['quantity'] as int?) ?? 1;
-      final coinAmount = (row['coin_amount'] as int?) ??
-          (row['total_coins'] as int?) ??
+      final diamondAmount = (row['diamond_amount'] as int?) ??
+          (row['total_diamonds'] as int?) ??
           0;
-      final perUnitFromGift = (gift?['coin_price'] as num?)?.toInt() ??
-          (gift?['coin_cost'] as num?)?.toInt();
+      final perUnitFromGift = (gift?['diamond_price'] as num?)?.toInt() ??
+          (gift?['diamond_cost'] as num?)?.toInt();
       final perUnit = perUnitFromGift ??
-          (quantity > 0 ? (coinAmount / quantity).round() : coinAmount);
+          (quantity > 0 ? (diamondAmount / quantity).round() : diamondAmount);
 
       _giftsCtrl.add(LiveGiftEvent(
         id: id,
@@ -106,8 +106,8 @@ class PartyGiftBridge {
             gift?['image_url']?.toString(),
         animationUrl: gift?['animation_url']?.toString(),
         animationType: gift?['animation_type']?.toString(),
-        coinAmount: coinAmount,
-        perUnitCoins: perUnit,
+        diamondAmount: diamondAmount,
+        perUnitDiamonds: perUnit,
         quantity: quantity,
         createdAt:
             DateTime.tryParse(row['created_at']?.toString() ?? '') ??

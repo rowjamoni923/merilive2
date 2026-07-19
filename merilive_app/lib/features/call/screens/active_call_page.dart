@@ -148,7 +148,7 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
             // M7 — surface every bill_call_minute tick.
             final billed = (row['last_billed_minute'] as num?)?.toInt();
             final rate = (row['viewer_rate_per_min'] as num?)?.toInt() ??
-                (row['coins_per_minute'] as num?)?.toInt();
+                (row['diamonds_per_minute'] as num?)?.toInt();
             setState(() {
               _reconnecting = status == 'reconnecting';
               if (billed != null) _lastBilledMinute = billed;
@@ -173,13 +173,12 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
     try {
       final row = await _supabase
           .from('profiles')
-          .select('coins, diamonds')
+          .select('diamonds')
           .eq('id', uid)
           .maybeSingle();
       if (row == null || !mounted) return;
-      final coins = (row['coins'] as num?)?.toInt() ?? 0;
       final diamonds = (row['diamonds'] as num?)?.toInt() ?? 0;
-      final balance = coins > diamonds ? coins : diamonds;
+      final balance = diamonds;
       setState(() => _remainingMinutes = (balance / rate).floor());
     } catch (_) {}
   }

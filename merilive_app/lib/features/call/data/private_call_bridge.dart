@@ -5,7 +5,7 @@ import '../../../core/native/livekit_bridge.dart';
 /// C8 — Flutter ↔ native bridge for a 1-on-1 Private Call.
 ///
 /// Mirrors `src/hooks/usePrivateCall.ts` startCall path (server-authoritative
-/// via `start_private_call` RPC — same busy/blocked/rate/insufficient-coins
+/// via `start_private_call` RPC — same busy/blocked/rate/insufficient-diamonds
 /// gates apply). After the RPC returns a `call_id`, we mint a LiveKit token
 /// via the shared `livekit-token` edge function (roomType: `call`,
 /// roomName: `call_<call_id>`) and hand the room to the native LiveKit
@@ -22,20 +22,20 @@ class PrivateCallBridge {
   String? get holdId => _holdId;
   bool get isConnected => _connected;
 
-  /// M5 — Reserve dual-currency (max(coins,diamonds)) balance BEFORE the
+  /// M5 — Reserve Diamond balance BEFORE the
   /// server-authoritative `start_private_call` RPC so a low-balance caller
   /// is rejected up-front instead of being cut mid-first-minute. Mirrors
   /// `reserve_call_balance` used by the web `usePrivateCall` hook.
   Future<Map<String, dynamic>?> reserveBalance({
     required String hostId,
-    required int estimatedCoins,
+    required int estimatedDiamonds,
   }) async {
     final uid = _supabase.auth.currentUser?.id;
     if (uid == null) throw StateError('not_authenticated');
     final rpc = await _supabase.rpc('reserve_call_balance', params: {
       'p_caller_id': uid,
       'p_host_id': hostId,
-      'p_estimated_coins': estimatedCoins,
+      'p_estimated_diamonds': estimatedDiamonds,
     });
     final payload = (rpc is Map) ? Map<String, dynamic>.from(rpc) : null;
     if (payload != null && payload['success'] == true) {
@@ -49,17 +49,17 @@ class PrivateCallBridge {
   Future<Map<String, dynamic>?> startAsCaller({
     required String hostId,
     required String participantName,
-    int? estimatedCoins,
+    int? estimatedDiamonds,
   }) async {
     final uid = _supabase.auth.currentUser?.id;
     if (uid == null) throw StateError('not_authenticated');
 
     // M5 — up-front reservation (skipped when caller didn't provide an
     // estimate, e.g. random-match where the queue already gated balance).
-    if (estimatedCoins != null && estimatedCoins > 0) {
+    if (estimatedDiamonds != null && estimatedDiamonds > 0) {
       final res = await reserveBalance(
         hostId: hostId,
-        estimatedCoins: estimatedCoins,
+        estimatedDiamonds: estimatedDiamonds,
       );
       if (res != null && res['success'] == false) return res;
     }

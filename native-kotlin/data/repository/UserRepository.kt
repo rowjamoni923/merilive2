@@ -37,7 +37,7 @@ class UserRepositoryImpl @Inject constructor(
         return postgrest.from("profiles")
             .select(Columns.raw("""
                 id, app_uid, display_name, avatar_url, bio, gender, user_level, 
-                coins, beans, diamonds, is_verified, is_face_verified, is_host, 
+                diamonds, beans, is_verified, is_face_verified, is_host, 
                 country_name, country_flag, equipped_frame_id, current_vip_tier_id, 
                 vip_expires_at, is_online, host_level, total_earnings, agency_id,
                 is_agency_owner, cover_url, tags, beans_balance
@@ -162,9 +162,8 @@ data class ProfileData(
     val bio: String? = null,
     val gender: String? = null,
     val user_level: Int? = null,
-    val coins: Int? = null,
-    val beans: Int? = null,
     val diamonds: Int? = null,
+    val beans: Int? = null,
     val is_verified: Boolean? = null,
     val is_face_verified: Boolean? = null,
     val is_host: Boolean? = null,
