@@ -65,7 +65,7 @@ export default function PremiumGoldenBadge({
   className = '',
 }: PremiumGoldenBadgeProps) {
   // Scale internal proportions from the size prop.
-  const diamondSize = size;
+  const badgeSize = size;
   const diamondSize = Math.max(8, Math.round(size * 0.18));
   // Render percent as compact text. 1-99 → big; 100+ → slightly smaller; 1000+ → smaller.
   const pctStr = `${Math.max(0, Math.min(999, Math.round(percentage)))}%`;
@@ -150,8 +150,8 @@ export default function PremiumGoldenBadge({
       <div
         className="absolute"
         style={{
-          width: diamondSize,
-          height: diamondSize,
+          width: badgeSize,
+          height: badgeSize,
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
