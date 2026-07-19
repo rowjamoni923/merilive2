@@ -253,7 +253,7 @@ export default function AdminGameLeaderboard() {
     const parts: string[] = [];
     if (reward.reward_beans > 0) parts.push(`${reward.reward_beans} Beans`);
     if (reward.reward_diamonds > 0) parts.push(`${reward.reward_diamonds} 💎`);
-    if (reward.reward_coins > 0) parts.push(`${reward.reward_coins} Coins`);
+    if (reward.reward_coins > 0) parts.push(`${reward.reward_coins} 💎`);
     return parts.join(' + ') || 'No reward';
   };
 
