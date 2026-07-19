@@ -595,7 +595,7 @@ const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig
       </div>
       <div className="flex-1 grid grid-cols-4 gap-2">
         <div>
-          <label className="text-[10px] text-slate-400">Coins</label>
+          <label className="text-[10px] text-slate-400">Diamonds (legacy)</label>
           {input('reward_coins', 'h-8 bg-white border-slate-200 text-slate-900 text-sm')}
         </div>
         <div>
