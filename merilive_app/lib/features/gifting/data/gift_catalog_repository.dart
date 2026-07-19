@@ -9,30 +9,30 @@ class GiftCatalogRepository {
 
   final SupabaseClient _client;
 
-  /// Fetch the active gift catalog. Sorted by category then coin price so
+  /// Fetch the active gift catalog. Sorted by category then Diamond price so
   /// the grid looks identical on every surface.
   Future<List<Map<String, dynamic>>> loadGifts() async {
     final rows = await _client
         .from('gifts')
         .select(
           'id,name,icon_url,image_url,animation_url,animation_type,sound_url,'
-          'coin_price,coin_value,receiver_beans,category,is_active',
+          'diamond_price,diamond_value,receiver_beans,category,is_active',
         )
         .eq('is_active', true)
         .order('category', ascending: true)
-        .order('coin_price', ascending: true)
+        .order('diamond_price', ascending: true)
         .limit(500);
     return List<Map<String, dynamic>>.from(rows as List);
   }
 
-  /// Insert a `gift_transactions` row. Server-side triggers handle coin
+  /// Insert a `gift_transactions` row. Server-side triggers handle Diamond
   /// debit, bean credit, animation broadcast, and (on Android) the native
   /// full-screen VAP/SVGA playback via NativeGiftAnimationPlugin.
   Future<void> sendGift({
     required String senderId,
     required String receiverId,
     required String giftId,
-    required int coinCost,
+    required int diamondCost,
     required int receiverBeans,
     required int quantity,
     required GiftSurface surface,
@@ -42,7 +42,7 @@ class GiftCatalogRepository {
       'sender_id': senderId,
       'receiver_id': receiverId,
       'gift_id': giftId,
-      'coin_cost': coinCost,
+      'diamond_cost': diamondCost,
       'receiver_beans': receiverBeans,
       'quantity': quantity,
       'source': surface.name,

@@ -150,8 +150,8 @@ class _UnifiedGiftSheetState extends State<_UnifiedGiftSheet> {
             final g = gifts[i];
             final id = g['id'].toString();
             final selected = id == _selectedGiftId;
-            final price = (g['coin_price'] as num?)?.toInt() ??
-                (g['coin_value'] as num?)?.toInt() ??
+            final price = (g['diamond_price'] as num?)?.toInt() ??
+                (g['diamond_value'] as num?)?.toInt() ??
                 0;
             return InkWell(
               onTap: () => setState(() => _selectedGiftId = id),
@@ -248,16 +248,16 @@ class _UnifiedGiftSheetState extends State<_UnifiedGiftSheet> {
         orElse: () => <String, dynamic>{},
       );
       if (g.isEmpty) throw StateError('Gift not found');
-      final coinCost = (g['coin_price'] as num?)?.toInt() ??
-          (g['coin_value'] as num?)?.toInt() ??
+      final diamondCost = (g['diamond_price'] as num?)?.toInt() ??
+          (g['diamond_value'] as num?)?.toInt() ??
           0;
       final beans = (g['receiver_beans'] as num?)?.toInt() ??
-          (coinCost * 0.4).round();
+          (diamondCost * 0.4).round();
       await _repo.sendGift(
         senderId: me,
         receiverId: _recipientId,
         giftId: _selectedGiftId!,
-        coinCost: coinCost,
+        diamondCost: diamondCost,
         receiverBeans: beans,
         quantity: _quantity,
         surface: widget.surface,

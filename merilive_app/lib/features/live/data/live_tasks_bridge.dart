@@ -19,7 +19,7 @@ class LiveTasksBridge {
     final tasks = await _client
         .from('daily_tasks')
         .select(
-            'id,title,reward_coins,reward_beans,required_count,display_order')
+            'id,title,reward_diamonds,reward_beans,required_count,display_order')
         .eq('is_active', true)
         .eq('show_in_live', true)
         .order('display_order');
@@ -41,7 +41,7 @@ class LiveTasksBridge {
       final id = row['id'] as String;
       final title = (row['title'] as String?) ?? 'Task';
       final goal = (row['required_count'] as num?)?.toInt() ?? 1;
-      final rewardCoins = ((row['reward_coins'] as num?)?.toInt() ?? 0) +
+      final rewardDiamonds = ((row['reward_diamonds'] as num?)?.toInt() ?? 0) +
           ((row['reward_beans'] as num?)?.toInt() ?? 0);
       final p = progress[id];
       final progressN = (p?['current_progress'] as num?)?.toInt() ?? 0;
@@ -52,7 +52,7 @@ class LiveTasksBridge {
         title: title,
         progress: progressN,
         goal: goal,
-        rewardCoins: rewardCoins,
+        rewardDiamonds: rewardDiamonds,
         completed: completed,
         claimed: claimed,
       );

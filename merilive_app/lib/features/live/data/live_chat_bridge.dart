@@ -76,8 +76,8 @@ class LiveGiftEvent {
     required this.giftIcon,
     required this.animationUrl,
     required this.animationType,
-    required this.coinAmount,
-    required this.perUnitCoins,
+    required this.diamondAmount,
+    required this.perUnitDiamonds,
     required this.quantity,
     required this.createdAt,
   });
@@ -92,8 +92,8 @@ class LiveGiftEvent {
   final String? giftIcon;
   final String? animationUrl;
   final String? animationType;
-  final int coinAmount;
-  final int perUnitCoins;
+  final int diamondAmount;
+  final int perUnitDiamonds;
   final int quantity;
   final DateTime createdAt;
 }
@@ -303,17 +303,17 @@ class LiveChatBridge {
         gift = await _client
             .from('gifts')
             .select(
-                'id, name, icon_url, image_url, animation_url, animation_type, coin_cost, coin_price')
+                'id, name, icon_url, image_url, animation_url, animation_type, diamond_cost, diamond_price')
             .eq('id', giftId)
             .maybeSingle();
       }
 
       final quantity = (row['quantity'] as int?) ?? 1;
-      final coinAmount = (row['coin_amount'] as int?) ?? 0;
-      final perUnitFromGift = (gift?['coin_price'] as num?)?.toInt() ??
-          (gift?['coin_cost'] as num?)?.toInt();
+      final diamondAmount = (row['diamond_amount'] as int?) ?? 0;
+      final perUnitFromGift = (gift?['diamond_price'] as num?)?.toInt() ??
+          (gift?['diamond_cost'] as num?)?.toInt();
       final perUnit = perUnitFromGift ??
-          (quantity > 0 ? (coinAmount / quantity).round() : coinAmount);
+          (quantity > 0 ? (diamondAmount / quantity).round() : diamondAmount);
 
       final event = LiveGiftEvent(
         id: row['id']?.toString() ??
@@ -328,8 +328,8 @@ class LiveChatBridge {
             gift?['image_url']?.toString(),
         animationUrl: gift?['animation_url']?.toString(),
         animationType: gift?['animation_type']?.toString(),
-        coinAmount: coinAmount,
-        perUnitCoins: perUnit,
+        diamondAmount: diamondAmount,
+        perUnitDiamonds: perUnit,
         quantity: quantity,
         createdAt:
             DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),

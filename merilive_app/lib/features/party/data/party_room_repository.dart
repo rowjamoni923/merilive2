@@ -389,11 +389,11 @@ class PartyRoomRepository {
     final rows = await _supabase
         .from('gifts')
         .select(
-          'id, name, coin_price, coin_value, receiver_beans, icon_url, '
+          'id, name, diamond_price, diamond_value, receiver_beans, icon_url, '
           'animation_url, svga_url, animation_format, is_full_screen, category',
         )
         .eq('is_active', true)
-        .order('coin_price', ascending: true)
+        .order('diamond_price', ascending: true)
         .limit(200);
     return (rows as List)
         .cast<Map>()
@@ -408,11 +408,11 @@ class PartyRoomRepository {
     required String senderId,
     required String receiverId,
     required String giftId,
-    required int coinCost,
+    required int diamondCost,
     required int receiverBeans,
     int quantity = 1,
   }) async {
-    final totalCoins = coinCost * quantity;
+    final totalDiamonds = diamondCost * quantity;
     final totalBeans = receiverBeans * quantity;
     await _supabase.from('gift_transactions').insert({
       'gift_id': giftId,
@@ -421,10 +421,10 @@ class PartyRoomRepository {
       'party_room_id': roomId,
       'room_id': roomId,
       'quantity': quantity,
-      'coin_amount': totalCoins,
-      'coin_cost': totalCoins,
-      'coin_value': coinCost,
-      'total_coins': totalCoins,
+      'diamond_amount': totalDiamonds,
+      'diamond_cost': totalDiamonds,
+      'diamond_value': diamondCost,
+      'total_diamonds': totalDiamonds,
       'receiver_beans': totalBeans,
       'sender_type': 'user',
     });
