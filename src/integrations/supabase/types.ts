@@ -19267,6 +19267,18 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_wallet_reconciliation: {
+        Row: {
+          currency: string | null
+          drift: number | null
+          last_movement: string | null
+          ledger_entries: number | null
+          ledger_sum: number | null
+          profile_balance: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       admin_wallet_suspicious_clusters: {
         Row: {
           cluster_key: string | null
