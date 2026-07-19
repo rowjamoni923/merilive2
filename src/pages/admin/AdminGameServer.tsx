@@ -418,7 +418,7 @@ export default function AdminGameServer() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Max Payout Per Round</p>
-                    <p className="text-sm text-muted-foreground">Maximum coins that can be won in a single round</p>
+                    <p className="text-sm text-muted-foreground">Maximum diamonds that can be won in a single round</p>
                   </div>
                 </div>
                 <Input
