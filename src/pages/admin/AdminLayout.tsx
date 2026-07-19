@@ -176,7 +176,7 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('helper')) return '/admin/helper-management';
   if (type.includes('topup') || type.includes('coin_purchase')) return '/admin/topup-system';
-  if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/coin-traders';
+  if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/diamond-traders';
   if (type.includes('report') || type.includes('violation')) return '/admin/live-bans';
   if (type.includes('security')) return '/admin/logs';
   if (type === 'system') return '/admin/settings';
