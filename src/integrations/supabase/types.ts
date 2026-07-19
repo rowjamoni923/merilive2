@@ -864,7 +864,6 @@ export type Database = {
           id: string
           stat_date: string
           total_agencies: number | null
-          total_coins_spent: number | null
           total_diamonds_spent: number | null
           total_gifts_sent: number | null
           total_hosts: number | null
@@ -879,7 +878,6 @@ export type Database = {
           id?: string
           stat_date?: string
           total_agencies?: number | null
-          total_coins_spent?: number | null
           total_diamonds_spent?: number | null
           total_gifts_sent?: number | null
           total_hosts?: number | null
@@ -894,7 +892,6 @@ export type Database = {
           id?: string
           stat_date?: string
           total_agencies?: number | null
-          total_coins_spent?: number | null
           total_diamonds_spent?: number | null
           total_gifts_sent?: number | null
           total_hosts?: number | null
@@ -1886,7 +1883,7 @@ export type Database = {
             foreignKeyName: "agency_withdrawals_assigned_helper_id_fkey"
             columns: ["assigned_helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -2434,7 +2431,6 @@ export type Database = {
           animation_url: string | null
           asset_url: string | null
           category: string | null
-          coin_price: number | null
           created_at: string | null
           diamond_cost: number
           diamond_price: number | null
@@ -2454,7 +2450,6 @@ export type Database = {
           animation_url?: string | null
           asset_url?: string | null
           category?: string | null
-          coin_price?: number | null
           created_at?: string | null
           diamond_cost?: number
           diamond_price?: number | null
@@ -2474,7 +2469,6 @@ export type Database = {
           animation_url?: string | null
           asset_url?: string | null
           category?: string | null
-          coin_price?: number | null
           created_at?: string | null
           diamond_cost?: number
           diamond_price?: number | null
@@ -2513,7 +2507,6 @@ export type Database = {
           min_level: number | null
           name: string
           preview_url: string | null
-          price_coins: number | null
           price_diamonds: number | null
           sound_duration_ms: number | null
           sound_url: string | null
@@ -2543,7 +2536,6 @@ export type Database = {
           min_level?: number | null
           name: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           sound_duration_ms?: number | null
           sound_url?: string | null
@@ -2573,7 +2565,6 @@ export type Database = {
           min_level?: number | null
           name?: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           sound_duration_ms?: number | null
           sound_url?: string | null
@@ -2826,7 +2817,6 @@ export type Database = {
           animation_format: string | null
           animation_url: string | null
           category: string | null
-          coin_price: number | null
           created_at: string | null
           description: string | null
           diamond_price: number | null
@@ -2849,7 +2839,6 @@ export type Database = {
           animation_format?: string | null
           animation_url?: string | null
           category?: string | null
-          coin_price?: number | null
           created_at?: string | null
           description?: string | null
           diamond_price?: number | null
@@ -2872,7 +2861,6 @@ export type Database = {
           animation_format?: string | null
           animation_url?: string | null
           category?: string | null
-          coin_price?: number | null
           created_at?: string | null
           description?: string | null
           diamond_price?: number | null
@@ -3049,8 +3037,7 @@ export type Database = {
           host_id: string
           id: string
           released_at: string | null
-          reserved_coins: number
-          reserved_diamonds: number | null
+          reserved_diamonds: number
           status: string
         }
         Insert: {
@@ -3062,8 +3049,7 @@ export type Database = {
           host_id: string
           id?: string
           released_at?: string | null
-          reserved_coins: number
-          reserved_diamonds?: number | null
+          reserved_diamonds: number
           status?: string
         }
         Update: {
@@ -3075,8 +3061,7 @@ export type Database = {
           host_id?: string
           id?: string
           released_at?: string | null
-          reserved_coins?: number
-          reserved_diamonds?: number | null
+          reserved_diamonds?: number
           status?: string
         }
         Relationships: []
@@ -3182,7 +3167,6 @@ export type Database = {
           call_id: string | null
           call_type: string | null
           caller_id: string | null
-          coin_cost: number | null
           created_at: string
           diamond_cost: number | null
           duration: number | null
@@ -3198,7 +3182,6 @@ export type Database = {
           call_id?: string | null
           call_type?: string | null
           caller_id?: string | null
-          coin_cost?: number | null
           created_at?: string
           diamond_cost?: number | null
           duration?: number | null
@@ -3214,7 +3197,6 @@ export type Database = {
           call_id?: string | null
           call_type?: string | null
           caller_id?: string | null
-          coin_cost?: number | null
           created_at?: string
           diamond_cost?: number | null
           duration?: number | null
@@ -3408,200 +3390,6 @@ export type Database = {
         }
         Relationships: []
       }
-      coin_packages: {
-        Row: {
-          bonus_coins: number | null
-          bonus_diamonds: number | null
-          coins_amount: number
-          created_at: string | null
-          description: string | null
-          diamonds_amount: number | null
-          discount_percent: number | null
-          display_order: number | null
-          icon_url: string | null
-          id: string
-          is_active: boolean | null
-          is_popular: boolean | null
-          name: string
-          price_usd: number
-          product_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          bonus_coins?: number | null
-          bonus_diamonds?: number | null
-          coins_amount: number
-          created_at?: string | null
-          description?: string | null
-          diamonds_amount?: number | null
-          discount_percent?: number | null
-          display_order?: number | null
-          icon_url?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_popular?: boolean | null
-          name: string
-          price_usd: number
-          product_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          bonus_coins?: number | null
-          bonus_diamonds?: number | null
-          coins_amount?: number
-          created_at?: string | null
-          description?: string | null
-          diamonds_amount?: number | null
-          discount_percent?: number | null
-          display_order?: number | null
-          icon_url?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_popular?: boolean | null
-          name?: string
-          price_usd?: number
-          product_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      coin_trader_transfers: {
-        Row: {
-          amount: number
-          counterparty_agency_id: string | null
-          counterparty_user_id: string | null
-          created_at: string
-          id: string
-          status: string
-          transfer_type: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          counterparty_agency_id?: string | null
-          counterparty_user_id?: string | null
-          created_at?: string
-          id?: string
-          status?: string
-          transfer_type: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          counterparty_agency_id?: string | null
-          counterparty_user_id?: string | null
-          created_at?: string
-          id?: string
-          status?: string
-          transfer_type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
-            columns: ["counterparty_agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
-            columns: ["counterparty_agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
-            columns: ["counterparty_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
-            columns: ["counterparty_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coin_transactions: {
-        Row: {
-          coins_amount: number
-          created_at: string
-          diamonds_amount: number | null
-          id: string
-          notes: string | null
-          payment_method: string | null
-          payment_reference: string | null
-          status: string | null
-          transaction_type: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          coins_amount?: number
-          created_at?: string
-          diamonds_amount?: number | null
-          id?: string
-          notes?: string | null
-          payment_method?: string | null
-          payment_reference?: string | null
-          status?: string | null
-          transaction_type?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          coins_amount?: number
-          created_at?: string
-          diamonds_amount?: number | null
-          id?: string
-          notes?: string | null
-          payment_method?: string | null
-          payment_reference?: string | null
-          status?: string | null
-          transaction_type?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      coin_transfers: {
-        Row: {
-          amount: number
-          created_at: string | null
-          id: string
-          notes: string | null
-          receiver_id: string
-          sender_id: string
-          status: string | null
-          transfer_type: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          receiver_id: string
-          sender_id: string
-          status?: string | null
-          transfer_type?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          receiver_id?: string
-          sender_id?: string
-          status?: string | null
-          transfer_type?: string | null
-        }
-        Relationships: []
-      }
       consumption_return_config: {
         Row: {
           created_at: string | null
@@ -3609,7 +3397,6 @@ export type Database = {
           id: string
           is_active: boolean | null
           max_consumption: number | null
-          max_return_coins: number | null
           max_return_diamonds: number | null
           max_spend: number | null
           min_consumption: number
@@ -3625,7 +3412,6 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_consumption?: number | null
-          max_return_coins?: number | null
           max_return_diamonds?: number | null
           max_spend?: number | null
           min_consumption?: number
@@ -3641,7 +3427,6 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_consumption?: number | null
-          max_return_coins?: number | null
           max_return_diamonds?: number | null
           max_spend?: number | null
           min_consumption?: number
@@ -4658,7 +4443,6 @@ export type Database = {
           id: string
           is_active: boolean | null
           reward_amount: number
-          reward_coins: number
           reward_diamonds: number
           reward_type: string
         }
@@ -4671,7 +4455,6 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           reward_amount?: number
-          reward_coins?: number
           reward_diamonds?: number
           reward_type?: string
         }
@@ -4684,7 +4467,6 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           reward_amount?: number
-          reward_coins?: number
           reward_diamonds?: number
           reward_type?: string
         }
@@ -4709,7 +4491,6 @@ export type Database = {
           requirement_type: string | null
           requirement_value: number | null
           reward_beans: number | null
-          reward_coins: number | null
           reward_diamonds: number | null
           reward_xp: number | null
           show_in_live: boolean
@@ -4737,7 +4518,6 @@ export type Database = {
           requirement_type?: string | null
           requirement_value?: number | null
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           reward_xp?: number | null
           show_in_live?: boolean
@@ -4765,7 +4545,6 @@ export type Database = {
           requirement_type?: string | null
           requirement_value?: number | null
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           reward_xp?: number | null
           show_in_live?: boolean
@@ -4867,6 +4646,191 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      diamond_packages: {
+        Row: {
+          bonus_diamonds: number | null
+          created_at: string | null
+          description: string | null
+          diamonds_amount: number
+          discount_percent: number | null
+          display_order: number | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          is_popular: boolean | null
+          name: string
+          price_usd: number
+          product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_diamonds?: number | null
+          created_at?: string | null
+          description?: string | null
+          diamonds_amount: number
+          discount_percent?: number | null
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name: string
+          price_usd: number
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_diamonds?: number | null
+          created_at?: string | null
+          description?: string | null
+          diamonds_amount?: number
+          discount_percent?: number | null
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name?: string
+          price_usd?: number
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      diamond_trader_transfers: {
+        Row: {
+          amount: number
+          counterparty_agency_id: string | null
+          counterparty_user_id: string | null
+          created_at: string
+          id: string
+          status: string
+          transfer_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          counterparty_agency_id?: string | null
+          counterparty_user_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          transfer_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          counterparty_agency_id?: string | null
+          counterparty_user_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          transfer_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
+            columns: ["counterparty_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
+            columns: ["counterparty_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
+            columns: ["counterparty_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
+            columns: ["counterparty_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diamond_transactions: {
+        Row: {
+          created_at: string
+          diamonds_amount: number
+          id: string
+          notes: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          status: string | null
+          transaction_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          diamonds_amount?: number
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          diamonds_amount?: number
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      diamond_transfers: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          notes: string | null
+          receiver_id: string
+          sender_id: string
+          status: string | null
+          transfer_type: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          receiver_id: string
+          sender_id: string
+          status?: string | null
+          transfer_type?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          receiver_id?: string
+          sender_id?: string
+          status?: string | null
+          transfer_type?: string | null
         }
         Relationships: []
       }
@@ -5046,7 +5010,6 @@ export type Database = {
           is_premium: boolean | null
           level_required: number | null
           name: string
-          price_coins: number | null
           price_diamonds: number | null
           sound_url: string | null
           updated_at: string | null
@@ -5064,7 +5027,6 @@ export type Database = {
           is_premium?: boolean | null
           level_required?: number | null
           name: string
-          price_coins?: number | null
           price_diamonds?: number | null
           sound_url?: string | null
           updated_at?: string | null
@@ -5082,7 +5044,6 @@ export type Database = {
           is_premium?: boolean | null
           level_required?: number | null
           name?: string
-          price_coins?: number | null
           price_diamonds?: number | null
           sound_url?: string | null
           updated_at?: string | null
@@ -5158,7 +5119,6 @@ export type Database = {
           min_vip_tier: number | null
           name: string
           preview_url: string | null
-          price_coins: number | null
           price_diamonds: number | null
           updated_at: string | null
         }
@@ -5179,7 +5139,6 @@ export type Database = {
           min_vip_tier?: number | null
           name: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           updated_at?: string | null
         }
@@ -5200,7 +5159,6 @@ export type Database = {
           min_vip_tier?: number | null
           name?: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           updated_at?: string | null
         }
@@ -5512,8 +5470,7 @@ export type Database = {
           banner_subtitle: string | null
           banner_title: string | null
           banner_type: string | null
-          bonus_coins: number
-          bonus_diamonds: number | null
+          bonus_diamonds: number
           bonus_label: string | null
           bonus_multiplier: number | null
           bonus_percentage: number
@@ -5531,8 +5488,7 @@ export type Database = {
           banner_subtitle?: string | null
           banner_title?: string | null
           banner_type?: string | null
-          bonus_coins?: number
-          bonus_diamonds?: number | null
+          bonus_diamonds?: number
           bonus_label?: string | null
           bonus_multiplier?: number | null
           bonus_percentage?: number
@@ -5550,8 +5506,7 @@ export type Database = {
           banner_subtitle?: string | null
           banner_title?: string | null
           banner_type?: string | null
-          bonus_coins?: number
-          bonus_diamonds?: number | null
+          bonus_diamonds?: number
           bonus_label?: string | null
           bonus_multiplier?: number | null
           bonus_percentage?: number
@@ -6051,8 +6006,6 @@ export type Database = {
           game_type: string
           highest_score: number | null
           id: string
-          total_coins_lost: number | null
-          total_coins_won: number | null
           total_diamonds_lost: number | null
           total_diamonds_won: number | null
           total_games: number | null
@@ -6064,8 +6017,6 @@ export type Database = {
           game_type: string
           highest_score?: number | null
           id?: string
-          total_coins_lost?: number | null
-          total_coins_won?: number | null
           total_diamonds_lost?: number | null
           total_diamonds_won?: number | null
           total_games?: number | null
@@ -6077,8 +6028,6 @@ export type Database = {
           game_type?: string
           highest_score?: number | null
           id?: string
-          total_coins_lost?: number | null
-          total_coins_won?: number | null
           total_diamonds_lost?: number | null
           total_diamonds_won?: number | null
           total_games?: number | null
@@ -6198,9 +6147,8 @@ export type Database = {
       }
       gift_self_link_signals: {
         Row: {
-          coin_total: number
           device_id: string | null
-          diamond_total: number | null
+          diamond_total: number
           first_at: string
           gift_count: number
           id: string
@@ -6212,9 +6160,8 @@ export type Database = {
           suspect_reason: string | null
         }
         Insert: {
-          coin_total?: number
           device_id?: string | null
-          diamond_total?: number | null
+          diamond_total?: number
           first_at?: string
           gift_count?: number
           id?: string
@@ -6226,9 +6173,8 @@ export type Database = {
           suspect_reason?: string | null
         }
         Update: {
-          coin_total?: number
           device_id?: string | null
-          diamond_total?: number | null
+          diamond_total?: number
           first_at?: string
           gift_count?: number
           id?: string
@@ -6251,8 +6197,7 @@ export type Database = {
           room_id: string | null
           sender_id: string
           stream_id: string | null
-          total_coins: number
-          total_diamonds: number | null
+          total_diamonds: number
           transaction_id: string
           transaction_type: string | null
         }
@@ -6265,8 +6210,7 @@ export type Database = {
           room_id?: string | null
           sender_id: string
           stream_id?: string | null
-          total_coins: number
-          total_diamonds?: number | null
+          total_diamonds: number
           transaction_id: string
           transaction_type?: string | null
         }
@@ -6279,8 +6223,7 @@ export type Database = {
           room_id?: string | null
           sender_id?: string
           stream_id?: string | null
-          total_coins?: number
-          total_diamonds?: number | null
+          total_diamonds?: number
           transaction_id?: string
           transaction_type?: string | null
         }
@@ -6289,11 +6232,8 @@ export type Database = {
       gift_transactions: {
         Row: {
           call_id: string | null
-          coin_amount: number
-          coin_cost: number | null
-          coin_value: number | null
           created_at: string | null
-          diamond_amount: number | null
+          diamond_amount: number
           diamond_cost: number | null
           diamond_value: number | null
           gift_id: string | null
@@ -6311,16 +6251,12 @@ export type Database = {
           sender_id: string | null
           sender_type: string | null
           stream_id: string | null
-          total_coins: number
-          total_diamonds: number | null
+          total_diamonds: number
         }
         Insert: {
           call_id?: string | null
-          coin_amount: number
-          coin_cost?: number | null
-          coin_value?: number | null
           created_at?: string | null
-          diamond_amount?: number | null
+          diamond_amount: number
           diamond_cost?: number | null
           diamond_value?: number | null
           gift_id?: string | null
@@ -6338,16 +6274,12 @@ export type Database = {
           sender_id?: string | null
           sender_type?: string | null
           stream_id?: string | null
-          total_coins?: number
-          total_diamonds?: number | null
+          total_diamonds?: number
         }
         Update: {
           call_id?: string | null
-          coin_amount?: number
-          coin_cost?: number | null
-          coin_value?: number | null
           created_at?: string | null
-          diamond_amount?: number | null
+          diamond_amount?: number
           diamond_cost?: number | null
           diamond_value?: number | null
           gift_id?: string | null
@@ -6365,8 +6297,7 @@ export type Database = {
           sender_id?: string | null
           sender_type?: string | null
           stream_id?: string | null
-          total_coins?: number
-          total_diamonds?: number | null
+          total_diamonds?: number
         }
         Relationships: [
           {
@@ -6421,11 +6352,9 @@ export type Database = {
           animation_url: string | null
           category: string | null
           category_id: string | null
-          coin_price: number | null
-          coin_value: number
           created_at: string | null
           diamond_price: number | null
-          diamond_value: number | null
+          diamond_value: number
           display_order: number | null
           duration_days: number | null
           icon_url: string | null
@@ -6451,11 +6380,9 @@ export type Database = {
           animation_url?: string | null
           category?: string | null
           category_id?: string | null
-          coin_price?: number | null
-          coin_value: number
           created_at?: string | null
           diamond_price?: number | null
-          diamond_value?: number | null
+          diamond_value: number
           display_order?: number | null
           duration_days?: number | null
           icon_url?: string | null
@@ -6481,11 +6408,9 @@ export type Database = {
           animation_url?: string | null
           category?: string | null
           category_id?: string | null
-          coin_price?: number | null
-          coin_value?: number
           created_at?: string | null
           diamond_price?: number | null
-          diamond_value?: number | null
+          diamond_value?: number
           display_order?: number | null
           duration_days?: number | null
           icon_url?: string | null
@@ -6510,7 +6435,6 @@ export type Database = {
         Row: {
           amount_usd: number | null
           client_context: Json | null
-          coins_amount: number | null
           completed_at: string | null
           created_at: string
           currency_code: string | null
@@ -6533,7 +6457,6 @@ export type Database = {
         Insert: {
           amount_usd?: number | null
           client_context?: Json | null
-          coins_amount?: number | null
           completed_at?: string | null
           created_at?: string
           currency_code?: string | null
@@ -6556,7 +6479,6 @@ export type Database = {
         Update: {
           amount_usd?: number | null
           client_context?: Json | null
-          coins_amount?: number | null
           completed_at?: string | null
           created_at?: string
           currency_code?: string | null
@@ -7042,7 +6964,7 @@ export type Database = {
             foreignKeyName: "helper_accepted_payment_methods_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -7115,7 +7037,7 @@ export type Database = {
             foreignKeyName: "helper_admin_messages_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -7287,7 +7209,7 @@ export type Database = {
             foreignKeyName: "helper_country_payment_methods_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -7466,7 +7388,6 @@ export type Database = {
         Row: {
           amount_local: number | null
           amount_usd: number | null
-          coin_amount: number | null
           commission_amount: number | null
           commission_rate: number | null
           created_at: string | null
@@ -7495,7 +7416,6 @@ export type Database = {
         Insert: {
           amount_local?: number | null
           amount_usd?: number | null
-          coin_amount?: number | null
           commission_amount?: number | null
           commission_rate?: number | null
           created_at?: string | null
@@ -7524,7 +7444,6 @@ export type Database = {
         Update: {
           amount_local?: number | null
           amount_usd?: number | null
-          coin_amount?: number | null
           commission_amount?: number | null
           commission_rate?: number | null
           created_at?: string | null
@@ -7555,7 +7474,7 @@ export type Database = {
             foreignKeyName: "helper_orders_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -7677,7 +7596,6 @@ export type Database = {
           admin_notes: string | null
           amount: number
           amount_usd: number | null
-          coin_amount: number | null
           created_at: string | null
           diamond_amount: number | null
           helper_id: string
@@ -7696,7 +7614,6 @@ export type Database = {
           admin_notes?: string | null
           amount: number
           amount_usd?: number | null
-          coin_amount?: number | null
           created_at?: string | null
           diamond_amount?: number | null
           helper_id: string
@@ -7715,7 +7632,6 @@ export type Database = {
           admin_notes?: string | null
           amount?: number
           amount_usd?: number | null
-          coin_amount?: number | null
           created_at?: string | null
           diamond_amount?: number | null
           helper_id?: string
@@ -7735,7 +7651,7 @@ export type Database = {
             foreignKeyName: "helper_topup_requests_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -7796,7 +7712,7 @@ export type Database = {
             foreignKeyName: "helper_transactions_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -7889,7 +7805,7 @@ export type Database = {
             foreignKeyName: "helper_upgrade_requests_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -8007,7 +7923,7 @@ export type Database = {
             foreignKeyName: "helper_withdrawal_requests_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -8356,9 +8272,8 @@ export type Database = {
         Row: {
           auto_accept_calls: boolean
           blocked_user_ids: string[] | null
-          coin_rate_per_min: number
           created_at: string
-          diamond_rate_per_min: number | null
+          diamond_rate_per_min: number
           flash_disconnect_cooldown_until: string | null
           flash_disconnect_window_start: string | null
           flash_disconnects_count: number
@@ -8376,9 +8291,8 @@ export type Database = {
         Insert: {
           auto_accept_calls?: boolean
           blocked_user_ids?: string[] | null
-          coin_rate_per_min?: number
           created_at?: string
-          diamond_rate_per_min?: number | null
+          diamond_rate_per_min?: number
           flash_disconnect_cooldown_until?: string | null
           flash_disconnect_window_start?: string | null
           flash_disconnects_count?: number
@@ -8396,9 +8310,8 @@ export type Database = {
         Update: {
           auto_accept_calls?: boolean
           blocked_user_ids?: string[] | null
-          coin_rate_per_min?: number
           created_at?: string
-          diamond_rate_per_min?: number | null
+          diamond_rate_per_min?: number
           flash_disconnect_cooldown_until?: string | null
           flash_disconnect_window_start?: string | null
           flash_disconnects_count?: number
@@ -8559,7 +8472,6 @@ export type Database = {
           max_invites: number | null
           min_invites: number
           reward_beans: number | null
-          reward_coins: number | null
           reward_diamonds: number | null
           tier_name: string
           updated_at: string | null
@@ -8578,7 +8490,6 @@ export type Database = {
           max_invites?: number | null
           min_invites?: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           tier_name: string
           updated_at?: string | null
@@ -8597,7 +8508,6 @@ export type Database = {
           max_invites?: number | null
           min_invites?: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           tier_name?: string
           updated_at?: string | null
@@ -8805,7 +8715,6 @@ export type Database = {
           rank_to: number | null
           reward_amount: number
           reward_beans: number | null
-          reward_coins: number | null
           reward_diamonds: number | null
           reward_type: string
           title: string | null
@@ -8825,7 +8734,6 @@ export type Database = {
           rank_to?: number | null
           reward_amount?: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           reward_type?: string
           title?: string | null
@@ -8845,7 +8753,6 @@ export type Database = {
           rank_to?: number | null
           reward_amount?: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           reward_type?: string
           title?: string | null
@@ -8868,7 +8775,6 @@ export type Database = {
           rank_position: number
           reward_amount: number
           reward_beans: number | null
-          reward_coins: number | null
           reward_diamonds: number | null
           reward_type: string
           sent_at: string | null
@@ -8890,7 +8796,6 @@ export type Database = {
           rank_position: number
           reward_amount: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           reward_type: string
           sent_at?: string | null
@@ -8912,7 +8817,6 @@ export type Database = {
           rank_position?: number
           reward_amount?: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           reward_type?: string
           sent_at?: string | null
@@ -9112,8 +9016,7 @@ export type Database = {
         Row: {
           amount_paid: number
           claimed_at: string | null
-          coins_received: number
-          diamonds_received: number | null
+          diamonds_received: number
           id: string
           offer_id: string
           user_id: string
@@ -9121,8 +9024,7 @@ export type Database = {
         Insert: {
           amount_paid: number
           claimed_at?: string | null
-          coins_received: number
-          diamonds_received?: number | null
+          diamonds_received: number
           id?: string
           offer_id: string
           user_id: string
@@ -9130,8 +9032,7 @@ export type Database = {
         Update: {
           amount_paid?: number
           claimed_at?: string | null
-          coins_received?: number
-          diamonds_received?: number | null
+          diamonds_received?: number
           id?: string
           offer_id?: string
           user_id?: string
@@ -9145,10 +9046,9 @@ export type Database = {
           animation_url: string | null
           badge_text: string | null
           bonus_percentage: number | null
-          coins_amount: number
           created_at: string | null
           description: string | null
-          diamonds_amount: number | null
+          diamonds_amount: number
           discount_percent: number | null
           ends_at: string
           icon_url: string | null
@@ -9169,10 +9069,9 @@ export type Database = {
           animation_url?: string | null
           badge_text?: string | null
           bonus_percentage?: number | null
-          coins_amount?: number
           created_at?: string | null
           description?: string | null
-          diamonds_amount?: number | null
+          diamonds_amount?: number
           discount_percent?: number | null
           ends_at: string
           icon_url?: string | null
@@ -9193,10 +9092,9 @@ export type Database = {
           animation_url?: string | null
           badge_text?: string | null
           bonus_percentage?: number | null
-          coins_amount?: number
           created_at?: string | null
           description?: string | null
-          diamonds_amount?: number | null
+          diamonds_amount?: number
           discount_percent?: number | null
           ends_at?: string
           icon_url?: string | null
@@ -9671,7 +9569,6 @@ export type Database = {
           stream_type: string | null
           thumbnail_url: string | null
           title: string | null
-          total_coins_earned: number | null
           total_diamonds_earned: number | null
           total_gifts: number | null
           viewer_count: number | null
@@ -9708,7 +9605,6 @@ export type Database = {
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
-          total_coins_earned?: number | null
           total_diamonds_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
@@ -9745,7 +9641,6 @@ export type Database = {
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
-          total_coins_earned?: number | null
           total_diamonds_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
@@ -11235,7 +11130,6 @@ export type Database = {
           animation_config_url: string | null
           animation_format: string | null
           animation_url: string | null
-          coin_cost: number | null
           created_at: string | null
           description: string | null
           diamond_cost: number | null
@@ -11264,7 +11158,6 @@ export type Database = {
           animation_config_url?: string | null
           animation_format?: string | null
           animation_url?: string | null
-          coin_cost?: number | null
           created_at?: string | null
           description?: string | null
           diamond_cost?: number | null
@@ -11293,7 +11186,6 @@ export type Database = {
           animation_config_url?: string | null
           animation_format?: string | null
           animation_url?: string | null
-          coin_cost?: number | null
           created_at?: string | null
           description?: string | null
           diamond_cost?: number | null
@@ -11335,7 +11227,6 @@ export type Database = {
           is_premium: boolean | null
           min_level: number
           name: string
-          price_coins: number | null
           price_diamonds: number | null
           thumbnail_url: string | null
           updated_at: string | null
@@ -11354,7 +11245,6 @@ export type Database = {
           is_premium?: boolean | null
           min_level?: number
           name: string
-          price_coins?: number | null
           price_diamonds?: number | null
           thumbnail_url?: string | null
           updated_at?: string | null
@@ -11373,7 +11263,6 @@ export type Database = {
           is_premium?: boolean | null
           min_level?: number
           name?: string
-          price_coins?: number | null
           price_diamonds?: number | null
           thumbnail_url?: string | null
           updated_at?: string | null
@@ -12034,9 +11923,8 @@ export type Database = {
       pk_battle_gifts: {
         Row: {
           battle_id: string
-          coin_amount: number
           created_at: string | null
-          diamond_amount: number | null
+          diamond_amount: number
           gift_id: string
           id: string
           phase: string
@@ -12046,9 +11934,8 @@ export type Database = {
         }
         Insert: {
           battle_id: string
-          coin_amount: number
           created_at?: string | null
-          diamond_amount?: number | null
+          diamond_amount: number
           gift_id: string
           id?: string
           phase?: string
@@ -12058,9 +11945,8 @@ export type Database = {
         }
         Update: {
           battle_id?: string
-          coin_amount?: number
           created_at?: string | null
-          diamond_amount?: number | null
+          diamond_amount?: number
           gift_id?: string
           id?: string
           phase?: string
@@ -12231,7 +12117,6 @@ export type Database = {
           rank_to: number
           reward_badge: string | null
           reward_beans: number
-          reward_coins: number
           reward_diamonds: number
         }
         Insert: {
@@ -12243,7 +12128,6 @@ export type Database = {
           rank_to?: number
           reward_badge?: string | null
           reward_beans?: number
-          reward_coins?: number
           reward_diamonds?: number
         }
         Update: {
@@ -12255,7 +12139,6 @@ export type Database = {
           rank_to?: number
           reward_badge?: string | null
           reward_beans?: number
-          reward_coins?: number
           reward_diamonds?: number
         }
         Relationships: []
@@ -12399,7 +12282,6 @@ export type Database = {
           id: string
           rank_position: number
           reward_beans: number | null
-          reward_coins: number | null
           reward_diamonds: number | null
           user_id: string
         }
@@ -12409,7 +12291,6 @@ export type Database = {
           id?: string
           rank_position: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           user_id: string
         }
@@ -12419,7 +12300,6 @@ export type Database = {
           id?: string
           rank_position?: number
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
           user_id?: string
         }
@@ -12718,8 +12598,6 @@ export type Database = {
           admin_notes: string | null
           caller_id: string
           caller_rating: number | null
-          coins_per_minute: number | null
-          coins_spent: number | null
           connect_grace_seconds: number
           connected_at: string | null
           created_at: string
@@ -12750,7 +12628,6 @@ export type Database = {
           started_at: string | null
           status: string
           stream_id: string | null
-          total_coins_deducted: number | null
           total_diamonds_deducted: number | null
           total_minutes_billed: number
           updated_at: string | null
@@ -12760,8 +12637,6 @@ export type Database = {
           admin_notes?: string | null
           caller_id: string
           caller_rating?: number | null
-          coins_per_minute?: number | null
-          coins_spent?: number | null
           connect_grace_seconds?: number
           connected_at?: string | null
           created_at?: string
@@ -12792,7 +12667,6 @@ export type Database = {
           started_at?: string | null
           status?: string
           stream_id?: string | null
-          total_coins_deducted?: number | null
           total_diamonds_deducted?: number | null
           total_minutes_billed?: number
           updated_at?: string | null
@@ -12802,8 +12676,6 @@ export type Database = {
           admin_notes?: string | null
           caller_id?: string
           caller_rating?: number | null
-          coins_per_minute?: number | null
-          coins_spent?: number | null
           connect_grace_seconds?: number
           connected_at?: string | null
           created_at?: string
@@ -12834,7 +12706,6 @@ export type Database = {
           started_at?: string | null
           status?: string
           stream_id?: string | null
-          total_coins_deducted?: number | null
           total_diamonds_deducted?: number | null
           total_minutes_billed?: number
           updated_at?: string | null
@@ -12860,7 +12731,6 @@ export type Database = {
           blocked_reason: string | null
           call_rate_per_minute: number | null
           city: string | null
-          coins: number | null
           country_code: string | null
           country_flag: string | null
           country_locked: boolean
@@ -12991,7 +12861,6 @@ export type Database = {
           blocked_reason?: string | null
           call_rate_per_minute?: number | null
           city?: string | null
-          coins?: number | null
           country_code?: string | null
           country_flag?: string | null
           country_locked?: boolean
@@ -13122,7 +12991,6 @@ export type Database = {
           blocked_reason?: string | null
           call_rate_per_minute?: number | null
           city?: string | null
-          coins?: number | null
           country_code?: string | null
           country_flag?: string | null
           country_locked?: boolean
@@ -13489,7 +13357,6 @@ export type Database = {
       random_call_queue: {
         Row: {
           caller_gender: string | null
-          coin_rate_per_min: number | null
           device_id: string | null
           diamond_rate_per_min: number | null
           entered_at: string
@@ -13513,7 +13380,6 @@ export type Database = {
         }
         Insert: {
           caller_gender?: string | null
-          coin_rate_per_min?: number | null
           device_id?: string | null
           diamond_rate_per_min?: number | null
           entered_at?: string
@@ -13537,7 +13403,6 @@ export type Database = {
         }
         Update: {
           caller_gender?: string | null
-          coin_rate_per_min?: number | null
           device_id?: string | null
           diamond_rate_per_min?: number | null
           entered_at?: string
@@ -13612,12 +13477,10 @@ export type Database = {
           caller_id: string
           caller_rating: number | null
           caller_reconnect_until: string | null
-          coin_rate_per_min: number
-          coins_charged: number
           converted_at: string | null
           created_at: string
-          diamond_rate_per_min: number | null
-          diamonds_charged: number | null
+          diamond_rate_per_min: number
+          diamonds_charged: number
           disconnect_grace_until: string | null
           duration_seconds: number | null
           ended_at: string | null
@@ -13650,12 +13513,10 @@ export type Database = {
           caller_id: string
           caller_rating?: number | null
           caller_reconnect_until?: string | null
-          coin_rate_per_min: number
-          coins_charged?: number
           converted_at?: string | null
           created_at?: string
-          diamond_rate_per_min?: number | null
-          diamonds_charged?: number | null
+          diamond_rate_per_min: number
+          diamonds_charged?: number
           disconnect_grace_until?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
@@ -13688,12 +13549,10 @@ export type Database = {
           caller_id?: string
           caller_rating?: number | null
           caller_reconnect_until?: string | null
-          coin_rate_per_min?: number
-          coins_charged?: number
           converted_at?: string | null
           created_at?: string
-          diamond_rate_per_min?: number | null
-          diamonds_charged?: number | null
+          diamond_rate_per_min?: number
+          diamonds_charged?: number
           disconnect_grace_until?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
@@ -13724,15 +13583,13 @@ export type Database = {
           auto_convert_to_private: boolean
           auto_on_when_live: boolean
           beans_to_usd_rate: number
-          coins_to_usd_rate: number
           convert_min_balance_seconds: number
           cooldown_seconds_hard: number
           cooldown_seconds_soft: number
           country_filter_requires_vip: boolean
           daily_skip_limit: number
-          default_host_rate_coins_per_min: number
-          default_host_rate_diamonds_per_min: number | null
-          diamonds_to_usd_rate: number | null
+          default_host_rate_diamonds_per_min: number
+          diamonds_to_usd_rate: number
           enable_country_filter: boolean
           enable_gender_filter: boolean
           engagement_fresh_seconds: number
@@ -13744,11 +13601,9 @@ export type Database = {
           grace_cancel_seconds: number
           host_idle_timeout_seconds: number
           host_max_acceptance_pct: number
-          host_max_rate_coins_per_min: number
-          host_max_rate_diamonds_per_min: number | null
+          host_max_rate_diamonds_per_min: number
           host_min_acceptance_pct: number
-          host_min_rate_coins_per_min: number
-          host_min_rate_diamonds_per_min: number | null
+          host_min_rate_diamonds_per_min: number
           host_reject_cooldown_hours: number
           host_reject_count_timeouts: boolean
           host_reject_streak_threshold: number
@@ -13797,15 +13652,13 @@ export type Database = {
           auto_convert_to_private?: boolean
           auto_on_when_live?: boolean
           beans_to_usd_rate?: number
-          coins_to_usd_rate?: number
           convert_min_balance_seconds?: number
           cooldown_seconds_hard?: number
           cooldown_seconds_soft?: number
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
-          default_host_rate_coins_per_min?: number
-          default_host_rate_diamonds_per_min?: number | null
-          diamonds_to_usd_rate?: number | null
+          default_host_rate_diamonds_per_min?: number
+          diamonds_to_usd_rate?: number
           enable_country_filter?: boolean
           enable_gender_filter?: boolean
           engagement_fresh_seconds?: number
@@ -13817,11 +13670,9 @@ export type Database = {
           grace_cancel_seconds?: number
           host_idle_timeout_seconds?: number
           host_max_acceptance_pct?: number
-          host_max_rate_coins_per_min?: number
-          host_max_rate_diamonds_per_min?: number | null
+          host_max_rate_diamonds_per_min?: number
           host_min_acceptance_pct?: number
-          host_min_rate_coins_per_min?: number
-          host_min_rate_diamonds_per_min?: number | null
+          host_min_rate_diamonds_per_min?: number
           host_reject_cooldown_hours?: number
           host_reject_count_timeouts?: boolean
           host_reject_streak_threshold?: number
@@ -13870,15 +13721,13 @@ export type Database = {
           auto_convert_to_private?: boolean
           auto_on_when_live?: boolean
           beans_to_usd_rate?: number
-          coins_to_usd_rate?: number
           convert_min_balance_seconds?: number
           cooldown_seconds_hard?: number
           cooldown_seconds_soft?: number
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
-          default_host_rate_coins_per_min?: number
-          default_host_rate_diamonds_per_min?: number | null
-          diamonds_to_usd_rate?: number | null
+          default_host_rate_diamonds_per_min?: number
+          diamonds_to_usd_rate?: number
           enable_country_filter?: boolean
           enable_gender_filter?: boolean
           engagement_fresh_seconds?: number
@@ -13890,11 +13739,9 @@ export type Database = {
           grace_cancel_seconds?: number
           host_idle_timeout_seconds?: number
           host_max_acceptance_pct?: number
-          host_max_rate_coins_per_min?: number
-          host_max_rate_diamonds_per_min?: number | null
+          host_max_rate_diamonds_per_min?: number
           host_min_acceptance_pct?: number
-          host_min_rate_coins_per_min?: number
-          host_min_rate_diamonds_per_min?: number | null
+          host_min_rate_diamonds_per_min?: number
           host_reject_cooldown_hours?: number
           host_reject_count_timeouts?: boolean
           host_reject_streak_threshold?: number
@@ -13996,7 +13843,6 @@ export type Database = {
           ranking_type: string
           reward_badge_url: string | null
           reward_beans: number | null
-          reward_coins: number | null
           reward_diamonds: number | null
         }
         Insert: {
@@ -14008,7 +13854,6 @@ export type Database = {
           ranking_type: string
           reward_badge_url?: string | null
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
         }
         Update: {
@@ -14020,7 +13865,6 @@ export type Database = {
           ranking_type?: string
           reward_badge_url?: string | null
           reward_beans?: number | null
-          reward_coins?: number | null
           reward_diamonds?: number | null
         }
         Relationships: []
@@ -14167,8 +14011,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           reward_amount: number
-          reward_coins: number
-          reward_diamonds: number | null
+          reward_diamonds: number
           reward_type: string
           screenshot_url: string | null
           status: string | null
@@ -14184,8 +14027,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           reward_amount?: number
-          reward_coins?: number
-          reward_diamonds?: number | null
+          reward_diamonds?: number
           reward_type?: string
           screenshot_url?: string | null
           status?: string | null
@@ -14201,8 +14043,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           reward_amount?: number
-          reward_coins?: number
-          reward_diamonds?: number | null
+          reward_diamonds?: number
           reward_type?: string
           screenshot_url?: string | null
           status?: string | null
@@ -14324,16 +14165,13 @@ export type Database = {
           agent_id: string | null
           agent_name: string | null
           amount: number
-          bonus_coins: number | null
           bonus_diamonds: number | null
-          coins_amount: number
-          coins_received: number | null
           completed_at: string | null
           created_at: string
           currency: string | null
           currency_code: string | null
           device_info: Json | null
-          diamonds_amount: number | null
+          diamonds_amount: number
           diamonds_received: number | null
           exchange_rate: number | null
           google_order_id: string | null
@@ -14368,16 +14206,13 @@ export type Database = {
           agent_id?: string | null
           agent_name?: string | null
           amount: number
-          bonus_coins?: number | null
           bonus_diamonds?: number | null
-          coins_amount: number
-          coins_received?: number | null
           completed_at?: string | null
           created_at?: string
           currency?: string | null
           currency_code?: string | null
           device_info?: Json | null
-          diamonds_amount?: number | null
+          diamonds_amount: number
           diamonds_received?: number | null
           exchange_rate?: number | null
           google_order_id?: string | null
@@ -14412,16 +14247,13 @@ export type Database = {
           agent_id?: string | null
           agent_name?: string | null
           amount?: number
-          bonus_coins?: number | null
           bonus_diamonds?: number | null
-          coins_amount?: number
-          coins_received?: number | null
           completed_at?: string | null
           created_at?: string
           currency?: string | null
           currency_code?: string | null
           device_info?: Json | null
-          diamonds_amount?: number | null
+          diamonds_amount?: number
           diamonds_received?: number | null
           exchange_rate?: number | null
           google_order_id?: string | null
@@ -14902,21 +14734,18 @@ export type Database = {
       }
       registration_bonus_claims: {
         Row: {
-          bonus_coins: number | null
           bonus_diamonds: number | null
           granted_at: string | null
           id: string
           user_id: string
         }
         Insert: {
-          bonus_coins?: number | null
           bonus_diamonds?: number | null
           granted_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
-          bonus_coins?: number | null
           bonus_diamonds?: number | null
           granted_at?: string | null
           id?: string
@@ -15385,7 +15214,6 @@ export type Database = {
           min_level: number | null
           name: string
           preview_url: string | null
-          price_coins: number | null
           price_diamonds: number | null
           rarity: string | null
           sound_duration_ms: number | null
@@ -15420,7 +15248,6 @@ export type Database = {
           min_level?: number | null
           name: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           rarity?: string | null
           sound_duration_ms?: number | null
@@ -15455,7 +15282,6 @@ export type Database = {
           min_level?: number | null
           name?: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           rarity?: string | null
           sound_duration_ms?: number | null
@@ -15824,7 +15650,6 @@ export type Database = {
           status: string | null
           stream_id: string | null
           thumbnail_url: string | null
-          total_coins: number | null
           total_diamonds: number | null
           total_gifts: number | null
           total_viewers: number | null
@@ -15858,7 +15683,6 @@ export type Database = {
           status?: string | null
           stream_id?: string | null
           thumbnail_url?: string | null
-          total_coins?: number | null
           total_diamonds?: number | null
           total_gifts?: number | null
           total_viewers?: number | null
@@ -15892,7 +15716,6 @@ export type Database = {
           status?: string | null
           stream_id?: string | null
           thumbnail_url?: string | null
-          total_coins?: number | null
           total_diamonds?: number | null
           total_gifts?: number | null
           total_viewers?: number | null
@@ -16454,10 +16277,9 @@ export type Database = {
       swift_pay_topups: {
         Row: {
           campaign_id: string | null
-          coins_amount: number
           created_at: string
           credited_at: string | null
-          diamonds_amount: number | null
+          diamonds_amount: number
           error_message: string | null
           expires_at: string | null
           external_user_id: string
@@ -16484,10 +16306,9 @@ export type Database = {
         }
         Insert: {
           campaign_id?: string | null
-          coins_amount: number
           created_at?: string
           credited_at?: string | null
-          diamonds_amount?: number | null
+          diamonds_amount: number
           error_message?: string | null
           expires_at?: string | null
           external_user_id: string
@@ -16514,10 +16335,9 @@ export type Database = {
         }
         Update: {
           campaign_id?: string | null
-          coins_amount?: number
           created_at?: string
           credited_at?: string | null
-          diamonds_amount?: number | null
+          diamonds_amount?: number
           error_message?: string | null
           expires_at?: string | null
           external_user_id?: string
@@ -16554,7 +16374,7 @@ export type Database = {
             foreignKeyName: "swift_pay_topups_target_helper_id_fkey"
             columns: ["target_helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -16897,7 +16717,7 @@ export type Database = {
             foreignKeyName: "topup_trader_approval_log_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
-            referencedRelation: "coin_traders"
+            referencedRelation: "diamond_traders"
             referencedColumns: ["id"]
           },
           {
@@ -17417,11 +17237,10 @@ export type Database = {
       }
       user_contact_violations: {
         Row: {
-          coins_deducted: number
           created_at: string
           detected_content: string | null
           detected_pattern: string | null
-          diamonds_deducted: number | null
+          diamonds_deducted: number
           id: string
           is_auto_detected: boolean
           source_id: string | null
@@ -17431,11 +17250,10 @@ export type Database = {
           violation_type: string
         }
         Insert: {
-          coins_deducted?: number
           created_at?: string
           detected_content?: string | null
           detected_pattern?: string | null
-          diamonds_deducted?: number | null
+          diamonds_deducted?: number
           id?: string
           is_auto_detected?: boolean
           source_id?: string | null
@@ -17445,11 +17263,10 @@ export type Database = {
           violation_type?: string
         }
         Update: {
-          coins_deducted?: number
           created_at?: string
           detected_content?: string | null
           detected_pattern?: string | null
-          diamonds_deducted?: number | null
+          diamonds_deducted?: number
           id?: string
           is_auto_detected?: boolean
           source_id?: string | null
@@ -17962,10 +17779,9 @@ export type Database = {
           actual_reward_type: string | null
           assigned_at: string
           claimed_at: string | null
-          coins_amount: number
           created_at: string
           current_progress: number
-          diamonds_amount: number | null
+          diamonds_amount: number
           expires_at: string | null
           id: string
           opened_at: string | null
@@ -17983,10 +17799,9 @@ export type Database = {
           actual_reward_type?: string | null
           assigned_at?: string
           claimed_at?: string | null
-          coins_amount?: number
           created_at?: string
           current_progress?: number
-          diamonds_amount?: number | null
+          diamonds_amount?: number
           expires_at?: string | null
           id?: string
           opened_at?: string | null
@@ -18004,10 +17819,9 @@ export type Database = {
           actual_reward_type?: string | null
           assigned_at?: string
           claimed_at?: string | null
-          coins_amount?: number
           created_at?: string
           current_progress?: number
-          diamonds_amount?: number | null
+          diamonds_amount?: number
           expires_at?: string | null
           id?: string
           opened_at?: string | null
@@ -18582,7 +18396,6 @@ export type Database = {
           level_required: number | null
           name: string
           preview_url: string | null
-          price_coins: number | null
           price_diamonds: number | null
           sound_url: string | null
           updated_at: string | null
@@ -18602,7 +18415,6 @@ export type Database = {
           level_required?: number | null
           name: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           sound_url?: string | null
           updated_at?: string | null
@@ -18622,7 +18434,6 @@ export type Database = {
           level_required?: number | null
           name?: string
           preview_url?: string | null
-          price_coins?: number | null
           price_diamonds?: number | null
           sound_url?: string | null
           updated_at?: string | null
@@ -19328,7 +19139,7 @@ export type Database = {
         }
         Relationships: []
       }
-      zero_coin_wave_log: {
+      zero_diamond_wave_log: {
         Row: {
           applied_at: string
           id: number
@@ -19421,8 +19232,8 @@ export type Database = {
       }
       admin_swift_pay_recovery_candidates: {
         Row: {
-          coins_amount: number | null
           created_at: string | null
+          diamonds_amount: number | null
           display_name: string | null
           error_message: string | null
           expires_at: string | null
@@ -19452,18 +19263,6 @@ export type Database = {
           hour_bucket: string | null
           source_type: string | null
           total_delta: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      admin_wallet_reconciliation: {
-        Row: {
-          currency: string | null
-          drift: number | null
-          last_movement: string | null
-          ledger_entries: number | null
-          ledger_sum: number | null
-          profile_balance: number | null
           user_id: string | null
         }
         Relationships: []
@@ -19559,7 +19358,7 @@ export type Database = {
         }
         Relationships: []
       }
-      coin_traders: {
+      diamond_traders: {
         Row: {
           created_at: string | null
           id: string | null
@@ -19633,9 +19432,9 @@ export type Database = {
           animation_url: string | null
           category: string | null
           category_id: string | null
-          coin_price: number | null
-          coin_value: number | null
           created_at: string | null
+          diamond_price: number | null
+          diamond_value: number | null
           display_order: number | null
           duration_days: number | null
           icon_url: string | null
@@ -19659,9 +19458,9 @@ export type Database = {
           animation_url?: string | null
           category?: string | null
           category_id?: string | null
-          coin_price?: number | null
-          coin_value?: number | null
           created_at?: string | null
+          diamond_price?: number | null
+          diamond_value?: number | null
           display_order?: number | null
           duration_days?: number | null
           icon_url?: string | null
@@ -19685,9 +19484,9 @@ export type Database = {
           animation_url?: string | null
           category?: string | null
           category_id?: string | null
-          coin_price?: number | null
-          coin_value?: number | null
           created_at?: string | null
+          diamond_price?: number | null
+          diamond_value?: number | null
           display_order?: number | null
           duration_days?: number | null
           icon_url?: string | null
@@ -19926,10 +19725,10 @@ export type Database = {
       }
       recharge_packages: {
         Row: {
-          bonus_coins: number | null
-          coins_amount: number | null
+          bonus_diamonds: number | null
           created_at: string | null
           description: string | null
+          diamonds_amount: number | null
           discount_percent: number | null
           display_order: number | null
           icon_url: string | null
@@ -19942,10 +19741,10 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          bonus_coins?: number | null
-          coins_amount?: number | null
+          bonus_diamonds?: number | null
           created_at?: string | null
           description?: string | null
+          diamonds_amount?: number | null
           discount_percent?: number | null
           display_order?: number | null
           icon_url?: string | null
@@ -19958,10 +19757,10 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          bonus_coins?: number | null
-          coins_amount?: number | null
+          bonus_diamonds?: number | null
           created_at?: string | null
           description?: string | null
+          diamonds_amount?: number | null
           discount_percent?: number | null
           display_order?: number | null
           icon_url?: string | null
@@ -20017,7 +19816,7 @@ export type Database = {
           },
         ]
       }
-      v_user_reserved_coins: {
+      v_user_reserved_diamonds: {
         Row: {
           total_reserved: number | null
           user_id: string | null
@@ -20182,7 +19981,7 @@ export type Database = {
       }
       _apply_recharge_bonuses_internal: {
         Args: {
-          p_base_coins: number
+          p_base_diamonds: number
           p_recharge_ref?: string
           p_user_id: string
         }
@@ -20239,10 +20038,6 @@ export type Database = {
       }
       _ferris_wheel_multiplier: { Args: { p_slot: number }; Returns: number }
       _internal_add_beans: {
-        Args: { _amount: number; _user_id: string }
-        Returns: undefined
-      }
-      _internal_add_coins: {
         Args: { _amount: number; _user_id: string }
         Returns: undefined
       }
@@ -20308,7 +20103,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      _resolve_private_call_coins_per_minute: {
+      _resolve_private_call_diamonds_per_minute: {
         Args: { p_host_id: string }
         Returns: number
       }
@@ -20349,13 +20144,9 @@ export type Database = {
         Args: { _amount: number; _user_id: string }
         Returns: Json
       }
-      add_coins: {
+      add_diamonds: {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
-      }
-      add_coins_to_user: {
-        Args: { _amount: number; _user_id: string }
-        Returns: undefined
       }
       add_diamonds_to_agency: {
         Args: { _agency_id: string; _amount: number }
@@ -20363,7 +20154,7 @@ export type Database = {
       }
       add_diamonds_to_user: {
         Args: { _amount: number; _user_id: string }
-        Returns: Json
+        Returns: undefined
       }
       add_group_member: {
         Args: { p_group_id: string; p_user_id: string }
@@ -20373,7 +20164,7 @@ export type Database = {
         Args: { _amount: number; _helper_id: string }
         Returns: undefined
       }
-      admin_add_agency_coins: {
+      admin_add_agency_diamonds: {
         Args: { _agency_id: string; _amount: number; _note?: string }
         Returns: Json
       }
@@ -20381,7 +20172,7 @@ export type Database = {
         Args: { _admin_id: string; _display_name?: string; _new_email: string }
         Returns: Json
       }
-      admin_add_user_coins: {
+      admin_add_user_diamonds: {
         Args: { _amount: number; _note?: string; _user_id: string }
         Returns: Json
       }
@@ -20751,7 +20542,6 @@ export type Database = {
           min_level: number | null
           name: string
           preview_url: string | null
-          price_coins: number | null
           price_diamonds: number | null
           sound_duration_ms: number | null
           sound_url: string | null
@@ -20843,7 +20633,6 @@ export type Database = {
           is_premium: boolean | null
           level_required: number | null
           name: string
-          price_coins: number | null
           price_diamonds: number | null
           sound_url: string | null
           updated_at: string | null
@@ -20897,11 +20686,9 @@ export type Database = {
           animation_url: string | null
           category: string | null
           category_id: string | null
-          coin_price: number | null
-          coin_value: number
           created_at: string | null
           diamond_price: number | null
-          diamond_value: number | null
+          diamond_value: number
           display_order: number | null
           duration_days: number | null
           icon_url: string | null
@@ -20954,7 +20741,6 @@ export type Database = {
             Returns: {
               amount_local: number | null
               amount_usd: number | null
-              coin_amount: number | null
               commission_amount: number | null
               commission_rate: number | null
               created_at: string | null
@@ -20992,13 +20778,13 @@ export type Database = {
             Returns: {
               amount_local: number
               amount_usd: number
-              coin_amount: number
               created_at: string
               currency_code: string
               customer_app_uid: string
               customer_avatar_url: string
               customer_display_name: string
               customer_id: string
+              diamond_amount: number
               helper_app_uid: string
               helper_avatar_url: string
               helper_display_name: string
@@ -21021,7 +20807,6 @@ export type Database = {
           admin_notes: string | null
           amount: number
           amount_usd: number | null
-          coin_amount: number | null
           created_at: string | null
           diamond_amount: number | null
           helper_id: string
@@ -21180,7 +20965,6 @@ export type Database = {
           is_premium: boolean | null
           min_level: number
           name: string
-          price_coins: number | null
           price_diamonds: number | null
           thumbnail_url: string | null
           updated_at: string | null
@@ -21286,7 +21070,6 @@ export type Database = {
           status: string | null
           stream_id: string | null
           thumbnail_url: string | null
-          total_coins: number | null
           total_diamonds: number | null
           total_gifts: number | null
           total_viewers: number | null
@@ -21412,7 +21195,6 @@ export type Database = {
           min_level: number | null
           name: string
           preview_url: string | null
-          price_coins: number | null
           price_diamonds: number | null
           rarity: string | null
           sound_duration_ms: number | null
@@ -21464,7 +21246,6 @@ export type Database = {
           stream_type: string | null
           thumbnail_url: string | null
           title: string | null
-          total_coins_earned: number | null
           total_diamonds_earned: number | null
           total_gifts: number | null
           viewer_count: number | null
@@ -21734,7 +21515,7 @@ export type Database = {
       admin_recover_purchase_credit: {
         Args: {
           p_admin_id?: string
-          p_coin_amount: number
+          p_diamond_amount: number
           p_google_order_id?: string
           p_product_id?: string
           p_reason?: string
@@ -22184,7 +21965,6 @@ export type Database = {
               is_premium: boolean | null
               min_level: number
               name: string
-              price_coins: number | null
               price_diamonds: number | null
               thumbnail_url: string | null
               updated_at: string | null
@@ -22224,7 +22004,6 @@ export type Database = {
               is_premium: boolean | null
               min_level: number
               name: string
-              price_coins: number | null
               price_diamonds: number | null
               thumbnail_url: string | null
               updated_at: string | null
@@ -22403,7 +22182,7 @@ export type Database = {
       bill_pk_gift: {
         Args: {
           p_battle_id: string
-          p_coin_amount: number
+          p_diamond_amount: number
           p_gift_id: string
           p_sender_id: string
           p_stream_id?: string
@@ -22618,15 +22397,6 @@ export type Database = {
       cleanup_stale_stream_viewers: { Args: never; Returns: Json }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
       close_live_stream_now: { Args: { p_stream_id: string }; Returns: Json }
-      coin_trader_self_recharge: { Args: { amount: number }; Returns: Json }
-      coin_trader_transfer_to_agency: {
-        Args: { amount: number; target_agency_id: string }
-        Returns: Json
-      }
-      coin_trader_transfer_to_user: {
-        Args: { amount: number; recipient_uid: string }
-        Returns: Json
-      }
       complete_face_verification_submission_uploads: {
         Args: { _payload: Json; _submission_id: string }
         Returns: boolean
@@ -22996,21 +22766,21 @@ export type Database = {
         Args: { p_agency_id: string; p_amount: number }
         Returns: Json
       }
-      deduct_call_coins_per_minute: {
+      deduct_call_diamonds_per_minute: {
         Args: { p_call_id: string }
         Returns: Json
       }
-      deduct_coins: {
+      deduct_diamonds: {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
       }
-      deduct_coins_atomic:
+      deduct_diamonds_atomic:
         | { Args: { p_amount: number; p_user_id: string }; Returns: Json }
         | {
             Args: { p_amount: number; p_reason?: string; p_user_id: string }
             Returns: Json
           }
-      deduct_coins_from_user: {
+      deduct_diamonds_from_user: {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
@@ -23028,6 +22798,15 @@ export type Database = {
       detect_contact_in_text: { Args: { p_text: string }; Returns: Json }
       diagnose_helper_payment_visibility: {
         Args: { _country_code: string }
+        Returns: Json
+      }
+      diamond_trader_self_recharge: { Args: { amount: number }; Returns: Json }
+      diamond_trader_transfer_to_agency: {
+        Args: { amount: number; target_agency_id: string }
+        Returns: Json
+      }
+      diamond_trader_transfer_to_user: {
+        Args: { amount: number; recipient_uid: string }
         Returns: Json
       }
       distribute_period_rewards: {
@@ -23078,7 +22857,6 @@ export type Database = {
           blocked_reason: string | null
           call_rate_per_minute: number | null
           city: string | null
-          coins: number | null
           country_code: string | null
           country_flag: string | null
           country_locked: boolean
@@ -23568,7 +23346,7 @@ export type Database = {
       get_host_match_rate: {
         Args: { p_host_id: string }
         Returns: {
-          coin_rate_per_min: number
+          diamond_rate_per_min: number
           host_id: string
         }[]
       }
@@ -23632,7 +23410,7 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_official_coin_usd_rate: { Args: never; Returns: number }
+      get_official_diamond_usd_rate: { Args: never; Returns: number }
       get_online_global_hosts: {
         Args: { p_caller_id: string; p_limit?: number }
         Returns: {
@@ -23854,12 +23632,12 @@ export type Database = {
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_unclaimed_task_reward: { Args: { uid: string }; Returns: boolean }
       hash_admin_pin: { Args: { _pin: string }; Returns: string }
-      helper_add_coins_to_user: {
-        Args: { _amount: number; _user_id: string }
-        Returns: Json
-      }
       helper_add_diamonds_to_agency: {
         Args: { _agency_id: string; _amount: number }
+        Returns: Json
+      }
+      helper_add_diamonds_to_user: {
+        Args: { _amount: number; _user_id: string }
         Returns: Json
       }
       helper_process_agency_withdrawal: {
@@ -23869,15 +23647,6 @@ export type Database = {
           _screenshot_url: string
           _transaction_id: string
           _withdrawal_id: string
-        }
-        Returns: Json
-      }
-      helper_transfer_coins_to_user: {
-        Args: {
-          _amount: number
-          _receiver_id: string
-          _sender_id: string
-          _sender_type?: string
         }
         Returns: Json
       }
@@ -23892,6 +23661,15 @@ export type Database = {
       }
       helper_transfer_diamonds_to_self: {
         Args: { _amount: number; _user_id: string }
+        Returns: Json
+      }
+      helper_transfer_diamonds_to_user: {
+        Args: {
+          _amount: number
+          _receiver_id: string
+          _sender_id: string
+          _sender_type?: string
+        }
         Returns: Json
       }
       host_random_on_accept: { Args: { p_host_id: string }; Returns: undefined }
@@ -24407,7 +24185,7 @@ export type Database = {
       }
       qualify_invitation_after_purchase: {
         Args: {
-          p_amount_coins?: number
+          p_amount_diamonds?: number
           p_amount_usd?: number
           p_reference?: string
           p_source?: string
@@ -24533,7 +24311,7 @@ export type Database = {
           p_room_id: string
           p_sender_id: string
           p_total_beans: number
-          p_total_coins: number
+          p_total_diamonds: number
         }
         Returns: Json
       }
@@ -24646,7 +24424,7 @@ export type Database = {
       reserve_call_balance: {
         Args: {
           p_caller_id: string
-          p_estimated_coins: number
+          p_estimated_diamonds: number
           p_host_id: string
         }
         Returns: Json
@@ -24908,7 +24686,7 @@ export type Database = {
       tick_agency_commission_scheduler: { Args: never; Returns: Json }
       tick_agency_weekly_scheduler: { Args: never; Returns: Json }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
-      transfer_coins_to_user: {
+      transfer_diamonds_to_user: {
         Args: {
           _amount: number
           _note?: string
