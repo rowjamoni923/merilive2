@@ -67,7 +67,7 @@ const BASE_CRYPTO_OPTIONS: CryptoOption[] = [
   { value: "usdtbsc", label: "USDT (BEP20 / BSC)", minUsd: 0.5 },
   { value: "usdterc20", label: "USDT (ERC20)", minUsd: 0.85 },
   { value: "usdttrc20", label: "USDT (TRC20)", minUsd: 11.28 },
-  { value: "btc", label: "Bitcoin (BTC)", minUsd: 17.51 },
+  { value: "btc", label: "BTC", minUsd: 17.51 },
 ];
 
 // Recommend the cheapest network that can actually accept this amount.

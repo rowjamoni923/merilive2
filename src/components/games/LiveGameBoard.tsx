@@ -319,7 +319,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     const hasBuiltInComponent = [
       'aviator', 'plinko', 'dragon_tiger', 'andar_bahar', 'roulette',
       'baccarat', 'blackjack', 'hilo', 'mines', 'limbo', 'crash',
-      'wheel', 'dice', 'coinflip', 'slots', 'lucky28',
+      'wheel', 'dice', 'toss_match', 'slots', 'lucky28',
       'ferris-wheel', 'ferris_wheel', 'teen-patti', 'teen_patti',
       'lucky_number', 'rocket_race'
     ].includes(activeGame);

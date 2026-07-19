@@ -42,7 +42,7 @@ serve(async (req) => {
     console.log('Auto process result:', data)
 
     // Ensure there's always an active round for each game
-    const gameIds = ['lucky28', 'crash', 'wheel', 'dice', 'coinflip', 'slots']
+    const gameIds = ['lucky28', 'crash', 'wheel', 'dice', 'toss_match', 'slots']
     
     for (const gameId of gameIds) {
       // Check if there's an active round

@@ -426,7 +426,7 @@ const Discover = () => {
     const emojiMap: Record<string, string> = {
       ludo: "🎲", lucky28: "🎲", spin: "🎡", wheel: "🎡", quiz: "🧠",
       music: "🎵", love: "❤️", lucky: "⭐", truth_dare: "🎯", karaoke: "🎤",
-      crash: "🚀", dice: "🎯", coinflip: "🪙", mines: "💎", hilo: "🂡", slots: "🎰", poker: "🃏",
+      crash: "🚀", dice: "🎯", toss_match: "⚖️", mines: "💎", hilo: "🂡", slots: "🎰", poker: "🃏",
     };
     return emojiMap[gameMode] || "🎮";
   };
@@ -435,7 +435,7 @@ const Discover = () => {
     const colorMap: Record<string, string> = {
       ludo: "from-info to-secondary", lucky28: "from-warning to-danger",
       wheel: "from-secondary to-primary", crash: "from-warning to-accent",
-      dice: "from-danger to-primary", coinflip: "from-accent to-warning",
+      dice: "from-danger to-primary", toss_match: "from-accent to-warning",
       mines: "from-info to-primary", hilo: "from-success to-success/80",
       slots: "from-secondary to-primary", poker: "from-success to-info",
       quiz: "from-success to-info",
