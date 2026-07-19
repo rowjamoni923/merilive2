@@ -865,6 +865,7 @@ export type Database = {
           stat_date: string
           total_agencies: number | null
           total_coins_spent: number | null
+          total_diamonds_spent: number | null
           total_gifts_sent: number | null
           total_hosts: number | null
           total_party_rooms: number | null
@@ -879,6 +880,7 @@ export type Database = {
           stat_date?: string
           total_agencies?: number | null
           total_coins_spent?: number | null
+          total_diamonds_spent?: number | null
           total_gifts_sent?: number | null
           total_hosts?: number | null
           total_party_rooms?: number | null
@@ -893,6 +895,7 @@ export type Database = {
           stat_date?: string
           total_agencies?: number | null
           total_coins_spent?: number | null
+          total_diamonds_spent?: number | null
           total_gifts_sent?: number | null
           total_hosts?: number | null
           total_party_rooms?: number | null
@@ -2434,6 +2437,7 @@ export type Database = {
           coin_price: number | null
           created_at: string | null
           diamond_cost: number
+          diamond_price: number | null
           display_order: number | null
           file_url: string
           id: string
@@ -2453,6 +2457,7 @@ export type Database = {
           coin_price?: number | null
           created_at?: string | null
           diamond_cost?: number
+          diamond_price?: number | null
           display_order?: number | null
           file_url: string
           id?: string
@@ -2472,6 +2477,7 @@ export type Database = {
           coin_price?: number | null
           created_at?: string | null
           diamond_cost?: number
+          diamond_price?: number | null
           display_order?: number | null
           file_url?: string
           id?: string
@@ -2823,6 +2829,7 @@ export type Database = {
           coin_price: number | null
           created_at: string | null
           description: string | null
+          diamond_price: number | null
           display_order: number | null
           file_url: string
           filter_key: string | null
@@ -2845,6 +2852,7 @@ export type Database = {
           coin_price?: number | null
           created_at?: string | null
           description?: string | null
+          diamond_price?: number | null
           display_order?: number | null
           file_url: string
           filter_key?: string | null
@@ -2867,6 +2875,7 @@ export type Database = {
           coin_price?: number | null
           created_at?: string | null
           description?: string | null
+          diamond_price?: number | null
           display_order?: number | null
           file_url?: string
           filter_key?: string | null
@@ -3041,6 +3050,7 @@ export type Database = {
           id: string
           released_at: string | null
           reserved_coins: number
+          reserved_diamonds: number | null
           status: string
         }
         Insert: {
@@ -3053,6 +3063,7 @@ export type Database = {
           id?: string
           released_at?: string | null
           reserved_coins: number
+          reserved_diamonds?: number | null
           status?: string
         }
         Update: {
@@ -3065,6 +3076,7 @@ export type Database = {
           id?: string
           released_at?: string | null
           reserved_coins?: number
+          reserved_diamonds?: number | null
           status?: string
         }
         Relationships: []
@@ -3172,6 +3184,7 @@ export type Database = {
           caller_id: string | null
           coin_cost: number | null
           created_at: string
+          diamond_cost: number | null
           duration: number | null
           ended_at: string | null
           event_data: Json | null
@@ -3187,6 +3200,7 @@ export type Database = {
           caller_id?: string | null
           coin_cost?: number | null
           created_at?: string
+          diamond_cost?: number | null
           duration?: number | null
           ended_at?: string | null
           event_data?: Json | null
@@ -3202,6 +3216,7 @@ export type Database = {
           caller_id?: string | null
           coin_cost?: number | null
           created_at?: string
+          diamond_cost?: number | null
           duration?: number | null
           ended_at?: string | null
           event_data?: Json | null
@@ -3396,9 +3411,11 @@ export type Database = {
       coin_packages: {
         Row: {
           bonus_coins: number | null
+          bonus_diamonds: number | null
           coins_amount: number
           created_at: string | null
           description: string | null
+          diamonds_amount: number | null
           discount_percent: number | null
           display_order: number | null
           icon_url: string | null
@@ -3412,9 +3429,11 @@ export type Database = {
         }
         Insert: {
           bonus_coins?: number | null
+          bonus_diamonds?: number | null
           coins_amount: number
           created_at?: string | null
           description?: string | null
+          diamonds_amount?: number | null
           discount_percent?: number | null
           display_order?: number | null
           icon_url?: string | null
@@ -3428,9 +3447,11 @@ export type Database = {
         }
         Update: {
           bonus_coins?: number | null
+          bonus_diamonds?: number | null
           coins_amount?: number
           created_at?: string | null
           description?: string | null
+          diamonds_amount?: number | null
           discount_percent?: number | null
           display_order?: number | null
           icon_url?: string | null
@@ -3510,6 +3531,7 @@ export type Database = {
         Row: {
           coins_amount: number
           created_at: string
+          diamonds_amount: number | null
           id: string
           notes: string | null
           payment_method: string | null
@@ -3522,6 +3544,7 @@ export type Database = {
         Insert: {
           coins_amount?: number
           created_at?: string
+          diamonds_amount?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -3534,6 +3557,7 @@ export type Database = {
         Update: {
           coins_amount?: number
           created_at?: string
+          diamonds_amount?: number | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -3586,6 +3610,7 @@ export type Database = {
           is_active: boolean | null
           max_consumption: number | null
           max_return_coins: number | null
+          max_return_diamonds: number | null
           max_spend: number | null
           min_consumption: number
           min_spend: number
@@ -3601,6 +3626,7 @@ export type Database = {
           is_active?: boolean | null
           max_consumption?: number | null
           max_return_coins?: number | null
+          max_return_diamonds?: number | null
           max_spend?: number | null
           min_consumption?: number
           min_spend?: number
@@ -3616,6 +3642,7 @@ export type Database = {
           is_active?: boolean | null
           max_consumption?: number | null
           max_return_coins?: number | null
+          max_return_diamonds?: number | null
           max_spend?: number | null
           min_consumption?: number
           min_spend?: number
@@ -4683,6 +4710,7 @@ export type Database = {
           requirement_value: number | null
           reward_beans: number | null
           reward_coins: number | null
+          reward_diamonds: number | null
           reward_xp: number | null
           show_in_live: boolean
           target_audience: string | null
@@ -4710,6 +4738,7 @@ export type Database = {
           requirement_value?: number | null
           reward_beans?: number | null
           reward_coins?: number | null
+          reward_diamonds?: number | null
           reward_xp?: number | null
           show_in_live?: boolean
           target_audience?: string | null
@@ -4737,6 +4766,7 @@ export type Database = {
           requirement_value?: number | null
           reward_beans?: number | null
           reward_coins?: number | null
+          reward_diamonds?: number | null
           reward_xp?: number | null
           show_in_live?: boolean
           target_audience?: string | null
@@ -5483,6 +5513,7 @@ export type Database = {
           banner_title: string | null
           banner_type: string | null
           bonus_coins: number
+          bonus_diamonds: number | null
           bonus_label: string | null
           bonus_multiplier: number | null
           bonus_percentage: number
@@ -5501,6 +5532,7 @@ export type Database = {
           banner_title?: string | null
           banner_type?: string | null
           bonus_coins?: number
+          bonus_diamonds?: number | null
           bonus_label?: string | null
           bonus_multiplier?: number | null
           bonus_percentage?: number
@@ -5519,6 +5551,7 @@ export type Database = {
           banner_title?: string | null
           banner_type?: string | null
           bonus_coins?: number
+          bonus_diamonds?: number | null
           bonus_label?: string | null
           bonus_multiplier?: number | null
           bonus_percentage?: number
@@ -6020,6 +6053,8 @@ export type Database = {
           id: string
           total_coins_lost: number | null
           total_coins_won: number | null
+          total_diamonds_lost: number | null
+          total_diamonds_won: number | null
           total_games: number | null
           total_wins: number | null
           updated_at: string | null
@@ -6031,6 +6066,8 @@ export type Database = {
           id?: string
           total_coins_lost?: number | null
           total_coins_won?: number | null
+          total_diamonds_lost?: number | null
+          total_diamonds_won?: number | null
           total_games?: number | null
           total_wins?: number | null
           updated_at?: string | null
@@ -6042,6 +6079,8 @@ export type Database = {
           id?: string
           total_coins_lost?: number | null
           total_coins_won?: number | null
+          total_diamonds_lost?: number | null
+          total_diamonds_won?: number | null
           total_games?: number | null
           total_wins?: number | null
           updated_at?: string | null
@@ -6161,6 +6200,7 @@ export type Database = {
         Row: {
           coin_total: number
           device_id: string | null
+          diamond_total: number | null
           first_at: string
           gift_count: number
           id: string
@@ -6174,6 +6214,7 @@ export type Database = {
         Insert: {
           coin_total?: number
           device_id?: string | null
+          diamond_total?: number | null
           first_at?: string
           gift_count?: number
           id?: string
@@ -6187,6 +6228,7 @@ export type Database = {
         Update: {
           coin_total?: number
           device_id?: string | null
+          diamond_total?: number | null
           first_at?: string
           gift_count?: number
           id?: string
@@ -6210,6 +6252,7 @@ export type Database = {
           sender_id: string
           stream_id: string | null
           total_coins: number
+          total_diamonds: number | null
           transaction_id: string
           transaction_type: string | null
         }
@@ -6223,6 +6266,7 @@ export type Database = {
           sender_id: string
           stream_id?: string | null
           total_coins: number
+          total_diamonds?: number | null
           transaction_id: string
           transaction_type?: string | null
         }
@@ -6236,6 +6280,7 @@ export type Database = {
           sender_id?: string
           stream_id?: string | null
           total_coins?: number
+          total_diamonds?: number | null
           transaction_id?: string
           transaction_type?: string | null
         }
@@ -6248,7 +6293,9 @@ export type Database = {
           coin_cost: number | null
           coin_value: number | null
           created_at: string | null
+          diamond_amount: number | null
           diamond_cost: number | null
+          diamond_value: number | null
           gift_id: string | null
           held_beans: number
           held_released: boolean
@@ -6265,6 +6312,7 @@ export type Database = {
           sender_type: string | null
           stream_id: string | null
           total_coins: number
+          total_diamonds: number | null
         }
         Insert: {
           call_id?: string | null
@@ -6272,7 +6320,9 @@ export type Database = {
           coin_cost?: number | null
           coin_value?: number | null
           created_at?: string | null
+          diamond_amount?: number | null
           diamond_cost?: number | null
+          diamond_value?: number | null
           gift_id?: string | null
           held_beans?: number
           held_released?: boolean
@@ -6289,6 +6339,7 @@ export type Database = {
           sender_type?: string | null
           stream_id?: string | null
           total_coins?: number
+          total_diamonds?: number | null
         }
         Update: {
           call_id?: string | null
@@ -6296,7 +6347,9 @@ export type Database = {
           coin_cost?: number | null
           coin_value?: number | null
           created_at?: string | null
+          diamond_amount?: number | null
           diamond_cost?: number | null
+          diamond_value?: number | null
           gift_id?: string | null
           held_beans?: number
           held_released?: boolean
@@ -6313,6 +6366,7 @@ export type Database = {
           sender_type?: string | null
           stream_id?: string | null
           total_coins?: number
+          total_diamonds?: number | null
         }
         Relationships: [
           {
@@ -6370,6 +6424,8 @@ export type Database = {
           coin_price: number | null
           coin_value: number
           created_at: string | null
+          diamond_price: number | null
+          diamond_value: number | null
           display_order: number | null
           duration_days: number | null
           icon_url: string | null
@@ -6398,6 +6454,8 @@ export type Database = {
           coin_price?: number | null
           coin_value: number
           created_at?: string | null
+          diamond_price?: number | null
+          diamond_value?: number | null
           display_order?: number | null
           duration_days?: number | null
           icon_url?: string | null
@@ -6426,6 +6484,8 @@ export type Database = {
           coin_price?: number | null
           coin_value?: number
           created_at?: string | null
+          diamond_price?: number | null
+          diamond_value?: number | null
           display_order?: number | null
           duration_days?: number | null
           icon_url?: string | null
@@ -6454,6 +6514,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           currency_code: string | null
+          diamonds_amount: number | null
           error_code: string | null
           error_message: string | null
           google_order_id: string | null
@@ -6476,6 +6537,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           currency_code?: string | null
+          diamonds_amount?: number | null
           error_code?: string | null
           error_message?: string | null
           google_order_id?: string | null
@@ -6498,6 +6560,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           currency_code?: string | null
+          diamonds_amount?: number | null
           error_code?: string | null
           error_message?: string | null
           google_order_id?: string | null
@@ -7616,6 +7679,7 @@ export type Database = {
           amount_usd: number | null
           coin_amount: number | null
           created_at: string | null
+          diamond_amount: number | null
           helper_id: string
           id: string
           notes: string | null
@@ -7634,6 +7698,7 @@ export type Database = {
           amount_usd?: number | null
           coin_amount?: number | null
           created_at?: string | null
+          diamond_amount?: number | null
           helper_id: string
           id?: string
           notes?: string | null
@@ -7652,6 +7717,7 @@ export type Database = {
           amount_usd?: number | null
           coin_amount?: number | null
           created_at?: string | null
+          diamond_amount?: number | null
           helper_id?: string
           id?: string
           notes?: string | null
@@ -8292,6 +8358,7 @@ export type Database = {
           blocked_user_ids: string[] | null
           coin_rate_per_min: number
           created_at: string
+          diamond_rate_per_min: number | null
           flash_disconnect_cooldown_until: string | null
           flash_disconnect_window_start: string | null
           flash_disconnects_count: number
@@ -8311,6 +8378,7 @@ export type Database = {
           blocked_user_ids?: string[] | null
           coin_rate_per_min?: number
           created_at?: string
+          diamond_rate_per_min?: number | null
           flash_disconnect_cooldown_until?: string | null
           flash_disconnect_window_start?: string | null
           flash_disconnects_count?: number
@@ -8330,6 +8398,7 @@ export type Database = {
           blocked_user_ids?: string[] | null
           coin_rate_per_min?: number
           created_at?: string
+          diamond_rate_per_min?: number | null
           flash_disconnect_cooldown_until?: string | null
           flash_disconnect_window_start?: string | null
           flash_disconnects_count?: number
@@ -8491,6 +8560,7 @@ export type Database = {
           min_invites: number
           reward_beans: number | null
           reward_coins: number | null
+          reward_diamonds: number | null
           tier_name: string
           updated_at: string | null
         }
@@ -8509,6 +8579,7 @@ export type Database = {
           min_invites?: number
           reward_beans?: number | null
           reward_coins?: number | null
+          reward_diamonds?: number | null
           tier_name: string
           updated_at?: string | null
         }
@@ -8527,6 +8598,7 @@ export type Database = {
           min_invites?: number
           reward_beans?: number | null
           reward_coins?: number | null
+          reward_diamonds?: number | null
           tier_name?: string
           updated_at?: string | null
         }
@@ -9041,6 +9113,7 @@ export type Database = {
           amount_paid: number
           claimed_at: string | null
           coins_received: number
+          diamonds_received: number | null
           id: string
           offer_id: string
           user_id: string
@@ -9049,6 +9122,7 @@ export type Database = {
           amount_paid: number
           claimed_at?: string | null
           coins_received: number
+          diamonds_received?: number | null
           id?: string
           offer_id: string
           user_id: string
@@ -9057,6 +9131,7 @@ export type Database = {
           amount_paid?: number
           claimed_at?: string | null
           coins_received?: number
+          diamonds_received?: number | null
           id?: string
           offer_id?: string
           user_id?: string
@@ -9073,6 +9148,7 @@ export type Database = {
           coins_amount: number
           created_at: string | null
           description: string | null
+          diamonds_amount: number | null
           discount_percent: number | null
           ends_at: string
           icon_url: string | null
@@ -9096,6 +9172,7 @@ export type Database = {
           coins_amount?: number
           created_at?: string | null
           description?: string | null
+          diamonds_amount?: number | null
           discount_percent?: number | null
           ends_at: string
           icon_url?: string | null
@@ -9119,6 +9196,7 @@ export type Database = {
           coins_amount?: number
           created_at?: string | null
           description?: string | null
+          diamonds_amount?: number | null
           discount_percent?: number | null
           ends_at?: string
           icon_url?: string | null
@@ -9594,6 +9672,7 @@ export type Database = {
           thumbnail_url: string | null
           title: string | null
           total_coins_earned: number | null
+          total_diamonds_earned: number | null
           total_gifts: number | null
           viewer_count: number | null
         }
@@ -9630,6 +9709,7 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string | null
           total_coins_earned?: number | null
+          total_diamonds_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
         }
@@ -9666,6 +9746,7 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string | null
           total_coins_earned?: number | null
+          total_diamonds_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
         }
@@ -11157,6 +11238,7 @@ export type Database = {
           coin_cost: number | null
           created_at: string | null
           description: string | null
+          diamond_cost: number | null
           display_order: number | null
           expiry_hours: number
           glow_color: string | null
@@ -11185,6 +11267,7 @@ export type Database = {
           coin_cost?: number | null
           created_at?: string | null
           description?: string | null
+          diamond_cost?: number | null
           display_order?: number | null
           expiry_hours?: number
           glow_color?: string | null
@@ -11213,6 +11296,7 @@ export type Database = {
           coin_cost?: number | null
           created_at?: string | null
           description?: string | null
+          diamond_cost?: number | null
           display_order?: number | null
           expiry_hours?: number
           glow_color?: string | null
@@ -11952,6 +12036,7 @@ export type Database = {
           battle_id: string
           coin_amount: number
           created_at: string | null
+          diamond_amount: number | null
           gift_id: string
           id: string
           phase: string
@@ -11963,6 +12048,7 @@ export type Database = {
           battle_id: string
           coin_amount: number
           created_at?: string | null
+          diamond_amount?: number | null
           gift_id: string
           id?: string
           phase?: string
@@ -11974,6 +12060,7 @@ export type Database = {
           battle_id?: string
           coin_amount?: number
           created_at?: string | null
+          diamond_amount?: number | null
           gift_id?: string
           id?: string
           phase?: string
@@ -12636,6 +12723,8 @@ export type Database = {
           connect_grace_seconds: number
           connected_at: string | null
           created_at: string
+          diamonds_per_minute: number | null
+          diamonds_spent: number | null
           duration_seconds: number | null
           e2ee_key: string | null
           end_reason: string | null
@@ -12662,6 +12751,7 @@ export type Database = {
           status: string
           stream_id: string | null
           total_coins_deducted: number | null
+          total_diamonds_deducted: number | null
           total_minutes_billed: number
           updated_at: string | null
           viewer_rate_per_min: number | null
@@ -12675,6 +12765,8 @@ export type Database = {
           connect_grace_seconds?: number
           connected_at?: string | null
           created_at?: string
+          diamonds_per_minute?: number | null
+          diamonds_spent?: number | null
           duration_seconds?: number | null
           e2ee_key?: string | null
           end_reason?: string | null
@@ -12701,6 +12793,7 @@ export type Database = {
           status?: string
           stream_id?: string | null
           total_coins_deducted?: number | null
+          total_diamonds_deducted?: number | null
           total_minutes_billed?: number
           updated_at?: string | null
           viewer_rate_per_min?: number | null
@@ -12714,6 +12807,8 @@ export type Database = {
           connect_grace_seconds?: number
           connected_at?: string | null
           created_at?: string
+          diamonds_per_minute?: number | null
+          diamonds_spent?: number | null
           duration_seconds?: number | null
           e2ee_key?: string | null
           end_reason?: string | null
@@ -12740,6 +12835,7 @@ export type Database = {
           status?: string
           stream_id?: string | null
           total_coins_deducted?: number | null
+          total_diamonds_deducted?: number | null
           total_minutes_billed?: number
           updated_at?: string | null
           viewer_rate_per_min?: number | null
@@ -13395,6 +13491,7 @@ export type Database = {
           caller_gender: string | null
           coin_rate_per_min: number | null
           device_id: string | null
+          diamond_rate_per_min: number | null
           entered_at: string
           expires_at: string | null
           gender: string | null
@@ -13418,6 +13515,7 @@ export type Database = {
           caller_gender?: string | null
           coin_rate_per_min?: number | null
           device_id?: string | null
+          diamond_rate_per_min?: number | null
           entered_at?: string
           expires_at?: string | null
           gender?: string | null
@@ -13441,6 +13539,7 @@ export type Database = {
           caller_gender?: string | null
           coin_rate_per_min?: number | null
           device_id?: string | null
+          diamond_rate_per_min?: number | null
           entered_at?: string
           expires_at?: string | null
           gender?: string | null
@@ -13517,6 +13616,8 @@ export type Database = {
           coins_charged: number
           converted_at: string | null
           created_at: string
+          diamond_rate_per_min: number | null
+          diamonds_charged: number | null
           disconnect_grace_until: string | null
           duration_seconds: number | null
           ended_at: string | null
@@ -13553,6 +13654,8 @@ export type Database = {
           coins_charged?: number
           converted_at?: string | null
           created_at?: string
+          diamond_rate_per_min?: number | null
+          diamonds_charged?: number | null
           disconnect_grace_until?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
@@ -13589,6 +13692,8 @@ export type Database = {
           coins_charged?: number
           converted_at?: string | null
           created_at?: string
+          diamond_rate_per_min?: number | null
+          diamonds_charged?: number | null
           disconnect_grace_until?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
@@ -13626,6 +13731,8 @@ export type Database = {
           country_filter_requires_vip: boolean
           daily_skip_limit: number
           default_host_rate_coins_per_min: number
+          default_host_rate_diamonds_per_min: number | null
+          diamonds_to_usd_rate: number | null
           enable_country_filter: boolean
           enable_gender_filter: boolean
           engagement_fresh_seconds: number
@@ -13638,8 +13745,10 @@ export type Database = {
           host_idle_timeout_seconds: number
           host_max_acceptance_pct: number
           host_max_rate_coins_per_min: number
+          host_max_rate_diamonds_per_min: number | null
           host_min_acceptance_pct: number
           host_min_rate_coins_per_min: number
+          host_min_rate_diamonds_per_min: number | null
           host_reject_cooldown_hours: number
           host_reject_count_timeouts: boolean
           host_reject_streak_threshold: number
@@ -13695,6 +13804,8 @@ export type Database = {
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
           default_host_rate_coins_per_min?: number
+          default_host_rate_diamonds_per_min?: number | null
+          diamonds_to_usd_rate?: number | null
           enable_country_filter?: boolean
           enable_gender_filter?: boolean
           engagement_fresh_seconds?: number
@@ -13707,8 +13818,10 @@ export type Database = {
           host_idle_timeout_seconds?: number
           host_max_acceptance_pct?: number
           host_max_rate_coins_per_min?: number
+          host_max_rate_diamonds_per_min?: number | null
           host_min_acceptance_pct?: number
           host_min_rate_coins_per_min?: number
+          host_min_rate_diamonds_per_min?: number | null
           host_reject_cooldown_hours?: number
           host_reject_count_timeouts?: boolean
           host_reject_streak_threshold?: number
@@ -13764,6 +13877,8 @@ export type Database = {
           country_filter_requires_vip?: boolean
           daily_skip_limit?: number
           default_host_rate_coins_per_min?: number
+          default_host_rate_diamonds_per_min?: number | null
+          diamonds_to_usd_rate?: number | null
           enable_country_filter?: boolean
           enable_gender_filter?: boolean
           engagement_fresh_seconds?: number
@@ -13776,8 +13891,10 @@ export type Database = {
           host_idle_timeout_seconds?: number
           host_max_acceptance_pct?: number
           host_max_rate_coins_per_min?: number
+          host_max_rate_diamonds_per_min?: number | null
           host_min_acceptance_pct?: number
           host_min_rate_coins_per_min?: number
+          host_min_rate_diamonds_per_min?: number | null
           host_reject_cooldown_hours?: number
           host_reject_count_timeouts?: boolean
           host_reject_streak_threshold?: number
@@ -14051,6 +14168,7 @@ export type Database = {
           reviewed_by: string | null
           reward_amount: number
           reward_coins: number
+          reward_diamonds: number | null
           reward_type: string
           screenshot_url: string | null
           status: string | null
@@ -14067,6 +14185,7 @@ export type Database = {
           reviewed_by?: string | null
           reward_amount?: number
           reward_coins?: number
+          reward_diamonds?: number | null
           reward_type?: string
           screenshot_url?: string | null
           status?: string | null
@@ -14083,6 +14202,7 @@ export type Database = {
           reviewed_by?: string | null
           reward_amount?: number
           reward_coins?: number
+          reward_diamonds?: number | null
           reward_type?: string
           screenshot_url?: string | null
           status?: string | null
@@ -14205,6 +14325,7 @@ export type Database = {
           agent_name: string | null
           amount: number
           bonus_coins: number | null
+          bonus_diamonds: number | null
           coins_amount: number
           coins_received: number | null
           completed_at: string | null
@@ -14212,6 +14333,8 @@ export type Database = {
           currency: string | null
           currency_code: string | null
           device_info: Json | null
+          diamonds_amount: number | null
+          diamonds_received: number | null
           exchange_rate: number | null
           google_order_id: string | null
           google_product_id: string | null
@@ -14246,6 +14369,7 @@ export type Database = {
           agent_name?: string | null
           amount: number
           bonus_coins?: number | null
+          bonus_diamonds?: number | null
           coins_amount: number
           coins_received?: number | null
           completed_at?: string | null
@@ -14253,6 +14377,8 @@ export type Database = {
           currency?: string | null
           currency_code?: string | null
           device_info?: Json | null
+          diamonds_amount?: number | null
+          diamonds_received?: number | null
           exchange_rate?: number | null
           google_order_id?: string | null
           google_product_id?: string | null
@@ -14287,6 +14413,7 @@ export type Database = {
           agent_name?: string | null
           amount?: number
           bonus_coins?: number | null
+          bonus_diamonds?: number | null
           coins_amount?: number
           coins_received?: number | null
           completed_at?: string | null
@@ -14294,6 +14421,8 @@ export type Database = {
           currency?: string | null
           currency_code?: string | null
           device_info?: Json | null
+          diamonds_amount?: number | null
+          diamonds_received?: number | null
           exchange_rate?: number | null
           google_order_id?: string | null
           google_product_id?: string | null
@@ -14774,18 +14903,21 @@ export type Database = {
       registration_bonus_claims: {
         Row: {
           bonus_coins: number | null
+          bonus_diamonds: number | null
           granted_at: string | null
           id: string
           user_id: string
         }
         Insert: {
           bonus_coins?: number | null
+          bonus_diamonds?: number | null
           granted_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
           bonus_coins?: number | null
+          bonus_diamonds?: number | null
           granted_at?: string | null
           id?: string
           user_id?: string
@@ -15693,6 +15825,7 @@ export type Database = {
           stream_id: string | null
           thumbnail_url: string | null
           total_coins: number | null
+          total_diamonds: number | null
           total_gifts: number | null
           total_viewers: number | null
           updated_at: string | null
@@ -15726,6 +15859,7 @@ export type Database = {
           stream_id?: string | null
           thumbnail_url?: string | null
           total_coins?: number | null
+          total_diamonds?: number | null
           total_gifts?: number | null
           total_viewers?: number | null
           updated_at?: string | null
@@ -15759,6 +15893,7 @@ export type Database = {
           stream_id?: string | null
           thumbnail_url?: string | null
           total_coins?: number | null
+          total_diamonds?: number | null
           total_gifts?: number | null
           total_viewers?: number | null
           updated_at?: string | null
@@ -16322,6 +16457,7 @@ export type Database = {
           coins_amount: number
           created_at: string
           credited_at: string | null
+          diamonds_amount: number | null
           error_message: string | null
           expires_at: string | null
           external_user_id: string
@@ -16351,6 +16487,7 @@ export type Database = {
           coins_amount: number
           created_at?: string
           credited_at?: string | null
+          diamonds_amount?: number | null
           error_message?: string | null
           expires_at?: string | null
           external_user_id: string
@@ -16380,6 +16517,7 @@ export type Database = {
           coins_amount?: number
           created_at?: string
           credited_at?: string | null
+          diamonds_amount?: number | null
           error_message?: string | null
           expires_at?: string | null
           external_user_id?: string
@@ -17283,6 +17421,7 @@ export type Database = {
           created_at: string
           detected_content: string | null
           detected_pattern: string | null
+          diamonds_deducted: number | null
           id: string
           is_auto_detected: boolean
           source_id: string | null
@@ -17296,6 +17435,7 @@ export type Database = {
           created_at?: string
           detected_content?: string | null
           detected_pattern?: string | null
+          diamonds_deducted?: number | null
           id?: string
           is_auto_detected?: boolean
           source_id?: string | null
@@ -17309,6 +17449,7 @@ export type Database = {
           created_at?: string
           detected_content?: string | null
           detected_pattern?: string | null
+          diamonds_deducted?: number | null
           id?: string
           is_auto_detected?: boolean
           source_id?: string | null
@@ -17824,6 +17965,7 @@ export type Database = {
           coins_amount: number
           created_at: string
           current_progress: number
+          diamonds_amount: number | null
           expires_at: string | null
           id: string
           opened_at: string | null
@@ -17844,6 +17986,7 @@ export type Database = {
           coins_amount?: number
           created_at?: string
           current_progress?: number
+          diamonds_amount?: number | null
           expires_at?: string | null
           id?: string
           opened_at?: string | null
@@ -17864,6 +18007,7 @@ export type Database = {
           coins_amount?: number
           created_at?: string
           current_progress?: number
+          diamonds_amount?: number | null
           expires_at?: string | null
           id?: string
           opened_at?: string | null
@@ -19181,6 +19325,27 @@ export type Database = {
           is_active?: boolean | null
           last_fetched_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      zero_coin_wave_log: {
+        Row: {
+          applied_at: string
+          id: number
+          note: string
+          wave: string
+        }
+        Insert: {
+          applied_at?: string
+          id?: number
+          note: string
+          wave: string
+        }
+        Update: {
+          applied_at?: string
+          id?: number
+          note?: string
+          wave?: string
         }
         Relationships: []
       }
@@ -20735,6 +20900,8 @@ export type Database = {
           coin_price: number | null
           coin_value: number
           created_at: string | null
+          diamond_price: number | null
+          diamond_value: number | null
           display_order: number | null
           duration_days: number | null
           icon_url: string | null
@@ -20856,6 +21023,7 @@ export type Database = {
           amount_usd: number | null
           coin_amount: number | null
           created_at: string | null
+          diamond_amount: number | null
           helper_id: string
           id: string
           notes: string | null
@@ -21119,6 +21287,7 @@ export type Database = {
           stream_id: string | null
           thumbnail_url: string | null
           total_coins: number | null
+          total_diamonds: number | null
           total_gifts: number | null
           total_viewers: number | null
           updated_at: string | null
@@ -21296,6 +21465,7 @@ export type Database = {
           thumbnail_url: string | null
           title: string | null
           total_coins_earned: number | null
+          total_diamonds_earned: number | null
           total_gifts: number | null
           viewer_count: number | null
         }[]
