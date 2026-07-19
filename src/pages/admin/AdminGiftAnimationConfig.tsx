@@ -141,10 +141,10 @@ export default function AdminGiftAnimationConfig() {
 
           <div>
             <Label htmlFor="fs-threshold" className="text-base font-medium text-slate-900">
-              Coin threshold
+              Diamond threshold
             </Label>
             <p className="mb-2 mt-1 text-xs text-slate-500">
-              Gifts costing at least this many coins per unit will trigger a full-screen animation.
+              Gifts costing at least this many diamonds per unit will trigger a full-screen animation.
             </p>
             <Input
               id="fs-threshold"
