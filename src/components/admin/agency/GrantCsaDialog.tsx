@@ -142,13 +142,13 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) closeAll(); else onOpenChange(v); }}>
-      <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border-amber-500/30 text-white max-w-md">
+      <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-amber-300">
             <Crown className="w-5 h-5" />
             {granted ? "CSA Granted — Share Login" : "Grant Country Super Admin"}
           </DialogTitle>
-          <p className="text-xs text-white/60 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             {granted
               ? `Send the secret login link below privately to ${agencyName}'s owner. They will use the email + password to sign in.`
               : `${agencyName} will gain a country-scoped admin dashboard and permanent agency protection.`}
@@ -181,7 +181,7 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
         ) : (
           <div className="space-y-3 py-2">
             <div>
-              <Label className="text-white/80 text-xs">Country (locked after grant)</Label>
+              <Label className="text-slate-600 text-xs">Country (locked after grant)</Label>
               <Select value={country} onValueChange={setCountry}>
                 <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-white max-h-72">
@@ -192,12 +192,12 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
               </Select>
             </div>
             <div>
-              <Label className="text-white/80 text-xs">Login Email</Label>
+              <Label className="text-slate-600 text-xs">Login Email</Label>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="csa.bd@example.com" className="bg-slate-800 border-slate-700" />
             </div>
             <div>
-              <Label className="text-white/80 text-xs">Login Password</Label>
+              <Label className="text-slate-600 text-xs">Login Password</Label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Input type={showPw ? "text" : "password"} value={password}
@@ -221,12 +221,12 @@ export default function GrantCsaDialog({ open, onOpenChange, agencyId, agencyNam
               <p className="text-[10px] text-white/40 mt-1">Share these credentials privately with the owner.</p>
             </div>
             <div>
-              <Label className="text-white/80 text-xs">Commission % (optional)</Label>
+              <Label className="text-slate-600 text-xs">Commission % (optional)</Label>
               <Input type="number" step="0.1" min="0" max="100" value={commission}
                 onChange={(e) => setCommission(e.target.value)} className="bg-slate-800 border-slate-700" />
             </div>
             <div>
-              <Label className="text-white/80 text-xs">Tenure / Validity</Label>
+              <Label className="text-slate-600 text-xs">Tenure / Validity</Label>
               <Select value={tenure} onValueChange={(v) => setTenure(v as any)}>
                 <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-white">

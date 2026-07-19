@@ -637,7 +637,7 @@ export default function AdminPushBroadcast() {
 
       {/* Edit Template Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-white border-slate-200 text-slate-900">
 
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900">
@@ -647,19 +647,19 @@ export default function AdminPushBroadcast() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Title</Label>
-              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" />
+              <Label className="text-sm font-medium text-slate-700">Title</Label>
+              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white border-slate-300 text-slate-900" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Message Body</Label>
-              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-slate-900" />
+              <Label className="text-sm font-medium text-slate-700">Message Body</Label>
+              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white border-slate-300 text-slate-900" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Description (Optional)</Label>
-              <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
+              <Label className="text-sm font-medium text-slate-700">Description (Optional)</Label>
+              <Input value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white border-slate-300 text-slate-900" placeholder="Internal note" />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-100">Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={saving || !editForm.title || !editForm.body} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />} Save
               </Button>
@@ -670,7 +670,7 @@ export default function AdminPushBroadcast() {
 
       {/* Add Template Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
+        <DialogContent className="max-w-lg w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto bg-white border-slate-200 text-slate-900">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Plus className="w-5 h-5 text-green-400" />
@@ -680,20 +680,20 @@ export default function AdminPushBroadcast() {
           <div className="space-y-4 mt-4">
             {newCategoryMode ? (
               <div>
-                <Label className="text-sm font-medium text-slate-900/80">Category Name *</Label>
+                <Label className="text-sm font-medium text-slate-700">Category Name *</Label>
                 <Input
                   value={newCategoryLabel}
                   onChange={(e) => setNewCategoryLabel(e.target.value)}
-                  className="mt-1.5 bg-white/5 border-white/10 text-slate-900"
+                  className="mt-1.5 bg-white border-slate-300 text-slate-900"
                   placeholder="e.g. Daily Reminders, VIP Promo..."
                 />
                 <p className="text-xs text-slate-500 mt-1">A new category will be created and the first template added to it.</p>
               </div>
             ) : (
               <div>
-                <Label className="text-sm font-medium text-slate-900/80">Category</Label>
+                <Label className="text-sm font-medium text-slate-700">Category</Label>
                 <Select value={addCategory} onValueChange={setAddCategory}>
-                  <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-slate-900"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 bg-white border-slate-300 text-slate-900"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {allCategoryKeys.map((key) => (
                       <SelectItem key={key} value={key}>{getCategoryInfo(key).label}</SelectItem>
@@ -710,19 +710,19 @@ export default function AdminPushBroadcast() {
               </div>
             )}
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Title *</Label>
-              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Notification title..." />
+              <Label className="text-sm font-medium text-slate-700">Title *</Label>
+              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white border-slate-300 text-slate-900" placeholder="Notification title..." />
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Message Body *</Label>
-              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-slate-900" placeholder="Notification message..." />
+              <Label className="text-sm font-medium text-slate-700">Message Body *</Label>
+              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white border-slate-300 text-slate-900" placeholder="Notification message..." />
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Description (Optional)</Label>
-              <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-slate-900" placeholder="Internal note" />
+              <Label className="text-sm font-medium text-slate-700">Description (Optional)</Label>
+              <Input value={addForm.description} onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))} className="mt-1.5 bg-white border-slate-300 text-slate-900" placeholder="Internal note" />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-100">Cancel</Button>
               <Button onClick={handleAddTemplate} disabled={saving || !addForm.title || !addForm.body} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />} Add Template
               </Button>
