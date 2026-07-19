@@ -46,7 +46,6 @@ interface RewardTier {
   rank_from: number;
   rank_to: number;
   reward_diamonds: number;
-  reward_diamonds: number;
   reward_beans: number;
 }
 

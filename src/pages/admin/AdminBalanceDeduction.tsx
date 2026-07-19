@@ -51,7 +51,6 @@ interface SearchResult {
   balances: {
     diamonds?: number;
     beans?: number;
-    diamonds?: number;
     pending_earnings?: number;
     total_earnings?: number;
     wallet_balance?: number;
@@ -571,7 +570,6 @@ export default function AdminBalanceDeduction() {
         total_earnings: 'total_earnings',
         pending_earnings: 'pending_earnings',
         beans: 'beans',
-        diamonds: 'diamonds',
       };
       db_field = profileFieldMap[fieldKey] || fieldKey;
     }

@@ -30,7 +30,6 @@ interface UserResult {
   is_blocked: boolean | null;
   blocked_reason: string | null;
   diamonds: number | null;
-  diamonds: number | null;
   user_level: number | null;
   host_level: number | null;
   gender: string | null;

@@ -137,7 +137,6 @@ const isUnlockedByLevel = (requiredLevel: number | null | undefined, effectiveLe
 const isMonetizedAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
-  price_diamonds?: number | null;
 }): boolean => {
   return Boolean(
     asset.is_premium ||

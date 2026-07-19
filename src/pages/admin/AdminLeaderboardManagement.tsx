@@ -34,7 +34,6 @@ interface RewardConfig {
   rank_from: number;
   rank_to: number;
   reward_diamonds: number;
-  reward_diamonds: number;
   reward_beans: number;
   is_active: boolean;
 }
@@ -246,7 +245,6 @@ const AdminLeaderboardManagement = () => {
       rank_from: newFrom,
       rank_to: newTo,
       rank_position: newFrom,
-      reward_diamonds: 0,
       reward_diamonds: 0,
       reward_beans: 0,
       reward_amount: 0,
@@ -682,7 +680,6 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
     rank_to: String(reward.rank_to ?? 0),
     reward_beans: String(reward.reward_beans ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
-    reward_diamonds: String(reward.reward_diamonds ?? 0),
   });
 
   // Sync when upstream row identity/values change (e.g. after refetch from another edit)
@@ -691,7 +688,6 @@ const RewardTierRow = ({ reward, isAgency, onCommit, onDelete }: RewardTierRowPr
       rank_from: String(reward.rank_from ?? 0),
       rank_to: String(reward.rank_to ?? 0),
       reward_beans: String(reward.reward_beans ?? 0),
-      reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

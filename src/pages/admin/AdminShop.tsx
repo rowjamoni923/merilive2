@@ -72,7 +72,6 @@ interface ShopItem {
   item_type: string | null;
   animation_type: string | null;
   price_diamonds: number | null;
-  price_diamonds: number | null;
   duration_days: number | null;
   min_level: number | null;
   level_required: number | null;
@@ -187,7 +186,6 @@ const normalizeShopItem = (raw: any): ShopItem => {
     item_type: raw.item_type ?? normalizedFileType,
     animation_type: raw.animation_type ?? (normalizedFileType === "image" ? "static" : "animated"),
     price_diamonds: raw.price_diamonds ?? 0,
-    price_diamonds: raw.price_diamonds ?? 0,
     duration_days: raw.duration_days ?? null,
     min_level: raw.min_level ?? raw.level_required ?? 0,
     level_required: raw.level_required ?? raw.min_level ?? 0,
@@ -224,7 +222,6 @@ const buildShopItemPayload = (formData: ShopFormData, existingItem?: ShopItem | 
     file_type: normalizedFileType,
     animation_type: formData.animation_type,
     price_diamonds: existingItem?.price_diamonds ?? 0,
-    price_diamonds: normalizedPriceDiamonds,
     image_url: normalizedFileType === "image" || normalizedFileType === "gif" ? fallbackAssetUrl : null,
     animation_url: normalizedFileType === "svga" ? null : fallbackAssetUrl,
     svga_url: normalizedFileType === "svga" ? fallbackAssetUrl : null,

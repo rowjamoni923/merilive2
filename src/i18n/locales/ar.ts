@@ -122,7 +122,6 @@ const ar = {
     level: "المستوى",
     diamonds: "Diamonds",
     beans: "البينز",
-    diamonds: "الماس",
     wallet: "المحفظة",
     myAgency: "وكالتي",
     becomeHost: "كن مضيفًا",

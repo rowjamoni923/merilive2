@@ -36,7 +36,6 @@ interface RewardConfig {
   rank_from: number;
   rank_to: number;
   reward_diamonds: number;
-  reward_diamonds: number;
   reward_beans: number;
   reward_badge: string | null;
   min_target: number;
@@ -334,7 +333,6 @@ export default function AdminGameLeaderboard() {
           period_end: end,
           stat_value: Math.floor(entry.stat_value),
           reward_diamonds: reward.reward_diamonds,
-          reward_diamonds: reward.reward_diamonds,
           reward_beans: reward.reward_beans,
         });
         if (historyError) throw historyError;
@@ -553,14 +551,12 @@ export default function AdminGameLeaderboard() {
 const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig; onCommit: (field: string, value: number) => void }) => {
   const [draft, setDraft] = useState({
     reward_diamonds: String(reward.reward_diamonds ?? 0),
-    reward_diamonds: String(reward.reward_diamonds ?? 0),
     reward_beans: String(reward.reward_beans ?? 0),
     min_target: String(reward.min_target ?? 0),
   });
 
   useEffect(() => {
     setDraft({
-      reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_beans: String(reward.reward_beans ?? 0),
       min_target: String(reward.min_target ?? 0),
