@@ -697,6 +697,9 @@ const AdminFaceVerification = () => {
 
   const approveSubmissionAs = (submission: Submission, asRole?: 'host' | 'user') => {
     const resolvedRole = asRole || (submission.verification_type === 'host' ? 'host' : 'user');
+    if (isUserRetryRow(submission)) {
+      return handleManualOverrideApprove(submission, resolvedRole);
+    }
     return processSubmissionAction({
       submission,
       action: 'approve',
@@ -722,6 +725,7 @@ const AdminFaceVerification = () => {
   const isApproved = (s: Submission) => getSubmissionBucket(s) === "approved";
   const isRejected = (s: Submission) => getSubmissionBucket(s) === "rejected";
   const isPendingBucket = (s: Submission) => getSubmissionBucket(s) === "pending";
+  const canManuallyReview = (s: Submission) => isPendingBucket(s) || isUserRetryRow(s);
 
   // Single source of truth for what the user can currently see (after search).
   // Counters are derived from the SAME pool the list uses, so badges always
@@ -1226,7 +1230,7 @@ const AdminFaceVerification = () => {
                       </div>
                     )}
 
-                    {isPendingBucket(submission) && (
+                    {canManuallyReview(submission) && (
                       <RoleApproveBar
                         defaultRole={submission.verification_type === 'host' ? 'host' : 'user'}
                         processing={processing}
@@ -1262,7 +1266,7 @@ const AdminFaceVerification = () => {
 
             return (
               <div className="space-y-5">
-                {isPendingBucket(selectedSubmission) && (
+                {canManuallyReview(selectedSubmission) && (
                   <div className="sticky top-0 z-20 rounded-xl border border-[#E2E8F0] bg-white/95 p-3 shadow-sm backdrop-blur">
                     <RoleApproveBar
                       defaultRole={selectedSubmission.verification_type === 'host' ? 'host' : 'user'}
