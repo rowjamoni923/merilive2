@@ -2,10 +2,7 @@ import { useState, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  CheckSquare, X, Trash2, CheckCircle, XCircle,
-  Download, MoreHorizontal, Square
-} from "lucide-react";
+import { CheckSquare, X, Trash2, CheckCircle, XCircle, Download, MoreHorizontal, Square } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuTrigger, DropdownMenuSeparator

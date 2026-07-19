@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import rocketRaceBg from "@/assets/games-bg/rocket-race-bg.jpg";
 import { cn } from "@/lib/utils";
-import { Coins } from "lucide-react";
+import { Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WinPopup } from "../common/WinPopup";
 import { formatBetAmount } from "../common/BetControls";
@@ -36,7 +36,7 @@ interface LiveRocketRaceGameProps {
   myBets: any[];
   onPlaceBet: (betType?: string, betValue?: string) => Promise<any>;
   onProcessResult: (result: any) => void;
-  onUpdateCoins?: (newBalance: number) => void;
+  onUpdateDiamonds?: (newBalance: number) => void;
   onGameWin?: (winAmount: number) => void;
   onTimerUpdate?: (timeLeft: number, phase: 'betting' | 'spinning') => void;
 }
@@ -75,7 +75,7 @@ export function LiveRocketRaceGame({
   myBets,
   onPlaceBet,
   onProcessResult,
-  onUpdateCoins,
+  onUpdateDiamonds,
   onGameWin,
   onTimerUpdate
 }: LiveRocketRaceGameProps) {
@@ -234,7 +234,7 @@ export function LiveRocketRaceGame({
           if (!user) return;
           const result = await processWin(user.id, game?.id || 'rocket-race', game?.name || 'Rocket Race', totalWinnings, ROCKETS[winnerIndex].odds);
           if (result.success && result.newBalance !== undefined) {
-            onUpdateCoins?.(result.newBalance);
+            onUpdateDiamonds?.(result.newBalance);
           }
         } catch (error) {
           console.error('[RocketRace] Credit error:', error);
@@ -566,7 +566,7 @@ export function LiveRocketRaceGame({
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl py-2 border border-cyan-500/30"
         >
-          <Coins className="w-4 h-4 text-amber-400" />
+          <Gem className="w-4 h-4 text-amber-400" />
           <span className="text-cyan-400 text-sm font-bold">
             Total Bet: {formatBetAmount(totalBetPlaced)}
           </span>

@@ -3,21 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  RefreshCw, 
-  Settings,
-  Database,
-  Zap,
-  DollarSign,
-  Building2,
-  Gift,
-  Phone,
-  Crown,
-  Star
-} from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, Settings, Database, Zap, DollarSign, Building2, Gift, Phone, Crown, Star } from "lucide-react";
 
 interface SettingStatus {
   key: string;

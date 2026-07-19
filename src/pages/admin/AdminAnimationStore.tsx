@@ -1,11 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, Crown, Star, Diamond, Flame, Shield, Heart, Zap,
-  Filter, Search, Check, Lock, ChevronDown, Eye, Copy, Download,
-  Save, Plus, Trash2, Settings, ArrowRight
-} from 'lucide-react';
+import { Sparkles, Crown, Star, Diamond, Flame, Shield, Heart, Zap, Filter, Search, Check, Lock, ChevronDown, Eye, Copy, Download, Save, Plus, Trash2, Settings, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';

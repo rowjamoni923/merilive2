@@ -1,6 +1,6 @@
 /**
  * Play Store Billing SDK
- * Handles Google Play In-App Purchases for coin/diamond packages
+ * Handles Google Play In-App Purchases for diamond/diamond packages
  * 
  * Uses Capacitor registerPlugin() for proper native bridge communication
  * Purchase verification is done SERVER-SIDE via Edge Function
@@ -419,7 +419,7 @@ class PlayStoreBillingSDK {
         return { success: false, error: result.error || 'Server verification failed' };
       }
 
-      console.log('[PlayStoreBilling] ✅ Verified! Coins:', result.diamonds, 'Balance:', result.newBalance);
+      console.log('[PlayStoreBilling] ✅ Verified! Diamonds:', result.diamonds, 'Balance:', result.newBalance);
 
       if (result.newBalance !== undefined) {
         const { updateCachedBalance } = await import('@/hooks/useUserBalance');
@@ -497,7 +497,7 @@ class PlayStoreBillingSDK {
     }
   }
 
-  getProductIdForCoins(diamonds: number): string | null {
+  getProductIdForDiamonds(diamonds: number): string | null {
     const product = PLAY_STORE_PRODUCTS[diamonds];
     if (product) return product.productId;
     console.warn(`[PlayStoreBilling] No product for ${diamonds} diamonds`);

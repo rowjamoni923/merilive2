@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/Skeleton";
 import { useNavigate } from "react-router-dom";
-import { Play, Eye, Heart, Trash2, MoreVertical, Coins, Lock } from "lucide-react";
+import { Play, Eye, Heart, Trash2, MoreVertical, Gem, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -284,7 +284,7 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
               
               {isOwnProfile && reel.beans_earned > 0 && (
                 <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full px-1.5 py-0.5 text-white text-[10px] font-bold">
-                  <Coins className="w-3 h-3" />
+                  <Gem className="w-3 h-3" />
                   <span>{formatCount(reel.beans_earned)}</span>
                 </div>
               )}

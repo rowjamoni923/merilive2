@@ -9,10 +9,7 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Eye, EyeOff, Mic, MicOff, SwitchCamera, Sparkles,
-  Crown, Phone, ShieldCheck, Gem, ChevronLeft, History,
-} from "lucide-react";
+import { Eye, EyeOff, Mic, MicOff, SwitchCamera, Sparkles, Crown, Phone, ShieldCheck, Gem, ChevronLeft, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";

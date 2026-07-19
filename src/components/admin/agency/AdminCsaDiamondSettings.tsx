@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Loader2, Gem, Save, ArrowDownToLine, ArrowUpFromLine, Coins, Shield } from "lucide-react";
+import { Loader2, Gem, Save, ArrowDownToLine, ArrowUpFromLine, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 interface Settings {
@@ -135,7 +135,7 @@ export default function AdminCsaDiamondSettings() {
           </div>
           <div>
             <Label className="text-white/70 text-xs flex items-center gap-1">
-              <Coins className="w-3 h-3" /> Diamonds per 1 USD
+              <Gem className="w-3 h-3" /> Diamonds per 1 USD
             </Label>
             <Input type="number" min="0" step="1" value={s.diamonds_per_usd}
               onChange={(e) => setS({ ...s, diamonds_per_usd: Number(e.target.value) })}
@@ -183,7 +183,7 @@ export default function AdminCsaDiamondSettings() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-                <Coins className="w-4 h-4" /> Withdrawal Bonus (auto-reward to CSA)
+                <Gem className="w-4 h-4" /> Withdrawal Bonus (auto-reward to CSA)
               </p>
               <p className="text-[11px] text-white/50 mt-0.5">
                 When agency withdrawal completes in CSA's country, bonus diamonds are auto-credited.

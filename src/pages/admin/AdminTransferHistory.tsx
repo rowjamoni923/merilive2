@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, RefreshCw, Search, Download, Filter, 
-  Building2, User, Gift, Phone, Calendar, Clock,
-  TrendingUp, ChevronDown, ChevronUp, Eye
-} from 'lucide-react';
+import { ArrowLeft, RefreshCw, Search, Download, Filter, Building2, User, Gift, Phone, Calendar, Clock, TrendingUp, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

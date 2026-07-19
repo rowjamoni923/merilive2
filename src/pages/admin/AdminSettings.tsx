@@ -1,23 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {
-  Settings,
-  Save,
-  UserCheck,
-  Gift,
-  PartyPopper,
-  Shield,
-  Plus,
-  Trash2,
-  Wallet,
-  Percent,
-  TrendingUp,
-  Download,
-  Globe,
-  Diamond,
-  Users
-} from "lucide-react";
+import { Settings, Save, UserCheck, Gift, PartyPopper, Shield, Plus, Trash2, Wallet, Percent, TrendingUp, Download, Globe, Diamond, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +46,7 @@ interface AppSettings {
     min_withdrawal: number;
     free_withdrawal_limit: number;
     fees: WithdrawalFee[];
-    coins_to_dollar_rate: number;
+    diamonds_to_dollar_rate: number;
   };
   helper_fee_settings: {
     platform_fee_percent: number;
@@ -105,7 +89,7 @@ export default function AdminSettings() {
         withdrawal_settings: settingsMap.withdrawal_settings || {
           min_withdrawal: 10000,
           free_withdrawal_limit: 50000,
-          coins_to_dollar_rate: 10000,
+          diamonds_to_dollar_rate: 10000,
           fees: [
             { id: '1', min_amount: 50001, max_amount: 100000, fee_type: 'percent', fee_value: 2 },
             { id: '2', min_amount: 100001, max_amount: 500000, fee_type: 'percent', fee_value: 3 },
@@ -421,19 +405,19 @@ export default function AdminSettings() {
                     <Label className="text-slate-600 font-medium text-sm">Beans per $1</Label>
                     <Input
                       type="number"
-                      value={settings?.withdrawal_settings.coins_to_dollar_rate || 10000}
-                      onChange={(e) => handleWithdrawalChange("coins_to_dollar_rate", parseInt(e.target.value))}
+                      value={settings?.withdrawal_settings.diamonds_to_dollar_rate || 10000}
+                      onChange={(e) => handleWithdrawalChange("diamonds_to_dollar_rate", parseInt(e.target.value))}
                       className="bg-white border-slate-200 text-slate-800 mt-2"
                     />
                     <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
-                      Example: {settings?.withdrawal_settings.coins_to_dollar_rate || 10000} Beans = $1
+                      Example: {settings?.withdrawal_settings.diamonds_to_dollar_rate || 10000} Beans = $1
                     </p>
                   </div>
                   <div className="flex items-center justify-center p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-sm">
                     <div className="text-center">
                       <p className="text-slate-600 text-xs sm:text-sm">Preview</p>
                       <p className="text-emerald-600 font-bold text-lg sm:text-xl mt-1">
-                        {(settings?.withdrawal_settings.coins_to_dollar_rate || 10000).toLocaleString()} Beans = $1.00
+                        {(settings?.withdrawal_settings.diamonds_to_dollar_rate || 10000).toLocaleString()} Beans = $1.00
                       </p>
                     </div>
                   </div>

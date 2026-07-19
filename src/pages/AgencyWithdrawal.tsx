@@ -1,22 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Wallet,
-  Download,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  CreditCard,
-  Loader2,
-  Globe,
-  DollarSign,
-  Sparkles,
-  TrendingUp,
-  ArrowDownCircle,
-  Lock
-} from "lucide-react";
+import { ArrowLeft, Wallet, Download, Clock, CheckCircle, XCircle, AlertCircle, CreditCard, Loader2, Globe, DollarSign, Sparkles, TrendingUp, ArrowDownCircle, Lock } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -98,7 +82,7 @@ interface Withdrawal {
 }
 
 interface CommissionSettings {
-  coins_to_dollar_rate: number;
+  diamonds_to_dollar_rate: number;
 }
 
 interface PaymentMethodConfig {
@@ -1785,7 +1769,7 @@ const AgencyWithdrawal = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [withdrawalFees, setWithdrawalFees] = useState<Array<{id: string; min_amount: number; max_amount: number; fee_type: string; fee_value: number}>>([]);
   const [freeWithdrawalLimit, setFreeWithdrawalLimit] = useState(0); // beans below this = no fee (admin-controlled)
   const [minWithdrawalBeans, setMinWithdrawalBeans] = useState(100000);
@@ -1829,7 +1813,7 @@ const AgencyWithdrawal = () => {
 
   // Convert beans to USD
   const beansToUsd = (beans: number) => {
-    return beans / coinsToUsdRate;
+    return beans / diamondsToUsdRate;
   };
 
   // Convert USD to local currency
@@ -1853,7 +1837,7 @@ const AgencyWithdrawal = () => {
   // Convert local currency to beans
   const localToBeans = (local: number) => {
     const usd = localToUsd(local);
-    return usd * coinsToUsdRate;
+    return usd * diamondsToUsdRate;
   };
 
   // Is the current payment method an "auto" method (foreign agency auto-credit: ePay/USDT/Binance/Crypto)?
@@ -1891,7 +1875,7 @@ const AgencyWithdrawal = () => {
 
   // Get withdrawal fee in beans
   const getWithdrawalFeeBeans = (localAmountOverride?: number) => {
-    return getWithdrawalFeeUsd(localAmountOverride) * coinsToUsdRate;
+    return getWithdrawalFeeUsd(localAmountOverride) * diamondsToUsdRate;
   };
 
   // Get withdrawal fee in local currency
@@ -2170,15 +2154,15 @@ const AgencyWithdrawal = () => {
           ? JSON.parse(beansRateValue)
           : (beansRateValue as { rate?: number });
         if (rateValue?.rate) {
-          setCoinsToUsdRate(rateValue.rate);
+          setDiamondsToUsdRate(rateValue.rate);
         }
       } else if (commissionFallbackValue) {
         // Fallback to agency_commission setting
         const commissionSettings = typeof commissionFallbackValue === 'string'
           ? JSON.parse(commissionFallbackValue)
           : (commissionFallbackValue as CommissionSettings);
-        if (commissionSettings?.coins_to_dollar_rate) {
-          setCoinsToUsdRate(commissionSettings.coins_to_dollar_rate);
+        if (commissionSettings?.diamonds_to_dollar_rate) {
+          setDiamondsToUsdRate(commissionSettings.diamonds_to_dollar_rate);
         }
       }
 
@@ -2204,7 +2188,7 @@ const AgencyWithdrawal = () => {
         }
         if (ws.free_withdrawal_limit) setFreeWithdrawalLimit(ws.free_withdrawal_limit);
         if (ws.min_withdrawal) setMinWithdrawalBeans(ws.min_withdrawal);
-        if (ws.coins_to_dollar_rate) setCoinsToUsdRate(ws.coins_to_dollar_rate);
+        if (ws.diamonds_to_dollar_rate) setDiamondsToUsdRate(ws.diamonds_to_dollar_rate);
       }
 
       // Auto withdrawal fee (flat USD for ePay/USDT/Binance/Crypto)
@@ -2583,7 +2567,7 @@ const AgencyWithdrawal = () => {
               </div>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center px-3">
-                  <p className="text-amber-200 font-bold">{formatNumber(coinsToUsdRate)}</p>
+                  <p className="text-amber-200 font-bold">{formatNumber(diamondsToUsdRate)}</p>
                   <p className="text-white/70 text-xs">Beans = $1 USD</p>
                 </div>
                 <div className="h-8 w-px bg-white/25" />

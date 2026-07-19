@@ -300,11 +300,11 @@ export function useRealtimeEarnings(userId: string | null) {
           if (cancelled) return;
           const row: any = payload.new;
           const createdAt = row?.created_at;
-          const coin = Number(row?.diamond_amount || 0);
-          if (coin > 0) {
-            if (createdAt >= today) setTodayEarnings((v) => v + coin);
-            if (createdAt >= weekStart) setWeekEarnings((v) => v + coin);
-            if (createdAt >= monthStart) setMonthEarnings((v) => v + coin);
+          const diamond = Number(row?.diamond_amount || 0);
+          if (diamond > 0) {
+            if (createdAt >= today) setTodayEarnings((v) => v + diamond);
+            if (createdAt >= weekStart) setWeekEarnings((v) => v + diamond);
+            if (createdAt >= monthStart) setMonthEarnings((v) => v + diamond);
             setRecentGifts((prev) => [row, ...prev].slice(0, 20));
             setLastUpdate(new Date());
           }

@@ -1,24 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { 
-  Gamepad2, 
-  Gift, 
-  MessageSquare, 
-  Settings,
-  Sparkles,
-  X,
-  Mic,
-  MicOff,
-  Eye,
-  EyeOff,
-  Heart,
-  Share2,
-  Volume2,
-  VolumeX,
-  Crown,
-  Star
-} from "lucide-react";
+import { Gamepad2, Gift, MessageSquare, Settings, Sparkles, X, Mic, MicOff, Eye, EyeOff, Heart, Share2, Volume2, VolumeX, Crown, Star } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";

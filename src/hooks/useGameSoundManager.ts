@@ -272,7 +272,7 @@ export function useGameSoundManager(gameType: GameType) {
       }, i * 100);
     });
     
-    // Coin shower sound
+    // Diamond shower sound
     setTimeout(() => {
       for (let i = 0; i < 12; i++) {
         setTimeout(() => {
@@ -312,8 +312,8 @@ export function useGameSoundManager(gameType: GameType) {
     }, 400);
   }, [gameType]);
 
-  // Coin collection sound
-  const playCoinSound = useCallback(() => {
+  // Diamond collection sound
+  const playDiamondSound = useCallback(() => {
     if (!isActiveRef.current || activeGame !== gameType) return;
     initAudioContext();
     
@@ -778,7 +778,7 @@ export function useGameSoundManager(gameType: GameType) {
     playBetSound,
     playWinSound,
     playLoseSound,
-    playCoinSound,
+    playDiamondSound,
     playTickSound,
     playCountdownBeep,
     

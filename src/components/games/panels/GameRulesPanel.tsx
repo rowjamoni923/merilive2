@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { X, HelpCircle, Trophy, Coins, Target } from "lucide-react";
+import { X, HelpCircle, Trophy, Gem, Target } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { cn } from "@/lib/utils";
 
@@ -203,7 +203,7 @@ export function GameRulesPanel({ isOpen, onClose, gameId, gameName }: GameRulesP
             {/* Multipliers */}
             <div className="space-y-2">
               <h3 className="text-white font-semibold text-sm flex items-center gap-2">
-                <Coins className="w-4 h-4 text-amber-400" />
+                <Gem className="w-4 h-4 text-amber-400" />
                 Payouts
               </h3>
               <div className="grid gap-1.5">

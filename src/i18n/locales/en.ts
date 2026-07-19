@@ -189,7 +189,7 @@ const en = {
     noAnswer: "No Answer",
     busy: "Busy",
     callDuration: "Call Duration",
-    coinsPerMin: "diamonds/min",
+    diamondsPerMin: "diamonds/min",
   },
 
   // Party Rooms
@@ -297,7 +297,7 @@ const en = {
     selectGift: "Select a gift",
     quantity: "Quantity",
     totalCost: "Total Cost",
-    insufficientCoins: "Insufficient Diamonds",
+    insufficientDiamonds: "Insufficient Diamonds",
     rechargeNow: "Recharge Now",
   },
 
@@ -404,7 +404,7 @@ const en = {
     newMessage: "New message",
     newFollower: "New follower",
     giftReceived: "Gift received",
-    coinsSent: "Diamonds sent successfully",
+    diamondsSent: "Diamonds sent successfully",
     profileUpdated: "Profile updated",
     errorOccurred: "An error occurred",
     tryAgain: "Please try again",

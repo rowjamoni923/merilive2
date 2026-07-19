@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Coins, Trophy, Sparkles, Star } from "lucide-react";
+import { Gem, Trophy, Sparkles, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
@@ -205,7 +205,7 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
                 )}
               >
                 {isWin && <Trophy className="w-4 h-4 text-yellow-200" />}
-                <Coins className={cn("w-4 h-4", isWin ? "text-yellow-200" : "text-gray-400")} />
+                <Gem className={cn("w-4 h-4", isWin ? "text-yellow-200" : "text-gray-400")} />
                 <span className={cn(
                   "font-bold text-xl",
                   isWin ? "text-white" : "text-red-400"

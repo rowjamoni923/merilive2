@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Play, Pause, RefreshCw, Calendar, Timer, Zap, CheckCircle, ChevronDown, ChevronUp, Building2, User, Coins } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, RefreshCw, Calendar, Timer, Zap, CheckCircle, ChevronDown, ChevronUp, Building2, User, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -611,7 +611,7 @@ const AdminTransferScheduler = () => {
         <Card className="border-purple-500/30 bg-purple-500/5">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Coins className="w-5 h-5 text-purple-500" />
+              <Gem className="w-5 h-5 text-purple-500" />
               Agency Commission Distribution
             </CardTitle>
           </CardHeader>
@@ -672,7 +672,7 @@ const AdminTransferScheduler = () => {
               onClick={distributeCommissionNow}
               disabled={distributing}
             >
-              {distributing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Coins className="w-4 h-4 mr-2" />}
+              {distributing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Gem className="w-4 h-4 mr-2" />}
               Distribute Commission Now
             </Button>
             <Button

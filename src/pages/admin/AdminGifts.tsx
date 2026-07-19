@@ -4,37 +4,7 @@ import { useLocation } from "react-router-dom";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion, AnimatePresence } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  Gift,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  Save,
-  Upload,
-  Play,
-  Sparkles,
-  Heart,
-  Star,
-  Crown,
-  Flower2,
-  PartyPopper,
-  Gem,
-  Rocket,
-  Music,
-  Gamepad2,
-  Pizza,
-  Car,
-  Plane,
-  Building,
-  Flame,
-  Zap,
-  Wand2,
-  Check,
-  Volume2,
-  X,
-  Eye
-} from "lucide-react";
+import { Gift, Plus, Edit, Trash2, Search, Save, Upload, Play, Sparkles, Heart, Star, Crown, Flower2, PartyPopper, Gem, Rocket, Music, Gamepad2, Pizza, Car, Plane, Building, Flame, Zap, Wand2, Check, Volume2, X, Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1079,7 +1049,7 @@ export default function AdminGifts() {
               />
             </div>
 
-            {/* Coin Value */}
+            {/* Diamond Value */}
             <div>
               <Label className="text-slate-300 font-medium text-sm md:text-base">Diamond Value</Label>
               <Input

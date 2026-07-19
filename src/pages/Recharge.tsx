@@ -1641,7 +1641,7 @@ const Recharge = () => {
       return;
     }
 
-    const productId = playStoreBilling.getProductIdForCoins(selectedPackage.diamonds);
+    const productId = playStoreBilling.getProductIdForDiamonds(selectedPackage.diamonds);
     if (!productId) {
       toast({
         title: "Product Not Available",
@@ -1704,7 +1704,7 @@ const Recharge = () => {
       return;
     }
 
-    const productId = playStoreBilling.getProductIdForCoins(pkg.diamonds);
+    const productId = playStoreBilling.getProductIdForDiamonds(pkg.diamonds);
     if (!productId) {
       toast({
         title: "Product Not Available",
@@ -1941,11 +1941,11 @@ const Recharge = () => {
         // required an admin/helper JWT and was always returning "Not authorized"
         // for the END USER, leaving every order stuck. The new RPC checks
         // user_id = auth.uid() and only finalizes 'pending' orders.
-        const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+        const candidateBonusDiamonds = isFirstRecharge && selectedPackage.bonus_percentage > 0
           ? Math.floor(selectedPackage.diamonds * selectedPackage.bonus_percentage / 100)
           : 0;
         let bonusDiamonds = 0;
-        let totalCoinsToAdd = selectedPackage.diamonds;
+        let totalDiamondsToAdd = selectedPackage.diamonds;
 
         const { data: finalizeResult, error: finalizeError } = await supabase
           .rpc('user_complete_instant_helper_topup' as any, {
@@ -1969,17 +1969,17 @@ const Recharge = () => {
         }
 
 
-        if (candidateBonusCoins > 0 && firstRechargeBonusId) {
+        if (candidateBonusDiamonds > 0 && firstRechargeBonusId) {
           const { data: bonusResult, error: bonusError } = await supabase.rpc('claim_first_recharge_bonus_and_credit' as any, {
             _user_id: userId,
             _bonus_id: firstRechargeBonusId,
             _original_amount: selectedPackage.diamonds,
-            _bonus_amount: candidateBonusCoins,
+            _bonus_amount: candidateBonusDiamonds,
           });
           const bonusData = bonusResult as any;
           if (!bonusError && bonusData?.success && !bonusData?.already_claimed) {
-            bonusDiamonds = Number(bonusData.bonus_amount || candidateBonusCoins);
-            totalCoinsToAdd += bonusDiamonds;
+            bonusDiamonds = Number(bonusData.bonus_amount || candidateBonusDiamonds);
+            totalDiamondsToAdd += bonusDiamonds;
           } else if (bonusError) {
             console.warn('[Recharge] First recharge bonus credit skipped:', bonusError.message);
           }
@@ -1991,10 +1991,10 @@ const Recharge = () => {
           user_id: userId,
           type: 'payment_completed',
           title: '🎉 Diamonds Added!',
-          message: `${formatNumber(totalCoinsToAdd)} diamonds have been added to your account instantly!${bonusDiamonds > 0 ? ` (includes +${bonusDiamonds} first recharge bonus!)` : ''}`,
+          message: `${formatNumber(totalDiamondsToAdd)} diamonds have been added to your account instantly!${bonusDiamonds > 0 ? ` (includes +${bonusDiamonds} first recharge bonus!)` : ''}`,
           data: {
             order_id: helperOrder.id,
-            diamonds: totalCoinsToAdd
+            diamonds: totalDiamondsToAdd
           }
         });
 
@@ -2002,14 +2002,14 @@ const Recharge = () => {
 
         toast({
           title: "🎉 Instant Success!",
-          description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusDiamonds > 0 ? ` (+${formatNumber(bonusDiamonds)} bonus!)` : ''}`,
+          description: `${formatNumber(totalDiamondsToAdd)} diamonds added to your account!${bonusDiamonds > 0 ? ` (+${formatNumber(bonusDiamonds)} bonus!)` : ''}`,
         });
 
         // Mark campaign as purchased if navigated from campaign
         if (campaignId) localStorage.setItem('campaign_purchased_' + campaignId, 'true');
 
         // Update local balance
-        updateCachedBalance(currentBalance + totalCoinsToAdd);
+        updateCachedBalance(currentBalance + totalDiamondsToAdd);
         
         // Show success and close
         setPaymentStep("pending");
@@ -2033,10 +2033,10 @@ const Recharge = () => {
         return;
       }
 
-      const standardGatewayCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+      const standardGatewayDiamonds = isFirstRecharge && selectedPackage.bonus_percentage > 0
         ? Math.floor(selectedPackage.diamonds + (selectedPackage.diamonds * selectedPackage.bonus_percentage / 100))
         : selectedPackage.diamonds;
-      const standardGatewayBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+      const standardGatewayBonusDiamonds = isFirstRecharge && selectedPackage.bonus_percentage > 0
         ? Math.floor(selectedPackage.diamonds * selectedPackage.bonus_percentage / 100)
         : 0;
 
@@ -2054,14 +2054,14 @@ const Recharge = () => {
           amount: localAmount,
           currency: currencyRate?.currency_code || 'USD',
           amount_usd: selectedPackage.price_usd,
-          diamonds_amount: standardGatewayCoins,
+          diamonds_amount: standardGatewayDiamonds,
           status: 'pending',
           gateway_response: {
             gateway_code: selectedGateway.gateway_code,
-            package_coins: selectedPackage.diamonds,
+            package_diamonds: selectedPackage.diamonds,
             bonus_percentage: selectedPackage.bonus_percentage,
             is_first_recharge: isFirstRecharge,
-            bonus_diamonds: standardGatewayBonusCoins,
+            bonus_diamonds: standardGatewayBonusDiamonds,
             sender_number: senderNumber,
             payment_proof_url: paymentProof,
             user_transaction_id: transactionId
@@ -2086,7 +2086,7 @@ const Recharge = () => {
         data: {
           transaction_id: transaction.id,
           amount: localAmount,
-          diamonds: standardGatewayCoins,
+          diamonds: standardGatewayDiamonds,
           gateway: selectedGateway.name
         }
       });
@@ -3457,7 +3457,7 @@ const Recharge = () => {
                         </div>
                       </div>
 
-                      {/* Coins Amount */}
+                      {/* Diamonds Amount */}
                       <div className="text-center mb-2">
                         {isFirstRecharge && pkg.bonus_percentage > 0 ? (
                           <>

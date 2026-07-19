@@ -9,7 +9,7 @@
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
  import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
  import { useToast } from "@/hooks/use-toast";
- import { Coins, Gem, Plus, Trash2, Edit2, ArrowRight, Save, RefreshCw } from "lucide-react";
+ import { Gem, Plus, Trash2, Edit2, ArrowRight, Save, RefreshCw } from "lucide-react";
  
  interface ExchangeTier {
    id: string;
@@ -156,7 +156,7 @@
        <div className="flex items-center justify-between">
          <div className="flex items-center gap-3">
            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
-             <Coins className="w-5 h-5 text-slate-900" />
+             <Gem className="w-5 h-5 text-slate-900" />
            </div>
            <div>
              <h2 className="text-lg font-bold text-slate-900">User Beans Exchange Rates</h2>
@@ -201,7 +201,7 @@
        ) : tiers.length === 0 ? (
          <Card className="bg-white/50 border-slate-200">
            <CardContent className="p-8 text-center">
-             <Coins className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+             <Gem className="w-12 h-12 text-slate-600 mx-auto mb-3" />
              <p className="text-slate-400">No exchange tiers configured</p>
              <Button onClick={openAddModal} className="mt-4 bg-amber-500">
                <Plus className="w-4 h-4 mr-1" /> Add First Tier
@@ -303,7 +303,7 @@
               <div className="space-y-2">
                 <Label className="text-foreground">Minimum Beans</Label>
                <div className="relative">
-                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                  <Input
                    type="number"
                    placeholder="e.g., 10000"

@@ -1,20 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  ScanFace,
-  Shield,
-  AlertTriangle,
-  Image as ImageIcon,
-  Video,
-  Fingerprint,
-  Eye,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, XCircle, Loader2, ScanFace, Shield, AlertTriangle, Image as ImageIcon, Video, Fingerprint, Eye, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

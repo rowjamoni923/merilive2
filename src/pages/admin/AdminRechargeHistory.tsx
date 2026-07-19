@@ -4,11 +4,7 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  ArrowLeft, Search, Filter, RefreshCw, Coins, User, Calendar,
-  CheckCircle, XCircle, Clock, CreditCard, Smartphone, DollarSign,
-  ChevronLeft, ChevronRight, Eye
-} from "lucide-react";
+import { ArrowLeft, Search, Filter, RefreshCw, Gem, User, Calendar, CheckCircle, XCircle, Clock, CreditCard, Smartphone, DollarSign, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -323,7 +319,7 @@ const AdminRechargeHistory = () => {
       const gatewayRecords: RechargeRecord[] = (gatewayRes.data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        diamond_amount: r.coins_to_receive || 0,
+        diamond_amount: r.diamonds_to_receive || 0,
         amount_usd: r.amount_usd || 0,
         amount_local: r.amount_local || 0,
         currency_code: r.currency_code || 'USD',

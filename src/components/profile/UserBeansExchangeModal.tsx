@@ -25,15 +25,15 @@ interface ExchangeTier {
   display_order: number;
 }
 
-interface CoinExchangeSettings {
+interface DiamondExchangeSettings {
   beans_to_diamonds_rate: number;
   exchange_fee_percent: number;
   min_exchange_amount: number;
 }
 
-const normalizeCoinExchangeSettings = (value: unknown): CoinExchangeSettings | null => {
+const normalizeDiamondExchangeSettings = (value: unknown): DiamondExchangeSettings | null => {
   if (!value || typeof value !== "object") return null;
-  const raw = value as Partial<Record<keyof CoinExchangeSettings, unknown>>;
+  const raw = value as Partial<Record<keyof DiamondExchangeSettings, unknown>>;
   const rate = Number(raw.beans_to_diamonds_rate ?? 0);
   const fee = Number(raw.exchange_fee_percent ?? 0);
   const min = Number(raw.min_exchange_amount ?? 0);
@@ -74,7 +74,7 @@ function diamondsFor(tier: ExchangeTier, beans: number): number {
   return Math.floor(beans * Number(tier.exchange_rate) * bonus);
 }
 
-function diamondsForSettings(settings: CoinExchangeSettings, beans: number): number {
+function diamondsForSettings(settings: DiamondExchangeSettings, beans: number): number {
   if (!settings || beans <= 0) return 0;
   const rawDiamonds = Math.floor(beans / settings.beans_to_diamonds_rate);
   const fee = Math.floor(rawDiamonds * settings.exchange_fee_percent / 100);
@@ -95,7 +95,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
   const [processing, setProcessing] = useState(false);
   const [customBeans, setCustomBeans] = useState("");
   const [useCustom, setUseCustom] = useState(false);
-  const [coinExchangeSettings, setCoinExchangeSettings] = useState<CoinExchangeSettings | null>(null);
+  const [diamondExchangeSettings, setDiamondExchangeSettings] = useState<DiamondExchangeSettings | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -108,8 +108,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
   const getDiamondsForTier = (tier: ExchangeTier | null, beans: number) => {
     if (!tier) return 0;
-    if (tier.id.startsWith('settings-') && coinExchangeSettings) {
-      return diamondsForSettings(coinExchangeSettings, beans);
+    if (tier.id.startsWith('settings-') && diamondExchangeSettings) {
+      return diamondsForSettings(diamondExchangeSettings, beans);
     }
     return diamondsFor(tier, beans);
   };
@@ -131,8 +131,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       .eq('setting_key', 'diamond_exchange')
       .maybeSingle();
     const settingsValue = parseAppSettingValue(settingsRow?.setting_value);
-    const settings = normalizeCoinExchangeSettings(settingsValue);
-    setCoinExchangeSettings(settings);
+    const settings = normalizeDiamondExchangeSettings(settingsValue);
+    setDiamondExchangeSettings(settings);
 
     if (activeTiers.length === 0 && settings) {
       const baseAmounts = [settings.min_exchange_amount, settings.min_exchange_amount * 5, settings.min_exchange_amount * 10]

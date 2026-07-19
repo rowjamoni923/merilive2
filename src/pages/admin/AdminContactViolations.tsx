@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
-import {Search, ShieldAlert, Ban, Phone, MessageSquare, Camera, PhoneCall, AlertTriangle, CheckCircle, XCircle, RefreshCw, Eye, Trash2, MoreVertical, Clock, } from "lucide-react";
+import { Search, ShieldAlert, Ban, Phone, MessageSquare, Camera, PhoneCall, AlertTriangle, CheckCircle, XCircle, RefreshCw, Eye, Trash2, MoreVertical, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

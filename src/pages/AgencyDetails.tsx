@@ -1,18 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Building2,
-  Crown,
-  Users,
-  Hash,
-  Star,
-  TrendingUp,
-  MessageCircle,
-  ExternalLink,
-  CheckCircle2,
-  Calendar
-} from "lucide-react";
+import { ArrowLeft, Building2, Crown, Users, Hash, Star, TrendingUp, MessageCircle, ExternalLink, CheckCircle2, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedUser } from "@/utils/cachedAuth";
 import { usePersistedCache } from "@/hooks/usePersistedCache";

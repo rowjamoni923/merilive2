@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Phone, Search, RefreshCw, Clock, Coins, EyeOff, ShieldCheck } from "lucide-react";
+import { Phone, Search, RefreshCw, Clock, Gem, EyeOff, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -284,7 +284,7 @@ export default function AdminTodayCalls() {
 
                       {getSpentAmount(call) > 0 && (
                         <Badge className="bg-amber-50 text-amber-600 border-amber-200/60">
-                          <Coins className="w-3 h-3 mr-1" />
+                          <Gem className="w-3 h-3 mr-1" />
                           {getSpentAmount(call)} spent
                         </Badge>
                       )}

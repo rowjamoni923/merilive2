@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import {Camera, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, Play, Download, Trash2, Calendar, Filter, User, CheckCircle, XCircle, Loader2, Film} from "lucide-react";
+import { Camera, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, Play, Download, Trash2, Calendar, Filter, User, CheckCircle, XCircle, Loader2, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

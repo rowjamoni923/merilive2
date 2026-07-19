@@ -12,11 +12,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { getAdminSessionToken } from "@/utils/adminSession";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Crown, Plus, Edit2, Trash2, Upload, Save, Search, 
-  RefreshCw, UserCog, Building2, Briefcase, Shield,
-  User, CheckCircle, X, Image
-} from "lucide-react";
+import { Crown, Plus, Edit2, Trash2, Upload, Save, Search, RefreshCw, UserCog, Building2, Briefcase, Shield, User, CheckCircle, X, Image } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";

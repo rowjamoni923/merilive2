@@ -2,12 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useLocation } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Users, UserPlus, Crown, Gem, DollarSign, FileText, Clock,
-  CheckCircle, XCircle, Search, Loader2, RefreshCw, TrendingUp,
-  Star, Shield, Banknote, Phone, MessageCircle, Send, Eye,
-  MoreVertical, Settings, Plus, Wallet, CreditCard, Save
-} from "lucide-react";
+import { Users, UserPlus, Crown, Gem, DollarSign, FileText, Clock, CheckCircle, XCircle, Search, Loader2, RefreshCw, TrendingUp, Star, Shield, Banknote, Phone, MessageCircle, Send, Eye, MoreVertical, Settings, Plus, Wallet, CreditCard, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, Shield, Wallet, TrendingUp, Globe, Users, 
-  CheckCircle2, Sparkles, Gem, Phone, DollarSign, Star,
-  Zap, Award, BadgeCheck, Clock, ArrowRight, Coins
-} from "lucide-react";
+import { ArrowLeft, Shield, Wallet, TrendingUp, Globe, Users, CheckCircle2, Sparkles, Gem, Phone, DollarSign, Star, Zap, Award, BadgeCheck, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +34,7 @@ const PayrollHelperGuide = () => {
 
   const roles = [
     {
-      icon: Coins,
+      icon: Gem,
       title: "Process User Top-ups",
       desc: "When users purchase diamonds through local payment methods (bKash, Nagad, JazzCash, etc.), you receive the payment and deliver the diamonds to the user's account instantly.",
       color: "from-amber-500 to-orange-500",

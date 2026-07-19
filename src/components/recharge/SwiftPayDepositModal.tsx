@@ -24,10 +24,10 @@ interface Props {
   /** "user" = credit user diamonds (package OR custom); "helper" = credit helper trader wallet */
   mode?: "user" | "helper";
   helperId?: string | null;
-  helperCustomCoins?: number | null;
+  helperCustomDiamonds?: number | null;
   helperCustomPriceUsd?: number | null;
   /** For user-mode custom amount (e.g. helper application fee). Bypasses package picker. */
-  userCustomCoins?: number | null;
+  userCustomDiamonds?: number | null;
   userCustomPriceUsd?: number | null;
   userCustomLabel?: string | null;
   /** "helper_application" (default, server enforces $100 crypto floor) | "campaign" (no floor — mirrors My Diamond package flow) */
@@ -128,7 +128,7 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
 };
 
 // Compute total diamonds including bonus_percentage
-const getBonusInclusiveCoins = (p: { diamonds: number; bonus_percentage?: number }) => {
+const getBonusInclusiveDiamonds = (p: { diamonds: number; bonus_percentage?: number }) => {
   const bonusPct = Number(p.bonus_percentage ?? 0);
   const bonus = bonusPct > 0 ? Math.floor((p.diamonds * bonusPct) / 100) : 0;
   return { total: Math.floor(p.diamonds + bonus), bonus, bonusPct };
@@ -141,9 +141,9 @@ export default function SwiftPayDepositModal({
   initialPackageId,
   mode = "user",
   helperId = null,
-  helperCustomCoins = null,
+  helperCustomDiamonds = null,
   helperCustomPriceUsd = null,
-  userCustomCoins = null,
+  userCustomDiamonds = null,
   userCustomPriceUsd = null,
   userCustomLabel = null,
   userCustomPurpose = "helper_application",
@@ -169,13 +169,13 @@ export default function SwiftPayDepositModal({
       setCreating(false);
       return;
     }
-    if (mode === "helper" && helperCustomCoins && helperCustomPriceUsd) {
-      setPkg({ id: `helper_${helperId}`, diamonds: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" });
+    if (mode === "helper" && helperCustomDiamonds && helperCustomPriceUsd) {
+      setPkg({ id: `helper_${helperId}`, diamonds: helperCustomDiamonds, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" });
       setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
-    if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-      setPkg({ id: `custom_${userCustomPriceUsd}`, diamonds: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" });
+    if (mode === "user" && userCustomDiamonds && userCustomPriceUsd) {
+      setPkg({ id: `custom_${userCustomPriceUsd}`, diamonds: userCustomDiamonds, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" });
       setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
@@ -186,7 +186,7 @@ export default function SwiftPayDepositModal({
         setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       }
     }
-  }, [open, initialPackageId, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomLabel]);
+  }, [open, initialPackageId, mode, helperId, helperCustomDiamonds, helperCustomPriceUsd, userCustomDiamonds, userCustomPriceUsd, userCustomLabel]);
 
   // Auto-select the cheapest network that can actually accept this amount.
   // For ≥$10 the user can still override; for <$10 only eligible networks
@@ -224,13 +224,13 @@ export default function SwiftPayDepositModal({
         const tryCurrency = tryOrder[i];
         const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
         
-        if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+        if (mode === "helper" && helperId && helperCustomDiamonds && helperCustomPriceUsd) {
           requestBody.target = "helper_wallet";
           requestBody.helper_id = helperId;
-          requestBody.custom_diamonds = helperCustomCoins;
+          requestBody.custom_diamonds = helperCustomDiamonds;
           requestBody.custom_price_usd = helperCustomPriceUsd;
-        } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-          requestBody.custom_diamonds = userCustomCoins;
+        } else if (mode === "user" && userCustomDiamonds && userCustomPriceUsd) {
+          requestBody.custom_diamonds = userCustomDiamonds;
           requestBody.custom_price_usd = userCustomPriceUsd;
           requestBody.purpose = userCustomPurpose;
           if (userCustomPurpose === "campaign" && campaignId) {
@@ -308,7 +308,7 @@ export default function SwiftPayDepositModal({
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose, helperApplicationIntent]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomDiamonds, helperCustomPriceUsd, userCustomDiamonds, userCustomPriceUsd, userCustomPurpose, helperApplicationIntent]);
 
   useEffect(() => {
     if (step !== "pay" || !deposit?.topup_id) return;
@@ -367,7 +367,7 @@ export default function SwiftPayDepositModal({
             <p className="text-sm text-amber-100/90">Choose a diamond package:</p>
             <div className="grid grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto">
               {packages.map((p) => {
-                const { total, bonus, bonusPct } = getBonusInclusiveCoins(p);
+                const { total, bonus, bonusPct } = getBonusInclusiveDiamonds(p);
                 return (
                   <button
                     key={p.id}
@@ -396,14 +396,14 @@ export default function SwiftPayDepositModal({
 
         {step === "pick_currency" && pkg && (
           <div className="space-y-4">
-            {mode !== "helper" && !(mode === "user" && userCustomCoins && userCustomPriceUsd) && (
+            {mode !== "helper" && !(mode === "user" && userCustomDiamonds && userCustomPriceUsd) && (
               <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
                 <ChevronLeft className="w-3 h-3" /> Back
               </button>
             )}
             <div className="rounded-lg bg-slate-800/60 border border-amber-500/30 p-3">
               {(() => {
-                const { total, bonus, bonusPct } = getBonusInclusiveCoins(pkg);
+                const { total, bonus, bonusPct } = getBonusInclusiveDiamonds(pkg);
                 return (
                   <>
                     <p className="text-2xl font-black text-amber-200">{fmt(total)} <span className="text-xs">diamonds</span></p>

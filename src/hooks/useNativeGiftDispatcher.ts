@@ -53,7 +53,7 @@ function readCurrentContext(pathname: string): { streamId?: string; roomId?: str
 async function dispatchOne(detail: DispatchDetail) {
   const asset = await resolveGiftAsset(detail.giftId);
   if (!asset) return;
-  // Priority: high-coin gifts win; cap at +500.
+  // Priority: high-diamond gifts win; cap at +500.
   const priority = Math.min(500, Math.floor(asset.diamonds / 100));
   const qty = Math.max(1, Math.min(99, detail.quantity ?? 1));
   // Single enqueue per transaction — the native side multiplies internally

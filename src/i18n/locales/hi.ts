@@ -178,7 +178,7 @@ const hi = {
     noAnswer: "कोई उत्तर नहीं",
     busy: "व्यस्त",
     callDuration: "कॉल अवधि",
-    coinsPerMin: "Diamonds/min",
+    diamondsPerMin: "Diamonds/min",
   },
   party: {
     title: "पार्टी रूम",
@@ -272,7 +272,7 @@ const hi = {
     selectGift: "एक गिफ्ट चुनें",
     quantity: "मात्रा",
     totalCost: "कुल लागत",
-    insufficientCoins: "Insufficient Diamonds",
+    insufficientDiamonds: "Insufficient Diamonds",
     rechargeNow: "अभी रिचार्ज करें",
   },
   agency: {
@@ -361,7 +361,7 @@ const hi = {
     newMessage: "नया संदेश",
     newFollower: "नया फॉलोअर",
     giftReceived: "गिफ्ट प्राप्त हुआ",
-    coinsSent: "Diamonds sent successfully",
+    diamondsSent: "Diamonds sent successfully",
     profileUpdated: "प्रोफ़ाइल अपडेट हो गई",
     errorOccurred: "एक त्रुटि हुई",
     tryAgain: "कृपया पुनः प्रयास करें",

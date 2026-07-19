@@ -2,21 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Search,
-  Users,
-  Building2,
-  Phone,
-  Calendar,
-  Clock,
-  Coins,
-  CheckCircle,
-  Ban,
-  Crown,
-  ArrowLeft,
-  UserCheck,
-  Activity
-} from "lucide-react";
+import { Search, Users, Building2, Phone, Calendar, Clock, Gem, CheckCircle, Ban, Crown, ArrowLeft, UserCheck, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -315,7 +301,7 @@ export default function AdminHostSearch() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-white/5 rounded-lg p-3 text-center">
-                      <Coins className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
+                      <Gem className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
                       <p className="text-slate-900 font-bold">{host.total_earnings?.toLocaleString() || 0}</p>
                       <p className="text-xs text-slate-500">Total Earnings</p>
                     </div>

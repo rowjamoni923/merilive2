@@ -196,10 +196,10 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
       }));
 
       const earnedBeans = (result as any)?.beans || task.reward_beans;
-      const earnedCoins = (result as any)?.diamonds || task.reward_diamonds;
-      setShowCelebration({ beans: earnedBeans, diamonds: earnedCoins });
+      const earnedDiamonds = (result as any)?.diamonds || task.reward_diamonds;
+      setShowCelebration({ beans: earnedBeans, diamonds: earnedDiamonds });
       setTimeout(() => setShowCelebration(null), 3000);
-      toast.success(`🎉 +${earnedBeans} Beans, +${earnedCoins} 💎`);
+      toast.success(`🎉 +${earnedBeans} Beans, +${earnedDiamonds} 💎`);
     } catch (error) {
       console.error('[LiveTasks] Claim error:', error);
       toast.error('Claim failed.');

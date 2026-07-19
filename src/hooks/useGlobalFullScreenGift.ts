@@ -33,18 +33,18 @@ export interface FullScreenGiftJob {
 }
 
 /**
- * Default coin threshold above which a gift also plays full-screen.
+ * Default diamond threshold above which a gift also plays full-screen.
  * Overridable by admin via `app_settings.gift_animation_config`:
  *   { "full_screen_threshold": 500, "full_screen_enabled": true }
  */
-export const FULL_SCREEN_GIFT_COIN_THRESHOLD = 500;
+export const FULL_SCREEN_GIFT_DIAMOND_THRESHOLD = 500;
 
 interface GiftAnimationConfig {
   full_screen_threshold?: number;
   full_screen_enabled?: boolean;
 }
 
-let cachedThreshold = FULL_SCREEN_GIFT_COIN_THRESHOLD;
+let cachedThreshold = FULL_SCREEN_GIFT_DIAMOND_THRESHOLD;
 let cachedEnabled = true;
 let configLoaded = false;
 let configPromise: Promise<void> | null = null;

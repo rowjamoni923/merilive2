@@ -2,21 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  ArrowLeft, 
-  Search, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle,
-  User,
-  Package,
-  Calendar,
-  Eye,
-  RefreshCw,
-  Filter,
-  MoreVertical
-} from "lucide-react";
+import { ArrowLeft, Search, Clock, CheckCircle, XCircle, AlertTriangle, User, Package, Calendar, Eye, RefreshCw, Filter, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

@@ -5,36 +5,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  Search,
-  Crown,
-  Sparkles,
-  Car,
-  MessageCircle,
-  Award,
-  ShoppingBag,
-  Star,
-  TrendingUp,
-  ArrowLeft,
-  Upload,
-  Image,
-  FileVideo,
-  X,
-  Loader2,
-  Gift,
-  Smile,
-  Sofa,
-  Home,
-  Wand2,
-  Palette,
-  RefreshCw,
-  Play
-} from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, EyeOff, Search, Crown, Sparkles, Car, MessageCircle, Award, ShoppingBag, Star, TrendingUp, ArrowLeft, Upload, Image, FileVideo, X, Loader2, Gift, Smile, Sofa, Home, Wand2, Palette, RefreshCw, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -3,7 +3,7 @@
  *
  * Manages `app_settings.gift_animation_config`:
  *   {
- *     full_screen_threshold: number,   // coin value ≥ this → full-screen animation
+ *     full_screen_threshold: number,   // diamond value ≥ this → full-screen animation
  *     full_screen_enabled:   boolean,  // master kill-switch for full-screen playback
  *   }
  *

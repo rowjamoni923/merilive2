@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, ReactNode, useCallback, memo, useMemo, Sus
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { cn } from "@/lib/utils";
 
-import { GiftData, formatCoinValue } from "./GiftPanel";
+import { GiftData, formatDiamondValue } from "./GiftPanel";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { Play, Lock } from "lucide-react";
 import SmartGiftIcon from "@/components/shared/SmartGiftIcon";
@@ -199,7 +199,7 @@ const GiftItem = memo(({
             ? "bg-gradient-to-r from-white/60 to-white/40"
             : "bg-gradient-to-r from-cyan-300 to-purple-400"
         )}>
-          {formatCoinValue(gift.diamonds)}
+          {formatDiamondValue(gift.diamonds)}
         </span>
       </div>
     </button>

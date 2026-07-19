@@ -6,7 +6,7 @@ import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { toast } from "sonner";
 import { useGameSound } from "@/hooks/useGameSound";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
-import { Coins } from "lucide-react";
+import { Gem } from "lucide-react";
 import { RouletteWheel } from "./RouletteWheel";
 import { BettingGrid } from "./BettingGrid";
 import { ChipSelector } from "./ChipSelector";
@@ -446,7 +446,7 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
             </button>
           </div>
           <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full border border-yellow-600/30">
-            <Coins className="w-5 h-5 text-amber-400" />
+            <Gem className="w-5 h-5 text-amber-400" />
             <span className="text-white font-bold">{diamondBalance.toLocaleString()}</span>
           </div>
         </div>
@@ -456,7 +456,7 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
       {embedded && (
         <div className="relative z-10 flex items-center justify-between px-3 pt-2">
           <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-            <Coins className="w-3.5 h-3.5 text-amber-400" />
+            <Gem className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-white font-bold text-xs">{diamondBalance.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">

@@ -3,22 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
-import { 
-  ArrowLeft, 
-  Save, 
-  FileText,
-  DollarSign,
-  TrendingUp,
-  Users,
-  AlertTriangle,
-  Shield,
-  Phone,
-  Wallet,
-  Plus,
-  Trash2,
-  Edit2,
-  RefreshCw
-} from "lucide-react";
+import { ArrowLeft, Save, FileText, DollarSign, TrendingUp, Users, AlertTriangle, Shield, Phone, Wallet, Plus, Trash2, Edit2, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

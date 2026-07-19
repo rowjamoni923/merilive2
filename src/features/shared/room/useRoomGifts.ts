@@ -66,7 +66,7 @@ export function useRoomGifts({
         soundUrl: detail.giftSoundUrl,
         giftColor: 'from-pink-500 to-purple-500',
         count: detail.count || 1,
-        diamonds: detail.totalDiamonds || detail.giftCoins || 0,
+        diamonds: detail.totalDiamonds || detail.giftDiamonds || 0,
       });
       onPlaySoundRef.current?.();
     };

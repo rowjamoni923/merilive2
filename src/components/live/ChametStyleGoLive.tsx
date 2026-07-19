@@ -1,28 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { 
-  X, 
-  UserPlus, 
-  Check, 
-  Smile, 
-  ScanLine,
-  RefreshCcw, 
-  Mic, 
-  MicOff,
-  Sparkles,
-  Share2,
-  MessageSquare,
-  Gift,
-  Diamond,
-  ListTodo,
-  Music,
-  Settings,
-  Sword,
-  ChevronRight,
-  AlertCircle,
-  ShieldCheck
-} from "lucide-react";
+import { X, UserPlus, Check, Smile, ScanLine, RefreshCcw, Mic, MicOff, Sparkles, Share2, MessageSquare, Gift, Diamond, ListTodo, Music, Settings, Sword, ChevronRight, AlertCircle, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";

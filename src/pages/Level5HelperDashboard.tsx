@@ -1,13 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, Wallet, Bell, Clock, CheckCircle, XCircle, 
-  Upload, Image, DollarSign, Banknote, CreditCard, Plus,
-  ChevronRight, Phone, AlertCircle, Loader2, Gem, Crown,
-  Building2, User, Send, Eye, Trash2, FileText, Package, Copy,
-  Reply, MessageCircle, ImagePlus, X
-} from "lucide-react";
+import { ArrowLeft, Wallet, Bell, Clock, CheckCircle, XCircle, Upload, Image, DollarSign, Banknote, CreditCard, Plus, ChevronRight, Phone, AlertCircle, Loader2, Gem, Crown, Building2, User, Send, Eye, Trash2, FileText, Package, Copy, Reply, MessageCircle, ImagePlus, X } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

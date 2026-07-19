@@ -3,19 +3,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } fr
 import { useNavigate } from "react-router-dom";
 import { usePartySessionOptional } from "@/features/party-session";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Radio, 
-  Mic, 
-  Gamepad2, 
-  Wand2, 
-  Smile, 
-  Sofa, 
-  Crown,
-  Sparkles,
-  Check,
-  Lock
-} from "lucide-react";
+import { X, Radio, Mic, Gamepad2, Wand2, Smile, Sofa, Crown, Sparkles, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -1095,7 +1083,7 @@ const CreateParty = () => {
                   setRoomEntryFee(Number.isFinite(v) ? Math.max(0, Math.min(100000, Math.floor(v))) : 0);
                 }}
               />
-              <p className="text-xs text-muted-foreground">Viewers pay this from their coin balance to join.</p>
+              <p className="text-xs text-muted-foreground">Viewers pay this from their diamond balance to join.</p>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

@@ -235,7 +235,7 @@ export const getCategoryById = (id: string): GiftCategory | undefined => {
   return giftCategories.find(c => c.id === id);
 };
 
-export const formatCoinValue = (diamonds: number): string => {
+export const formatDiamondValue = (diamonds: number): string => {
   if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
   if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(diamonds >= 10000 ? 0 : 1)}K`;
   return diamonds.toString();

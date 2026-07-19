@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Phone, PhoneOff, Star, Clock, Coins, TrendingUp } from "lucide-react";
+import { ArrowLeft, Phone, PhoneOff, Star, Clock, Gem, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
@@ -38,7 +38,7 @@ interface CallRecord {
   } | null;
   is_outgoing: boolean;
   host_earnings?: number;
-  charged_coins?: number;
+  charged_diamonds?: number;
 }
 
 const CallHistory = () => {
@@ -169,18 +169,18 @@ const CallHistory = () => {
         const callsWithProfiles: CallRecord[] = callsData.map(call => {
           const isOutgoing = call.caller_id === user.id;
           const otherUserId = isOutgoing ? call.host_id : call.caller_id;
-          const chargedCoins = Number(call.total_diamonds_deducted ?? call.diamonds_spent ?? 0);
+          const chargedDiamonds = Number(call.total_diamonds_deducted ?? call.diamonds_spent ?? 0);
           const storedHostEarnings = Number(call.host_earned ?? call.host_earnings_amount ?? 0);
           const hostEarnings = storedHostEarnings > 0
             ? storedHostEarnings
-            : Math.floor(chargedCoins * commRate / 100);
+            : Math.floor(chargedDiamonds * commRate / 100);
           
           return {
             ...call,
             other_user: profilesMap.get(otherUserId) || null,
             is_outgoing: isOutgoing,
             host_earnings: hostEarnings,
-            charged_coins: chargedCoins,
+            charged_diamonds: chargedDiamonds,
           };
         });
 
@@ -361,11 +361,11 @@ const CallHistory = () => {
                     )}
                     
                     {/* Diamonds Spent (for caller) or Earned (for host) */}
-                    {call.charged_coins && call.charged_coins > 0 && (
+                    {call.charged_diamonds && call.charged_diamonds > 0 && (
                       call.is_outgoing ? (
                         <span className="flex items-center gap-1 text-red-400">
-                          <Coins className="w-3 h-3" />
-                          -{call.charged_coins}
+                          <Gem className="w-3 h-3" />
+                          -{call.charged_diamonds}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-green-400">

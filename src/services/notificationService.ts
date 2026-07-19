@@ -167,7 +167,7 @@ export const sendLevelUpNotification = async (
 /**
  * Send notification when diamonds are added
  */
-export const sendCoinsAddedNotification = async (
+export const sendDiamondsAddedNotification = async (
   userId: string,
   amount: number,
   source: 'topup' | 'gift' | 'reward' | 'admin',

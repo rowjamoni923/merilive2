@@ -69,8 +69,8 @@ export function useFlyingGifts() {
 
     // Auto-route high-value gifts to the global full-screen animation layer.
     // Every gift-capable surface benefits without page-level wiring.
-    const perUnitCoins = gift.diamonds || 0;
-    if (isFullScreenGiftEnabled() && perUnitCoins >= getFullScreenGiftThreshold()) {
+    const perUnitDiamonds = gift.diamonds || 0;
+    if (isFullScreenGiftEnabled() && perUnitDiamonds >= getFullScreenGiftThreshold()) {
       try {
         enqueueFullScreenGift({
           gift: {
@@ -79,7 +79,7 @@ export function useFlyingGifts() {
             icon_url: gift.giftImageUrl || gift.giftIcon,
             animation_url: gift.animationUrl,
             sound_url: gift.soundUrl,
-            diamond_value: perUnitCoins,
+            diamond_value: perUnitDiamonds,
           },
           senderName: gift.senderName,
           senderAvatar: gift.senderAvatar,

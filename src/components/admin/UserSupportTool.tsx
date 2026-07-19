@@ -10,12 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { ADMIN_REALTIME_EVENT, dispatchAdminTableUpdate, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";
-import {
-  Search, Loader2, User, Crown, Ban, Unlock,
-  MinusCircle, PlusCircle, ScanFace, KeyRound, Building2,
-  CheckCircle, XCircle, Copy, ArrowLeftRight,
-  AlertTriangle, RefreshCw
-} from "lucide-react";
+import { Search, Loader2, User, Crown, Ban, Unlock, MinusCircle, PlusCircle, ScanFace, KeyRound, Building2, CheckCircle, XCircle, Copy, ArrowLeftRight, AlertTriangle, RefreshCw } from "lucide-react";
 import { CopyableUid } from "@/components/admin/CopyableUid";
 import ResetFaceVerificationButton from "@/components/admin/ResetFaceVerificationButton";
 

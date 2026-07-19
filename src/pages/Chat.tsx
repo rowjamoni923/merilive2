@@ -479,7 +479,7 @@ const Chat = () => {
     messageIds: activeMessageIds,
   });
   const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean; is_agency_owner?: boolean | null; is_topup_helper?: boolean | null } | null>(null);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -988,8 +988,8 @@ const Chat = () => {
     // Close panel immediately
     setShowGiftPanel(false);
     
-    // Optimistic coin deduction
-    setUserCoins(prev => prev - totalCost);
+    // Optimistic diamond deduction
+    setUserDiamonds(prev => prev - totalCost);
     
     // Play gift sound IMMEDIATELY
     playSoundDebounced('gift');
@@ -1088,7 +1088,7 @@ const Chat = () => {
           console.error('[Chat Gift] Edge function error:', rawErr);
           recordClientError({ label: "Chat.response", message: realMsg });
           // Refund on failure
-          setUserCoins(prev => prev + totalCost);
+          setUserDiamonds(prev => prev + totalCost);
           setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
           toast.error(`Gift failed: ${realMsg}`);
           return;
@@ -1135,7 +1135,7 @@ const Chat = () => {
           .single();
         
         if (updatedProfile) {
-          setUserCoins(updatedProfile.diamonds || 0);
+          setUserDiamonds(updatedProfile.diamonds || 0);
           // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
           const { updateCachedBalance } = await import("@/hooks/useUserBalance");
           updateCachedBalance(updatedProfile.diamonds || 0);
@@ -1149,7 +1149,7 @@ const Chat = () => {
       console.error('[Chat Gift] Background error:', error);
         recordClientError({ label: "Chat.messageContent", message: msg });
         // Refund on error
-        setUserCoins(prev => prev + totalCost);
+        setUserDiamonds(prev => prev + totalCost);
         setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
       toast.error(msg === 'Failed to fetch' ? 'Gift delivery is temporarily unavailable. Please try again.' : `Gift failed: ${msg}`);
       }
@@ -1508,7 +1508,7 @@ const Chat = () => {
       ]);
       
       if (profileResult.data) {
-        setUserCoins(profileResult.data.diamonds || 0);
+        setUserDiamonds(profileResult.data.diamonds || 0);
         setMyProfile({
           display_name: profileResult.data.display_name,
           avatar_url: profileResult.data.avatar_url,
@@ -1757,7 +1757,7 @@ const Chat = () => {
     const giftName = nameMatch?.[1]?.trim() || 'Gift';
     const count = nameMatch?.[2] ? parseInt(nameMatch[2], 10) || 1 : 1;
     const totalDiamonds = diamondMatch?.[1] ? parseInt(diamondMatch[1], 10) || 0 : 0;
-    const perGiftCoins = count > 0 ? Math.floor(totalDiamonds / count) : totalDiamonds;
+    const perGiftDiamonds = count > 0 ? Math.floor(totalDiamonds / count) : totalDiamonds;
     const isSelf = !!senderId && senderId === currentUserId;
     const peer = selectedConversationRef.current?.other_user;
     addFlyingGift({
@@ -1774,7 +1774,7 @@ const Chat = () => {
       soundUrl: soundUrl || undefined,
       giftColor: 'bg-pink-500/50',
       count,
-      diamonds: perGiftCoins,
+      diamonds: perGiftDiamonds,
       isOwnGift: isSelf,
       isReceiverGift: !isSelf,
     });

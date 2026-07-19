@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import {
-  Phone, Shield, Calendar, Users, TrendingUp, Loader2,
-  ChevronLeft, ChevronRight, Eye, Gavel, Ban, Clock, RefreshCw,
-  AlertTriangle, MoreVertical, MessageSquare,
-} from "lucide-react";
+import { Phone, Shield, Calendar, Users, TrendingUp, Loader2, ChevronLeft, ChevronRight, Eye, Gavel, Ban, Clock, RefreshCw, AlertTriangle, MoreVertical, MessageSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -15,11 +15,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { useToast } from "@/hooks/use-toast";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
-  AlertCircle, XCircle, User, Mail, RefreshCw, Headphones, Gift, Diamond, Building2, Plus, Minus,
-  Image as ImageIcon, Volume2, Languages, Globe, Sparkles, Zap, Shield, CreditCard, Mic, MicOff, Paperclip
-} from "lucide-react";
+import { MessageCircle, Search, Loader2, Send, Clock, CheckCircle, AlertCircle, XCircle, User, Mail, RefreshCw, Headphones, Gift, Diamond, Building2, Plus, Minus, Image as ImageIcon, Volume2, Languages, Globe, Sparkles, Zap, Shield, CreditCard, Mic, MicOff, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
 import PolicyLinkPicker from "@/components/policies/PolicyLinkPicker";
@@ -109,7 +105,7 @@ const isAiSummarySupportMessage = (content?: string) =>
 
 const buildFallbackSupportSuggestions = (message: string): string[] => {
   const lower = message.toLowerCase();
-  if (/refund|payment|purchase|coin|diamond|recharge|top.?up/.test(lower)) {
+  if (/refund|payment|purchase|diamond|diamond|recharge|top.?up/.test(lower)) {
     return [
       "Thanks for contacting us. We understand this payment issue is important, and we are checking your transaction details now.",
       "Please share the transaction ID, payment method, amount, and time so we can verify it quickly.",
@@ -182,7 +178,7 @@ const AdminSupportTickets = () => {
   const [userContact, setUserContact] = useState<{ whatsapp?: string; email?: string } | null>(null);
   // Purchase recovery
   const [showPurchaseRecovery, setShowPurchaseRecovery] = useState(false);
-  const [recoveryCoins, setRecoveryCoins] = useState("");
+  const [recoveryDiamonds, setRecoveryDiamonds] = useState("");
   const [recoveryOrderId, setRecoveryOrderId] = useState("");
   const [recoveryReason, setRecoveryReason] = useState("Google Play purchase not delivered");
   const [sendingRecovery, setSendingRecovery] = useState(false);
@@ -1601,7 +1597,7 @@ const AdminSupportTickets = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">Diamond Package</label>
-                      <Select value={recoveryCoins} onValueChange={setRecoveryCoins}>
+                      <Select value={recoveryDiamonds} onValueChange={setRecoveryDiamonds}>
                         <SelectTrigger className="h-9 text-sm">
                           <SelectValue placeholder="Select package" />
                         </SelectTrigger>
@@ -1644,17 +1640,17 @@ const AdminSupportTickets = () => {
                       size="sm"
                       className="bg-green-600 hover:bg-green-700 text-white flex-1"
                       onClick={async () => {
-                        if (!recoveryCoins || !selectedTicket?.user_id) return;
+                        if (!recoveryDiamonds || !selectedTicket?.user_id) return;
                         setSendingRecovery(true);
                         try {
                           const selectedRecoveryPackage = recoveryPackages.find((pkg) => {
                             const totalDiamonds = Number(pkg.diamonds_amount || 0) + Number(pkg.bonus_diamonds || 0);
-                            return totalDiamonds === parseInt(recoveryCoins);
+                            return totalDiamonds === parseInt(recoveryDiamonds);
                           });
                           const { data, error } = await supabase.functions.invoke('admin-verify-purchase', {
                             body: {
                               userId: selectedTicket.user_id,
-                              diamondAmount: parseInt(recoveryCoins),
+                              diamondAmount: parseInt(recoveryDiamonds),
                               reason: recoveryReason,
                               googleOrderId: recoveryOrderId || undefined,
                               productId: selectedRecoveryPackage?.product_id || undefined,
@@ -1663,15 +1659,15 @@ const AdminSupportTickets = () => {
                           if (error) throw error;
                           if (data?.success) {
                             const bonusParts = [
-                              Number(data.firstRechargeBonusCoins || 0) > 0 ? `first recharge +${Number(data.firstRechargeBonusCoins).toLocaleString()}` : null,
+                              Number(data.firstRechargeBonusDiamonds || 0) > 0 ? `first recharge +${Number(data.firstRechargeBonusDiamonds).toLocaleString()}` : null,
                               Number(data.vipBonusDiamonds || 0) > 0 ? `VIP +${Number(data.vipBonusDiamonds).toLocaleString()}` : null,
                             ].filter(Boolean).join(', ');
                             toast({
                               title: "✅ Purchase Recovered!",
-                              description: `${Number(data.diamondAmount || recoveryCoins).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}${bonusParts ? ` (${bonusParts})` : ''}`,
+                              description: `${Number(data.diamondAmount || recoveryDiamonds).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}${bonusParts ? ` (${bonusParts})` : ''}`,
                             });
                             setShowPurchaseRecovery(false);
-                            setRecoveryCoins("");
+                            setRecoveryDiamonds("");
                             setRecoveryOrderId("");
                           } else {
                             toast({
@@ -1690,7 +1686,7 @@ const AdminSupportTickets = () => {
                           setSendingRecovery(false);
                         }
                       }}
-                      disabled={sendingRecovery || !recoveryCoins || recoveryCoins === "not_configured"}
+                      disabled={sendingRecovery || !recoveryDiamonds || recoveryDiamonds === "not_configured"}
                     >
                       {sendingRecovery ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
                       {sendingRecovery ? "Crediting..." : "Credit Diamonds"}
@@ -1698,7 +1694,7 @@ const AdminSupportTickets = () => {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => { setShowPurchaseRecovery(false); setRecoveryCoins(""); setRecoveryOrderId(""); }}
+                      onClick={() => { setShowPurchaseRecovery(false); setRecoveryDiamonds(""); setRecoveryOrderId(""); }}
                     >
                       <XCircle className="w-4 h-4" />
                     </Button>

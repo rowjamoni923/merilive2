@@ -1,28 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
-import {
-  ArrowLeft,
-  ChevronRight,
-  Copy,
-  ImagePlus,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  Globe,
-  Hash,
-  Sparkles,
-  Shield,
-  Lock,
-  Eye,
-  EyeOff,
-  Crown,
-  Image,
-  Palette,
-  MessageCircle,
-  Star,
-} from "lucide-react";
+import { ArrowLeft, ChevronRight, Copy, ImagePlus, User, Phone, Mail, MapPin, Globe, Hash, Sparkles, Shield, Lock, Eye, EyeOff, Crown, Image, Palette, MessageCircle, Star } from "lucide-react";
 import { ImageCropModal } from "@/components/profile/ImageCropModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

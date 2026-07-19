@@ -1,25 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Heart, 
-  MessageCircle, 
-  UserPlus, 
-  Gift, 
-  Crown, 
-  Star,
-  Phone,
-  Ban,
-  Flag,
-  MoreHorizontal,
-  Sparkles,
-  Diamond,
-  Zap,
-  Flame,
-  Check,
-  UserCheck,
-  Shield
-} from "lucide-react";
+import { X, Heart, MessageCircle, UserPlus, Gift, Crown, Star, Phone, Ban, Flag, MoreHorizontal, Sparkles, Diamond, Zap, Flame, Check, UserCheck, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -426,7 +407,7 @@ export const PremiumViewerProfileCard = ({
                       <span className="text-xs text-muted-foreground">Following</span>
                     </motion.div>
 
-                    {/* Coins */}
+                    {/* Diamonds */}
                     <motion.div 
                       className="text-center"
                       whileHover={{ scale: 1.05 }}

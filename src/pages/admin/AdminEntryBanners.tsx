@@ -2,17 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Eye,
-  Upload,
-  Sparkles,
-  Zap,
-  Crown,
-  Search
-} from "lucide-react";
+import { Plus, Trash2, Edit, Eye, Upload, Sparkles, Zap, Crown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

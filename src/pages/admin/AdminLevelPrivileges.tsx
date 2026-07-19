@@ -10,11 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Sparkles, Crown, Star, Gift, Car, Image, Headphones, 
-  Upload, Pencil, Trash2, RefreshCw, Play,
-  Frame, Sticker, PartyPopper, Users, Award, Eye
-} from "lucide-react";
+import { Sparkles, Crown, Star, Gift, Car, Image, Headphones, Upload, Pencil, Trash2, RefreshCw, Play, Frame, Sticker, PartyPopper, Users, Award, Eye } from "lucide-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { recordAdminError } from "@/utils/adminErrorLog";
 

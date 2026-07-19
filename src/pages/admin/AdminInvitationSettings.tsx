@@ -421,7 +421,7 @@ const AdminInvitationSettings = () => {
                       +{tier.reward_beans} Beans
                     </span>
                     <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded">
-                      +{tier.reward_diamonds} Coins
+                      +{tier.reward_diamonds} Gem
                     </span>
                     {tier.bonus_percentage > 0 && (
                       <span className="text-xs bg-green-500/20 text-green-300 border border-green-500/30 px-2 py-0.5 rounded">

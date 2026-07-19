@@ -221,8 +221,8 @@ export function parseInlineGiftMarker(
   if (!m) return null;
   const parts = m[1].split("|");
   if (parts.length < 2) return null;
-  const [iconUrl = "", giftName = "Gift", countStr = "1", coinsStr = "0"] = parts;
+  const [iconUrl = "", giftName = "Gift", countStr = "1", diamondsStr = "0"] = parts;
   const count = Math.max(1, parseInt(countStr, 10) || 1);
-  const diamonds = Math.max(0, parseInt(coinsStr, 10) || 0);
+  const diamonds = Math.max(0, parseInt(diamondsStr, 10) || 0);
   return { iconUrl, giftName, count, diamonds };
 }

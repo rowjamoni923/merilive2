@@ -1,21 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Phone,
-  Save,
-  RefreshCw,
-  Diamond,
-  Percent,
-  Calculator,
-  TrendingUp,
-  Users,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  PhoneCall,
-  Star,
-  Crown,
-} from "lucide-react";
+import { Phone, Save, RefreshCw, Diamond, Percent, Calculator, TrendingUp, Users, Clock, AlertCircle, CheckCircle, PhoneCall, Star, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

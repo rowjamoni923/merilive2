@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Gift, Coins, Clock, Zap, Plus, Trash2, Save, Edit2, Crown, TrendingUp, Timer, ToggleLeft, ToggleRight, Upload, Image, Type, CalendarDays } from "lucide-react";
+import { ArrowLeft, Gift, Gem, Clock, Zap, Plus, Trash2, Save, Edit2, Crown, TrendingUp, Timer, ToggleLeft, ToggleRight, Upload, Image, Type, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

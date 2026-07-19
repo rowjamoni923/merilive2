@@ -3,41 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Search,
-  Filter,
-  MoreVertical,
-  Ban,
-  CheckCircle,
-  Eye,
-  Edit,
-  Building2,
-  Users,
-  Coins,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  Crown,
-  Gem,
-  Settings,
-  Percent,
-  Save,
-  UserCheck,
-  Calculator,
-  DollarSign,
-  Phone,
-  Calendar,
-  Clock,
-  Activity,
-  ArrowLeft,
-  Plus,
-  Loader2,
-  RefreshCw,
-  Shield,
-  Headphones,
-  CircleDot,
-  Mail
-} from "lucide-react";
+import { Search, Filter, MoreVertical, Ban, CheckCircle, Eye, Edit, Building2, Users, Gem, TrendingUp, ChevronLeft, ChevronRight, Crown, Settings, Percent, Save, UserCheck, Calculator, DollarSign, Phone, Calendar, Clock, Activity, ArrowLeft, Plus, Loader2, RefreshCw, Shield, Headphones, CircleDot, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1644,7 +1610,7 @@ export default function AdminAgencies() {
                       {/* Stats Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div className="admin-surface-soft rounded-lg p-3 text-center">
-                          <Coins className="w-5 h-5 admin-accent-warning mx-auto mb-1" />
+                          <Gem className="w-5 h-5 admin-accent-warning mx-auto mb-1" />
                           <p className="text-slate-900 font-bold">{hostSearchResult.total_earnings?.toLocaleString() || 0}</p>
                           <p className="text-xs admin-text-muted">Total Earnings</p>
                         </div>
@@ -2027,7 +1993,7 @@ export default function AdminAgencies() {
                       <p className="text-[10px] admin-text-muted uppercase tracking-wider">Hosts</p>
                     </div>
                     <div className="text-center p-3 admin-surface-soft rounded-xl border admin-border">
-                      <Coins className="w-4 h-4 admin-accent-warning mx-auto mb-1.5" />
+                      <Gem className="w-4 h-4 admin-accent-warning mx-auto mb-1.5" />
                       <p className="text-slate-900 font-bold">{agency.wallet_balance?.toLocaleString() || 0}</p>
                       <p className="text-[10px] admin-text-muted uppercase tracking-wider">Balance</p>
                     </div>

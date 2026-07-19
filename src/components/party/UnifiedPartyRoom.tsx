@@ -7,22 +7,7 @@ import { useContentModeration } from "@/hooks/useContentModeration";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Users, 
-  Gift, 
-  Gamepad2,
-  Crown,
-  Mic,
-  MicOff,
-  Eye,
-  EyeOff,
-  Heart,
-  Plus,
-  Send,
-  Sparkles,
-  Smile
-} from "lucide-react";
+import { X, Users, Gift, Gamepad2, Crown, Mic, MicOff, Eye, EyeOff, Heart, Plus, Send, Sparkles, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";

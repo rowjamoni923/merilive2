@@ -6,25 +6,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { getOptimizedImageUrl } from "@/utils/imageOptimize";
-import { 
-  Coins, 
-  Trophy, 
-  Loader2, 
-  Users,
-  Clock,
-  ChevronUp,
-  ChevronDown,
-  X,
-  Sparkles,
-  Gift,
-  Settings,
-  Volume2,
-  VolumeX,
-  Gamepad2
-} from "lucide-react";
+import { Gem, Trophy, Loader2, Users, Clock, ChevronUp, ChevronDown, X, Sparkles, Gift, Settings, Volume2, VolumeX, Gamepad2 } from "lucide-react";
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DiamondFlyAnimation, useFlyingCoins, WinCelebration, LossDisplay, BetAreaCoins } from "./DiamondFlyAnimation";
+import { DiamondFlyAnimation, useFlyingDiamonds, WinCelebration, LossDisplay, BetAreaDiamonds } from "./DiamondFlyAnimation";
 
 interface GameSetting {
   id: string;
@@ -659,7 +644,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || 'dragon_tiger');
   const [loading, setLoading] = useState(true);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [isExpanded, setIsExpanded] = useState(true);
   const [showGamePicker, setShowGamePicker] = useState(false);
@@ -669,14 +654,14 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const [winAmount, setWinAmount] = useState(0);
   const [lossAmount, setLossAmount] = useState(0);
   
-  // Coin fly animation
-  const { diamonds: flyingCoins, addCoin } = useFlyingCoins();
-  const coinDisplayRef = useRef<HTMLDivElement>(null);
+  // Diamond fly animation
+  const { diamonds: flyingDiamonds, addDiamond } = useFlyingDiamonds();
+  const diamondDisplayRef = useRef<HTMLDivElement>(null);
 
   const handleWin = async (amount: number) => {
     if (!amount || amount <= 0) return;
     // Instant UI credit
-    setUserCoins(prev => prev + amount);
+    setUserDiamonds(prev => prev + amount);
     setWinAmount(amount);
     setShowWin(true);
     // Server-side atomic credit + cached balance sync
@@ -691,15 +676,15 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         Math.floor(amount)
       );
       if (result.success && result.newBalance !== undefined) {
-        setUserCoins(result.newBalance);
+        setUserDiamonds(result.newBalance);
       } else {
         // Rollback optimistic credit on failure
-        setUserCoins(prev => prev - amount);
-        fetchUserCoins();
+        setUserDiamonds(prev => prev - amount);
+        fetchUserDiamonds();
       }
     } catch (err) {
       console.error('handleWin processWin error:', err);
-      fetchUserCoins();
+      fetchUserDiamonds();
     }
   };
 
@@ -727,7 +712,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
 
   useEffect(() => {
     fetchGames();
-    fetchUserCoins();
+    fetchUserDiamonds();
   }, []);
 
   // Allow all active games now (native + iframe + external)
@@ -751,11 +736,11 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
     }
   };
 
-  const fetchUserCoins = async () => {
+  const fetchUserDiamonds = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase.from('profiles').select('diamonds').eq('id', user.id).single();
-      if (data) setUserCoins(data.diamonds);
+      if (data) setUserDiamonds(data.diamonds);
     }
   };
 
@@ -772,21 +757,21 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
     }
     
     try {
-      setUserCoins(prev => prev - betAmount);
+      setUserDiamonds(prev => prev - betAmount);
       const result = await placeBet(betAmount, betType, betValue);
       console.log('placeBet result:', result);
       
       if (!result || !result.success) {
-        setUserCoins(prev => prev + betAmount);
+        setUserDiamonds(prev => prev + betAmount);
         return { success: false, error: result?.error || 'Bet failed' };
       }
       
       // Refresh user diamonds after successful bet
-      fetchUserCoins();
+      fetchUserDiamonds();
       return { success: true };
     } catch (error: any) {
       console.error('handlePlaceBet error:', error);
-      setUserCoins(prev => prev + betAmount);
+      setUserDiamonds(prev => prev + betAmount);
       return { success: false, error: error.message || 'Bet failed' };
     }
   };
@@ -906,7 +891,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       {/* Win/Loss Animations */}
       <WinCelebration show={showWin} amount={winAmount} onComplete={() => setShowWin(false)} />
       <LossDisplay show={showLoss} amount={lossAmount} onComplete={() => setShowLoss(false)} />
-      <DiamondFlyAnimation diamonds={flyingCoins} />
+      <DiamondFlyAnimation diamonds={flyingDiamonds} />
       
       <motion.div
         initial={{ y: 100, opacity: 0 }}
@@ -1009,11 +994,11 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
             )}
           </div>
 
-          {/* Right - Coins & Controls */}
+          {/* Right - Diamonds & Controls */}
           <div className="flex items-center gap-1">
-            {/* Coins - Compact format */}
+            {/* Diamonds - Compact format */}
             <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded text-[10px]">
-              <Coins className="w-2.5 h-2.5 text-amber-400" />
+              <Gem className="w-2.5 h-2.5 text-amber-400" />
               <span className="text-amber-300 font-bold">
                 {userDiamonds >= 1000000 
                   ? `${(userDiamonds / 1000000).toFixed(1)}M` 
@@ -1094,7 +1079,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         <div className="flex items-center justify-between px-1.5 py-0.5 bg-black/30 border-t border-white/5">
           <span className="text-white/50 text-[7px]">Your Bet</span>
           <div className="flex items-center gap-0.5">
-            <Coins className="w-1.5 h-1.5 text-amber-400" />
+            <Gem className="w-1.5 h-1.5 text-amber-400" />
             <span className="text-amber-300 font-bold text-[8px]">{betAmount.toLocaleString()}</span>
           </div>
         </div>

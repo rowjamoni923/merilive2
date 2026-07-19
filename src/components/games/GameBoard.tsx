@@ -4,14 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Coins, 
-  Trophy, 
-  TrendingUp, 
-  ChevronDown,
-  X,
-  Gift
-} from "lucide-react";
+import { Gem, Trophy, TrendingUp, ChevronDown, X, Gift } from "lucide-react";
 
 // Games are now in live-games folder - this component redirects to LiveGameBoard
 
@@ -58,7 +51,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || null);
   const [loading, setLoading] = useState(true);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [isPlaying, setIsPlaying] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
@@ -66,7 +59,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
 
   useEffect(() => {
     fetchGames();
-    fetchUserCoins();
+    fetchUserDiamonds();
   }, []);
 
   const fetchGames = async () => {
@@ -97,7 +90,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
     }
   };
 
-  const fetchUserCoins = async () => {
+  const fetchUserDiamonds = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -105,7 +98,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
         .select('diamonds')
         .eq('id', user.id)
         .single();
-      if (data) setUserCoins(data.diamonds);
+      if (data) setUserDiamonds(data.diamonds);
     }
   };
 
@@ -133,7 +126,7 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
       if (!result.success) return null;
 
       setLastResult(result);
-      setUserCoins(result.new_balance);
+      setUserDiamonds(result.new_balance);
 
       return result;
     } catch (error: any) {
@@ -225,9 +218,9 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
             </Button>
           )}
 
-          {/* Coins Display */}
+          {/* Diamonds Display */}
           <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded-full">
-            <Coins className="w-3 h-3 text-amber-400" />
+            <Gem className="w-3 h-3 text-amber-400" />
             <span className="text-amber-300 font-bold text-[10px]">
               {userDiamonds.toLocaleString()}
             </span>
@@ -357,12 +350,12 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
               {lastResult.is_winner ? (
                 <div className="flex items-center gap-1 text-green-400 font-bold text-[10px]">
                   <span>+{lastResult.win_amount.toLocaleString()}</span>
-                  <Coins className="w-3 h-3" />
+                  <Gem className="w-3 h-3" />
                 </div>
               ) : (
                 <div className="flex items-center gap-1 text-red-400 font-bold text-[10px]">
                   <span>-{lastResult.bet_amount.toLocaleString()}</span>
-                  <Coins className="w-3 h-3" />
+                  <Gem className="w-3 h-3" />
                 </div>
               )}
             </div>

@@ -40,7 +40,7 @@ type ActivateLiveChatOptions = {
 };
 
 const INITIAL_CATEGORIES = [
-  { icon: "💰", label: "Diamond / Recharge Issue", key: "coin_recharge" },
+  { icon: "💰", label: "Diamond / Recharge Issue", key: "diamond_recharge" },
   { icon: "📤", label: "Withdrawal Problem", key: "withdrawal" },
   { icon: "👤", label: "Account / Profile Issue", key: "account" },
   { icon: "🏢", label: "Agency Issue", key: "agency" },

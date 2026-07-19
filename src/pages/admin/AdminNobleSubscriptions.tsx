@@ -11,10 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  Crown, Plus, Edit2, Trash2, Sparkles, Gem, Shield, Ghost, EyeOff,
-  Lock, TrendingUp, Coins, Calendar, Zap, RefreshCw, Upload
-} from "lucide-react";
+import { Crown, Plus, Edit2, Trash2, Sparkles, Gem, Shield, Ghost, EyeOff, Lock, TrendingUp, Calendar, Zap, RefreshCw, Upload } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface NobleCard {
   id: string;
@@ -432,7 +429,7 @@ const AdminNobleSubscriptions = () => {
                 <TabsContent value="economy" className="space-y-3 mt-4">
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { key: 'recharge_bonus_percent', label: 'Recharge Bonus %', icon: Coins, color: 'text-amber-400' },
+                      { key: 'recharge_bonus_percent', label: 'Recharge Bonus %', icon: Gem, color: 'text-amber-400' },
                       { key: 'cashback_percent', label: 'Cashback %', icon: Gem, color: 'text-emerald-400' },
                       { key: 'daily_free_diamonds', label: 'Daily Free 💎', icon: Calendar, color: 'text-cyan-400' },
                       { key: 'monthly_free_diamonds', label: 'Monthly Free 💎', icon: Sparkles, color: 'text-pink-400' },

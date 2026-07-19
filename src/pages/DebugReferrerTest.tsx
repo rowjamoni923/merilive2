@@ -11,15 +11,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Circle,
-  XCircle,
-  Copy,
-  RotateCcw,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, XCircle, Copy, RotateCcw, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Capacitor } from "@capacitor/core";
 import { Button } from "@/components/ui/button";

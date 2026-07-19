@@ -1,8 +1,5 @@
 import { useState } from "react";
-import { 
-  FileText, Globe, Building2, Users, ShieldCheck, ChevronDown, ChevronUp, 
-  ExternalLink, Copy, Check, Link2, Send
-} from "lucide-react";
+import { FileText, Globe, Building2, Users, ShieldCheck, ChevronDown, ChevronUp, ExternalLink, Copy, Check, Link2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 

@@ -2,11 +2,7 @@ import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, Plus, Search, Check, X, UserCheck, Wallet, 
-  Users, Clock, MoreVertical, Eye, Ban, Coins, ArrowUpRight, ArrowDownLeft,
-  Send, Loader2, DollarSign, Settings, CreditCard, Smartphone
-} from "lucide-react";
+import { ArrowLeft, Plus, Search, Check, X, UserCheck, Wallet, Users, Clock, MoreVertical, Eye, Ban, Gem, ArrowUpRight, ArrowDownLeft, Send, Loader2, DollarSign, Settings, CreditCard, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,9 +46,9 @@ const AdminDiamondTraders = () => {
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
   const [processing, setProcessing] = useState(false);
-  const [stats, setStats] = useState({ totalHelpers: 0, activeHelpers: 0, pendingTransactions: 0, totalCoinsTraded: 0, visibleTraders: 0 });
+  const [stats, setStats] = useState({ totalHelpers: 0, activeHelpers: 0, pendingTransactions: 0, totalDiamondsTraded: 0, visibleTraders: 0 });
   
-  // Coin Transfer Modal State
+  // Diamond Transfer Modal State
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedHelper, setSelectedHelper] = useState<any>(null);
   const [transferAmount, setTransferAmount] = useState("");
@@ -90,7 +86,7 @@ const AdminDiamondTraders = () => {
         ...prev,
         totalHelpers: (data || []).length,
         activeHelpers: (data || []).filter((h: any) => h.is_active && h.is_verified).length,
-        totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
+        totalDiamondsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
         visibleTraders: (data || []).filter((h: any) => h.is_active && h.is_verified && h.trader_level !== 5 && (h.wallet_balance || 0) >= 100000).length,
       }));
     } catch (error) { recordAdminError({ kind: "rpc", label: "AdminDiamondTraders", message: formatAdminError(error) }); }
@@ -153,7 +149,7 @@ const AdminDiamondTraders = () => {
     });
 
     if (updateError) {
-      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.DiamondtradersFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
@@ -167,8 +163,8 @@ const AdminDiamondTraders = () => {
     fetchHelpers();
   };
 
-  // Manual Coin Transfer to Helper's Wallet
-  const handleCoinTransfer = async () => {
+  // Manual Diamond Transfer to Helper's Wallet
+  const handleDiamondTransfer = async () => {
     if (!selectedHelper || !transferAmount) return;
     
     const amount = parseInt(transferAmount);
@@ -338,7 +334,7 @@ const AdminDiamondTraders = () => {
                   { label: "Total Traders", value: stats.totalHelpers },
                   { label: "Active", value: stats.activeHelpers },
                   { label: "Pending Txns", value: stats.pendingTransactions },
-                  { label: "Diamonds Traded", value: stats.totalCoinsTraded.toLocaleString() },
+                  { label: "Diamonds Traded", value: stats.totalDiamondsTraded.toLocaleString() },
                 ],
               }}
             />
@@ -383,7 +379,7 @@ const AdminDiamondTraders = () => {
             <p className="text-xl font-bold text-yellow-200">{stats.pendingTransactions}</p><p className="text-slate-700 text-xs">Pending</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-slate-900">{(stats.totalCoinsTraded / 1000).toFixed(0)}K</p><p className="text-slate-700 text-xs">Diamonds</p>
+            <p className="text-xl font-bold text-slate-900">{(stats.totalDiamondsTraded / 1000).toFixed(0)}K</p><p className="text-slate-700 text-xs">Diamonds</p>
           </div>
         </div>
       </div>
@@ -395,7 +391,7 @@ const AdminDiamondTraders = () => {
               <Users className="w-4 h-4 mr-2" />Helpers
             </TabsTrigger>
             <TabsTrigger value="transactions" className="flex-1 data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-lg">
-              <Coins className="w-4 h-4 mr-2" />Transactions
+              <Gem className="w-4 h-4 mr-2" />Transactions
             </TabsTrigger>
           </TabsList>
 
@@ -577,7 +573,7 @@ const AdminDiamondTraders = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Coin Transfer Modal */}
+      {/* Diamond Transfer Modal */}
       <Dialog open={showTransferModal} onOpenChange={setShowTransferModal}>
         <DialogContent className="max-w-md w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
@@ -641,7 +637,7 @@ const AdminDiamondTraders = () => {
                 <div className="space-y-2">
                    <Label>Diamond Amount</Label>
                    <div className="relative">
-                     <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500" />
+                     <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500" />
                      <Input
                        type="number"
                        placeholder="e.g. 100000"
@@ -698,7 +694,7 @@ const AdminDiamondTraders = () => {
                Cancel
             </Button>
             <Button 
-              onClick={handleCoinTransfer} 
+              onClick={handleDiamondTransfer} 
               disabled={!selectedHelper || !transferAmount || parseInt(transferAmount) <= 0 || isTransferring}
               className="bg-emerald-600 hover:bg-emerald-700"
             >

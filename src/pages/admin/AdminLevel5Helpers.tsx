@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Search, Users, CheckCircle, XCircle, Clock, 
-  Gem, Crown, Star, Shield, Loader2, Image, DollarSign,
-  Banknote, Settings, Building2, User, Globe, FileText, Download, TrendingUp
-} from "lucide-react";
+import { Search, Users, CheckCircle, XCircle, Clock, Gem, Crown, Star, Shield, Loader2, Image, DollarSign, Banknote, Settings, Building2, User, Globe, FileText, Download, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

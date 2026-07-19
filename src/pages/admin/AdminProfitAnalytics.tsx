@@ -1,20 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  TrendingUp,
-  DollarSign,
-  Receipt,
-  CreditCard,
-  Percent,
-  Download,
-  RefreshCw,
-  Calendar as CalendarIcon,
-  PieChart as PieIcon,
-  BarChart3,
-  ShoppingCart,
-  Table as TableIcon,
-} from "lucide-react";
+import { ArrowLeft, TrendingUp, DollarSign, Receipt, CreditCard, Percent, Download, RefreshCw, Calendar as CalendarIcon, PieChart as PieIcon, BarChart3, ShoppingCart, Table as TableIcon } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -150,7 +136,7 @@ export default function AdminProfitAnalytics() {
   >([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [includeTimeline, setIncludeTimeline] = useState(true);
-  const [coinRate, setCoinRate] = useState<number | null>(null);
+  const [diamondRate, setDiamondRate] = useState<number | null>(null);
 
   const handlePreset = useCallback((p: Preset) => {
     setPreset(p);
@@ -163,7 +149,7 @@ export default function AdminProfitAnalytics() {
   useEffect(() => {
     supabase.rpc("get_official_diamond_usd_rate").then(({ data }) => {
       if (typeof data === "number" || (typeof data === "string" && !isNaN(Number(data)))) {
-        setCoinRate(Number(data));
+        setDiamondRate(Number(data));
       }
     });
   }, [refreshKey]);
@@ -893,8 +879,8 @@ export default function AdminProfitAnalytics() {
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-900/60 leading-relaxed space-y-1">
           <div>
             <span className="text-slate-900/80 font-semibold">Official diamond rate:</span>{" "}
-            {coinRate
-              ? `${(1 / coinRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} diamonds = $1 USD`
+            {diamondRate
+              ? `${(1 / diamondRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} diamonds = $1 USD`
               : "loading…"}{" "}
             <span className="text-slate-900/40">
               (auto-computed from active top-up packages)
@@ -902,7 +888,7 @@ export default function AdminProfitAnalytics() {
           </div>
           <div className="text-slate-900/40">
             Add / edit packages in Admin → Top-up Packages and this rate updates instantly.
-            Party Room / PK Battle / Lucky Gift are informational counters only — their coin
+            Party Room / PK Battle / Lucky Gift are informational counters only — their diamond
             flow is already captured in the Gift sector to prevent double-counting.
           </div>
         </div>

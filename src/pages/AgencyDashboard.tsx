@@ -1,51 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
-import { 
-  ArrowLeft, 
-  Building2,
-  Users,
-  Wallet,
-  TrendingUp,
-  Crown,
-  Clock,
-  Gift,
-  Coins,
-  Copy,
-  CheckCircle2,
-  User,
-  Loader2,
-  ChevronRight,
-  BarChart3,
-  Share2,
-  Link as LinkIcon,
-  UserPlus,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-  Diamond,
-  ArrowRightLeft,
-  Trophy,
-  Sparkles,
-  Eye,
-  Settings,
-  Bell,
-  Shield,
-  Star,
-  Activity,
-  Zap,
-  Target,
-  Award,
-  Headphones,
-  MessageCircle,
-  Phone,
-  Send,
-  Hash,
-  XCircle,
-  Percent,
-  FileText,
-  ArrowRight
-} from "lucide-react";
+import { ArrowLeft, Building2, Users, Wallet, TrendingUp, Crown, Clock, Gift, Gem, Copy, CheckCircle2, User, Loader2, ChevronRight, BarChart3, Share2, Link as LinkIcon, UserPlus, TrendingDown, Calendar, DollarSign, Diamond, ArrowRightLeft, Trophy, Sparkles, Eye, Settings, Bell, Shield, Star, Activity, Zap, Target, Award, Headphones, MessageCircle, Phone, Send, Hash, XCircle, Percent, FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -266,7 +222,7 @@ const AgencyDashboard = () => {
   const [subAgentLink, setSubAgentLink] = useState("");
   const [subAgencyInviteLink, setSubAgencyInviteLink] = useState("");
   const [hostJoinLink, setHostJoinLink] = useState("");
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
   const [localExchangeRate, setLocalExchangeRate] = useState(1); // Default USD rate
   const [localCurrency, setLocalCurrency] = useState({ code: 'USD', symbol: '$', flag: '🇺🇸' });
   const [userCountryCode, setUserCountryCode] = useState('US');
@@ -551,7 +507,7 @@ const AgencyDashboard = () => {
         // ===== Process beans rate =====
         if (beansRateRes.data?.setting_value) {
           const rateSettings = beansRateRes.data.setting_value as { rate?: number };
-          if (rateSettings?.rate) setCoinsToUsdRate(rateSettings.rate);
+          if (rateSettings?.rate) setDiamondsToUsdRate(rateSettings.rate);
         }
 
         // ===== Process country/currency =====
@@ -830,9 +786,9 @@ const AgencyDashboard = () => {
   const myBeans = agency.beans_balance || 0;
   
   // Correct USD calculation: beans / rate = USD
-  const usdValue = agencyBeansBalance / coinsToUsdRate;
+  const usdValue = agencyBeansBalance / diamondsToUsdRate;
   const localValue = usdValue * localExchangeRate;
-  const myBeansUsdValue = myBeans / coinsToUsdRate;
+  const myBeansUsdValue = myBeans / diamondsToUsdRate;
 
   const getLevelInfo = (level: string) => {
     // Use database tier info if available, otherwise fallback to defaults
@@ -1192,7 +1148,7 @@ const AgencyDashboard = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Coins className="w-5 h-5" />
+                  <Gem className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-white/80 text-[10px] uppercase tracking-wide">Total Beans</p>
@@ -1233,7 +1189,7 @@ const AgencyDashboard = () => {
                 <span className="text-xs text-white/80">Exchange Rate</span>
               </div>
               <span className="text-[10px] font-semibold">
-                {fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
+                {fmtNum(diamondsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
               </span>
             </div>
 
@@ -1299,7 +1255,7 @@ const AgencyDashboard = () => {
                                 </div>
                                 <div>
                                   <p className="text-xs font-semibold text-white">
-                                    {(w.amount / coinsToUsdRate).toFixed(2)} USD
+                                    {(w.amount / diamondsToUsdRate).toFixed(2)} USD
                                   </p>
                                   <p className="text-[10px] text-slate-400">
                                     {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}

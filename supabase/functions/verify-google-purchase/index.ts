@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
       currency_code: 'USD',
     });
 
-    console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Coins: ${productInfo.diamonds}`);
+    console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Gem: ${productInfo.diamonds}`);
 
     // 🔐 Verify with Google Play Developer API
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
@@ -306,7 +306,7 @@ Deno.serve(async (req) => {
 
     const creditedDiamonds = Number(processData.diamonds || productInfo.diamonds || 0);
     const newBalance = processData.newBalance;
-    console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${creditedDiamonds}, New balance: ${newBalance}`);
+    console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Gem: +${creditedDiamonds}, New balance: ${newBalance}`);
 
     await markAttempt({
       status: processData.alreadyProcessed ? 'already_processed' : 'completed',

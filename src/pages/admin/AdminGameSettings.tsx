@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Gamepad2, TrendingUp, Coins, Loader2, BarChart3, Edit, Star, Trophy, Zap, Target, Sparkles, DollarSign, Plus, Link, Monitor, Trash2, Globe, ExternalLink, Image, Upload } from "lucide-react";
+import { Gamepad2, TrendingUp, Gem, Loader2, BarChart3, Edit, Star, Trophy, Zap, Target, Sparkles, DollarSign, Plus, Link, Monitor, Trash2, Globe, ExternalLink, Image, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
@@ -413,7 +413,7 @@ export default function AdminGameSettings() {
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="p-2 bg-amber-500/20 rounded-lg">
-                  <Coins className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+                  <Gem className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Bet Volume</p>

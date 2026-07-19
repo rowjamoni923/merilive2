@@ -1,23 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { GiftComboTracker } from "@/components/live/GiftComboTracker";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Gift, 
-  LayoutGrid, 
-  Crown,
-  Eye,
-  EyeOff,
-  Armchair,
-  Users,
-  Diamond,
-  HelpCircle,
-  BarChart3,
-  Power,
-  Minus,
-  Plus,
-  Hand
-} from "lucide-react";
+import { X, Gift, LayoutGrid, Crown, Eye, EyeOff, Armchair, Users, Diamond, HelpCircle, BarChart3, Power, Minus, Plus, Hand } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

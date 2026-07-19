@@ -1,17 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Users,
-  TrendingUp,
-  Gift,
-  Loader2,
-  CheckCircle2,
-  Building2,
-  Coins,
-  Copy,
-  Share2
-} from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Gift, Loader2, CheckCircle2, Building2, Gem, Copy, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -347,7 +336,7 @@ const BecomeSubAgent = () => {
             <p className="text-xs text-white/80">Top Referrer</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
-            <Coins className="w-5 h-5 mx-auto mb-1" />
+            <Gem className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">Unlimited</p>
             <p className="text-xs text-white/80">Referrals</p>
           </div>

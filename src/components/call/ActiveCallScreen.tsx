@@ -66,10 +66,10 @@ interface ActiveCallScreenProps {
   remoteUserAvatar: string | null;
   remoteUserLevel?: number;
   duration: number;
-  coinsPerMinute: number;
-  totalCoinsSpent?: number;
+  diamondsPerMinute: number;
+  totalDiamondsSpent?: number;
   hostEarned?: number;
-  callerRemainingCoins?: number;
+  callerRemainingDiamonds?: number;
   callStatus?: 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
   onEndCall: () => void | Promise<void>;
   onMediaConnected?: (callId: string) => void;
@@ -86,10 +86,10 @@ export function ActiveCallScreen({
   remoteUserAvatar,
   remoteUserLevel = 20,
   duration,
-  coinsPerMinute,
-  totalCoinsSpent = 0,
+  diamondsPerMinute,
+  totalDiamondsSpent = 0,
   hostEarned = 0,
-  callerRemainingCoins = 0,
+  callerRemainingDiamonds = 0,
   callStatus = 'calling',
   onEndCall,
   onMediaConnected,
@@ -120,7 +120,7 @@ export function ActiveCallScreen({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [remoteStreamReady, setRemoteStreamReady] = useState(false);
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
   const [isSwapped, setIsSwapped] = useState(false);
@@ -261,9 +261,9 @@ export function ActiveCallScreen({
   // Flying gift animations for real-time display
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   const mountedRef = useRef(true);
-  const userCoinsRef = useRef(0);
+  const userDiamondsRef = useRef(0);
   // Section#5 pass-3 (Bug M): in-flight guard so rapid double-tap on a gift
-  // tile can't pass the same userCoinsRef.current balance check twice and
+  // tile can't pass the same userDiamondsRef.current balance check twice and
   // double-deduct / double-send.
   const sendingGiftRef = useRef(false);
   // Section#5 pass-3 (Bug J): in-flight guard so the End Call button can't
@@ -272,7 +272,7 @@ export function ActiveCallScreen({
   const endingRef = useRef(false);
 
   useEffect(() => {
-    userCoinsRef.current = userDiamonds;
+    userDiamondsRef.current = userDiamonds;
   }, [userDiamonds]);
   
   // ✅ REAL-TIME: Fetch and subscribe to gift commission
@@ -303,9 +303,9 @@ export function ActiveCallScreen({
   // The actual deduction happens on the backend every 60 seconds
   // We only show the ACTUAL billed amounts from the database (updated every 5s)
   // NO calculations or interpolation - Admin panel settings are the only source
-  // totalCoinsSpent = actual diamonds deducted from caller (set by admin: e.g., 2000/min)
+  // totalDiamondsSpent = actual diamonds deducted from caller (set by admin: e.g., 2000/min)
   // hostEarned = actual beans credited to host (admin commission: e.g., 60% = 1200 beans)
-  const displayedCoinsSpent = totalCoinsSpent;
+  const displayedDiamondsSpent = totalDiamondsSpent;
   const displayedHostEarned = hostEarned;
 
   // Pkg83: chat now flows over LiveKit DataPacket (no Supabase channel ref).
@@ -530,8 +530,8 @@ export function ActiveCallScreen({
         .eq('id', userId)
         .single();
       if (data) {
-        userCoinsRef.current = data.diamonds || 0;
-        setUserCoins(data.diamonds || 0);
+        userDiamondsRef.current = data.diamonds || 0;
+        setUserDiamonds(data.diamonds || 0);
         if (data.display_name) setMyDisplayName(data.display_name);
         if (data.avatar_url) setMyAvatarUrl(normalizeProfileMediaUrl(data.avatar_url) || data.avatar_url);
         if (data.user_level) setMyLevel(data.user_level);
@@ -619,7 +619,7 @@ export function ActiveCallScreen({
         soundUrl: detail.giftSoundUrl || undefined,
         giftColor: "bg-pink-500/50",
         count: detail.count || 1,
-        diamonds: detail.giftCoins || 0,
+        diamonds: detail.giftDiamonds || 0,
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
@@ -633,7 +633,7 @@ export function ActiveCallScreen({
           message: encodeInlineGiftMarker({
             giftName: detail.giftName || 'Gift',
             count: detail.count || 1,
-            diamonds: detail.giftCoins || 0,
+            diamonds: detail.giftDiamonds || 0,
             iconUrl: detail.giftIconUrl || '',
           }),
           timestamp: Date.now(),
@@ -679,7 +679,7 @@ export function ActiveCallScreen({
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const formatCoins = (diamonds: number) => {
+  const formatDiamonds = (diamonds: number) => {
     if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
     return diamonds.toString();
   };
@@ -691,13 +691,13 @@ export function ActiveCallScreen({
     if (sendingGiftRef.current) return;
 
     const totalCost = gift.diamonds * count;
-    const availableCoins = userCoinsRef.current;
-    if (availableCoins < totalCost) {
+    const availableDiamonds = userDiamondsRef.current;
+    if (availableDiamonds < totalCost) {
       toast.error("Not enough diamonds!");
       return;
     }
 
-    const previousCoins = availableCoins;
+    const previousDiamonds = availableDiamonds;
     sendingGiftRef.current = true;
 
     try {
@@ -705,8 +705,8 @@ export function ActiveCallScreen({
       // Pkg85 made GiftingService the single source for global cached balance
       // deduction after the RPC succeeds. Do NOT also update useUserBalance here,
       // or call gifts double-deduct the app-wide diamond cache.
-      userCoinsRef.current = Math.max(0, availableCoins - totalCost);
-      setUserCoins(userCoinsRef.current);
+      userDiamondsRef.current = Math.max(0, availableDiamonds - totalCost);
+      setUserDiamonds(userDiamondsRef.current);
       hapticFeedback('gift');
       warmGiftForInstantPlay(gift as any);
 
@@ -764,8 +764,8 @@ export function ActiveCallScreen({
     } catch (error) {
       console.error("Gift send error:", error);
       // Rollback optimistic update
-      userCoinsRef.current = previousCoins;
-      setUserCoins(previousCoins);
+      userDiamondsRef.current = previousDiamonds;
+      setUserDiamonds(previousDiamonds);
       toast.error("Failed to send gift");
     } finally {
       // Small cooldown to absorb mechanical double-tap; the GiftPanel itself
@@ -1199,7 +1199,7 @@ export function ActiveCallScreen({
             </span>
           </div>
 
-          {/* Right - Earnings/Coins + Connection */}
+          {/* Right - Earnings/Diamonds + Connection */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {!isInNativePip && (
               <NetworkQualityIndicator 
@@ -1222,7 +1222,7 @@ export function ActiveCallScreen({
                   className="text-amber-100 font-extrabold text-xs tabular-nums"
                   style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)' }}
                 >
-                  +{formatCoins(displayedHostEarned)}
+                  +{formatDiamonds(displayedHostEarned)}
                 </span>
               </div>
             ) : (
@@ -1343,7 +1343,7 @@ export function ActiveCallScreen({
                 >
                   <TrendingUp className="w-4 h-4 text-emerald-200" />
                   <BeansIcon size={18} />
-                  <span className="text-emerald-200 text-lg font-bold">{formatCoins(displayedHostEarned)}</span>
+                  <span className="text-emerald-200 text-lg font-bold">{formatDiamonds(displayedHostEarned)}</span>
                 </div>
               )}
             </div>

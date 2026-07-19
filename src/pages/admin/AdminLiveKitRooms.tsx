@@ -15,7 +15,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {Radio, RefreshCw, Loader2, Search, Users, Eye, EyeOff, Mic, Camera, Clock, X, Circle, Square, Bot, } from "lucide-react";
+import { Radio, RefreshCw, Loader2, Search, Users, Eye, EyeOff, Mic, Camera, Clock, X, Circle, Square, Bot } from "lucide-react";
 import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
 import AdminStreamViewer from "@/components/admin/AdminStreamViewer";
 import { Button } from "@/components/ui/button";

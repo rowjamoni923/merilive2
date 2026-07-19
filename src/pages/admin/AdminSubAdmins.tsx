@@ -25,26 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Users, 
-  UserPlus, 
-  Shield, 
-  ShieldCheck,
-  Trash2,
-  Settings,
-  Copy,
-  Check,
-  RefreshCw,
-  Crown,
-  Eye,
-  EyeOff,
-  Key,
-  Link as LinkIcon,
-  Ban,
-  CheckCircle,
-  Smartphone,
-  Lock
-} from "lucide-react";
+import { Users, UserPlus, Shield, ShieldCheck, Trash2, Settings, Copy, Check, RefreshCw, Crown, Eye, EyeOff, Key, Link as LinkIcon, Ban, CheckCircle, Smartphone, Lock } from "lucide-react";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";

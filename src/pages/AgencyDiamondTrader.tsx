@@ -1,21 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Coins,
-  TrendingUp,
-  TrendingDown,
-  Search,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  ShoppingCart,
-  Banknote,
-  Users,
-  History,
-  ArrowUpRight,
-  ArrowDownRight
-} from "lucide-react";
+import { ArrowLeft, Gem, TrendingUp, TrendingDown, Search, Loader2, CheckCircle2, AlertCircle, ShoppingCart, Banknote, Users, History, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,7 +80,7 @@ const AgencyDiamondTrader = () => {
   const [tradeHistory, setTradeHistory] = useState<TradeHistory[]>([]);
   
   // Official diamond purchase state
-  const [buyDiamondsAmount, setBuyCoinsAmount] = useState<string>("");
+  const [buyDiamondsAmount, setBuyDiamondsAmount] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'epay' | 'binance' | null>(null);
   const [showBuyConfirmDialog, setShowBuyConfirmDialog] = useState(false);
   const [isBuyProcessing, setIsBuyProcessing] = useState(false);
@@ -157,7 +142,7 @@ const AgencyDiamondTrader = () => {
       const { data: settingsData } = await supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'coin_trade_settings')
+        .eq('setting_key', 'diamond_trade_settings')
         .maybeSingle();
 
       if (settingsData?.setting_value) {
@@ -421,7 +406,7 @@ const AgencyDiamondTrader = () => {
 
       // Reset form
       setShowBuyConfirmDialog(false);
-      setBuyCoinsAmount("");
+      setBuyDiamondsAmount("");
       setSelectedPaymentMethod(null);
 
     } catch (error) {
@@ -506,7 +491,7 @@ const AgencyDiamondTrader = () => {
               className="w-16 h-16 bg-white/25 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0"
               style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 14px -4px rgba(0,0,0,0.25)' }}
             >
-              <Coins className="w-8 h-8" />
+              <Gem className="w-8 h-8" />
             </div>
             <div className="min-w-0">
               <p className="text-white/85 text-xs font-medium uppercase tracking-wider">Trader Wallet</p>
@@ -567,7 +552,7 @@ const AgencyDiamondTrader = () => {
             <TabsContent value="buy" className="p-4 space-y-4">
               <div className="bg-gradient-to-r from-success-50 to-success-50 rounded-lg p-4 text-sm text-success-800 border border-success-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <Coins className="w-5 h-5 text-success-600" />
+                  <Gem className="w-5 h-5 text-success-600" />
                   <span className="font-semibold">Official Diamond Purchase</span>
                 </div>
                 <p className="text-success-600">Add diamonds to your agency wallet. Pay via ePay or Binance.</p>
@@ -577,12 +562,12 @@ const AgencyDiamondTrader = () => {
               <div className="space-y-3">
                 <Label className="text-base font-semibold">How many diamonds do you want to buy?</Label>
                 <div className="relative">
-                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warning-500" />
+                  <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warning-500" />
                   <Input
                     type="number"
                     placeholder="e.g. 100000"
                     value={buyDiamondsAmount}
-                    onChange={(e) => setBuyCoinsAmount(e.target.value)}
+                    onChange={(e) => setBuyDiamondsAmount(e.target.value)}
                     className="pl-10 text-lg h-12 font-medium"
                   />
                 </div>
@@ -594,7 +579,7 @@ const AgencyDiamondTrader = () => {
                       key={amount}
                       variant="outline"
                       size="sm"
-                      onClick={() => setBuyCoinsAmount(amount.toString())}
+                      onClick={() => setBuyDiamondsAmount(amount.toString())}
                       className={`text-xs ${buyDiamondsAmount === amount.toString() ? 'border-primary bg-primary/10' : ''}`}
                     >
                       {(amount / 1000).toLocaleString()}K
@@ -905,7 +890,7 @@ const AgencyDiamondTrader = () => {
           <CardContent>
             {tradeHistory.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Coins className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <Gem className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p>No trade history</p>
               </div>
             ) : (

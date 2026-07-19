@@ -94,7 +94,7 @@ export const resolveEffectiveUserRechargeTotal = async (
   profileTotalRecharged: number,
 ): Promise<number> => {
   try {
-    const [totalCoinRecharge, totalPaymentRecharge] = await Promise.all([
+    const [totalDiamondRecharge, totalPaymentRecharge] = await Promise.all([
       sumPaginated(
         async (from, to) =>
           await supabase
@@ -118,7 +118,7 @@ export const resolveEffectiveUserRechargeTotal = async (
       ),
     ]);
 
-    return Math.max(profileTotalRecharged, totalCoinRecharge, totalPaymentRecharge);
+    return Math.max(profileTotalRecharged, totalDiamondRecharge, totalPaymentRecharge);
   } catch (error) {
     console.warn("[levelResolver] Failed to resolve effective user recharge total:", error);
     return profileTotalRecharged;

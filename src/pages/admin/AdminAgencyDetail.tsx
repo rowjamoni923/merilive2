@@ -2,32 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Building2,
-  Users,
-  Coins,
-  TrendingUp,
-  Ban,
-  CheckCircle,
-  Calendar,
-  Clock,
-  Wallet,
-  Activity,
-  UserCheck,
-  UserX,
-  Search,
-  Phone,
-  Crown,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
-  UserMinus,
-  Plus,
-  Loader2,
-  ArrowRightLeft,
-  Trash2
-} from "lucide-react";
+import { ArrowLeft, Building2, Users, Gem, TrendingUp, Ban, CheckCircle, Calendar, Clock, Wallet, Activity, UserCheck, UserX, Search, Phone, Crown, ArrowUpRight, ArrowDownRight, RefreshCw, UserMinus, Plus, Loader2, ArrowRightLeft, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,14 +116,14 @@ export default function AdminAgencyDetail() {
   
   // New state for modals
   const [showRemoveHostDialog, setShowRemoveHostDialog] = useState(false);
-  const [showAddCoinsDialog, setShowAddCoinsDialog] = useState(false);
+  const [showAddDiamondsDialog, setShowAddDiamondsDialog] = useState(false);
   const [showChangeLevelDialog, setShowChangeLevelDialog] = useState(false);
   const [showRemoveAllHostsDialog, setShowRemoveAllHostsDialog] = useState(false);
   const [showTransferHostDialog, setShowTransferHostDialog] = useState(false);
   const [selectedHost, setSelectedHost] = useState<AgencyHost | null>(null);
   const [removeReason, setRemoveReason] = useState("");
-  const [diamondAmount, setCoinAmount] = useState("");
-  const [coinNote, setCoinNote] = useState("");
+  const [diamondAmount, setDiamondAmount] = useState("");
+  const [diamondNote, setDiamondNote] = useState("");
   const [newLevel, setNewLevel] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   
@@ -273,7 +248,7 @@ export default function AdminAgencyDetail() {
     }
   };
 
-  const handleAddCoins = async () => {
+  const handleAddDiamonds = async () => {
     if (!agency || !diamondAmount) return;
     
     setActionLoading(true);
@@ -281,18 +256,18 @@ export default function AdminAgencyDetail() {
       const { error } = await supabase.rpc("admin_add_agency_diamonds", {
         _agency_id: agency.id,
         _amount: parseFloat(diamondAmount),
-        _note: coinNote || null
+        _note: diamondNote || null
       });
 
       if (error) throw error;
 
       toast.success("Diamonds added successfully");
-      setShowAddCoinsDialog(false);
-      setCoinAmount("");
-      setCoinNote("");
+      setShowAddDiamondsDialog(false);
+      setDiamondAmount("");
+      setDiamondNote("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingCoins", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingDiamonds", message: formatAdminError(error)});
       toast.error("Failed to add diamonds");
     } finally {
       setActionLoading(false);
@@ -623,7 +598,7 @@ export default function AdminAgencyDetail() {
 
         <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-4 text-center">
-            <Coins className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+            <Gem className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-yellow-400">{agency.wallet_balance?.toLocaleString() || 0}</p>
             <p className="text-xs text-slate-500">Wallet</p>
           </CardContent>
@@ -979,7 +954,7 @@ export default function AdminAgencyDetail() {
       </Dialog>
 
       {/* Add Diamonds Dialog */}
-      <Dialog open={showAddCoinsDialog} onOpenChange={setShowAddCoinsDialog}>
+      <Dialog open={showAddDiamondsDialog} onOpenChange={setShowAddDiamondsDialog}>
         <DialogContent className="bg-white border-slate-200 text-slate-900 w-screen sm:w-auto h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] rounded-none sm:rounded-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Diamonds</DialogTitle>
@@ -989,19 +964,19 @@ export default function AdminAgencyDetail() {
               type="number"
               placeholder="Diamond amount"
               value={diamondAmount}
-              onChange={(e) => setCoinAmount(e.target.value)}
+              onChange={(e) => setDiamondAmount(e.target.value)}
               className="bg-slate-50 border-slate-200 text-slate-900"
             />
             <Textarea
               placeholder="Note (optional)"
-              value={coinNote}
-              onChange={(e) => setCoinNote(e.target.value)}
+              value={diamondNote}
+              onChange={(e) => setDiamondNote(e.target.value)}
               className="bg-slate-50 border-slate-200 text-slate-900"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddCoinsDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddCoins} disabled={actionLoading || !diamondAmount}>
+            <Button variant="outline" onClick={() => setShowAddDiamondsDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddDiamonds} disabled={actionLoading || !diamondAmount}>
               {actionLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Add
             </Button>

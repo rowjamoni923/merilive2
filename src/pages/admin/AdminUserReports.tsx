@@ -1,9 +1,7 @@
 import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import {
-  ShieldAlert, Search, Clock, Eye, CheckCircle, XCircle, Ban, Users, AlertTriangle, Filter, RefreshCw, Copy
-} from "lucide-react";
+import { ShieldAlert, Search, Clock, Eye, CheckCircle, XCircle, Ban, Users, AlertTriangle, Filter, RefreshCw, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

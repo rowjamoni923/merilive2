@@ -14,7 +14,7 @@ interface PKBattleResultProps {
   /** PK Battle Step 4 (P2): top-gifter MVP recognition. Optional — only rendered when server set mvp_user_id. */
   mvpName?: string | null;
   mvpAvatar?: string | null;
-  mvpCoins?: number | null;
+  mvpDiamonds?: number | null;
   /** P4: Bigo-parity reward badge — diamonds the local user earned from the 70/30 loser-score split. Winner-only. */
   rewardDiamonds?: number | null;
   onClose: () => void;
@@ -31,7 +31,7 @@ export const PKBattleResult = ({
   loserScore,
   mvpName,
   mvpAvatar,
-  mvpCoins,
+  mvpDiamonds,
   rewardDiamonds,
   onClose,
 }: PKBattleResultProps) => {
@@ -482,7 +482,7 @@ export const PKBattleResult = ({
                       {mvpName}
                     </p>
                   </div>
-                  {typeof mvpCoins === "number" && mvpCoins > 0 && (
+                  {typeof mvpDiamonds === "number" && mvpDiamonds > 0 && (
                     <div className="flex items-center gap-1 shrink-0">
                       <span className="text-base" style={{ filter: "drop-shadow(0 1px 3px rgba(251,191,36,0.55))" }}>
                         🪙
@@ -496,7 +496,7 @@ export const PKBattleResult = ({
                           filter: "drop-shadow(0 0 8px rgba(251,191,36,0.5))",
                         }}
                       >
-                        {mvpCoins}
+                        {mvpDiamonds}
                       </span>
                     </div>
                   )}

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 
-import { ArrowLeft, Gift, Coins, Diamond, Sparkles, Clock, TrendingUp, Star, Check, ChevronRight, Zap, Crown, Timer } from "lucide-react";
+import { ArrowLeft, Gift, Gem, Diamond, Sparkles, Clock, TrendingUp, Star, Check, ChevronRight, Zap, Crown, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -209,7 +209,7 @@ const Rewards = () => {
                       {isClaimed && !isToday ? (
                         <Check className="w-5 h-5 text-green-400" />
                       ) : (
-                        <Coins className={cn("w-5 h-5", isToday ? "text-amber-400" : "text-slate-400")} />
+                        <Gem className={cn("w-5 h-5", isToday ? "text-amber-400" : "text-slate-400")} />
                       )}
                     </div>
                     <span className={cn(

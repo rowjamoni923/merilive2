@@ -299,7 +299,7 @@ Deno.serve(async (req) => {
           if (!rate) return json({ error: "diamond_rate_not_configured" }, 500);
           totalDiamonds = Math.floor(requestedUsd * rate);
           priceUsd = roundUsd(requestedUsd);
-          if (requestedDiamonds !== totalDiamonds) return json({ error: "invalid_custom_coin_amount" }, 400);
+          if (requestedDiamonds !== totalDiamonds) return json({ error: "invalid_custom_diamond_amount" }, 400);
           if (priceUsd < minUsd) {
             return json({
               error: "below_minimum",

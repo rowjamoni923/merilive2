@@ -1,10 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import {
-  ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, UserPlus,
-  Copy, Check, Search, Settings as SettingsIcon, Link2, RefreshCw, Shield,
-  ShieldCheck, MoreVertical, Globe, Lock, Bell, BellOff, MessageSquare,
-  Pin, ClipboardCheck, Edit3, X
-} from "lucide-react";
+import { ArrowLeft, ImagePlus, Crown, LogOut, Trash2, Users, UserMinus, UserPlus, Copy, Check, Search, Settings as SettingsIcon, Link2, RefreshCw, Shield, ShieldCheck, MoreVertical, Globe, Lock, Bell, BellOff, MessageSquare, Pin, ClipboardCheck, Edit3, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

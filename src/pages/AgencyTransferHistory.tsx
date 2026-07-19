@@ -1,19 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Calendar,
-  User,
-  Loader2,
-  Clock,
-  TrendingUp,
-  Coins,
-  Percent,
-  Filter,
-  ChevronDown,
-  ShieldAlert,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowLeft, Calendar, User, Loader2, Clock, TrendingUp, Gem, Percent, Filter, ChevronDown, ShieldAlert, ChevronRight } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -176,7 +163,7 @@ const AgencyTransferHistory = () => {
   const transfers = transfersCache ?? [];
   const commissions = commissionsCache ?? [];
   const [loading, setLoading] = useState(!(hadTransfersCache && hadCommCache));
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
+  const [diamondsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [activeTab, setActiveTab] = useState<'earnings' | 'commission'>('earnings');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -198,8 +185,8 @@ const AgencyTransferHistory = () => {
         .maybeSingle();
       
       if (settingsData?.setting_value) {
-        const cs = settingsData.setting_value as unknown as { coins_to_dollar_rate?: number };
-        if (cs?.coins_to_dollar_rate) setCoinsToUsdRate(cs.coins_to_dollar_rate);
+        const cs = settingsData.setting_value as unknown as { diamonds_to_dollar_rate?: number };
+        if (cs?.diamonds_to_dollar_rate) setDiamondsToUsdRate(cs.diamonds_to_dollar_rate);
       }
 
       const { data: agencyData } = await supabase
@@ -268,7 +255,7 @@ const AgencyTransferHistory = () => {
     }
   };
 
-  const beansToUsd = (beans: number) => (beans / coinsToUsdRate).toFixed(2);
+  const beansToUsd = (beans: number) => (beans / diamondsToUsdRate).toFixed(2);
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', {
@@ -457,7 +444,7 @@ const AgencyTransferHistory = () => {
             <Card className="bg-gradient-to-br from-info-500/20 to-info-500/20 border-info-500/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-info-600 mb-2">
-                  <Coins className="w-5 h-5" />
+                  <Gem className="w-5 h-5" />
                   <span className="text-sm">Transfers</span>
                 </div>
                 <p className="text-2xl font-bold text-info-600">

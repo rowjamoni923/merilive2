@@ -57,7 +57,7 @@ export const giftCategories: GiftCategory[] = [
 ];
 
 // Format diamond value
-export const formatCoinValue = (diamonds: number): string => {
+export const formatDiamondValue = (diamonds: number): string => {
   if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
   if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(diamonds >= 10000 ? 0 : 1)}K`;
   return diamonds.toString();
@@ -122,12 +122,12 @@ const getOptimizedGiftIconUrl = (iconUrl?: string | null, animationUrl?: string 
   return normalizedIconUrl && !VIDEO_OR_GIF_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl)) ? normalizedIconUrl : null;
 };
 
-export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(function GiftPanel({ isOpen, onClose, onSendGift, userDiamonds: propUserCoins }, _ref) {
+export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(function GiftPanel({ isOpen, onClose, onSendGift, userDiamonds: propUserDiamonds }, _ref) {
   const [activeCategory, setActiveCategory] = useState(0);
   const [selectedGift, setSelectedGift] = useState<GiftData | null>(null);
   const [count, setCount] = useState(1);
-  const [userDiamonds, setUserCoins] = useState(propUserCoins || 0);
-  const [displayCoins, setDisplayCoins] = useState(propUserCoins || 0);
+  const [userDiamonds, setUserDiamonds] = useState(propUserDiamonds || 0);
+  const [displayDiamonds, setDisplayDiamonds] = useState(propUserDiamonds || 0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gifts, setGifts] = useState<GiftData[]>([]);
   const [loading, setLoading] = useState(!hasGiftCache()); // Instant if cached
@@ -142,7 +142,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const containerRef = useRef<HTMLDivElement>(null);
   // Pkg306 audit: synchronous balance mirror so rapid combo taps cannot overdraw
   // between renders. Closure `userDiamonds` lags by one render in combo bursts.
-  const userCoinsRef = useRef<number>(propUserCoins || 0);
+  const userDiamondsRef = useRef<number>(propUserDiamonds || 0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
   // Current user level (for level-gated gifts)
@@ -184,16 +184,16 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }
   }, [isOpen]);
 
-  // Sync prop-supplied coin balance whenever the parent updates it.
+  // Sync prop-supplied diamond balance whenever the parent updates it.
   // Without this, GiftPanel's local `userDiamonds` stays frozen at the
   // value captured on mount until the balance subscription fires.
   useEffect(() => {
-    if (typeof propUserCoins === 'number' && propUserCoins >= 0) {
-      userCoinsRef.current = propUserCoins;
-      setUserCoins(propUserCoins);
-      setDisplayCoins(propUserCoins);
+    if (typeof propUserDiamonds === 'number' && propUserDiamonds >= 0) {
+      userDiamondsRef.current = propUserDiamonds;
+      setUserDiamonds(propUserDiamonds);
+      setDisplayDiamonds(propUserDiamonds);
     }
-  }, [propUserCoins]);
+  }, [propUserDiamonds]);
 
   // Fetch user's real diamond balance - use cached balance for instant display
   useEffect(() => {
@@ -202,23 +202,23 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     // Use cached balance immediately for instant UI
     const cachedBalance = getCachedBalance();
     if (cachedBalance > 0) {
-      userCoinsRef.current = cachedBalance;
-      setUserCoins(cachedBalance);
-      setDisplayCoins(cachedBalance);
+      userDiamondsRef.current = cachedBalance;
+      setUserDiamonds(cachedBalance);
+      setDisplayDiamonds(cachedBalance);
     }
 
     // Subscribe to balance updates
     const unsubscribe = subscribeToBalance((newBalance) => {
-      userCoinsRef.current = newBalance;
-      setUserCoins(newBalance);
+      userDiamondsRef.current = newBalance;
+      setUserDiamonds(newBalance);
     });
 
     // Fetch fresh balance in background (only if cache is empty)
     if (cachedBalance === 0) {
       getBalanceWithFetch().then((balance) => {
-        userCoinsRef.current = balance;
-        setUserCoins(balance);
-        setDisplayCoins(balance);
+        userDiamondsRef.current = balance;
+        setUserDiamonds(balance);
+        setDisplayDiamonds(balance);
       });
     }
 
@@ -292,7 +292,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     return unsubscribe;
   }, [isOpen]);
 
-  // Determine animation type based on coin value
+  // Determine animation type based on diamond value
   const getAnimationType = (diamondValue: number): 'basic' | 'premium' | 'luxury' | 'legendary' => {
     if (diamondValue >= 10000) return 'legendary';
     if (diamondValue >= 1000) return 'luxury';
@@ -300,14 +300,14 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     return 'basic';
   };
 
-  // Real-time coin update animation
+  // Real-time diamond update animation
   useEffect(() => {
-    if (displayCoins !== userDiamonds) {
+    if (displayDiamonds !== userDiamonds) {
       setIsAnimating(true);
-      const diff = userDiamonds - displayCoins;
+      const diff = userDiamonds - displayDiamonds;
       const step = diff > 0 ? Math.ceil(diff / 10) : Math.floor(diff / 10);
       const interval = setInterval(() => {
-        setDisplayCoins(prev => {
+        setDisplayDiamonds(prev => {
           const next = prev + step;
           if ((step > 0 && next >= userDiamonds) || (step < 0 && next <= userDiamonds)) {
             clearInterval(interval);
@@ -408,7 +408,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
 
 
   // Keep ref in sync with userDiamonds (mirror, not state-source).
-  useEffect(() => { userCoinsRef.current = userDiamonds; }, [userDiamonds]);
+  useEffect(() => { userDiamondsRef.current = userDiamonds; }, [userDiamonds]);
 
   // Combo-aware send: each tap fires the currently-selected `count` and bumps combo.
   // Optimistically deduct the cost from local balance so that rapid combo taps
@@ -422,10 +422,10 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     const singleOnly = selectedGift.diamonds >= SINGLE_ONLY_THRESHOLD;
     const effectiveCount = singleOnly ? 1 : count;
     const cost = selectedGift.diamonds * effectiveCount;
-    if (userCoinsRef.current < cost) return;
-    userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
+    if (userDiamondsRef.current < cost) return;
+    userDiamondsRef.current = Math.max(0, userDiamondsRef.current - cost);
     onSendGift(selectedGift, effectiveCount);
-    setUserCoins(userCoinsRef.current);
+    setUserDiamonds(userDiamondsRef.current);
     if (!singleOnly) {
       setComboCount(prev => prev + effectiveCount);
       startComboTimer();
@@ -441,11 +441,11 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     const singleOnly = selectedGift.diamonds >= SINGLE_ONLY_THRESHOLD;
     const effectiveCount = singleOnly ? 1 : quickCount;
     const cost = selectedGift.diamonds * effectiveCount;
-    if (userCoinsRef.current < cost) return;
-    userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
+    if (userDiamondsRef.current < cost) return;
+    userDiamondsRef.current = Math.max(0, userDiamondsRef.current - cost);
     setCount(effectiveCount);
     onSendGift(selectedGift, effectiveCount);
-    setUserCoins(userCoinsRef.current);
+    setUserDiamonds(userDiamondsRef.current);
     if (!singleOnly) {
       setComboCount(prev => prev + effectiveCount);
       startComboTimer();
@@ -594,7 +594,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                       : 'bg-gradient-to-r from-cyan-200 to-blue-300'
                   )}
                 >
-                  {formatCoinValue(displayCoins)}
+                  {formatDiamondValue(displayDiamonds)}
                 </span>
               </div>
 
@@ -739,7 +739,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   <p className="text-white font-semibold text-xs">{selectedGift.name}</p>
                   <div className="text-cyan-400 text-[10px] flex items-center gap-0.5 font-medium">
                     <Diamond3DIcon size={12} />
-                    {formatCoinValue(selectedGift.diamonds)} each
+                    {formatDiamondValue(selectedGift.diamonds)} each
                   </div>
                 </div>
               </div>
@@ -749,7 +749,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 <p className="text-white/70 text-[9px] font-medium">Total Cost</p>
                 <div className="font-bold text-sm flex items-center gap-1 justify-end bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
                   <Diamond3DIcon size={16} />
-                  {formatCoinValue(selectedGift.diamonds * count)}
+                  {formatDiamondValue(selectedGift.diamonds * count)}
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, RefreshCw, Search, AlertTriangle, CheckCircle2, Clock, XCircle, Coins, DollarSign } from "lucide-react";
+import { ArrowLeft, RefreshCw, Search, AlertTriangle, CheckCircle2, Clock, XCircle, Gem, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -234,7 +234,7 @@ const AdminCryptoRecovery = () => {
                           {row.pay_currency?.toUpperCase()}
                         </Badge>
                         <span className="text-sm font-semibold flex items-center gap-1">
-                          <Coins className="w-3.5 h-3.5 text-amber-300" />
+                          <Gem className="w-3.5 h-3.5 text-amber-300" />
                           {row.diamonds_amount.toLocaleString()}
                         </span>
                         <span className="text-sm font-semibold flex items-center gap-1">

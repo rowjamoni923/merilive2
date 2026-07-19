@@ -1,27 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import useAdminRealtime, { dispatchAdminTableUpdate } from "@/hooks/useAdminRealtime";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Search, 
-  User, 
-  Building2, 
-  Crown, 
-  Wallet, 
-  Minus, 
-  Plus,
-  Ban, 
-  AlertTriangle,
-  Check,
-  Loader2,
-  Coins,
-  Diamond,
-  Users,
-  Bell,
-  Phone,
-  Clock,
-  X,
-  RefreshCw
-} from "lucide-react";
+import { Search, User, Building2, Crown, Wallet, Minus, Plus, Ban, AlertTriangle, Check, Loader2, Gem, Diamond, Users, Bell, Phone, Clock, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -486,8 +466,8 @@ export default function AdminBalanceDeduction() {
       // User's diamonds
       fields.push({ key: 'diamonds', label: 'Diamonds', value: result.balances.diamonds || 0, icon: <Diamond className="w-4 h-4 text-blue-500" />, source: 'user' });
       if (result.type === 'host') {
-        fields.push({ key: 'total_earnings', label: 'Total Earnings (Beans)', value: result.balances.total_earnings || 0, icon: <Coins className="w-4 h-4 text-amber-500" />, source: 'user' });
-        fields.push({ key: 'pending_earnings', label: 'Pending Earnings', value: result.balances.pending_earnings || 0, icon: <Coins className="w-4 h-4 text-orange-500" />, source: 'user' });
+        fields.push({ key: 'total_earnings', label: 'Total Earnings (Beans)', value: result.balances.total_earnings || 0, icon: <Gem className="w-4 h-4 text-amber-500" />, source: 'user' });
+        fields.push({ key: 'pending_earnings', label: 'Pending Earnings', value: result.balances.pending_earnings || 0, icon: <Gem className="w-4 h-4 text-orange-500" />, source: 'user' });
       }
       
       // Related Agency balances (if user owns an agency)
@@ -499,15 +479,15 @@ export default function AdminBalanceDeduction() {
       // Related Helper balances (if user is a helper)
       if (result.relatedHelper) {
         fields.push({ key: 'helper_wallet', label: `Helper Wallet (L${result.relatedHelper.level})`, value: result.relatedHelper.wallet_balance || 0, icon: <Wallet className="w-4 h-4 text-green-500" />, source: 'helper' });
-        fields.push({ key: 'helper_earnings', label: 'Helper Total Earnings', value: result.relatedHelper.total_earnings || 0, icon: <Coins className="w-4 h-4 text-emerald-500" />, source: 'helper' });
+        fields.push({ key: 'helper_earnings', label: 'Helper Total Earnings', value: result.relatedHelper.total_earnings || 0, icon: <Gem className="w-4 h-4 text-emerald-500" />, source: 'helper' });
       }
     } else if (result.type === 'agency') {
-      fields.push({ key: 'beans', label: 'Beans Balance', value: result.balances.beans || 0, icon: <Coins className="w-4 h-4 text-amber-500" />, source: 'agency' });
+      fields.push({ key: 'beans', label: 'Beans Balance', value: result.balances.beans || 0, icon: <Gem className="w-4 h-4 text-amber-500" />, source: 'agency' });
       fields.push({ key: 'diamonds', label: 'Diamond Balance', value: result.balances.diamonds || 0, icon: <Diamond className="w-4 h-4 text-blue-500" />, source: 'agency' });
       fields.push({ key: 'wallet_balance', label: 'Wallet Balance', value: result.balances.wallet_balance || 0, icon: <Wallet className="w-4 h-4 text-green-500" />, source: 'agency' });
     } else if (result.type === 'helper') {
       fields.push({ key: 'wallet_balance', label: 'Wallet Balance', value: result.balances.wallet_balance || 0, icon: <Wallet className="w-4 h-4 text-green-500" />, source: 'helper' });
-      fields.push({ key: 'total_earnings', label: 'Total Earnings', value: result.balances.total_earnings || 0, icon: <Coins className="w-4 h-4 text-amber-500" />, source: 'helper' });
+      fields.push({ key: 'total_earnings', label: 'Total Earnings', value: result.balances.total_earnings || 0, icon: <Gem className="w-4 h-4 text-amber-500" />, source: 'helper' });
     }
     
     return fields;

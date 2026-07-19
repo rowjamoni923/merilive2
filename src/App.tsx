@@ -1595,7 +1595,7 @@ const App = () => {
                   <Route path="diamond-traders/approvals" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
                   <Route path="diamond-traders/orders" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminTraderOrders /></AdminRouteGuard>} />
                   <Route path="diamond-traders/transactions" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminTraderTransactions /></AdminRouteGuard>} />
-                  {/* Legacy coin-* redirects (Zero-Coin Wave B1) */}
+                  {/* Legacy diamond-* redirects (Zero-Diamond Wave B1) */}
                   <Route path="diamond-traders" element={<Navigate to="/admin/diamond-traders" replace />} />
                   <Route path="diamond-traders/approvals" element={<Navigate to="/admin/diamond-traders/approvals" replace />} />
                   <Route path="diamond-traders/orders" element={<Navigate to="/admin/diamond-traders/orders" replace />} />

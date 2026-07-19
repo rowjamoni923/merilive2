@@ -11,19 +11,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Antenna,
-  RefreshCw,
-  Loader2,
-  Search,
-  Eye,
-  Trash2,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  KeyRound,
-  Copy,
-} from "lucide-react";
+import { Antenna, RefreshCw, Loader2, Search, Eye, Trash2, Clock, CheckCircle2, AlertCircle, KeyRound, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

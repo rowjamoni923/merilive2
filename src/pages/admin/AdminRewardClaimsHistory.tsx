@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Gift, Calendar, ArrowLeft, Coins, User } from 'lucide-react';
+import { Search, Gift, Calendar, ArrowLeft, Gem, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -301,7 +301,7 @@ const AdminRewardClaimsHistory = () => {
                   {/* Stats */}
                   <div className="text-right shrink-0">
                     <div className="flex items-center gap-1 justify-end">
-                      <Coins className="h-3.5 w-3.5 text-amber-400" />
+                      <Gem className="h-3.5 w-3.5 text-amber-400" />
                       <span className="font-bold text-amber-400">{host.total_beans.toLocaleString()}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">{host.total_claims} tasks</p>

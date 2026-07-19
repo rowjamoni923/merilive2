@@ -31,28 +31,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import {
-  AlertTriangle,
-  Bug,
-  CheckCircle2,
-  RefreshCw,
-  Search,
-  Trash2,
-  Eye,
-  XCircle,
-  Globe,
-  MonitorSmartphone,
-  Clock,
-  Filter,
-  Sparkles,
-  Loader2,
-  Wand2,
-  Copy,
-  Download,
-  FileSpreadsheet,
-  Play,
-  Pause,
-} from "lucide-react";
+import { AlertTriangle, Bug, CheckCircle2, RefreshCw, Search, Trash2, Eye, XCircle, Globe, MonitorSmartphone, Clock, Filter, Sparkles, Loader2, Wand2, Copy, Download, FileSpreadsheet, Play, Pause } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,

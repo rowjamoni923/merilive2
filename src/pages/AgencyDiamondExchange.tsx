@@ -1,18 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Coins,
-  Diamond,
-  ArrowRightLeft,
-  Calculator,
-  Users,
-  Search,
-  CheckCircle2,
-  AlertCircle,
-  Send,
-  History
-} from "lucide-react";
+import { ArrowLeft, Gem, Diamond, ArrowRightLeft, Calculator, Users, Search, CheckCircle2, AlertCircle, Send, History } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,10 +143,10 @@ const AgencyDiamondExchange = () => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
       // Bust cache so we read the latest admin value (agency-specific, fall back to shared)
-      invalidateAppSetting('agency_coin_exchange');
+      invalidateAppSetting('agency_diamond_exchange');
       invalidateAppSetting('diamond_exchange');
       const value =
-        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 })) ||
+        (await getAppSetting<Record<string, unknown>>('agency_diamond_exchange', { maxAgeMs: 0 })) ||
         (await getAppSetting<Record<string, unknown>>('diamond_exchange', { maxAgeMs: 0 }));
       if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
@@ -209,7 +197,7 @@ const AgencyDiamondExchange = () => {
 
       // Fetch agency-specific exchange settings (rate + 25% fee); fall back to user setting
       const settingsValue =
-        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 })) ||
+        (await getAppSetting<Record<string, unknown>>('agency_diamond_exchange', { maxAgeMs: 0 })) ||
         (await getAppSetting<Record<string, unknown>>('diamond_exchange', { maxAgeMs: 0 }));
       if (settingsValue) {
         setExchangeSettings(normalizeExchangeSettings(settingsValue));
@@ -672,7 +660,7 @@ const AgencyDiamondExchange = () => {
               className="w-10 h-10 mb-2 bg-white/25 backdrop-blur-sm rounded-xl flex items-center justify-center"
               style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)' }}
             >
-              <Coins className="w-5 h-5" />
+              <Gem className="w-5 h-5" />
             </div>
             <p className="text-white/90 text-[11px] font-medium uppercase tracking-wide">Total Beans</p>
             <p className="text-2xl font-extrabold mt-0.5" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.25)' }}>
@@ -770,7 +758,7 @@ const AgencyDiamondExchange = () => {
               <div>
                 <Label className="text-slate-500">Beans Amount</Label>
                 <div className="relative mt-2">
-                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warning-600" />
+                  <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warning-600" />
                   <Input
                     type="number"
                     placeholder="Enter beans amount"
@@ -907,7 +895,7 @@ const AgencyDiamondExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Send className="w-5 h-5 text-info-600" />
-                Send Coins to User Top-up
+                Send Gem to User Top-up
               </h3>
               
               <div className="space-y-4">
@@ -991,12 +979,12 @@ const AgencyDiamondExchange = () => {
                 {selectedUser && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Coin Amount</Label>
+                      <Label className="text-slate-500">Diamond Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-info-600" />
                         <Input
                           type="number"
-                          placeholder="Enter coin amount"
+                          placeholder="Enter diamond amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
                           className="pl-10 text-lg h-12 bg-white border-warning-200 text-slate-800 placeholder:text-slate-500"
@@ -1045,7 +1033,7 @@ const AgencyDiamondExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-info-500 to-info-600 hover:from-info-600 hover:to-info-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Gem
                     </Button>
                   </>
                 )}
@@ -1058,7 +1046,7 @@ const AgencyDiamondExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Diamond className="w-5 h-5 text-brand-600" />
-                Send Coins to Trader Wallet
+                Send Gem to Trader Wallet
               </h3>
               <p className="text-xs text-slate-500 -mt-2 mb-4">
                 Agency transfer goes directly to the target owner’s Trader Wallet
@@ -1126,12 +1114,12 @@ const AgencyDiamondExchange = () => {
                 {selectedTargetAgency && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Coin Amount</Label>
+                      <Label className="text-slate-500">Diamond Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-600" />
                         <Input
                           type="number"
-                          placeholder="Enter coin amount"
+                          placeholder="Enter diamond amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
                           className="pl-10 text-lg h-12 bg-white border-warning-200 text-slate-800 placeholder:text-slate-500"
@@ -1184,7 +1172,7 @@ const AgencyDiamondExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins → Trader Wallet
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Gem → Trader Wallet
                     </Button>
                   </>
                 )}

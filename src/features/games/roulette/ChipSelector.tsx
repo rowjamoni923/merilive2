@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Coins } from "lucide-react";
+import { Gem } from "lucide-react";
 
 interface ChipSelectorProps {
   selectedChip: number;
@@ -22,7 +22,7 @@ export const ChipSelector = ({ selectedChip, onSelectChip, balance }: ChipSelect
     <div className="mt-4">
       {/* Balance display */}
       <div className="flex items-center justify-center gap-2 mb-3">
-        <Coins className="w-4 h-4 text-amber-400" />
+        <Gem className="w-4 h-4 text-amber-400" />
         <span className="text-white/70 text-sm">{balance.toLocaleString()}</span>
       </div>
 

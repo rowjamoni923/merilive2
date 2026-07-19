@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, History, Coins, Trophy, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { X, History, Gem, Trophy, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/Skeleton";
@@ -251,7 +251,7 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1 justify-end">
-                          <Coins className="w-3 h-3 text-amber-400" />
+                          <Gem className="w-3 h-3 text-amber-400" />
                           <span className={`text-xs font-bold ${
                             delta >= 0 ? 'text-green-400' : 'text-red-400'
                           }`}>

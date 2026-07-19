@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { 
-  Gamepad2, 
-  Gift, 
-  MessageSquare, 
-  Settings,
-  Sparkles,
-  X,
-  Loader2
-} from "lucide-react";
+import { Gamepad2, Gift, MessageSquare, Settings, Sparkles, X, Loader2 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { Button } from "@/components/ui/button";

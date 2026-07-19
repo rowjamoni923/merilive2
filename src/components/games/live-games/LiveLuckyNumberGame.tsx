@@ -4,7 +4,7 @@ import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import luckyNumberBg from "@/assets/games-bg/lucky-number-bg.jpg";
 
 import { cn } from "@/lib/utils";
-import { Coins, Star, Sparkles } from "lucide-react";
+import { Gem, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WinPopup } from "../common/WinPopup";
 import { formatBetAmount } from "../common/BetControls";
@@ -22,7 +22,7 @@ interface LiveLuckyNumberGameProps {
   myBets: any[];
   onPlaceBet: (betType?: string, betValue?: string) => Promise<any>;
   onProcessResult: (result: any) => void;
-  onUpdateCoins?: (newBalance: number) => void;
+  onUpdateDiamonds?: (newBalance: number) => void;
   onGameWin?: (winAmount: number) => void;
   onTimerUpdate?: (timeLeft: number, phase: 'betting' | 'spinning') => void;
 }
@@ -70,7 +70,7 @@ export function LiveLuckyNumberGame({
   myBets,
   onPlaceBet,
   onProcessResult,
-  onUpdateCoins,
+  onUpdateDiamonds,
   onGameWin,
   onTimerUpdate
 }: LiveLuckyNumberGameProps) {
@@ -201,7 +201,7 @@ export function LiveLuckyNumberGame({
           if (!user) return;
           const result = await processWin(user.id, game?.id || 'lucky-number', game?.name || 'Lucky Number', totalWinnings, MULTIPLIER);
           if (result.success && result.newBalance !== undefined) {
-            onUpdateCoins?.(result.newBalance);
+            onUpdateDiamonds?.(result.newBalance);
           }
         } catch (error) {
           console.error('[LuckyNumber] Credit error:', error);
@@ -480,7 +480,7 @@ export function LiveLuckyNumberGame({
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl py-2 border border-purple-500/30"
         >
-          <Coins className="w-4 h-4 text-amber-400" />
+          <Gem className="w-4 h-4 text-amber-400" />
           <span className="text-purple-400 text-sm font-bold">
             Total Bet: {formatBetAmount(totalBetPlaced)}
           </span>

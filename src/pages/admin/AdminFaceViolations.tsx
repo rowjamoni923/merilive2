@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import {AlertTriangle, Eye, EyeOff, Ban, CheckCircle, RefreshCw, Clock, Camera, Shield, Search, Filter} from "lucide-react";
+import { AlertTriangle, Eye, EyeOff, Ban, CheckCircle, RefreshCw, Clock, Camera, Shield, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";

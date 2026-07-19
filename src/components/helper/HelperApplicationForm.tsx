@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Crown, Star, Shield, Gem, CheckCircle2, Loader2,
-  MessageCircle, Send, DollarSign, Banknote,
-  ArrowRight, Copy, Upload, CreditCard, MapPin, Sparkles, AlertTriangle
-} from "lucide-react";
+import { Crown, Star, Shield, Gem, CheckCircle2, Loader2, MessageCircle, Send, DollarSign, Banknote, ArrowRight, Copy, Upload, CreditCard, MapPin, Sparkles, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -876,7 +872,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         onOpenChange={setSwiftPayOpen}
         packages={[]}
         mode="user"
-        userCustomCoins={diamondsForUpgrade}
+        userCustomDiamonds={diamondsForUpgrade}
         userCustomPriceUsd={effectiveCost}
         userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
         helperApplicationIntent={isPaidLevel ? {
@@ -886,7 +882,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           reason: reason || null,
           payroll_requested: selectedLevel === 5 ? payrollRequested : false,
         } : null}
-        onCredited={async (_coins, topupId) => {
+        onCredited={async (_diamonds, topupId) => {
           setPaidConfirmed(true);
           // Close payment modal and submit application automatically.
           // Pass the real swift_pay_topups.id so Pkg65 auto-level-detection

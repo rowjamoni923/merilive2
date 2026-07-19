@@ -1,23 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MessageCircle,
-  Gamepad2,
-  Gift,
-  LayoutGrid,
-  X,
-  Mic,
-  MicOff,
-  Image,
-  LayoutDashboard,
-  MessageSquare,
-  Share2,
-  Diamond,
-  Music,
-  Settings,
-  Armchair,
-  Hand,
-  Sparkles,
-} from "lucide-react";
+import { MessageCircle, Gamepad2, Gift, LayoutGrid, X, Mic, MicOff, Image, LayoutDashboard, MessageSquare, Share2, Diamond, Music, Settings, Armchair, Hand, Sparkles } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { cn } from "@/lib/utils";
 import { useState, useCallback } from "react";

@@ -1,20 +1,5 @@
 import { useState, useEffect, forwardRef } from "react";
-import { 
-  Wallet, 
-  Users, 
-  DollarSign, 
-  Shield, 
-  Globe, 
-  TrendingUp,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
-  Coins,
-  Gift,
-  Clock,
-  Star,
-  Zap
-} from "lucide-react";
+import { Wallet, Users, DollarSign, Shield, Globe, TrendingUp, Sparkles, ArrowRight, CheckCircle2, Gem, Gift, Clock, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -144,7 +129,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
   if (!isOpen) return null;
 
   const benefits = [
-    { icon: Coins, title: "Process Top-ups", desc: "Handle user diamond recharge requests", color: "text-warning-500" },
+    { icon: Gem, title: "Process Top-ups", desc: "Handle user diamond recharge requests", color: "text-warning-500" },
     { icon: Gift, title: "Manage Withdrawals", desc: "Process agency withdrawal requests", color: "text-success-500" },
     { icon: DollarSign, title: "Diamond Operations", desc: "Manage diamond balance transactions", color: "text-info-500" },
     { icon: TrendingUp, title: "Earn Commission", desc: "Get % on every transaction you process", color: "text-brand-500" },

@@ -32,43 +32,7 @@ import { useLiveSessionOptional } from "@/features/live-session";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { useLiveFrameMonitor } from "@/hooks/useLiveFrameMonitor";
-import {
-  Heart,
-  Share2,
-  X,
-  Send,
-  Phone,
-  Gift,
-  Grid3X3,
-  Users,
-  Eye,
-  EyeOff,
-  Wand2,
-  Smile,
-  Sparkles,
-  RotateCcw,
-  ShieldCheck,
-  Layers,
-  Radio,
-  PhoneCall,
-  Gamepad2,
-  Swords,
-  MessageCircle,
-  ClipboardList,
-  Gem,
-  Music,
-  LogOut,
-  WifiOff,
-  ChevronUp,
-  ChevronDown,
-  Mic,
-  MicOff,
-  Hand,
-  Bot,
-  RefreshCcw,
-  Image as ImageIcon,
-  Volume2,
-} from "lucide-react";
+import { Heart, Share2, X, Send, Phone, Gift, Grid3X3, Users, Eye, EyeOff, Wand2, Smile, Sparkles, RotateCcw, ShieldCheck, Layers, Radio, PhoneCall, Gamepad2, Swords, MessageCircle, ClipboardList, Gem, Music, LogOut, WifiOff, ChevronUp, ChevronDown, Mic, MicOff, Hand, Bot, RefreshCcw, Image as ImageIcon, Volume2 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";
@@ -324,8 +288,8 @@ const LiveStream = () => {
   const [isHostCamOff, setIsHostCamOff] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
-  const [userDiamonds, setUserCoins] = useState(0);
-  const userCoinsRef = useRef(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
+  const userDiamondsRef = useRef(0);
   const pendingGiftCostRef = useRef(0);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
   const [streamStartTime, setStreamStartTime] = useState(Date.now());
@@ -357,7 +321,7 @@ const LiveStream = () => {
 
   useEffect(() => {
     if (pendingGiftCostRef.current === 0) {
-      userCoinsRef.current = userDiamonds;
+      userDiamondsRef.current = userDiamonds;
     }
   }, [userDiamonds]);
   
@@ -392,7 +356,7 @@ const LiveStream = () => {
     loserScore: number;
     mvpName?: string | null;
     mvpAvatar?: string | null;
-    mvpCoins?: number | null;
+    mvpDiamonds?: number | null;
     rewardDiamonds?: number | null;
   } | null>(null);
   // PK Battle Step 4 (P2): keep punishment overlay alive after battle ends.
@@ -841,7 +805,7 @@ const LiveStream = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost, isHostVerified, id, showLiveEndSummary, streamStartTime]);
 
-  // Phase I — push viewer/coin counts into the native LIVE foreground-service
+  // Phase I — push viewer/diamond counts into the native LIVE foreground-service
   // notification ("🔴 LIVE · {viewers} watching · 💎 {diamonds}"). Bigo/Chamet
   // pattern: notification stays fresh while host is broadcasting. No-op on
   // web/iOS and when broadcastMode !== 'live' (controller / plugin guards).
@@ -850,7 +814,7 @@ const LiveStream = () => {
     if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
     const viewerCount: number = Number(streamData?.viewer_count ?? 0) || 0;
     const diamondCount: number = Number(
-      streamData?.total_diamonds ?? streamData?.coin_count ?? 0
+      streamData?.total_diamonds ?? streamData?.diamond_count ?? 0
     ) || 0;
     const title: string = String(streamData?.title || hostInfo?.name || '').slice(0, 60);
     let cancelled = false;
@@ -862,7 +826,7 @@ const LiveStream = () => {
       } catch { /* noop — web / non-live */ }
     })();
     return () => { cancelled = true; };
-  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_diamonds, streamData?.coin_count, streamData?.title, hostInfo?.name]);
+  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_diamonds, streamData?.diamond_count, streamData?.title, hostInfo?.name]);
 
   // ========== Pkg105: HOST HARD-BLOCK (LiveKit track-subscription permissions) ==========
   // Host-only. Fetches `blocked_users` (where blocker_id = host) on mount + when
@@ -1274,11 +1238,11 @@ const LiveStream = () => {
       // Process user profile
       if (userProfileRes.data && mountedRef.current) {
         const profile = userProfileRes.data;
-        const profileCoins = profile.diamonds || 0;
+        const profileDiamonds = profile.diamonds || 0;
         setCurrentUser({
           gender: profile.gender || "male",
           id: cachedUser!.id,
-          diamonds: profileCoins,
+          diamonds: profileDiamonds,
           is_host: profile.is_host === true,
           is_agency_owner: (profile as any).is_agency_owner === true,
           is_topup_helper: !!helperProfileRes.data,
@@ -1290,8 +1254,8 @@ const LiveStream = () => {
           country_flag: profile.country_flag,
         });
         if (pendingGiftCostRef.current === 0) {
-          userCoinsRef.current = profileCoins;
-          setUserCoins(profileCoins);
+          userDiamondsRef.current = profileDiamonds;
+          setUserDiamonds(profileDiamonds);
         }
       }
       
@@ -1864,11 +1828,11 @@ const LiveStream = () => {
         soundUrl: data.giftSoundUrl || undefined,
         giftColor: 'bg-pink-500/50',
         count: data.count || 1,
-        diamonds: data.giftCoins || 0,
+        diamonds: data.giftDiamonds || 0,
         isReceiverGift: isHost,
       });
 
-      const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
+      const giftAmount = Number(data.receiverBeans ?? (data.giftDiamonds || 0) * (data.count || 1));
       if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
       setTotalBeans(prev => prev + giftAmount);
       if (isHost && giftAmount > 0) {
@@ -3501,7 +3465,7 @@ const LiveStream = () => {
 
           let mvpName: string | null = null;
           let mvpAvatar: string | null = null;
-          let mvpCoins: number | null = null;
+          let mvpDiamonds: number | null = null;
           if (battle.mvp_user_id) {
             const { data: mvpProfile } = await supabase
               .from("profiles")
@@ -3516,7 +3480,7 @@ const LiveStream = () => {
               .eq("battle_id", battleId)
               .eq("sender_id", battle.mvp_user_id);
             if (Array.isArray(mvpRow)) {
-              mvpCoins = mvpRow.reduce((s, r) => s + Number(r.score_value ?? 0), 0) || null;
+              mvpDiamonds = mvpRow.reduce((s, r) => s + Number(r.score_value ?? 0), 0) || null;
             }
           }
 
@@ -3531,7 +3495,7 @@ const LiveStream = () => {
 
           setPKResult((prev) =>
             prev
-              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpCoins, rewardDiamonds }
+              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpDiamonds, rewardDiamonds }
               : prev,
           );
         }
@@ -3663,7 +3627,7 @@ const LiveStream = () => {
 
     if (result.success) {
       hapticFeedback('gift');
-      setUserCoins(prev => prev - (result.transaction?.diamonds_spent || gift.diamonds));
+      setUserDiamonds(prev => prev - (result.transaction?.diamonds_spent || gift.diamonds));
       setShowGiftPanel(false);
     } else {
       hapticFeedback('error');
@@ -4928,7 +4892,7 @@ const LiveStream = () => {
           loserScore={pkResult.loserScore}
           mvpName={pkResult.mvpName}
           mvpAvatar={pkResult.mvpAvatar}
-          mvpCoins={pkResult.mvpCoins}
+          mvpDiamonds={pkResult.mvpDiamonds}
           rewardDiamonds={pkResult.rewardDiamonds}
           onClose={handleClosePKResult}
         />
@@ -4985,8 +4949,8 @@ const LiveStream = () => {
           }
           
           const totalCost = gift.diamonds * count;
-          const availableCoins = userCoinsRef.current;
-          if (availableCoins < totalCost) {
+          const availableDiamonds = userDiamondsRef.current;
+          if (availableDiamonds < totalCost) {
             toast.error("Not enough diamonds!");
             return;
           }
@@ -4994,10 +4958,10 @@ const LiveStream = () => {
           // ========== INSTANT UI UPDATE (< 100ms) ==========
           // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
           
-          // Optimistic coin deduction (instant visual feedback)
-          userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+          // Optimistic diamond deduction (instant visual feedback)
+          userDiamondsRef.current = Math.max(0, availableDiamonds - totalCost);
           pendingGiftCostRef.current += totalCost;
-          setUserCoins(userCoinsRef.current);
+          setUserDiamonds(userDiamondsRef.current);
           
           // Play gift sound IMMEDIATELY
           playSound('gift');
@@ -5085,8 +5049,8 @@ const LiveStream = () => {
 
               releasePendingCost();
               if (!result.success) {
-                userCoinsRef.current += totalCost;
-                setUserCoins(userCoinsRef.current);
+                userDiamondsRef.current += totalCost;
+                setUserDiamonds(userDiamondsRef.current);
                 toast.error(result.error || "Gift failed - diamonds refunded");
                 return;
               }
@@ -5100,11 +5064,11 @@ const LiveStream = () => {
                 .single();
               
               if (updatedProfile && pendingGiftCostRef.current === 0) {
-                userCoinsRef.current = updatedProfile.diamonds || 0;
-                setUserCoins(userCoinsRef.current);
+                userDiamondsRef.current = updatedProfile.diamonds || 0;
+                setUserDiamonds(userDiamondsRef.current);
                 // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                 const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-                updateCachedBalance(userCoinsRef.current);
+                updateCachedBalance(userDiamondsRef.current);
               }
               
               // Save gift message to database for other participants
@@ -5155,8 +5119,8 @@ const LiveStream = () => {
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
               if (transactionSucceeded) return;
               // Refund diamonds on complete failure
-              userCoinsRef.current += totalCost;
-              setUserCoins(userCoinsRef.current);
+              userDiamondsRef.current += totalCost;
+              setUserDiamonds(userDiamondsRef.current);
               toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);
             }
           })();

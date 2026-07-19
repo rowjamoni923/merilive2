@@ -1,18 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  Wallet,
-  Gem,
-  Users,
-  Receipt,
-  RefreshCw,
-  Download,
-  Calendar as CalendarIcon,
-  TrendingDown,
-  Table as TableIcon,
-  BarChart3,
-} from "lucide-react";
+import { ArrowLeft, Wallet, Gem, Users, Receipt, RefreshCw, Download, Calendar as CalendarIcon, TrendingDown, Table as TableIcon, BarChart3 } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,

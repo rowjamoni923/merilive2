@@ -25,7 +25,7 @@ const PublicTerms = () => (
       </div>
       <div>
         <h2 className="mb-2 text-lg font-bold">4. Virtual Items & Earnings</h2>
-        <p>Coins, diamonds, beans, gifts, VIP benefits, host earnings, agency commission, helper rewards, and withdrawals are governed by MeriLive in-app pricing and policy rules. Values may change according to admin-published policy.</p>
+        <p>Gem, diamonds, beans, gifts, VIP benefits, host earnings, agency commission, helper rewards, and withdrawals are governed by MeriLive in-app pricing and policy rules. Values may change according to admin-published policy.</p>
       </div>
       <div>
         <h2 className="mb-2 text-lg font-bold">5. Enforcement</h2>

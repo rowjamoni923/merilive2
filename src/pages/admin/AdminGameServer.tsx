@@ -10,27 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Server, 
-  Power, 
-  Activity, 
-  Settings2,
-  Loader2, 
-  Play,
-  Pause,
-  RefreshCcw,
-  AlertTriangle,
-  Clock,
-  Users,
-  Coins,
-  TrendingUp,
-  Gamepad2,
-  Zap,
-  BarChart3,
-  DollarSign,
-  Trophy,
-  Target
-} from "lucide-react";
+import { Server, Power, Activity, Settings2, Loader2, Play, Pause, RefreshCcw, AlertTriangle, Clock, Users, Gem, TrendingUp, Gamepad2, Zap, BarChart3, DollarSign, Trophy, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LivePulse } from "@/components/realtime/RealtimeIndicator";
 
@@ -220,7 +200,7 @@ export default function AdminGameServer() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-500/20 rounded-lg">
-                <Coins className="w-5 h-5 text-amber-500" />
+                <Gem className="w-5 h-5 text-amber-500" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">24h Wagered</p>

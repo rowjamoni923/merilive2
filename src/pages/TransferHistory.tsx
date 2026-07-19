@@ -2,15 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 
-import { 
-  ArrowLeft, 
-  Send,
-  CheckCircle2,
-  User,
-  Search,
-  Calendar,
-  Filter
-} from "lucide-react";
+import { ArrowLeft, Send, CheckCircle2, User, Search, Calendar, Filter } from "lucide-react";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

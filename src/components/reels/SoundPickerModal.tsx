@@ -1,17 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Music,
-  TrendingUp,
-  Play,
-  Pause,
-  Check,
-  X,
-  Disc3,
-  Sparkles,
-  Clock,
-} from "lucide-react";
+import { Search, Music, TrendingUp, Play, Pause, Check, X, Disc3, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";

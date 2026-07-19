@@ -11,25 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { getOptimizedImageUrl } from "@/utils/imageOptimize";
-import { 
-  Coins, 
-  Trophy, 
-  Loader2, 
-  Users,
-  Clock,
-  ChevronDown,
-  X,
-  Sparkles,
-  TrendingUp,
-  Gift,
-  Settings,
-  Volume2,
-  VolumeX,
-  HelpCircle,
-  History,
-  BarChart3,
-  Gamepad2
-} from "lucide-react";
+import { Gem, Trophy, Loader2, Users, Clock, ChevronDown, X, Sparkles, TrendingUp, Gift, Settings, Volume2, VolumeX, HelpCircle, History, BarChart3, Gamepad2 } from "lucide-react";
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { sendGameWinNotification } from "@/services/gameWinNotificationService";
 import { stopAllGameSounds } from "@/hooks/useGameSoundManager";
@@ -107,7 +89,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
 
   const { buildGameUrl, loading: tokenLoading } = useGameToken();
   const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [betAmount, setBetAmount] = useState(500);
   const [showGameSelector, setShowGameSelector] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
@@ -186,13 +168,13 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
 
   useEffect(() => {
     fetchGames();
-    fetchUserCoins();
+    fetchUserDiamonds();
 
-    // Pkg83: Removed duplicate static-named 'game-coin-balance' channel
+    // Pkg83: Removed duplicate static-named 'game-diamond-balance' channel
     // (G3 violation + duplicated useUserBalance own-row subscription).
     // Listen to global 'own-beans-updated' window event (Pkg85) instead, and
     // refresh via REST on visibility change as safety net.
-    const onOwnUpdate = () => { void fetchUserCoins(); };
+    const onOwnUpdate = () => { void fetchUserDiamonds(); };
     window.addEventListener('own-beans-updated', onOwnUpdate);
     // No-auto-refresh: own-beans-updated push is sole trigger.
     return () => {
@@ -238,7 +220,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     }
   };
 
-  const fetchUserCoins = async () => {
+  const fetchUserDiamonds = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setCurrentUserId(user.id);
@@ -249,7 +231,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
         .single();
 
       if (data) {
-        setUserCoins(data.diamonds);
+        setUserDiamonds(data.diamonds);
         setCurrentUserProfile({
           username: data.username || 'Player',
           level: getRequiredDisplayLevel(data)
@@ -264,13 +246,13 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
   const userIdRef = useRef(currentUserId);
   const roomIdRef = useRef(roomId);
   const contextRef = useRef(context);
-  const userCoinsRef = useRef(userDiamonds);
+  const userDiamondsRef = useRef(userDiamonds);
   const phaseRef = useRef(phase);
   useEffect(() => { profileRef.current = currentUserProfile; }, [currentUserProfile]);
   useEffect(() => { userIdRef.current = currentUserId; }, [currentUserId]);
   useEffect(() => { roomIdRef.current = roomId; }, [roomId]);
   useEffect(() => { contextRef.current = context; }, [context]);
-  useEffect(() => { userCoinsRef.current = userDiamonds; }, [userDiamonds]);
+  useEffect(() => { userDiamondsRef.current = userDiamonds; }, [userDiamonds]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   // Game win notification handler - includes user name and level
@@ -291,8 +273,8 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     }
   }, []);
 
-  const handleUpdateCoins = useCallback((newBalance: number) => {
-    setUserCoins(newBalance);
+  const handleUpdateDiamonds = useCallback((newBalance: number) => {
+    setUserDiamonds(newBalance);
   }, []);
 
   const handlePlaceBet = useCallback(async (betType?: string, betValue?: string) => {
@@ -301,25 +283,25 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       return null;
     }
 
-    const currentBalance = userCoinsRef.current;
+    const currentBalance = userDiamondsRef.current;
     if (betAmount > currentBalance) {
       toast.error('Insufficient diamonds');
       return null;
     }
 
     // Immediately deduct from local state for instant feedback
-    const previousCoins = currentBalance;
-    setUserCoins((prev) => prev - betAmount);
+    const previousDiamonds = currentBalance;
+    setUserDiamonds((prev) => prev - betAmount);
 
     const result = await placeBet(betAmount, betType, betValue);
 
     if (result.success) {
       if (result.new_balance !== undefined) {
-        setUserCoins(result.new_balance);
+        setUserDiamonds(result.new_balance);
       }
       return result;
     } else {
-      setUserCoins(previousCoins);
+      setUserDiamonds(previousDiamonds);
       toast.error(result.error || 'Failed to place bet');
       return result;
     }
@@ -333,7 +315,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     if (!activeGame || !currentGame) return null;
 
     // Games with built-in React components should ALWAYS use them (not external iframe)
-    // This ensures they connect to the app's coin system
+    // This ensures they connect to the app's diamond system
     const hasBuiltInComponent = [
       'aviator', 'plinko', 'dragon_tiger', 'andar_bahar', 'roulette',
       'baccarat', 'blackjack', 'hilo', 'mines', 'limbo', 'crash',
@@ -401,7 +383,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       myBets,
       onPlaceBet: handlePlaceBet,
       onProcessResult: processResult,
-      onUpdateCoins: handleUpdateCoins,
+      onUpdateDiamonds: handleUpdateDiamonds,
       onGameWin: (winAmount: number) => handleGameWin(winAmount, currentGame.game_name, currentGame.game_emoji || "🎰")
     };
 
@@ -558,7 +540,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                 </div>
                 {currentRound && currentRound.total_bet_amount > 0 && (
                   <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-full">
-                    <Coins className="w-2 h-2 text-[#D4AF37]" />
+                    <Gem className="w-2 h-2 text-[#D4AF37]" />
                     <span className="text-[9px] text-[#D4AF37] font-bold">{currentRound.total_bet_amount.toLocaleString()}</span>
                   </div>
                 )}
@@ -734,7 +716,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/40 rounded-xl shrink-0">
-            <Coins className="w-3 h-3 text-[#D4AF37]" />
+            <Gem className="w-3 h-3 text-[#D4AF37]" />
             <span className="text-[#D4AF37] font-black text-xs tabular-nums">{betAmount.toLocaleString()}</span>
           </div>
         </div>
@@ -814,12 +796,12 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                   {bet.is_winner ? (
                     <div className="flex items-center gap-0.5 text-green-400 font-bold text-[10px]">
                       <span>+{bet.win_amount.toLocaleString()}</span>
-                      <Coins className="w-2.5 h-2.5" />
+                      <Gem className="w-2.5 h-2.5" />
                     </div>
                   ) : (
                     <div className="flex items-center gap-0.5 text-red-400 font-bold text-[10px]">
                       <span>-{bet.bet_amount.toLocaleString()}</span>
-                      <Coins className="w-2.5 h-2.5" />
+                      <Gem className="w-2.5 h-2.5" />
                     </div>
                   )}
                 </div>

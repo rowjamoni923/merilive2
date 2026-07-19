@@ -12,10 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
-import {
-  Skull, AlertTriangle, AlertCircle, Search,
-  ShieldAlert, Smartphone, Globe, ScanFace, Clock, Ban
-} from "lucide-react";
+import { Skull, AlertTriangle, AlertCircle, Search, ShieldAlert, Smartphone, Globe, ScanFace, Clock, Ban } from "lucide-react";
 import { format } from "date-fns";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { cn } from "@/lib/utils";

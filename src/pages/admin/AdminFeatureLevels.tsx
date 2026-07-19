@@ -10,10 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Camera, Users, UserPlus, Phone, Gift, MessageCircle, 
-  Save, Settings2, Loader2, Shield, Crown
-} from "lucide-react";
+import { Camera, Users, UserPlus, Phone, Gift, MessageCircle, Save, Settings2, Loader2, Shield, Crown } from "lucide-react";
 import { adminStyles } from "@/styles/adminStyles";
 
 const iconMap: Record<string, React.ComponentType<any>> = {
