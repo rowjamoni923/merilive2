@@ -300,7 +300,7 @@ const AdminCommissionCalculator = () => {
                   <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
                     <p className="text-sm text-slate-600 mb-3 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      If {formatNumber(giftAmount)} coins gifted:
+                      If {formatNumber(giftAmount)} diamonds gifted:
                     </p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white rounded-lg p-3 shadow-sm">
