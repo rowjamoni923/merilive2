@@ -110,7 +110,7 @@ export default function AdminWalletLedger() {
           <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             Wallet Ledger Audit
           </h1>
-          <p className="text-sm text-slate-500">Every beans / diamonds / coins movement across the platform.</p>
+          <p className="text-sm text-slate-500">Every beans / diamonds movement across the platform.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setRealtime(v => !v)}>
