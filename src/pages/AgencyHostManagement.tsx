@@ -1,19 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Link as LinkIcon,
-  Copy,
-  Users,
-  Search,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Share2,
-  Clock,
-  UserCheck,
-  Bell
-} from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Copy, Users, Search, Loader2, CheckCircle2, XCircle, Share2, Clock, UserCheck, Bell } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

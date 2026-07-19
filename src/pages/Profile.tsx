@@ -7,37 +7,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { formatCompactCount } from "@/utils/formatCount";
-import {
-  MessageCircle,
-  ChevronRight,
-  Settings,
-  User,
-  Gift,
-  ClipboardList,
-  Mail,
-  Star,
-  Gem,
-  Gem,
-  Crown,
-  Building2,
-  Phone,
-  PhoneCall,
-  UserPlus,
-  UserCheck,
-  ArrowLeft,
-  Wallet,
-  Sparkles,
-  MapPin,
-  Send,
-  Search,
-  ArrowRight,
-  History,
-  Lock,
-  Film,
-  Power,
-  Clock3,
-  AlertCircle,
-} from "lucide-react";
+import { MessageCircle, ChevronRight, Settings, User, Gift, ClipboardList, Mail, Star, Gem, Crown, Building2, Phone, PhoneCall, UserPlus, UserCheck, ArrowLeft, Wallet, Sparkles, MapPin, Send, Search, ArrowRight, History, Lock, Film, Power, Clock3, AlertCircle } from "lucide-react";
 import { VerifiedBadge, HostVerifiedBadge } from "@/components/common/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

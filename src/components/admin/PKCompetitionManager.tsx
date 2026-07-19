@@ -19,10 +19,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Swords, Plus, Trash2, Save, Link2, Copy, Gift,
-  Loader2, Calendar, Trophy, Settings, Eye, Zap, RefreshCw
-} from "lucide-react";
+import { Swords, Plus, Trash2, Save, Link2, Copy, Gift, Loader2, Calendar, Trophy, Settings, Eye, Zap, RefreshCw } from "lucide-react";
 
 interface PKCompetition {
   id: string;

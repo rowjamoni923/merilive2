@@ -15,30 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { recordAdminError } from "@/utils/adminErrorLog";
-import { 
-  Gamepad2, 
-  Plus, 
-  ExternalLink, 
-  Key, 
-  Shield, 
-  Globe, 
-  Trash2, 
-  Edit, 
-  RefreshCw,
-  Link,
-  Server,
-  Zap,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Copy,
-  Play,
-  Settings,
-  DollarSign,
-  Users
-} from "lucide-react";
+import { Gamepad2, Plus, ExternalLink, Key, Shield, Globe, Trash2, Edit, RefreshCw, Link, Server, Zap, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff, Copy, Play, Settings, DollarSign, Users } from "lucide-react";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 // Popular Game Provider Presets

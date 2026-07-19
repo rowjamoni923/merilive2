@@ -1,20 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  HelpCircle,
-  Clock,
-  Crown,
-  RefreshCw,
-  Trophy,
-  Wifi,
-  Gem,
-  Gift,
-  Users,
-  Star,
-  Shield,
-  Sparkles
-} from "lucide-react";
+import { ArrowLeft, HelpCircle, Clock, Crown, RefreshCw, Trophy, Wifi, Gem, Gift, Users, Star, Shield, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";

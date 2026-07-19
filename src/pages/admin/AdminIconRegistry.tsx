@@ -2,14 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion, AnimatePresence } from 'framer-motion';
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  Search, Plus, Trash2, Save, Edit2, Upload, Copy, Check,
-  Image, Palette, Eye, Filter, X, Home, Diamond, Gem, Users,
-  Phone, Camera, Music, Gift, Shield, Star, Heart, Zap,
-  Crown, Sparkles, Globe, Wallet, Award, Settings, Bell,
-  MessageCircle, Play, Trophy, Clock, Target, Gem,
-  ArrowRight, ChevronDown, Package, Layers
-} from 'lucide-react';
+import { Search, Plus, Trash2, Save, Edit2, Upload, Copy, Check, Image, Palette, Eye, Filter, X, Home, Diamond, Gem, Users, Phone, Camera, Music, Gift, Shield, Star, Heart, Zap, Crown, Sparkles, Globe, Wallet, Award, Settings, Bell, MessageCircle, Play, Trophy, Clock, Target, ArrowRight, ChevronDown, Package, Layers } from 'lucide-react';
 import { icons as allLucideIcons } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

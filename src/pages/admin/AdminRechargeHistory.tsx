@@ -4,11 +4,7 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  ArrowLeft, Search, Filter, RefreshCw, Gem, User, Calendar,
-  CheckCircle, XCircle, Clock, CreditCard, Smartphone, DollarSign,
-  ChevronLeft, ChevronRight, Eye
-} from "lucide-react";
+import { ArrowLeft, Search, Filter, RefreshCw, Gem, User, Calendar, CheckCircle, XCircle, Clock, CreditCard, Smartphone, DollarSign, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

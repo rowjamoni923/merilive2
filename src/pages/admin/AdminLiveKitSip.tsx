@@ -12,21 +12,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Phone,
-  RefreshCw,
-  Loader2,
-  Search,
-  PhoneIncoming,
-  PhoneOutgoing,
-  Route,
-  Trash2,
-  Eye,
-  X,
-  AlertTriangle,
-  ShieldCheck,
-  Globe,
-} from "lucide-react";
+import { Phone, RefreshCw, Loader2, Search, PhoneIncoming, PhoneOutgoing, Route, Trash2, Eye, X, AlertTriangle, ShieldCheck, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

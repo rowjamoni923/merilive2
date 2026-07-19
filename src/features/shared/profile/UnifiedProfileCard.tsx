@@ -1,21 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Heart, 
-  MessageCircle, 
-  UserPlus, 
-  Gift, 
-  Crown, 
-  Phone,
-  Ban,
-  Flag,
-  MoreHorizontal,
-  Sparkles,
-  Check,
-  UserCheck,
-  ExternalLink
-} from "lucide-react";
+import { X, Heart, MessageCircle, UserPlus, Gift, Crown, Phone, Ban, Flag, MoreHorizontal, Sparkles, Check, UserCheck, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

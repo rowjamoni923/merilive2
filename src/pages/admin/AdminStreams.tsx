@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {Camera, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, StopCircle, Play, Film, MonitorPlay, Ban, AlertTriangle, Skull, Heart, Timer, ShieldAlert, Trash2} from "lucide-react";
+import { Camera, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, StopCircle, Play, Film, MonitorPlay, Ban, AlertTriangle, Skull, Heart, Timer, ShieldAlert, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

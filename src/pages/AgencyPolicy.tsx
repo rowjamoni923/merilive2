@@ -5,29 +5,7 @@ import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 
-import { 
-  ArrowLeft, 
-  FileText, 
-  Users, 
-  Wallet, 
-  TrendingUp, 
-  AlertTriangle,
-  CheckCircle2,
-  DollarSign,
-  Shield,
-  Star,
-  Clock,
-  Phone,
-  Ban,
-  Radio,
-  MessageCircle,
-  Gift,
-  Crown,
-  Sparkles,
-  Zap,
-  Target,
-  Award
-} from "lucide-react";
+import { ArrowLeft, FileText, Users, Wallet, TrendingUp, AlertTriangle, CheckCircle2, DollarSign, Shield, Star, Clock, Phone, Ban, Radio, MessageCircle, Gift, Crown, Sparkles, Zap, Target, Award } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

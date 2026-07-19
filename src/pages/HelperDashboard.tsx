@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { 
-  ArrowLeft, Wallet, Star, Crown, TrendingUp, Shield, Gem, Banknote, CheckCircle,
-  Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy, CreditCard
-} from "lucide-react";
+import { ArrowLeft, Wallet, Star, Crown, TrendingUp, Shield, Gem, Banknote, CheckCircle, Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy, CreditCard } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 
 import { Button } from "@/components/ui/button";

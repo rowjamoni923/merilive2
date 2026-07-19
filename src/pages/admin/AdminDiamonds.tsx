@@ -1,25 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import {
-  Gem,
-  Plus,
-  Edit,
-  Trash2,
-  Save,
-  X,
-  DollarSign,
-  Percent,
-  Star,
-  Sparkles,
-  Globe,
-  RefreshCw,
-  Diamond,
-  ThumbsUp,
-  ArrowRightLeft,
-  Calculator,
-  TrendingUp,
-  Download
-} from "lucide-react";
+import { Gem, Plus, Edit, Trash2, Save, X, DollarSign, Percent, Star, Sparkles, Globe, RefreshCw, Diamond, ThumbsUp, ArrowRightLeft, Calculator, TrendingUp, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

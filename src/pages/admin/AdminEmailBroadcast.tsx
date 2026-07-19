@@ -6,10 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import {
-  Mail, Send, Users, UserCheck, Crown, Sparkles,
-  AlertTriangle, CheckCircle, Loader2, Edit3, Save, Trash2, Plus
-} from "lucide-react";
+import { Mail, Send, Users, UserCheck, Crown, Sparkles, AlertTriangle, CheckCircle, Loader2, Edit3, Save, Trash2, Plus } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";

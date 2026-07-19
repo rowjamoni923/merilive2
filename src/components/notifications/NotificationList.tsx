@@ -3,34 +3,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { openInExternalBrowser } from "@/utils/inAppNavigation";
-import { 
-  Bell, 
-  Check, 
-  CheckCheck, 
-  X, 
-  Building2, 
-  Gift, 
-  MessageCircle,
-  Shield,
-  Star,
-  Sparkles,
-  Gem,
-  Diamond,
-  UserPlus,
-  Radio,
-  Phone,
-  Heart,
-  Award,
-  CreditCard,
-  Users,
-  Crown,
-  Zap,
-  ArrowRight,
-  Megaphone,
-  AlertCircle,
-  Wallet,
-  Copy
-} from "lucide-react";
+import { Bell, Check, CheckCheck, X, Building2, Gift, MessageCircle, Shield, Star, Sparkles, Gem, Diamond, UserPlus, Radio, Phone, Heart, Award, CreditCard, Users, Crown, Zap, ArrowRight, Megaphone, AlertCircle, Wallet, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";

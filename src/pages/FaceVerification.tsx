@@ -1,29 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
-import { 
-  ArrowLeft, 
-  Film,
-  User,
-  CheckCircle2,
-  AlertCircle,
-  Upload,
-  Loader2,
-  Camera,
-  Languages,
-  Calendar,
-  RotateCcw,
-  Sparkles,
-  ShieldCheck,
-  ScanFace,
-  ImagePlus,
-  Play,
-  XCircle,
-  Settings,
-  Download,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ArrowLeft, Film, User, CheckCircle2, AlertCircle, Upload, Loader2, Camera, Languages, Calendar, RotateCcw, Sparkles, ShieldCheck, ScanFace, ImagePlus, Play, XCircle, Settings, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

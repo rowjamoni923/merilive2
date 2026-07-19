@@ -5,24 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Crown,
-  Copy,
-  Check,
-  Link as LinkIcon,
-  Shield,
-  Eye,
-  EyeOff,
-  Smartphone,
-  Monitor,
-  Users,
-  Settings,
-  AlertTriangle,
-  Trash2,
-  Plus,
-  Sparkles,
-  RefreshCw,
-} from "lucide-react";
+import { Crown, Copy, Check, Link as LinkIcon, Shield, Eye, EyeOff, Smartphone, Monitor, Users, Settings, AlertTriangle, Trash2, Plus, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";

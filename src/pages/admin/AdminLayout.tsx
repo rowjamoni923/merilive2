@@ -3,7 +3,7 @@ import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdm
 import { startAdminGlobalRealtime, stopAdminGlobalRealtime } from "@/utils/adminGlobalRealtime";
 import { useNavigate, Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {LayoutDashboard, Users, Building2, Camera, PartyPopper, Gift, Settings, Shield, ShieldCheck, LogOut, Menu, X, Bell, Search, ChevronRight, ChevronDown, Gem, FileText, MessageSquare, TrendingUp, UserCheck, Ban, Percent, Sparkles, Image, CreditCard, Moon, Sun, Wallet, Activity, ScanFace, Check, CheckCheck, Clock, AlertCircle, UserPlus, DollarSign, Phone, PhoneIncoming, Radio, Antenna, Crown, Star, TrendingDown, ArrowUpCircle, Gamepad2, Play, Film, ShoppingBag, UserCog, Smartphone, Lock, Megaphone, ShieldAlert, Mail, Map, Package, ScrollText} from "lucide-react";
+import { LayoutDashboard, Users, Building2, Camera, PartyPopper, Gift, Settings, Shield, ShieldCheck, LogOut, Menu, X, Bell, Search, ChevronRight, ChevronDown, Gem, FileText, MessageSquare, TrendingUp, UserCheck, Ban, Percent, Sparkles, Image, CreditCard, Moon, Sun, Wallet, Activity, ScanFace, Check, CheckCheck, Clock, AlertCircle, UserPlus, DollarSign, Phone, PhoneIncoming, Radio, Antenna, Crown, Star, TrendingDown, ArrowUpCircle, Gamepad2, Play, Film, ShoppingBag, UserCog, Smartphone, Lock, Megaphone, ShieldAlert, Mail, Map, Package, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

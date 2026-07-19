@@ -8,10 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Trophy, Upload, Trash2, Save, Crown, Medal, Award, RefreshCw, 
-  Gift, Image, Loader2, Zap, Plus, Settings
-} from "lucide-react";
+import { Trophy, Upload, Trash2, Save, Crown, Medal, Award, RefreshCw, Gift, Image, Loader2, Zap, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PKCompetitionManager from "@/components/admin/PKCompetitionManager";
 import { loadAppSettingsByPrefix, saveAppSetting } from "@/utils/adminSettingsStorage";

@@ -11,25 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { getOptimizedImageUrl } from "@/utils/imageOptimize";
-import { 
-  Gem, 
-  Trophy, 
-  Loader2, 
-  Users,
-  Clock,
-  ChevronDown,
-  X,
-  Sparkles,
-  TrendingUp,
-  Gift,
-  Settings,
-  Volume2,
-  VolumeX,
-  HelpCircle,
-  History,
-  BarChart3,
-  Gamepad2
-} from "lucide-react";
+import { Gem, Trophy, Loader2, Users, Clock, ChevronDown, X, Sparkles, TrendingUp, Gift, Settings, Volume2, VolumeX, HelpCircle, History, BarChart3, Gamepad2 } from "lucide-react";
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { sendGameWinNotification } from "@/services/gameWinNotificationService";
 import { stopAllGameSounds } from "@/hooks/useGameSoundManager";

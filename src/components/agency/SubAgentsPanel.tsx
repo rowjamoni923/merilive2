@@ -1,16 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
-  Building2, 
-  Users, 
-  Copy, 
-  CheckCircle2, 
-  Share2, 
-  Crown,
-  X,
-  ExternalLink,
-  UserPlus,
-  TrendingUp
-} from "lucide-react";
+import { Building2, Users, Copy, CheckCircle2, Share2, Crown, X, ExternalLink, UserPlus, TrendingUp } from "lucide-react";
 import { generateParentAgencyLink, shareLink, copyToClipboard } from "@/utils/shareLinks";
 import Skeleton from "@/components/Skeleton";
 import { Button } from "@/components/ui/button";

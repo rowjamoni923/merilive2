@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import {
-  Ban,
-  Search,
-  Users,
-  Building2,
-  Unlock,
-  Clock,
-  AlertTriangle
-} from "lucide-react";
+import { Ban, Search, Users, Building2, Unlock, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,51 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
-import { 
-  ArrowLeft, 
-  Building2,
-  Users,
-  Wallet,
-  TrendingUp,
-  Crown,
-  Clock,
-  Gift,
-  Gem,
-  Copy,
-  CheckCircle2,
-  User,
-  Loader2,
-  ChevronRight,
-  BarChart3,
-  Share2,
-  Link as LinkIcon,
-  UserPlus,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-  Diamond,
-  ArrowRightLeft,
-  Trophy,
-  Sparkles,
-  Eye,
-  Settings,
-  Bell,
-  Shield,
-  Star,
-  Activity,
-  Zap,
-  Target,
-  Award,
-  Headphones,
-  MessageCircle,
-  Phone,
-  Send,
-  Hash,
-  XCircle,
-  Percent,
-  FileText,
-  ArrowRight
-} from "lucide-react";
+import { ArrowLeft, Building2, Users, Wallet, TrendingUp, Crown, Clock, Gift, Gem, Copy, CheckCircle2, User, Loader2, ChevronRight, BarChart3, Share2, Link as LinkIcon, UserPlus, TrendingDown, Calendar, DollarSign, Diamond, ArrowRightLeft, Trophy, Sparkles, Eye, Settings, Bell, Shield, Star, Activity, Zap, Target, Award, Headphones, MessageCircle, Phone, Send, Hash, XCircle, Percent, FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";

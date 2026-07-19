@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
-import {Shield, Ban, Clock, Settings, Search, RefreshCw, UserX, CheckCircle, AlertTriangle, Eye, Camera, Skull, Heart} from "lucide-react";
+import { Shield, Ban, Clock, Settings, Search, RefreshCw, UserX, CheckCircle, AlertTriangle, Eye, Camera, Skull, Heart } from "lucide-react";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface LiveBan {

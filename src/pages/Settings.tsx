@@ -2,32 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isNativeApp } from "@/utils/nativeUtils";
-import { 
-  ArrowLeft, 
-  ChevronRight, 
-  Globe, 
-  Ban, 
-  Shield, 
-  FileText, 
-  Info, 
-  Star, 
-  Trash2, 
-  Smartphone,
-  Headphones,
-  LogOut,
-  Check,
-  Bell,
-  Eye,
-  Mic,
-  MapPin,
-  UserX,
-  AlertTriangle,
-  Calendar,
-  Users,
-  BarChart3,
-  Wrench,
-  type LucideIcon
-} from "lucide-react";
+import { ArrowLeft, ChevronRight, Globe, Ban, Shield, FileText, Info, Star, Trash2, Smartphone, Headphones, LogOut, Check, Bell, Eye, Mic, MapPin, UserX, AlertTriangle, Calendar, Users, BarChart3, Wrench, type LucideIcon } from "lucide-react";
 import { useDevAccess } from "@/hooks/useDevAccess";
 import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
 import { getDetectedCountry } from "@/utils/countryDetectionCache";

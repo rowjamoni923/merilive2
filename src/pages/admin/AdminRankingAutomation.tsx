@@ -1,16 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  Bot,
-  Save,
-  RefreshCw,
-  Undo2,
-  ShieldCheck,
-  Sparkles,
-  Wand2,
-  Activity,
-  CheckCircle2,
-  AlertTriangle,
-} from "lucide-react";
+import { Bot, Save, RefreshCw, Undo2, ShieldCheck, Sparkles, Wand2, Activity, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

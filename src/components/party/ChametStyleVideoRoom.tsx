@@ -1,21 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Users, 
-  Gift, 
-  MessageCircle, 
-  Gamepad2,
-  Diamond,
-  UserPlus,
-  Crown,
-  Mic,
-  MicOff,
-  Eye,
-  EyeOff,
-  Heart,
-  Armchair
-} from "lucide-react";
+import { X, Users, Gift, MessageCircle, Gamepad2, Diamond, UserPlus, Crown, Mic, MicOff, Eye, EyeOff, Heart, Armchair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

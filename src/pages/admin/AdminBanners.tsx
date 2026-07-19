@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Plus, Edit, Trash2, Eye, EyeOff, Save, Image, Link as LinkIcon, 
-  Upload, GripVertical, ExternalLink, Palette 
-} from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, Image, Link as LinkIcon, Upload, GripVertical, ExternalLink, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

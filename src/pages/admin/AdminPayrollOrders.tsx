@@ -4,11 +4,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  ArrowLeft, Package, Clock, Check, X, Search, 
-  Eye, RefreshCw, Globe, Image, ExternalLink, Copy,
-  User, CreditCard, Calendar, Hash, AlertTriangle, Building2, Gem, DollarSign
-} from "lucide-react";
+import { ArrowLeft, Package, Clock, Check, X, Search, Eye, RefreshCw, Globe, Image, ExternalLink, Copy, User, CreditCard, Calendar, Hash, AlertTriangle, Building2, Gem, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

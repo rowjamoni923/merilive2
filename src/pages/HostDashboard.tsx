@@ -1,21 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Wallet, 
-  TrendingUp, 
-  Phone, 
-  Gift, 
-  Clock, 
-  Calendar,
-  ChevronRight,
-  Gem,
-  ArrowUpRight,
-  Download,
-  Diamond,
-  Settings,
-  Save
-} from "lucide-react";
+import { ArrowLeft, Wallet, TrendingUp, Phone, Gift, Clock, Calendar, ChevronRight, Gem, ArrowUpRight, Download, Diamond, Settings, Save } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

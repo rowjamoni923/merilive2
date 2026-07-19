@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import {Image, Camera, Upload, Save, Eye, Type, Sparkles, RefreshCw, Check, X} from "lucide-react";
+import { Image, Camera, Upload, Save, Eye, Type, Sparkles, RefreshCw, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {
-  Users, Ban, UserCheck, ScanFace, Crown, Activity,
-  Eye, UserPlus
-} from "lucide-react";
+import { Users, Ban, UserCheck, ScanFace, Crown, Activity, Eye, UserPlus } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminUserManagement from "./AdminUserManagement";

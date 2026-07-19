@@ -4,12 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import { openInApp } from "@/utils/inAppNavigation";
 import { motion } from "framer-motion";
-import {
-  Download, Users, Radio, Gift, Phone, Shield, Star,
-  Building2, DollarSign, Globe, Smartphone, Play,
-  Heart, Music, Tv, Award, ChevronRight, ExternalLink,
-  Sparkles, Crown, Zap, Lock, Gem, TrendingUp, MessageCircle, Languages
-} from "lucide-react";
+import { Download, Users, Radio, Gift, Phone, Shield, Star, Building2, DollarSign, Globe, Smartphone, Play, Heart, Music, Tv, Award, ChevronRight, ExternalLink, Sparkles, Crown, Zap, Lock, Gem, TrendingUp, MessageCircle, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLAY_STORE_URL, APK_DOWNLOAD_URL, PRODUCTION_DOMAIN } from "@/utils/shareLinks";
 import mascotLogo from "@/assets/app-logo.png";

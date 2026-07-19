@@ -6,22 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { getOptimizedImageUrl } from "@/utils/imageOptimize";
-import { 
-  Gem, 
-  Trophy, 
-  Loader2, 
-  Users,
-  Clock,
-  ChevronUp,
-  ChevronDown,
-  X,
-  Sparkles,
-  Gift,
-  Settings,
-  Volume2,
-  VolumeX,
-  Gamepad2
-} from "lucide-react";
+import { Gem, Trophy, Loader2, Users, Clock, ChevronUp, ChevronDown, X, Sparkles, Gift, Settings, Volume2, VolumeX, Gamepad2 } from "lucide-react";
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DiamondFlyAnimation, useFlyingDiamonds, WinCelebration, LossDisplay, BetAreaDiamonds } from "./DiamondFlyAnimation";

@@ -1,23 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {
-  Shield,
-  AlertTriangle,
-  Ban,
-  Eye,
-  Phone,
-  Clock,
-  User,
-  Settings,
-  CheckCircle,
-  XCircle,
-  Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  Trash2
-} from "lucide-react";
+import { Shield, AlertTriangle, Ban, Eye, Phone, Clock, User, Settings, CheckCircle, XCircle, Search, Filter, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

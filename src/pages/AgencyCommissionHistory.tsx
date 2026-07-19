@@ -1,18 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  TrendingUp,
-  Calendar,
-  User,
-  Loader2,
-  Clock,
-  Gift,
-  Phone,
-  Gamepad2,
-  Gem,
-  Percent
-} from "lucide-react";
+import { ArrowLeft, TrendingUp, Calendar, User, Loader2, Clock, Gift, Phone, Gamepad2, Gem, Percent } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -1,9 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, Crown, Star, Diamond, Flame, Shield, Heart, Zap,
-  Search, Check, X, Play, ChevronDown, Eye, Filter
-} from 'lucide-react';
+import { Sparkles, Crown, Star, Diamond, Flame, Shield, Heart, Zap, Search, Check, X, Play, ChevronDown, Eye, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';

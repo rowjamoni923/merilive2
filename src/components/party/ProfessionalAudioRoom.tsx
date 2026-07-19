@@ -3,22 +3,7 @@ import { useContentModeration } from "@/hooks/useContentModeration";
 import { useStableChatScroll } from "@/hooks/useStableChatScroll";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { 
-  Mic, 
-  MicOff, 
-  Crown, 
-  Gift,
-  Send,
-  Users,
-  LayoutGrid,
-  Heart,
-  X,
-  Plus,
-  Sparkles,
-  Gamepad2,
-  ChevronRight,
-  Armchair
-} from "lucide-react";
+import { Mic, MicOff, Crown, Gift, Send, Users, LayoutGrid, Heart, X, Plus, Sparkles, Gamepad2, ChevronRight, Armchair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

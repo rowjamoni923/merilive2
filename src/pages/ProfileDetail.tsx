@@ -4,30 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import TraderBadge from "@/components/common/TraderBadge";
-import {
-  ArrowLeft,
-  Edit2,
-  MapPin,
-  Globe,
-  Heart,
-  MessageCircle,
-  Users,
-  ChevronRight,
-  BarChart3,
-  Copy,
-  User as UserIcon,
-  Play,
-  Pause,
-  Flag,
-  MoreVertical,
-  Ban,
-  Phone,
-  Diamond,
-  Gift,
-  ShieldX,
-  EyeOff,
-  Eye,
-} from "lucide-react";
+import { ArrowLeft, Edit2, MapPin, Globe, Heart, MessageCircle, Users, ChevronRight, BarChart3, Copy, User as UserIcon, Play, Pause, Flag, MoreVertical, Ban, Phone, Diamond, Gift, ShieldX, EyeOff, Eye } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";

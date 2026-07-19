@@ -1,34 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Image, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit2, 
-  Eye, 
-  EyeOff,
-  Crown,
-  Palette,
-  Sparkles,
-  Upload,
-  X,
-  Check,
-  Filter,
-  Grid,
-  List,
-  DollarSign,
-  Tag,
-  Mountain,
-  Sunset,
-  Building2,
-  Stars,
-  TreePine,
-  Waves,
-  Loader2,
-  ImagePlus
-} from "lucide-react";
+import { Image, Plus, Search, Trash2, Edit2, Eye, EyeOff, Crown, Palette, Sparkles, Upload, X, Check, Filter, Grid, List, DollarSign, Tag, Mountain, Sunset, Building2, Stars, TreePine, Waves, Loader2, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

@@ -4,14 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Gem, 
-  Trophy, 
-  TrendingUp, 
-  ChevronDown,
-  X,
-  Gift
-} from "lucide-react";
+import { Gem, Trophy, TrendingUp, ChevronDown, X, Gift } from "lucide-react";
 
 // Games are now in live-games folder - this component redirects to LiveGameBoard
 

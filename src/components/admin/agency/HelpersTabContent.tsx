@@ -6,17 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
-import {
-  Search,
-  Headphones,
-  Wallet,
-  CircleDot,
-  DollarSign,
-  Loader2,
-  Shield,
-  Users,
-  Copy,
-} from "lucide-react";
+import { Search, Headphones, Wallet, CircleDot, DollarSign, Loader2, Shield, Users, Copy } from "lucide-react";
 import { CopyableUid } from "@/components/admin/CopyableUid";
 
 interface HelperData {

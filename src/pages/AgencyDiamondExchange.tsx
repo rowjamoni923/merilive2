@@ -1,18 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Gem,
-  Diamond,
-  ArrowRightLeft,
-  Calculator,
-  Users,
-  Search,
-  CheckCircle2,
-  AlertCircle,
-  Send,
-  History
-} from "lucide-react";
+import { ArrowLeft, Gem, Diamond, ArrowRightLeft, Calculator, Users, Search, CheckCircle2, AlertCircle, Send, History } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

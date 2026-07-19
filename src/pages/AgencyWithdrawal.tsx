@@ -1,22 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Wallet,
-  Download,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  CreditCard,
-  Loader2,
-  Globe,
-  DollarSign,
-  Sparkles,
-  TrendingUp,
-  ArrowDownCircle,
-  Lock
-} from "lucide-react";
+import { ArrowLeft, Wallet, Download, Clock, CheckCircle, XCircle, AlertCircle, CreditCard, Loader2, Globe, DollarSign, Sparkles, TrendingUp, ArrowDownCircle, Lock } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";

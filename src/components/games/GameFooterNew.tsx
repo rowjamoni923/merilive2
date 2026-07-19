@@ -6,26 +6,7 @@ import { useGameToken } from "@/hooks/useGameToken";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { 
-  Gem, 
-  Trophy, 
-  Loader2, 
-  Users,
-  Clock,
-  ChevronUp,
-  ChevronDown,
-  X,
-  Sparkles,
-  Gift,
-  Settings,
-  Volume2,
-  VolumeX,
-  Gamepad2,
-  TrendingUp,
-  TrendingDown,
-  Zap,
-  Star
-} from "lucide-react";
+import { Gem, Trophy, Loader2, Users, Clock, ChevronUp, ChevronDown, X, Sparkles, Gift, Settings, Volume2, VolumeX, Gamepad2, TrendingUp, TrendingDown, Zap, Star } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { LiveLuckyNumberGame as LuckyNumberGame } from "./live-games/LiveLuckyNumberGame";
 import { LiveRocketRaceGame as RocketRaceGame } from "./live-games/LiveRocketRaceGame";

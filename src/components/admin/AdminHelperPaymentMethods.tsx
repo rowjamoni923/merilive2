@@ -8,21 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Plus, 
-  Trash2, 
-  Edit, 
-  CreditCard, 
-  Phone, 
-  User, 
-  Globe, 
-  Wallet,
-  RefreshCw,
-  Search,
-  CheckCircle,
-  XCircle,
-  Diamond
-} from "lucide-react";
+import { Plus, Trash2, Edit, CreditCard, Phone, User, Globe, Wallet, RefreshCw, Search, CheckCircle, XCircle, Diamond } from "lucide-react";
 import {
   Dialog,
   DialogContent,

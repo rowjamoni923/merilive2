@@ -2,23 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  ArrowLeft, 
-  Bell, 
-  Save,
-  Loader2,
-  Edit3,
-  Eye,
-  MessageSquare,
-  AlertCircle,
-  Info,
-  ImageIcon,
-  Send,
-  Sparkles,
-  Wand2,
-  Copy,
-  Download
-} from "lucide-react";
+import { ArrowLeft, Bell, Save, Loader2, Edit3, Eye, MessageSquare, AlertCircle, Info, ImageIcon, Send, Sparkles, Wand2, Copy, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

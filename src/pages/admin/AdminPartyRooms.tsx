@@ -2,23 +2,7 @@ import { useState, useEffect } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Ban, 
-  Eye, 
-  PartyPopper, 
-  Users, 
-  Camera, 
-  Mic, 
-  Gamepad2, 
-  ChevronLeft, 
-  ChevronRight, 
-  XCircle, 
-  Clock, 
-  Crown,
-  EyeOff} from "lucide-react";
+import { Search, Filter, MoreVertical, Ban, Eye, PartyPopper, Users, Camera, Mic, Gamepad2, ChevronLeft, ChevronRight, XCircle, Clock, Crown, EyeOff } from "lucide-react";
 import AdminRoomMonitor from "@/components/admin/AdminRoomMonitor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

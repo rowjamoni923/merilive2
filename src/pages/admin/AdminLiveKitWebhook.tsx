@@ -12,15 +12,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Webhook,
-  RefreshCw,
-  Loader2,
-  Search,
-  X,
-  Filter,
-  Activity,
-} from "lucide-react";
+import { Webhook, RefreshCw, Loader2, Search, X, Filter, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

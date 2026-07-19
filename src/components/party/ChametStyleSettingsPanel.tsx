@@ -1,15 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Camera, 
-  Mic, 
-  FlipHorizontal, 
-  SwitchCamera, 
-  Image,
-  Armchair,
-  Music,
-  ChevronRight
-} from "lucide-react";
+import { X, Camera, Mic, FlipHorizontal, SwitchCamera, Image, Armchair, Music, ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 

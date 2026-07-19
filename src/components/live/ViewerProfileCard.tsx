@@ -1,18 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Heart, 
-  MessageCircle, 
-  UserPlus, 
-  Gift, 
-  Crown, 
-  Star,
-  Phone,
-  Ban,
-  Flag,
-  MoreHorizontal
-} from "lucide-react";
+import { X, Heart, MessageCircle, UserPlus, Gift, Crown, Star, Phone, Ban, Flag, MoreHorizontal } from "lucide-react";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

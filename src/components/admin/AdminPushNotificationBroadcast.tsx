@@ -1,26 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  Bell, 
-  Send, 
-  Users, 
-  User, 
-  Globe, 
-  Smartphone,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  Image as ImageIcon,
-  X,
-  Zap,
-  ChevronDown,
-  ChevronUp,
-  Edit3,
-  Trash2,
-  Plus,
-  Save
-} from "lucide-react";
+import { Bell, Send, Users, User, Globe, Smartphone, Loader2, CheckCircle, AlertCircle, Image as ImageIcon, X, Zap, ChevronDown, ChevronUp, Edit3, Trash2, Plus, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

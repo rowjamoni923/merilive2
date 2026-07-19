@@ -10,44 +10,7 @@ import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { motion, AnimatePresence } from "framer-motion";
 import { clearNativeMediaSurface, setNativeMediaSurface } from "@/utils/nativeMediaSurface";
 
-import { 
-  X, 
-  Users, 
-  Send, 
-  Gift, 
-  Mic, 
-  MicOff,
-  Eye,
-  EyeOff,
-  Wand2,
-  Smile,
-  Crown,
-  Gamepad2,
-  Heart,
-  Share2,
-  Settings,
-  Sofa,
-  ChevronRight,
-  ChevronLeft,
-  Volume2,
-  VolumeX,
-  MoreVertical,
-  Lock,
-  Unlock,
-  UserPlus,
-  Check,
-  XCircle,
-  Bell,
-  Hand,
-  Shield,
-  ShieldCheck,
-  UserX,
-  Ban,
-  Copy,
-  ExternalLink,
-  Music,
-  WifiOff
-} from "lucide-react";
+import { X, Users, Send, Gift, Mic, MicOff, Eye, EyeOff, Wand2, Smile, Crown, Gamepad2, Heart, Share2, Settings, Sofa, ChevronRight, ChevronLeft, Volume2, VolumeX, MoreVertical, Lock, Unlock, UserPlus, Check, XCircle, Bell, Hand, Shield, ShieldCheck, UserX, Ban, Copy, ExternalLink, Music, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

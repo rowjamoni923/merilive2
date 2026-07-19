@@ -1,19 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Calendar,
-  User,
-  Loader2,
-  Clock,
-  TrendingUp,
-  Gem,
-  Percent,
-  Filter,
-  ChevronDown,
-  ShieldAlert,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowLeft, Calendar, User, Loader2, Clock, TrendingUp, Gem, Percent, Filter, ChevronDown, ShieldAlert, ChevronRight } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

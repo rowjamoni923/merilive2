@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Gift, Gem, Sparkles, Shield, Ghost, EyeOff, Gem, Zap, CheckCircle2, Clock } from "lucide-react";
+import { Crown, Gift, Gem, Sparkles, Shield, Ghost, EyeOff, Zap, CheckCircle2, Clock } from "lucide-react";
 import { useNobleSubscription } from "@/hooks/useNobleSubscription";
 import { useVipDailyReward } from "@/hooks/useVipDailyReward";
 import { toast } from "sonner";

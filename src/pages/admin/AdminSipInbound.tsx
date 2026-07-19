@@ -10,16 +10,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  PhoneIncoming,
-  Plus,
-  RefreshCw,
-  Loader2,
-  Trash2,
-  Search,
-  Power,
-  PowerOff,
-} from "lucide-react";
+import { PhoneIncoming, Plus, RefreshCw, Loader2, Trash2, Search, Power, PowerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";

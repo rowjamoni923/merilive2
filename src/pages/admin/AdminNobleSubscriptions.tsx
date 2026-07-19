@@ -11,10 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { SmartImage } from "@/components/ui/smart-image";
-import {
-  Crown, Plus, Edit2, Trash2, Sparkles, Gem, Shield, Ghost, EyeOff,
-  Lock, TrendingUp, Gem, Calendar, Zap, RefreshCw, Upload
-} from "lucide-react";
+import { Crown, Plus, Edit2, Trash2, Sparkles, Gem, Shield, Ghost, EyeOff, Lock, TrendingUp, Calendar, Zap, RefreshCw, Upload } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface NobleCard {
   id: string;

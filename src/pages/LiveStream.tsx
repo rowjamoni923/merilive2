@@ -32,43 +32,7 @@ import { useLiveSessionOptional } from "@/features/live-session";
 import { useViewerSession } from "@/hooks/useViewerSession";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import { useLiveFrameMonitor } from "@/hooks/useLiveFrameMonitor";
-import {
-  Heart,
-  Share2,
-  X,
-  Send,
-  Phone,
-  Gift,
-  Grid3X3,
-  Users,
-  Eye,
-  EyeOff,
-  Wand2,
-  Smile,
-  Sparkles,
-  RotateCcw,
-  ShieldCheck,
-  Layers,
-  Radio,
-  PhoneCall,
-  Gamepad2,
-  Swords,
-  MessageCircle,
-  ClipboardList,
-  Gem,
-  Music,
-  LogOut,
-  WifiOff,
-  ChevronUp,
-  ChevronDown,
-  Mic,
-  MicOff,
-  Hand,
-  Bot,
-  RefreshCcw,
-  Image as ImageIcon,
-  Volume2,
-} from "lucide-react";
+import { Heart, Share2, X, Send, Phone, Gift, Grid3X3, Users, Eye, EyeOff, Wand2, Smile, Sparkles, RotateCcw, ShieldCheck, Layers, Radio, PhoneCall, Gamepad2, Swords, MessageCircle, ClipboardList, Gem, Music, LogOut, WifiOff, ChevronUp, ChevronDown, Mic, MicOff, Hand, Bot, RefreshCcw, Image as ImageIcon, Volume2 } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { BrandedGameIcon } from "@/components/common/BrandedGameIcon";
 import { BrandedVoiceIcon } from "@/components/common/BrandedVoiceIcon";

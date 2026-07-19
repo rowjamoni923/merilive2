@@ -12,11 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SmartImage } from "@/components/ui/smart-image";
 
-import {
-  Plus, Edit2, Trash2, RefreshCw, Diamond, Clock, Image as ImageIcon,
-  Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign,
-  CalendarClock, Trophy, Percent, Check
-} from "lucide-react";
+import { Plus, Edit2, Trash2, RefreshCw, Diamond, Clock, Image as ImageIcon, Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign, CalendarClock, Trophy, Percent, Check } from "lucide-react";
 import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
 import PremiumGoldenBadge from "@/components/campaign/PremiumGoldenBadge";
 import { PREMIUM_CAMPAIGN_CARDS } from "@/data/premiumCampaignCards";

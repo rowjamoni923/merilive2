@@ -1,24 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
-import { 
-  Smartphone, 
-  Monitor, 
-  Tablet, 
-  Check, 
-  X, 
-  Clock, 
-  Shield,
-  RefreshCw,
-  ChevronLeft,
-  User,
-  Calendar,
-  Globe,
-  Trash2,
-  Ban,
-  CheckCircle2,
-  AlertTriangle
-} from "lucide-react";
+import { Smartphone, Monitor, Tablet, Check, X, Clock, Shield, RefreshCw, ChevronLeft, User, Calendar, Globe, Trash2, Ban, CheckCircle2, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -1,20 +1,7 @@
 import { useState, useEffect } from "react";
 import { usePersistedCache } from "@/hooks/usePersistedCache";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Wallet,
-  Send,
-  History,
-  CheckCircle2,
-  Info,
-  User,
-  Search,
-  AlertCircle,
-  Loader2,
-  ArrowRightLeft,
-  Gem
-} from "lucide-react";
+import { ArrowLeft, Wallet, Send, History, CheckCircle2, Info, User, Search, AlertCircle, Loader2, ArrowRightLeft, Gem } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -1,17 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Skeleton } from "@/components/Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Megaphone, 
-  AlertCircle, 
-  CheckCheck,
-  Shield,
-  Clock,
-  Eye,
-  ChevronDown,
-  ChevronUp,
-  Sparkles
-} from "lucide-react";
+import { Megaphone, AlertCircle, CheckCheck, Shield, Clock, Eye, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";

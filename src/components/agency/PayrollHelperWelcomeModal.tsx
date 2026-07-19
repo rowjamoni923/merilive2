@@ -1,20 +1,5 @@
 import { useState, useEffect, forwardRef } from "react";
-import { 
-  Wallet, 
-  Users, 
-  DollarSign, 
-  Shield, 
-  Globe, 
-  TrendingUp,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
-  Gem,
-  Gift,
-  Clock,
-  Star,
-  Zap
-} from "lucide-react";
+import { Wallet, Users, DollarSign, Shield, Globe, TrendingUp, Sparkles, ArrowRight, CheckCircle2, Gem, Gift, Clock, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

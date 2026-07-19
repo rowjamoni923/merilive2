@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Loader2, Gem, Save, ArrowDownToLine, ArrowUpFromLine, Gem, Shield } from "lucide-react";
+import { Loader2, Gem, Save, ArrowDownToLine, ArrowUpFromLine, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 interface Settings {

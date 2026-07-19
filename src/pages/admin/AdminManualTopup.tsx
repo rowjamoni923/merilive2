@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, Search, Gem, Send, User, Check, History,
-  Diamond, Sparkles, Loader2
-} from "lucide-react";
+import { ArrowLeft, Search, Gem, Send, User, Check, History, Diamond, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

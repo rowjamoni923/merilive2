@@ -2,31 +2,7 @@ import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Users, 
-  UserCheck, 
-  Building2, 
-  Camera, 
-  PartyPopper, 
-  Gift, 
-  Gem, 
-  TrendingUp, 
-  TrendingDown, 
-  Activity, 
-  Eye, 
-  Ban, 
-  Clock, 
-  Zap, 
-  ArrowRight, 
-  Shield, 
-  Wallet, 
-  Phone, 
-  CalendarCheck, 
-  CreditCard, 
-  RefreshCw, 
-  Sparkles, 
-  BarChart3,
-  AlertTriangle} from "lucide-react";
+import { Users, UserCheck, Building2, Camera, PartyPopper, Gift, Gem, TrendingUp, TrendingDown, Activity, Eye, Ban, Clock, Zap, ArrowRight, Shield, Wallet, Phone, CalendarCheck, CreditCard, RefreshCw, Sparkles, BarChart3, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

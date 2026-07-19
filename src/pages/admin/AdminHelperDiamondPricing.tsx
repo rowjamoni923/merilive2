@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
-  Gem, Star, Crown, Shield, Save, Loader2, RefreshCw,
-  DollarSign, TrendingUp
-} from "lucide-react";
+import { Gem, Star, Crown, Shield, Save, Loader2, RefreshCw, DollarSign, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

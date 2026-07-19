@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Crown, Star, Shield, Gem, CheckCircle2, Loader2,
-  MessageCircle, Send, DollarSign, Banknote,
-  ArrowRight, Copy, Upload, CreditCard, MapPin, Sparkles, AlertTriangle
-} from "lucide-react";
+import { Crown, Star, Shield, Gem, CheckCircle2, Loader2, MessageCircle, Send, DollarSign, Banknote, ArrowRight, Copy, Upload, CreditCard, MapPin, Sparkles, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

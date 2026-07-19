@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Search, Gem, Loader2, CheckCircle, User, Send, History
-} from "lucide-react";
+import { Search, Gem, Loader2, CheckCircle, User, Send, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

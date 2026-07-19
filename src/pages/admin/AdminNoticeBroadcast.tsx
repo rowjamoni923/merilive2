@@ -2,26 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  ArrowLeft, 
-  Megaphone, 
-  Send,
-  Loader2,
-  Users,
-  Building2,
-  Crown,
-  Shield,
-  Diamond,
-  AlertTriangle,
-  Clock,
-  Check,
-  Trash2,
-  Eye,
-  XCircle,
-  Languages,
-  ImagePlus,
-  X
-} from "lucide-react";
+import { ArrowLeft, Megaphone, Send, Loader2, Users, Building2, Crown, Shield, Diamond, AlertTriangle, Clock, Check, Trash2, Eye, XCircle, Languages, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

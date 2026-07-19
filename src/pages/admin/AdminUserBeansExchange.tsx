@@ -9,7 +9,7 @@
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
  import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
  import { useToast } from "@/hooks/use-toast";
- import { Gem, Gem, Plus, Trash2, Edit2, ArrowRight, Save, RefreshCw } from "lucide-react";
+ import { Gem, Plus, Trash2, Edit2, ArrowRight, Save, RefreshCw } from "lucide-react";
  
  interface ExchangeTier {
    id: string;

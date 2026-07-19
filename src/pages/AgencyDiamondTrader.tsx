@@ -1,21 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Gem,
-  TrendingUp,
-  TrendingDown,
-  Search,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  ShoppingCart,
-  Banknote,
-  Users,
-  History,
-  ArrowUpRight,
-  ArrowDownRight
-} from "lucide-react";
+import { ArrowLeft, Gem, TrendingUp, TrendingDown, Search, Loader2, CheckCircle2, AlertCircle, ShoppingCart, Banknote, Users, History, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

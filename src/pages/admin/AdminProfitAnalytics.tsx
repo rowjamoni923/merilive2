@@ -1,20 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  TrendingUp,
-  DollarSign,
-  Receipt,
-  CreditCard,
-  Percent,
-  Download,
-  RefreshCw,
-  Calendar as CalendarIcon,
-  PieChart as PieIcon,
-  BarChart3,
-  ShoppingCart,
-  Table as TableIcon,
-} from "lucide-react";
+import { ArrowLeft, TrendingUp, DollarSign, Receipt, CreditCard, Percent, Download, RefreshCw, Calendar as CalendarIcon, PieChart as PieIcon, BarChart3, ShoppingCart, Table as TableIcon } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,

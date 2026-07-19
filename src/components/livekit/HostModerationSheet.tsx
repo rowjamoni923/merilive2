@@ -16,17 +16,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Mic,
-  MicOff,
-  UserX,
-  Loader2,
-  Volume2,
-  VolumeX,
-  Crown,
-} from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Mic, MicOff, UserX, Loader2, Volume2, VolumeX, Crown } from "lucide-react";
 import {
   muteAllSpeakers,
   unmuteAllSpeakers,

@@ -15,11 +15,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { useToast } from "@/hooks/use-toast";
 import { SmartImage } from "@/components/ui/smart-image";
-import { 
-  MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
-  AlertCircle, XCircle, User, Mail, RefreshCw, Headphones, Gift, Diamond, Building2, Plus, Minus,
-  Image as ImageIcon, Volume2, Languages, Globe, Sparkles, Zap, Shield, CreditCard, Mic, MicOff, Paperclip
-} from "lucide-react";
+import { MessageCircle, Search, Loader2, Send, Clock, CheckCircle, AlertCircle, XCircle, User, Mail, RefreshCw, Headphones, Gift, Diamond, Building2, Plus, Minus, Image as ImageIcon, Volume2, Languages, Globe, Sparkles, Zap, Shield, CreditCard, Mic, MicOff, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
 import PolicyLinkPicker from "@/components/policies/PolicyLinkPicker";

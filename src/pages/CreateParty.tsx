@@ -3,19 +3,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } fr
 import { useNavigate } from "react-router-dom";
 import { usePartySessionOptional } from "@/features/party-session";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Radio, 
-  Mic, 
-  Gamepad2, 
-  Wand2, 
-  Smile, 
-  Sofa, 
-  Crown,
-  Sparkles,
-  Check,
-  Lock
-} from "lucide-react";
+import { X, Radio, Mic, Gamepad2, Wand2, Smile, Sofa, Crown, Sparkles, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

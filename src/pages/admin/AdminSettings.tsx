@@ -1,23 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {
-  Settings,
-  Save,
-  UserCheck,
-  Gift,
-  PartyPopper,
-  Shield,
-  Plus,
-  Trash2,
-  Wallet,
-  Percent,
-  TrendingUp,
-  Download,
-  Globe,
-  Diamond,
-  Users
-} from "lucide-react";
+import { Settings, Save, UserCheck, Gift, PartyPopper, Shield, Plus, Trash2, Wallet, Percent, TrendingUp, Download, Globe, Diamond, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

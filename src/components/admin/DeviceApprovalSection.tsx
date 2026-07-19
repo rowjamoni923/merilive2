@@ -2,21 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Smartphone, 
-  Monitor, 
-  Tablet, 
-  Check, 
-  Ban,
-  Clock,
-  RefreshCw,
-  User,
-  Calendar,
-  Trash2,
-  CheckCircle2,
-  AlertTriangle,
-  Shield
-} from "lucide-react";
+import { Smartphone, Monitor, Tablet, Check, Ban, Clock, RefreshCw, User, Calendar, Trash2, CheckCircle2, AlertTriangle, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";

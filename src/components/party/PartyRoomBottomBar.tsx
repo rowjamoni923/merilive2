@@ -1,20 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  MessageCircle, 
-  Gamepad2, 
-  Gift, 
-  X,
-  Mic,
-  MicOff,
-  Eye,
-  EyeOff,
-  Heart,
-  Volume2,
-  VolumeX,
-  MoreVertical,
-  Send
-} from "lucide-react";
+import { MessageCircle, Gamepad2, Gift, X, Mic, MicOff, Eye, EyeOff, Heart, Volume2, VolumeX, MoreVertical, Send } from "lucide-react";
 import { BrandedGiftIcon } from "@/components/common/BrandedGiftIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -1,23 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  ChevronRight, 
-  Building2,
-  UserPlus,
-  Crown,
-  Users,
-  Sparkles,
-  Shield,
-  TrendingUp,
-  Gift,
-  Wallet,
-  BadgeDollarSign,
-  Clock,
-  Globe,
-  HeadphonesIcon,
-  Banknote
-} from "lucide-react";
+import { ArrowLeft, ChevronRight, Building2, UserPlus, Crown, Users, Sparkles, Shield, TrendingUp, Gift, Wallet, BadgeDollarSign, Clock, Globe, HeadphonesIcon, Banknote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { recordClientError } from "@/utils/clientErrorLog";

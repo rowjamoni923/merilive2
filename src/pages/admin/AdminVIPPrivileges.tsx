@@ -10,11 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Crown, Plus, Edit2, Trash2, Sparkles, Gem, Gift, 
-  Upload, Save, Image, Play, MessageCircle, Star, X,
-  RefreshCw, Shield, EyeOff, Ghost, Gem, Calendar, Zap, Lock, TrendingUp
-} from "lucide-react";
+import { Crown, Plus, Edit2, Trash2, Sparkles, Gem, Gift, Upload, Save, Image, Play, MessageCircle, Star, X, RefreshCw, Shield, EyeOff, Ghost, Calendar, Zap, Lock, TrendingUp } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
 interface VIPTier {
