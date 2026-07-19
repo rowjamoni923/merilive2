@@ -14,7 +14,7 @@ class ReelGift {
   const ReelGift({
     required this.id,
     required this.name,
-    required this.coins,
+    required this.diamonds,
     required this.category,
     this.iconUrl,
     this.animationUrl,
@@ -23,7 +23,7 @@ class ReelGift {
 
   final String id;
   final String name;
-  final int coins;
+  final int diamonds;
   final String category;
   final String? iconUrl;
   final String? animationUrl;
@@ -33,7 +33,7 @@ class ReelGift {
     return ReelGift(
       id: map['id'] as String,
       name: (map['name'] as String?) ?? 'Gift',
-      coins: (map['coin_value'] as num?)?.toInt() ?? 0,
+      diamonds: (map['diamond_value'] as num?)?.toInt() ?? 0,
       category: (map['category'] as String?) ?? 'popular',
       iconUrl: map['icon_url'] as String?,
       animationUrl: map['animation_url'] as String?,
@@ -48,7 +48,7 @@ class ReelGiftSendResult {
     required this.success,
     this.error,
     this.transactionId,
-    this.coinsSpent,
+    this.diamondsSpent,
     this.beansEarned,
     this.newBalance,
   });
@@ -56,7 +56,7 @@ class ReelGiftSendResult {
   final bool success;
   final String? error;
   final String? transactionId;
-  final int? coinsSpent;
+  final int? diamondsSpent;
   final int? beansEarned;
   final int? newBalance;
 }
@@ -80,9 +80,9 @@ class ReelsGiftRepository {
     }
     final rows = await _client
         .from('gifts')
-        .select('id,name,coin_value,category,icon_url,animation_url,animation_format,is_active')
+        .select('id,name,diamond_value,category,icon_url,animation_url,animation_format,is_active')
         .eq('is_active', true)
-        .order('coin_value', ascending: true);
+        .order('diamond_value', ascending: true);
     final list = (rows as List)
         .cast<Map<String, dynamic>>()
         .map(ReelGift.fromMap)
@@ -95,13 +95,12 @@ class ReelsGiftRepository {
   Future<int> fetchBalance(String userId) async {
     final row = await _client
         .from('profiles')
-        .select('coins,diamonds')
+        .select('diamonds')
         .eq('id', userId)
         .maybeSingle();
     if (row == null) return 0;
-    final coins = (row['coins'] as num?)?.toInt() ?? 0;
     final diamonds = (row['diamonds'] as num?)?.toInt() ?? 0;
-    return coins > diamonds ? coins : diamonds;
+    return diamonds;
   }
 
   Future<ReelGiftSendResult> sendGift({
@@ -134,7 +133,7 @@ class ReelsGiftRepository {
       return ReelGiftSendResult(
         success: true,
         transactionId: data['transaction_id'] as String?,
-        coinsSpent: (data['coins_spent'] as num?)?.toInt() ??
+        diamondsSpent: (data['diamonds_spent'] as num?)?.toInt() ??
             (data['total_cost'] as num?)?.toInt(),
         beansEarned: (data['beans_earned'] as num?)?.toInt() ??
             (data['beans_received'] as num?)?.toInt(),

@@ -41,7 +41,7 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
           .toIso8601String();
       final rows = await Supabase.instance.client
           .from('gift_transactions')
-          .select('sender_id, total_coins, coin_amount')
+          .select('sender_id, total_diamonds, diamond_amount')
           .eq('party_room_id', widget.roomId)
           .gte('created_at', since)
           .limit(500);
@@ -51,11 +51,11 @@ class _PartyContributorsSheetState extends State<PartyContributorsSheet> {
       for (final r in (rows as List).cast<Map>()) {
         final uid = r['sender_id']?.toString();
         if (uid == null) continue;
-        final coins = (r['total_coins'] as num?)?.toInt() ??
-            (r['coin_amount'] as num?)?.toInt() ??
+        final diamonds = (r['total_diamonds'] as num?)?.toInt() ??
+            (r['diamond_amount'] as num?)?.toInt() ??
             0;
-        total += coins;
-        agg[uid] = (agg[uid] ?? 0) + coins;
+        total += diamonds;
+        agg[uid] = (agg[uid] ?? 0) + diamonds;
       }
       final ids = agg.keys.toList();
       final profileMap = <String, Map<String, dynamic>>{};
