@@ -16,6 +16,8 @@ describe("validateTopupRate", () => {
 
   it("accepts numeric string", () => {
     expect(validateTopupRate({ usd_per_100k_diamonds: "85.5" })).toEqual({
+      ok: true,
+      rate: 85.5,
     });
   });
 

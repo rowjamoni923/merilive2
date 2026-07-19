@@ -193,6 +193,11 @@ export default function AdminHosts() {
         total_earnings?: number | string;
       };
       setStats({
+        totalHosts: Number(s.total_hosts || 0),
+        activeHosts: Number(s.active_hosts || 0),
+        pendingHosts: Number(s.pending_hosts || 0),
+        blockedHosts: Number(s.blocked_hosts || 0),
+        totalEarnings: Number(s.total_earnings || 0),
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingHostStats", message: formatAdminError(error)});
@@ -218,6 +223,8 @@ export default function AdminHosts() {
   const handleRejectHost = async (hostId: string) => {
     try {
       const { error } = await supabase.rpc('admin_convert_user_role', {
+        _user_id: hostId,
+        _to_host: false,
       });
 
       if (error) throw error;
@@ -232,6 +239,7 @@ export default function AdminHosts() {
   const handleBlockHost = async (hostId: string, block: boolean) => {
     try {
       const { error } = await supabase.rpc("admin_block_user", {
+        _user_id: hostId,
         _block: block,
         _reason: block ? "Blocked by admin" : null
       });

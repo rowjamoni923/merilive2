@@ -64,6 +64,7 @@ async function processAction(action: NativeMessageAction): Promise<void> {
         .neq('sender_id', user.id);
       if (error) console.warn('[Pkg209] mark_read failed:', error.message);
       window.dispatchEvent(new CustomEvent('native-dm-read', {
+        detail: { conversationId: action.conversationId },
       }));
     }
   } catch (err) {

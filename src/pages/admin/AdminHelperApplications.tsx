@@ -153,6 +153,10 @@ const AdminHelperApplications = () => {
       setPayrollRequests((payrollData || []) as PayrollRequest[]);
 
       setStats({
+        pending: s.pending || 0,
+        approved: s.approved || 0,
+        rejected: s.rejected || 0,
+        pendingPayroll: s.pendingPayroll || 0
       });
 
     } catch (error) {
@@ -225,6 +229,10 @@ const AdminHelperApplications = () => {
       await supabase
         .from('helper_applications')
         .update({
+          status: 'rejected',
+          admin_notes: rejectionNotes,
+          reviewed_by: user?.id,
+          reviewed_at: new Date().toISOString()
         })
         .eq('id', app.id);
 

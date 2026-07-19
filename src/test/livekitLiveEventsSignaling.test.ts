@@ -127,6 +127,12 @@ describe('Pkg82a livekitLiveEventsSignaling', () => {
       'live',
       'viewer_joined',
       {
+        type: 'viewer_joined',
+        streamId: 'stream-OTHER',
+        userId: 'u-9',
+        userName: 'Bob',
+        userLevel: 1,
+        timestamp: Date.now(),
       },
       'viewer-9',
     );
@@ -152,6 +158,12 @@ describe('Pkg82a livekitLiveEventsSignaling', () => {
 
   it('publishLiveEvent returns false when room is not registered', async () => {
     const ok = await publishLiveEvent('unknown-stream', {
+      type: 'viewer_joined',
+      streamId: 'unknown-stream',
+      userId: 'u',
+      userName: 'X',
+      userLevel: 1,
+      timestamp: Date.now(),
     });
     expect(ok).toBe(false);
   });
@@ -160,6 +172,9 @@ describe('Pkg82a livekitLiveEventsSignaling', () => {
     const room = makeFakeRoom();
     registerLiveEventsRoom('stream-1', room as any);
     const ok = await publishViewerJoined('stream-1', {
+      userId: 'u-1',
+      userName: 'Alice',
+      userLevel: 3,
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledTimes(1);

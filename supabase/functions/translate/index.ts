@@ -194,6 +194,7 @@ async function callGeminiTranslate(
             "You are a translation engine. Return ONLY JSON: {\"translatedText\": string, \"detectedSourceLanguage\": string}. detectedSourceLanguage must be an ISO 639-1 code when possible.",
         },
         {
+          role: "user",
           content: `Source language: ${sourceLang}. Target language: ${targetLang}. Text: ${text}`,
         },
       ],
@@ -229,6 +230,7 @@ async function callGeminiTranslate(
   } catch {
     return {
       translatedText: cleaned,
+      sourceLanguage: sourceLang,
     };
   }
 }
@@ -274,6 +276,7 @@ serve(async (req) => {
       const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
       if (claimsError || !claimsData?.claims) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }

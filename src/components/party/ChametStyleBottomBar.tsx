@@ -135,6 +135,7 @@ export const ChametStyleBottomBar = ({
               <div
                 className="rounded-3xl p-5 relative overflow-hidden"
                 style={{
+                  background: "linear-gradient(145deg, rgba(12,8,35,0.97), rgba(22,12,50,0.97))",
                   backdropFilter: "blur(28px)",
                   border: "1px solid rgba(168,85,247,0.12)",
                   boxShadow: "0 20px 56px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04)",
@@ -186,6 +187,8 @@ export const ChametStyleBottomBar = ({
                             whileHover={{ y: -2 }}
                             className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center relative overflow-hidden"
                             style={{
+                              background: item.radial,
+                              boxShadow: `0 10px 24px ${item.glow}, inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 6px rgba(0,0,0,0.28)`,
                             }}
                           >
                             <span className="absolute inset-x-1.5 top-1 h-3 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.5), transparent)" }} />
@@ -218,6 +221,10 @@ export const ChametStyleBottomBar = ({
           animate={{ y: 0, opacity: 1 }}
           className="rounded-[22px] px-2 py-2 relative overflow-hidden"
           style={{
+            background: "linear-gradient(135deg, rgba(12,8,30,0.93), rgba(25,12,50,0.9))",
+            backdropFilter: "blur(24px)",
+            border: "1px solid rgba(168,85,247,0.1)",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)",
           }}
         >
           {/* Top shimmer */}
@@ -250,6 +257,8 @@ export const ChametStyleBottomBar = ({
                 <motion.div
                   className="w-[62px] h-[62px] rounded-[20px] flex items-center justify-center relative overflow-hidden"
                   style={{
+                    background: "linear-gradient(135deg, #ec4899, #a855f7, #7c3aed)",
+                    boxShadow: "0 10px 28px rgba(168,85,247,0.45), 0 0 0 2px rgba(255,255,255,0.08), inset 0 2px 0 rgba(255,255,255,0.12)",
                   }}
                   animate={{ y: [0, -1.5, 0] }}
                   transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
@@ -300,10 +309,13 @@ export const ChametStyleBottomBar = ({
                 onClick={!isWaitingToJoin ? () => { haptic(10); onJoinRequest?.(); } : undefined}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl relative overflow-hidden"
                 style={{
+                  background: isWaitingToJoin
                     ? "radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 45%, #92400e 100%)"
                     : "radial-gradient(120% 120% at 30% 20%, #a5f3fc 0%, #06b6d4 45%, #3730a3 100%)",
+                  boxShadow: isWaitingToJoin
                     ? "0 8px 20px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)"
                     : "0 8px 20px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(255,255,255,0.18)",
                 }}
               >
                 <span className="absolute inset-x-1.5 top-0.5 h-2 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.55), transparent)" }} />
@@ -356,6 +368,7 @@ function BarButton({
   badge,
   border,
 }: {
+  icon: React.ElementType;
   label: string;
   onClick?: () => void;
   bg: string;
@@ -385,6 +398,7 @@ function BarButton({
           boxShadow: shadow !== "none"
             ? `0 8px 20px ${shadow}, inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)`
             : `inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 4px rgba(0,0,0,0.18)`,
+          border: border ? `1px solid ${border}` : undefined,
         }}
       >
         <span className="absolute inset-x-1.5 top-0.5 h-2 rounded-xl pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.5), transparent)" }} />

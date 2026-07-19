@@ -12,6 +12,7 @@ export interface StreamData {
   viewer_count: number;
   started_at: string | null;
   host?: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;

@@ -135,6 +135,7 @@ interface NativeLiveKitPlugin {
   reconnectNow(opts?: Record<string, unknown>): Promise<{ connected: boolean; reason?: string }>;
   getActiveSession(): Promise<{
     active: boolean;
+    roomScope?: NativeRoomScope | string;
     isHost?: boolean;
     callType?: string;
     boundAtMs?: number;

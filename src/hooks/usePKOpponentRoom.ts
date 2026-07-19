@@ -69,6 +69,12 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
     }
     if (mountedRef.current) {
       setTracks({
+        videoTrack: null,
+        audioTrack: null,
+        participant: null,
+        isConnecting: false,
+        isConnected: false,
+        status: 'disconnected',
       });
     }
   }, []);
@@ -132,6 +138,12 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
           }
 
           setTracks({
+            videoTrack: video,
+            audioTrack: audio,
+            participant: hostParticipant,
+            isConnecting: false,
+            isConnected: !!(video || audio),
+            status: hostParticipant ? 'connected' : 'connecting',
           });
         };
 
@@ -141,6 +153,12 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
         room.on(RoomEvent.Disconnected, () => {
           if (!cancelled && mountedRef.current) {
             setTracks({
+              videoTrack: null,
+              audioTrack: null,
+              participant: null,
+              isConnecting: false,
+              isConnected: false,
+              status: 'disconnected',
             });
           }
         });
@@ -173,6 +191,12 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
         console.error('[usePKOpponentRoom] connect failed:', err);
         if (!cancelled && mountedRef.current) {
           setTracks({
+            videoTrack: null,
+            audioTrack: null,
+            participant: null,
+            isConnecting: false,
+            isConnected: false,
+            status: 'error',
           });
         }
       }

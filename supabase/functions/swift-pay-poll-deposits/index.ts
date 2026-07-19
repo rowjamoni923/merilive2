@@ -145,6 +145,9 @@ Deno.serve(async (req) => {
       const isPaid = bal.total_deposited >= neededTotal - 0.01;
       const snapshot = {
         checked_at: nowIso,
+        status_code: bal.status_code,
+        balance: bal.balance,
+        total_deposited: bal.total_deposited,
         expected_usd: expectedUsd,
         prior_used_usd: usedUsd,
         needed_total_usd: neededTotal,
@@ -206,6 +209,7 @@ Deno.serve(async (req) => {
         creditRes = data;
       } else {
         const { data, error } = await admin.rpc("safe_credit_diamonds", {
+          p_user_id: row.user_id,
           p_amount: creditDiamonds,
           p_gateway: "swift_pay",
           p_order_id: row.id,
@@ -219,12 +223,15 @@ Deno.serve(async (req) => {
 
       if (creditErr) {
         await admin.from("swift_pay_topups").update({
+          status: "failed",
+          error_message: creditErr.message,
         }).eq("id", row.id);
         results.push({ id: row.id, error: creditErr.message });
         continue;
       }
 
       await admin.from("swift_pay_topups").update({
+        status: "credited",
         credited_at: nowIso,
       }).eq("id", row.id);
       priorPaidUsdCache.set(row.external_user_id, usedUsd + expectedUsd);

@@ -459,6 +459,8 @@ export function LiveFerrisWheelGame({
                       !isSelected && !isWinner && "border-white/50"
                     )}
                     style={{
+                      left: `calc(50% + ${x}px - ${isVerySmallHeight ? 14 : isLandscape ? 18 : 22}px)`,
+                      top: `calc(50% + ${y}px - ${isVerySmallHeight ? 14 : isLandscape ? 18 : 22}px)`,
 
                     }}
                     whileHover={{ scale: autoPlayPhase === "betting" ? 1.15 : 1 }}
@@ -489,6 +491,8 @@ export function LiveFerrisWheelGame({
                           rotate: -wheelRotation
                         }}
                         transition={{ 
+                          scale: { duration: 0.2 },
+                          rotate: { duration: 5, ease: [0.2, 0.8, 0.2, 1] }
                         }}
                         className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-lg border-2 border-white z-10"
                       >
@@ -516,6 +520,7 @@ export function LiveFerrisWheelGame({
             {/* FIXED Outer Ring/Frame - Does NOT rotate */}
             <div className="absolute inset-[-4px] rounded-full border-4 border-purple-500/60 pointer-events-none z-10" 
               style={{ 
+                boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.2)'
               }}
             />
 
@@ -540,9 +545,15 @@ export function LiveFerrisWheelGame({
                   key={i}
                   className="absolute w-2 h-2 rounded-sm"
                   style={{
+                    background: ['#ef4444', '#eab308', '#22c55e', '#3b82f6', '#a855f7'][i % 5],
+                    left: '50%',
+                    top: '50%',
                   }}
                   animate={{
                     x: [0, (Math.random() - 0.5) * 150],
+                    y: [0, (Math.random() - 0.5) * 150],
+                    rotate: [0, 360 * (Math.random() > 0.5 ? 1 : -1)],
+                    opacity: [1, 0],
                   }}
                   transition={{ duration: 1.5, delay: i * 0.05 }}
                 />

@@ -475,6 +475,7 @@ serve(async (req) => {
           deductedAmount: isHost ? AUTO_DEDUCTION_BEANS : 0,
           previousBalance: userProfile.beans_balance || 0,
           newBalance: newBalance,
+          confidence: result.confidence,
           originalMessage: message.substring(0, 100),
           violationResult: {
             violation_count: newViolationCount,
@@ -489,8 +490,13 @@ serve(async (req) => {
         JSON.stringify({
           detected: true,
           matches: result.matches,
+          confidence: result.confidence,
           violationCount: newViolationCount,
           isBanned: false,
+          isHost: isHost,
+          autoDeducted: beansDeducted > 0,
+          deductedAmount: beansDeducted,
+          newBalance: newBalance
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

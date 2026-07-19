@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
         await admin.from("sip_call_log").update({
           sip_participant_id: info.participantId ?? sipIdentity,
           sip_call_id: info.sipCallId ?? null,
+          status: "dialing",
         }).eq("id", logRow?.id);
 
         return json(200, {
@@ -123,6 +124,7 @@ Deno.serve(async (req) => {
       } catch (e) {
         const msg = (e as Error).message ?? "sip_dial_failed";
         await admin.from("sip_call_log").update({
+          status: "failed", error: msg, ended_at: new Date().toISOString(),
         }).eq("id", logRow?.id);
         console.error("[Pkg110] dial failed:", msg);
         return json(502, { error: "sip_dial_failed", detail: msg });
@@ -131,6 +133,7 @@ Deno.serve(async (req) => {
 
     if (action === "hangup") {
       const { sipParticipantId, roomName } = body as {
+        sipParticipantId?: string; roomName?: string;
       };
       if (!sipParticipantId || !roomName) return json(400, { error: "sipParticipantId_and_roomName_required" });
 
@@ -155,6 +158,7 @@ Deno.serve(async (req) => {
 
       if (logRow?.id) {
         await admin.from("sip_call_log").update({
+          status: "ended", ended_at: new Date().toISOString(),
         }).eq("id", logRow.id);
       }
       return json(200, { ok: true });

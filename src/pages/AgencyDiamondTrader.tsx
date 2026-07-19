@@ -192,6 +192,9 @@ const AgencyDiamondTrader = () => {
       console.error('Error loading data:', error);
       recordClientError({ label: "AgencyDiamondTrader.enrichedHistory", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: "Failed to load data",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -250,6 +253,9 @@ const AgencyDiamondTrader = () => {
     const amount = parseFloat(tradeAmount);
     if (isNaN(amount) || amount < tradeSettings.min_trade_amount) {
       toast({
+        title: "Error",
+        description: `Minimum ${tradeSettings.min_trade_amount} Diamonds required`,
+        variant: "destructive"
       });
       return;
     }
@@ -266,6 +272,9 @@ const AgencyDiamondTrader = () => {
 
     if (activeTab === "sell" && amount > totalAvailable) {
       toast({
+        title: "Error",
+        description: "Insufficient Diamonds in your wallet",
+        variant: "destructive"
       });
       return;
     }
@@ -325,6 +334,7 @@ const AgencyDiamondTrader = () => {
           .rpc('helper_transfer_diamonds_to_user', {
             _sender_id: currentUserId,
             _receiver_id: selectedUser.id,
+            _amount: Math.floor(amount),
             _sender_type: senderType
           });
 
@@ -338,6 +348,11 @@ const AgencyDiamondTrader = () => {
         await supabase
           .from('diamond_transfers')
           .insert({
+            sender_id: agency.id,
+            receiver_id: selectedUser.id,
+            amount: Math.floor(amount),
+            sender_type: 'agency_sell',
+            note: `Agency sold ${Math.floor(amount)} diamonds to user`
           });
 
         toast({ title: "Diamonds sold successfully" });
@@ -355,6 +370,9 @@ const AgencyDiamondTrader = () => {
       console.error('Trade error:', error);
       recordClientError({ label: "AgencyDiamondTrader.addUserData", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: error?.message || "Failed to process trade",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -368,6 +386,9 @@ const AgencyDiamondTrader = () => {
     const amount = parseFloat(buyDiamondsAmount);
     if (isNaN(amount) || amount < tradeSettings.min_trade_amount) {
       toast({
+        title: "Error",
+        description: `Minimum ${tradeSettings.min_trade_amount} Diamonds to buy`,
+        variant: "destructive"
       });
       return;
     }
@@ -394,6 +415,8 @@ const AgencyDiamondTrader = () => {
       if (error) throw error;
 
       toast({
+        title: "Order Submitted",
+        description: `Order for ${amount.toLocaleString()} Diamonds is being processed.`,
       });
 
       // Reset form
@@ -405,6 +428,9 @@ const AgencyDiamondTrader = () => {
       console.error('Order error:', error);
       recordClientError({ label: "AgencyDiamondTrader.dollarAmount", message: error instanceof Error ? error.message : String(error) });
       toast({
+        title: "Error",
+        description: "Failed to submit order",
+        variant: "destructive"
       });
     } finally {
       setIsBuyProcessing(false);

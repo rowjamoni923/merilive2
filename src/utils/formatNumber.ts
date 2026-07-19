@@ -32,6 +32,8 @@ export const formatNumber = (
   }
 
   return num.toLocaleString('en-US', {
+    minimumFractionDigits: minDecimals ?? 0,
+    maximumFractionDigits: maxDecimals ?? 2,
   });
 };
 

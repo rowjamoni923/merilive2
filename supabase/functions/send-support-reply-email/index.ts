@@ -211,6 +211,7 @@ serve(async (req: Request) => {
     const { ticketId, replyContent } = await req.json();
     if (!ticketId || !replyContent) {
       return new Response(JSON.stringify({ success: false, error: "Missing ticketId or replyContent" }), {
+        status: 400, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -222,6 +223,7 @@ serve(async (req: Request) => {
 
     if (ticketError || !ticket) {
       return new Response(JSON.stringify({ success: false, error: "Ticket not found" }), {
+        status: 404, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -237,6 +239,7 @@ serve(async (req: Request) => {
 
     if (!userEmail || userEmail.endsWith("@meri.local")) {
       return new Response(JSON.stringify({ success: false, error: "User has no valid email address", skipped: true }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -256,16 +259,19 @@ serve(async (req: Request) => {
         reason: "gmail_send_failed",
         error: emailError?.message || "Gmail support email could not be sent",
       }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
     console.log(`✅ Gmail support reply sent to ${userEmail} ticket ${ticket.ticket_number}`);
     return new Response(JSON.stringify({ success: true, sentTo: userEmail, result }), {
+      status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
     });
 
   } catch (error: any) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
+      status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
 });

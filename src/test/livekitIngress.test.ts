@@ -51,6 +51,7 @@ describe('Pkg109 livekitIngress', () => {
   it('createLiveStreamIngress returns null on edge function error', async () => {
     (isLiveKitEnabled as any).mockResolvedValue(true);
     (supabase.functions.invoke as any).mockResolvedValue({
+      data: null, error: { message: 'ingress_disabled' },
     });
     expect(await createLiveStreamIngress('stream-1')).toBeNull();
   });
@@ -76,8 +77,11 @@ describe('Pkg109 livekitIngress', () => {
 
   it('fetchLiveStreamIngress maps RPC row', async () => {
     (supabase.rpc as any).mockResolvedValue({
+      data: [{ ingress_id: 'IN_1', rtmp_url: 'rtmps://x', stream_key: 'sk', ingress_type: 'whip' }],
+      error: null,
     });
     expect(await fetchLiveStreamIngress('stream-1')).toEqual({
+      ingressId: 'IN_1', url: 'rtmps://x', streamKey: 'sk', inputType: 'whip',
     });
   });
 });

@@ -142,6 +142,7 @@ serve(async (req) => {
     
     if (!record || !record.user_id || !record.title) {
       return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -180,6 +181,7 @@ serve(async (req) => {
     ];
     if (ADMIN_ONLY_TYPES.includes(notifType)) {
       return new Response(JSON.stringify({ success: true, skipped: true, reason: "admin_only_type" }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -199,6 +201,7 @@ serve(async (req) => {
     if (tokenError || !deviceTokens || deviceTokens.length === 0) {
       console.log(`[PushOnNotif] No active tokens for user ${userId}`);
       return new Response(JSON.stringify({ success: true, sent: 0 }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -207,6 +210,7 @@ serve(async (req) => {
     if (!serviceAccountJson) {
       console.log("[PushOnNotif] FCM not configured");
       return new Response(JSON.stringify({ success: false, error: "FCM not configured" }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
@@ -240,6 +244,7 @@ serve(async (req) => {
               }),
               android: {
                 priority: "HIGH",
+                notification: {
                   // Pkg425 Phase-8 — route to type-specific channel so
                   // killed-app notifications inherit correct importance/
                   // sound/vibration. Falls back to merilive_default.
@@ -256,6 +261,7 @@ serve(async (req) => {
                 payload: {
                   aps: {
                     alert: { title, body: body.substring(0, 200) },
+                    sound: "default",
                     badge: 1,
                   },
                 },
@@ -269,6 +275,7 @@ serve(async (req) => {
             {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+              body: JSON.stringify(fcmMessage),
             }
           );
 

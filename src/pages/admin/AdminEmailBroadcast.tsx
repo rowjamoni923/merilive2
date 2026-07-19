@@ -60,6 +60,9 @@ const AdminEmailBroadcast = () => {
     if (!addForm.title.trim() || !addForm.body.trim()) { toast.error("Name and content required"); return; }
     await addTemplate({
       template_key: `email_${Date.now()}`,
+      title_template: addForm.title,
+      message_template: addForm.body,
+      description: addForm.description,
       category: "email",
     });
     setAddDialog(false);

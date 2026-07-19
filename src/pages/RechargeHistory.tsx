@@ -121,7 +121,15 @@ const RechargeHistory = () => {
 
       // 5. Transform Google Play / gateway transactions
       const fromGoogle: RechargeOrder[] = (rechargeTxns || []).map((txn: any) => ({
+        id: txn.id,
+        diamond_amount: txn.diamonds_received,
+        amount_usd: txn.amount,
+        status: txn.status,
+        created_at: txn.created_at,
+        processed_at: txn.completed_at,
         transaction_id: txn.google_order_id || txn.transaction_id,
+        payment_method: txn.purchase_source === 'google_play' ? 'Google Play' : (txn.payment_method || 'Gateway'),
+        source: 'google_play' as const,
       }));
 
       // 6. Merge & sort

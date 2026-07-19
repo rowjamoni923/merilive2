@@ -119,6 +119,7 @@ export const sendGameWinNotification = async ({
         room_id: roomId,
         sender_id: userId,
         content: winMessage,
+        message_type: 'game_win',
       });
     }
 
@@ -145,6 +146,14 @@ export const parseGameWinMessage = (content: string): {
   const m3 = content.match(/^\[GAME_WIN:([^:]+):([^:]+):([^:]+):([^:]+):(\d+):([0-9a-fA-F-]+):([^\]]*)\]$/);
   if (m3) {
     return {
+      isGameWin: true,
+      emoji: m3[1],
+      gameName: m3[2],
+      amount: m3[3],
+      userName: m3[4],
+      userLevel: parseInt(m3[5]),
+      userId: m3[6],
+      avatarUrl: m3[7] || undefined,
     };
   }
 
@@ -152,6 +161,12 @@ export const parseGameWinMessage = (content: string): {
   const m2 = content.match(/^\[GAME_WIN:([^:]+):([^:]+):([^:]+):([^:]+):(\d+)\]$/);
   if (m2) {
     return {
+      isGameWin: true,
+      emoji: m2[1],
+      gameName: m2[2],
+      amount: m2[3],
+      userName: m2[4],
+      userLevel: parseInt(m2[5]),
     };
   }
 
@@ -159,6 +174,10 @@ export const parseGameWinMessage = (content: string): {
   const m1 = content.match(/^\[GAME_WIN:([^:]+):([^:]+):([^:]+)\]$/);
   if (m1) {
     return {
+      isGameWin: true,
+      emoji: m1[1],
+      gameName: m1[2],
+      amount: m1[3],
     };
   }
 

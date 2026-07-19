@@ -33,6 +33,7 @@ export default function MatchCall() {
   const [profile, setProfile] = useState<{
     id: string;
     diamonds: number;
+    diamonds?: number | null;
     vip_tier: number | null;
     current_vip_tier_id?: string | null;
   } | null>(null);
@@ -164,6 +165,8 @@ export default function MatchCall() {
     if (info) {
       const duration = Math.max(0, Math.floor((Date.now() - info.started_at) / 1000));
       supabase.functions.invoke("random-call-settle", {
+        body: {
+          session_id: info.session_id,
           duration_seconds: duration,
           ended_by: info.ended_by ?? "caller",
         },
@@ -319,6 +322,7 @@ export default function MatchCall() {
       } catch (_) {}
 
       const { data, error } = await supabase.functions.invoke("random-call-enqueue", {
+        body: {
           mode: broadcast ? "broadcast" : "queue",
           preferred_langs: filters.preferred_langs,
           preferred_country: filters.preferred_country,

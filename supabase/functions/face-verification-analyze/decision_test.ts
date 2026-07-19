@@ -253,5 +253,6 @@ Deno.test("priority: hard reject beats needs_retry beats manual_review", () => {
   })), { kind: "reject", reason: "duplicate_face" });
   // No hard, but retry conditions present → retry beats manual gates.
   assertEquals(decideFaceVerificationOutcome(baseHost({
+    hostPhotosMismatch: true, livenessProviderAvailable: false,
   })).kind, "needs_retry");
 });

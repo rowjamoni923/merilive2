@@ -159,15 +159,18 @@ export const AdminAnalyticsCharts = memo(() => {
   })) || [];
 
   const chartGiftRevenue = data?.gift_revenue?.map(d => ({
+    date: formatDate(d.date),
     Diamonds: d.diamonds,
   })) || [];
 
   const chartCallActivity = data?.call_activity?.map(d => ({
+    date: formatDate(d.date),
     Calls: d.calls,
     Minutes: d.total_minutes,
   })) || [];
 
   const chartRechargeRevenue = data?.recharge_revenue?.map(d => ({
+    date: formatDate(d.date),
     Revenue: d.revenue,
     Count: d.count,
   })) || [];

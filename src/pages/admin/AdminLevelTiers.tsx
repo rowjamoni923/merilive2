@@ -209,6 +209,18 @@ const AdminLevelTiers = () => {
     
     setEditingTier({
       id: '',
+      level_number: maxLevel,
+      level_name: '',
+      min_topup_amount: 0,
+      min_earning_amount: 0,
+      level_icon: '💎',
+      level_color: '#3b82f6',
+      bg_gradient: 'from-blue-400 to-blue-500',
+      tier_type: activeTab,
+      is_active: true,
+      display_order: maxLevel,
+      animation_url: null,
+      icon_url: null,
     });
     setIsDialogOpen(true);
   };
@@ -373,6 +385,7 @@ const AdminLevelTiers = () => {
                     value={editingTier.level_number}
                     onChange={(e) => setEditingTier({ 
                       ...editingTier, 
+                      level_number: parseInt(e.target.value) || 0 
                     })}
                     className={adminStyles.input}
                     disabled={!!editingTier.id}
@@ -384,6 +397,7 @@ const AdminLevelTiers = () => {
                     value={editingTier.level_name}
                     onChange={(e) => setEditingTier({ 
                       ...editingTier, 
+                      level_name: e.target.value 
                     })}
                     placeholder="e.g., Bronze, Silver, Gold"
                     className={adminStyles.input}
@@ -544,9 +558,15 @@ const AdminLevelTiers = () => {
                 bucket="level-tiers"
                 folder="unified"
                 value={{
+                  animation_url: editingTier.animation_url || '',
+                  animation_format: ((editingTier as any).animation_format ?? null) as AnimationFormat | null,
+                  animation_config_url: (editingTier as any).animation_config_url || null,
                 }}
                 onChange={(v) => setEditingTier({
                   ...editingTier,
+                  animation_url: v.animation_url || null,
+                  animation_format: v.animation_format,
+                  animation_config_url: v.animation_config_url || null,
                 } as any)}
               />
 
@@ -596,6 +616,7 @@ const AdminLevelTiers = () => {
                     <div 
                       className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shadow-lg"
                       style={{ 
+                        background: `linear-gradient(135deg, ${editingTier.level_color}80, ${editingTier.level_color})` 
                       }}
                     >
                       {editingTier.level_icon}

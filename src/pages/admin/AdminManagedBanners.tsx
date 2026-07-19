@@ -145,6 +145,7 @@ export default function AdminManagedBanners() {
     if (!editing) return;
     setEditing({
       ...editing,
+      bullets: [...editing.bullets, { icon: "CheckCircle2", title: "", description: "" }],
     });
   };
 

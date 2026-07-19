@@ -40,16 +40,100 @@ const PROFILES: Record<ConnectionTier, AdaptiveNetworkProfile> = {
     queryRetryMaxDelayMs: 12000,
   },
   'slow-2g': {
+    maxConcurrentRequests: 2,
+    healthyRequestGapMs: 140,
+    degradedRequestGapMs: 220,
+    requestTimeoutMs: 32000,
+    responseCacheTtlMs: 60000,
+    staleIfErrorMs: 10 * 60_000,
+    routeFailureThreshold: 3,
+    routeCircuitOpenMs: 16_000,
+    maxBackoffMs: 9000,
+    healthProbeTimeoutMs: 10_000,
+    healthCheckIntervalMs: 90_000,
+    queryRetryCount: 3,
+    queryRetryBaseDelayMs: 3500,
+    queryRetryMaxDelayMs: 15000,
   },
   '2g': {
+    maxConcurrentRequests: 3,
+    healthyRequestGapMs: 120,
+    degradedRequestGapMs: 180,
+    requestTimeoutMs: 28000,
+    responseCacheTtlMs: 45000,
+    staleIfErrorMs: 8 * 60_000,
+    routeFailureThreshold: 4,
+    routeCircuitOpenMs: 14_000,
+    maxBackoffMs: 8000,
+    healthProbeTimeoutMs: 9000,
+    healthCheckIntervalMs: 90_000,
+    queryRetryCount: 3,
+    queryRetryBaseDelayMs: 3000,
+    queryRetryMaxDelayMs: 12000,
   },
   '3g': {
+    maxConcurrentRequests: 6,
+    healthyRequestGapMs: 0,
+    degradedRequestGapMs: 80,
+    requestTimeoutMs: 24000,
+    responseCacheTtlMs: 30000,
+    staleIfErrorMs: 6 * 60_000,
+    routeFailureThreshold: 4,
+    routeCircuitOpenMs: 13_000,
+    maxBackoffMs: 7000,
+    healthProbeTimeoutMs: 7000,
+    healthCheckIntervalMs: 75_000,
+    queryRetryCount: 2,
+    queryRetryBaseDelayMs: 2400,
+    queryRetryMaxDelayMs: 9000,
   },
   '4g': {
+    maxConcurrentRequests: 12,
+    healthyRequestGapMs: 0,
+    degradedRequestGapMs: 30,
+    requestTimeoutMs: 18000,
+    responseCacheTtlMs: 15000,
+    staleIfErrorMs: 300000,
+    routeFailureThreshold: 5,
+    routeCircuitOpenMs: 12000,
+    maxBackoffMs: 5000,
+    healthProbeTimeoutMs: 4500,
+    healthCheckIntervalMs: 60_000,
+    queryRetryCount: 1,
+    queryRetryBaseDelayMs: 1800,
+    queryRetryMaxDelayMs: 5000,
   },
   '5g': {
+    maxConcurrentRequests: 15,
+    healthyRequestGapMs: 0,
+    degradedRequestGapMs: 20,
+    requestTimeoutMs: 16000,
+    responseCacheTtlMs: 12000,
+    staleIfErrorMs: 240000,
+    routeFailureThreshold: 5,
+    routeCircuitOpenMs: 11000,
+    maxBackoffMs: 4500,
+    healthProbeTimeoutMs: 3800,
+    healthCheckIntervalMs: 55_000,
+    queryRetryCount: 1,
+    queryRetryBaseDelayMs: 1500,
+    queryRetryMaxDelayMs: 4500,
   },
   unknown: {
+    maxConcurrentRequests: 10,
+    healthyRequestGapMs: 0,
+    degradedRequestGapMs: 40,
+    requestTimeoutMs: 20000,
+    responseCacheTtlMs: 20000,
+    staleIfErrorMs: 360000,
+    routeFailureThreshold: 4,
+    routeCircuitOpenMs: 12_000,
+    maxBackoffMs: 6500,
+    healthProbeTimeoutMs: 6000,
+    healthCheckIntervalMs: 65_000,
+    queryRetryCount: 2,
+    queryRetryBaseDelayMs: 2000,
+    queryRetryMaxDelayMs: 7000,
   },
 };
 
@@ -62,8 +146,14 @@ const getConnection = () => {
       saveData?: boolean;
     };
     mozConnection?: {
+      effectiveType?: string;
+      downlink?: number;
+      saveData?: boolean;
     };
     webkitConnection?: {
+      effectiveType?: string;
+      downlink?: number;
+      saveData?: boolean;
     };
   };
 

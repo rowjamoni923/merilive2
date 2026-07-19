@@ -215,6 +215,7 @@ export default function AdminPartyRooms() {
       case "video": return "from-green-500 to-emerald-500";
       case "audio": return "from-blue-500 to-cyan-500";
       case "game": return "from-purple-500 to-pink-500";
+      default: return "from-primary to-purple-500";
     }
   };
 

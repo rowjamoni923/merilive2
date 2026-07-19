@@ -182,6 +182,7 @@ Deno.serve(async (req) => {
         roomName,
         dispatchId,
         agentName: match?.agentName ?? null,
+        resultCount: 1,
       });
       return json(200, { dispatch: summarizeDispatch(match) });
     }
@@ -192,6 +193,8 @@ Deno.serve(async (req) => {
       action,
       roomName,
       dispatchId,
+      agentName: (deleted as any)?.agentName ?? null,
+      resultCount: 1,
     });
     return json(200, { ok: true, dispatch: summarizeDispatch(deleted) });
   } catch (e) {
@@ -199,6 +202,7 @@ Deno.serve(async (req) => {
     await audit(adminClient, {
       role,
       action,
+      roomName: roomName || undefined,
       dispatchId: dispatchId || undefined,
       error: msg.slice(0, 500),
     });

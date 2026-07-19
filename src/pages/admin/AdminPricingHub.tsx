@@ -146,6 +146,8 @@ export default function AdminPricingHub() {
 
       setCallRates(map.call_rates ?? {});
       setGiftCommission({
+        host_percent: map.gift_commission?.host_percent ?? "",
+        company_percent: map.gift_commission?.company_percent ?? "",
       });
       setAgencyCommission(map.agency_commission ?? {});
       setWithdrawal(map.withdrawal_settings ?? {});
@@ -158,6 +160,8 @@ export default function AdminPricingHub() {
       setHelperDiamondCommission(typeof hd === "number" ? hd : hd?.rate ?? hd?.percent ?? "");
 
       setHelperFeeSettings({
+        platform_fee_percent: map.helper_fee_settings?.platform_fee_percent ?? "",
+        helper_receives_percent: map.helper_fee_settings?.helper_receives_percent ?? "",
       });
 
       setCoinExchange(map.diamond_exchange ?? {});
@@ -172,6 +176,9 @@ export default function AdminPricingHub() {
       // Auto Withdrawal Fee (flat USD + percent for ePay/USDT/Binance/Crypto auto methods)
       const awf = map.auto_withdrawal_fee;
       setAutoWithdrawalFee({
+        flat_usd: typeof awf?.flat_usd === "number" ? awf.flat_usd : (typeof awf === "number" ? awf : ""),
+        percent: typeof awf?.percent === "number" ? awf.percent : "",
+        enabled: awf?.enabled !== false,
       });
 
       // Pkg70 — Trader tier-min wallet thresholds
@@ -569,6 +576,8 @@ export default function AdminPricingHub() {
                   saveSection(
                     "gift_commission",
                     {
+                      host_percent: hp,
+                      company_percent: cp,
                       description: `Company takes ${cp}%, Host receives ${hp}%`,
                     },
                     "Gift commission"
@@ -823,6 +832,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setAutoWithdrawalFee({
                         ...autoWithdrawalFee,
+                        flat_usd: e.target.value === "" ? "" : Number(e.target.value),
                       })
                     }
                   />
@@ -837,6 +847,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setAutoWithdrawalFee({
                         ...autoWithdrawalFee,
+                        percent: e.target.value === "" ? "" : Number(e.target.value),
                       })
                     }
                   />
@@ -878,6 +889,9 @@ export default function AdminPricingHub() {
                   saveSection(
                     "auto_withdrawal_fee",
                     {
+                      flat_usd: autoWithdrawalFee.flat_usd === "" ? 0 : Number(autoWithdrawalFee.flat_usd),
+                      percent: autoWithdrawalFee.percent === "" ? 0 : Number(autoWithdrawalFee.percent),
+                      enabled: autoWithdrawalFee.enabled,
                       methods: ["epay", "usdt", "binance", "crypto_auto"],
                     },
                     "Auto withdrawal fee"
@@ -969,6 +983,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setHelperFeeSettings({
                         ...helperFeeSettings,
+                        platform_fee_percent: inputNumber(e.target.value),
                       })
                     }
                   />
@@ -981,6 +996,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setHelperFeeSettings({
                         ...helperFeeSettings,
+                        helper_receives_percent: inputNumber(e.target.value),
                       })
                     }
                   />
@@ -999,6 +1015,8 @@ export default function AdminPricingHub() {
                   saveSection(
                     "helper_fee_settings",
                     {
+                      platform_fee_percent: helperFeeSettings.platform_fee_percent,
+                      helper_receives_percent: helperFeeSettings.helper_receives_percent,
                     },
                     "Helper fee split"
                   )

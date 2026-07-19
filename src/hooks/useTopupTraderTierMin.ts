@@ -39,6 +39,7 @@ export function useTopupTraderTierMin(): {
     tierMin,
     getMin,
     isDefault,
+    loading: settings.isLoading,
   };
 }
 

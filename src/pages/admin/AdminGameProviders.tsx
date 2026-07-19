@@ -207,6 +207,15 @@ export default function AdminGameProviders() {
       if (data) {
         setProviders(data.map(p => ({
           id: p.id,
+          name: p.provider_name,
+          provider_key: p.provider_id,
+          api_url: p.api_url || '',
+          api_key: p.api_key || '',
+          api_secret: p.api_secret || '',
+          merchant_id: p.merchant_id || '',
+          is_active: p.is_active || false,
+          integration_type: (p.provider_type as 'api' | 'iframe' | 'webhook') || 'api',
+          settings: (p.sdk_config as Record<string, any>) || {},
           created_at: p.created_at || '',
           updated_at: p.updated_at || '',
         })));
@@ -237,8 +246,20 @@ export default function AdminGameProviders() {
 
     setSaving(true);
     const provider: GameProvider = {
+      id: crypto.randomUUID(),
+      name: newProvider.name!,
+      provider_key: newProvider.provider_key!,
+      api_url: newProvider.api_url || '',
+      api_key: newProvider.api_key || '',
+      api_secret: newProvider.api_secret || '',
+      merchant_id: newProvider.merchant_id || '',
+      is_active: newProvider.is_active || false,
+      integration_type: newProvider.integration_type || 'api',
       webhook_url: newProvider.webhook_url,
       callback_url: newProvider.callback_url,
+      settings: newProvider.settings || {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const updated = [...providers, provider];
@@ -248,6 +269,15 @@ export default function AdminGameProviders() {
     setShowAddDialog(false);
     setSelectedPreset(null);
     setNewProvider({
+      name: '',
+      provider_key: '',
+      api_url: '',
+      api_key: '',
+      api_secret: '',
+      merchant_id: '',
+      is_active: false,
+      integration_type: 'api',
+      settings: {},
     });
     setSaving(false);
   };
@@ -288,6 +318,15 @@ export default function AdminGameProviders() {
   const selectPreset = (preset: typeof GAME_PROVIDER_PRESETS[0]) => {
     setSelectedPreset(preset);
     setNewProvider({
+      name: preset.name,
+      provider_key: preset.id,
+      api_url: '',
+      api_key: '',
+      api_secret: '',
+      merchant_id: '',
+      is_active: false,
+      integration_type: preset.integration_type as 'api' | 'iframe',
+      settings: {},
     });
   };
 

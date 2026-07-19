@@ -412,9 +412,16 @@ export default function PreMatchPrep({
                   style={{ width: slot.size, height: slot.size, left: "50%", top: "50%" }}
                   initial={{ x: cx, y: cy, scale: 0, opacity: 0 }}
                   animate={{
+                    x: [cx, cx + (slot.ring === 1 ? 6 : -4), cx],
+                    y: [cy, cy - 6, cy],
+                    scale: 1, opacity: 1,
                   }}
                   exit={{ scale: 0, opacity: 0 }}
                   transition={{
+                    x: { duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" },
+                    y: { duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" },
+                    scale: { duration: 0.4, delay: i * 0.05 },
+                    opacity: { duration: 0.4, delay: i * 0.05 },
                   }}
                 >
                   <img
@@ -490,6 +497,7 @@ export default function PreMatchPrep({
             style={{
               background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(25,12,50,0.55) 100%)',
               border: '1px solid rgba(255,255,255,0.22)',
+              boxShadow: '0 10px 26px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18)',
             }}
           >
             <span aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px"
@@ -503,6 +511,9 @@ export default function PreMatchPrep({
               onClick={() => onRetry?.()}
               className="w-full h-14 rounded-full text-base font-bold text-white relative overflow-hidden flex items-center justify-center"
               style={{
+                background: 'radial-gradient(120% 120% at 30% 20%, #f0abfc 0%, #a855f7 40%, #6366f1 100%)',
+                boxShadow: '0 14px 34px -10px rgba(168,85,247,0.7), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.25)',
+                border: '1px solid rgba(240,171,252,0.4)',
               }}
             >
               <span aria-hidden className="pointer-events-none absolute inset-x-8 top-0 h-px"
@@ -518,6 +529,9 @@ export default function PreMatchPrep({
           <div
             className="w-full h-14 rounded-full text-base font-bold text-white/95 flex items-center justify-center relative overflow-hidden"
             style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, rgba(110,231,183,0.9) 0%, rgba(16,185,129,0.85) 45%, rgba(5,150,105,0.9) 100%)',
+              boxShadow: '0 12px 28px -10px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+              border: '1px solid rgba(167,243,208,0.45)',
             }}
           >
             <span aria-hidden className="pointer-events-none absolute inset-x-8 top-0 h-px"
@@ -530,6 +544,9 @@ export default function PreMatchPrep({
             onClick={handleStart}
             className="w-full h-14 rounded-full text-base font-bold text-white relative overflow-hidden flex items-center justify-center"
             style={{
+              background: 'radial-gradient(120% 120% at 30% 20%, #f0abfc 0%, #a855f7 40%, #6366f1 100%)',
+              boxShadow: '0 14px 34px -10px rgba(168,85,247,0.7), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.25)',
+              border: '1px solid rgba(240,171,252,0.4)',
             }}
             aria-label="Tap to Match"
           >

@@ -144,6 +144,7 @@ interface Conversation {
   participant2_id: string;
   last_message_at: string | null;
   other_user: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     is_online: boolean | null;
@@ -670,6 +671,7 @@ const Chat = () => {
     setIsTranslating(true);
     try {
       const response = await supabase.functions.invoke('translate', {
+        body: { text: text.trim(), targetLanguage: targetLang }
       });
       
       if (response.error) {
@@ -905,6 +907,7 @@ const Chat = () => {
         const recipientId = selectedConversation.other_user?.id;
         if (recipientId && currentUserId) {
           supabase.functions.invoke('notify-new-message', {
+            body: {
               conversationId: selectedConversation.id,
               messageId: sentMessage.id,
               senderId: currentUserId,
@@ -1014,6 +1017,7 @@ const Chat = () => {
 
     // Unified flying-gift pill — same Bigo/Chamet style as Live/Party/Call
     addFlyingGift({
+      senderId: currentUserId,
       senderName: 'You',
       receiverName: selectedConversation.other_user.display_name || 'User',
       giftName: gift.name,
@@ -1034,8 +1038,11 @@ const Chat = () => {
     
     const optimisticGiftRow: Message = {
       id: `gift_live_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      content: optimisticGiftMessage,
+      sender_id: currentUserId,
       created_at: new Date().toISOString(),
       is_read: false,
+      message_type: 'gift',
       status: 'sending',
       _optimistic: true,
     };
@@ -1045,8 +1052,15 @@ const Chat = () => {
     // actual beans), causing a duplicate bubble on the receiver. Do NOT add it back.
     upsertLiveMessage(optimisticGiftRow);
     directMessageChannelRef.current?.send({
+      type: 'broadcast',
       event: 'gift_animation',
       payload: {
+        conversationId: selectedConversation.id,
+        senderId: currentUserId,
+        content: optimisticGiftMessage,
+        animationFormat: giftAnimationFormat,
+        animationConfigUrl: giftConfigUrl || null,
+        soundUrl: giftSoundUrl || null,
       },
     }).catch(() => {});
 
@@ -1091,6 +1105,7 @@ const Chat = () => {
           emitLuckyWin({
             spent: totalCost,
             bonus: luckyBonus,
+            giftName: gift.name,
             giftIconUrl: iconUrl || undefined,
           });
         }
@@ -1324,6 +1339,9 @@ const Chat = () => {
   const broadcastTyping = useCallback(() => {
     if (typingChannelRef.current && currentUserId) {
       typingChannelRef.current.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { userId: currentUserId },
       });
     }
     // Throttled inbox-typing ping so the peer's chat-list row shows "typing…"
@@ -1443,6 +1461,13 @@ const Chat = () => {
           const openConvId = selectedConversationRef.current?.id;
           if (event === 'INSERT' && openConvId && payload.conversation_id === openConvId) {
             upsertLiveMessageRef.current({
+              id: payload.id,
+              content: payload.content,
+              sender_id: payload.sender_id,
+              created_at: payload.created_at,
+              is_read: payload.is_read ?? false,
+              message_type: payload.message_type || 'text',
+              status: 'delivered',
               reply_to_id: payload.reply_to_id ?? null,
             } as Message);
           }
@@ -1536,10 +1561,21 @@ const Chat = () => {
       // Cast to unknown first then to array to handle Supabase's generic JSON return type
       const conversationsArray = Array.isArray(conversations) ? conversations : [];
       const formattedConversations: Conversation[] = conversationsArray.map((conv: {
+        id: string;
         participant1_id: string;
         participant2_id: string;
         last_message_at: string | null;
+        other_user: Conversation['other_user'];
+        last_message: string | null;
+        unread_count: number;
       }) => ({
+        id: conv.id,
+        participant1_id: conv.participant1_id,
+        participant2_id: conv.participant2_id,
+        last_message_at: conv.last_message_at,
+        other_user: conv.other_user,
+        last_message: cleanGiftMessageForPreview(conv.last_message || ''),
+        unread_count: conv.unread_count || 0
       })).sort((a, b) => {
         const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
         const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
@@ -1579,6 +1615,7 @@ const Chat = () => {
 
     const groupsWithRole: Group[] = (groupsData || []).map(g => ({
       ...g,
+      is_owner: roleMap.get(g.id) === 'owner' || g.owner_id === userId
     }));
 
     setGroups(groupsWithRole);
@@ -1608,6 +1645,9 @@ const Chat = () => {
       setUnreadBelow(0);
       setSelectedConversation({
         ...existing,
+        other_user: profile,
+        last_message: '',
+        unread_count: 0
       });
       fetchMessages(existing.id);
       anchorChatToBottomSoon();
@@ -1615,6 +1655,8 @@ const Chat = () => {
       const { data: newConv, error } = await supabase
         .from('conversations')
         .insert({
+          participant1_id: currentUserId,
+          participant2_id: otherUserId
         })
         .select()
         .single();
@@ -1632,6 +1674,9 @@ const Chat = () => {
 
       setSelectedConversation({
         ...newConv,
+        other_user: profile,
+        last_message: '',
+        unread_count: 0
       });
       wasNearBottomRef.current = true;
       setVisibleMessageCount(MESSAGES_PAGE_SIZE);
@@ -1644,6 +1689,7 @@ const Chat = () => {
 
   const castMessage = (m: any): Message => ({
     ...m,
+    status: (m.status as Message['status']) || (m.is_read ? 'read' : 'sent'),
   });
 
   async function broadcastDirectMessage(messageRow: any, conversationId: string) {
@@ -1651,6 +1697,9 @@ const Chat = () => {
 
     try {
       await directMessageChannelRef.current.send({
+        type: 'broadcast',
+        event: 'message',
+        payload: {
           conversationId,
           message: messageRow,
         },
@@ -1712,9 +1761,21 @@ const Chat = () => {
     const isSelf = !!senderId && senderId === currentUserId;
     const peer = selectedConversationRef.current?.other_user;
     addFlyingGift({
+      senderId: senderId || undefined,
+      senderName: isSelf ? 'You' : (peer?.display_name || 'User'),
       senderAvatar: isSelf ? undefined : (peer?.avatar_url || undefined),
+      receiverName: isSelf ? (peer?.display_name || 'User') : 'You',
       giftName,
+      giftIcon: emoji,
+      giftImageUrl: mediaUrl || undefined,
+      animationUrl: mediaUrl || undefined,
+      animationFormat: animationFormat || parsedFormat || null,
+      animationConfigUrl: normalizeGiftMediaUrl(animationConfigUrl) || parsedConfigUrl || undefined,
+      soundUrl: soundUrl || undefined,
+      giftColor: 'bg-pink-500/50',
       count,
+      diamonds: perGiftCoins,
+      isOwnGift: isSelf,
       isReceiverGift: !isSelf,
     });
   }
@@ -1777,6 +1838,9 @@ const Chat = () => {
     if (selectedConversation?.id && receiptChannelRef.current) {
       // Pkg94: reuse subscribed channel — never open ad-hoc channels per send
       receiptChannelRef.current.send({
+        type: 'broadcast',
+        event: 'read',
+        payload: { userId: currentUserId, conversationId: selectedConversation.id }
       });
     }
 
@@ -1790,11 +1854,17 @@ const Chat = () => {
   }
 
   async function persistDirectMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    messageType: string,
     replyToId?: string | null
   ) {
     const insertData: any = {
       conversation_id: conversationId,
+      sender_id: senderId,
       content,
+      message_type: messageType,
     };
     if (replyToId) insertData.reply_to_id = replyToId;
 
@@ -1854,6 +1924,14 @@ const Chat = () => {
     // (e.g. after app cold-start while still offline) at the end of the thread.
     const queued = currentUserId
       ? messageOutbox.listFor(conversationId, currentUserId).map(q => ({
+          id: q.id,
+          content: q.content,
+          sender_id: q.senderId,
+          created_at: new Date(q.createdAt).toISOString(),
+          is_read: false,
+          message_type: q.messageType,
+          status: 'queued',
+          _optimistic: true,
         }) as any)
       : [];
     const merged = dedupeAndSortMessages([...serverMsgs, ...queued]);
@@ -1874,6 +1952,9 @@ const Chat = () => {
         if (count && count > 0 && receiptChannelRef.current) {
           // Pkg94: reuse the subscribed receipts channel (no per-call leaks)
           receiptChannelRef.current.send({
+            type: 'broadcast',
+            event: 'delivered',
+            payload: { userId: currentUserId, conversationId }
           });
         }
       });
@@ -1935,9 +2016,11 @@ const Chat = () => {
   const markMessageAsRead = async (messageId: string) => {
     // RLS only allows the sender to UPDATE — use SECURITY DEFINER RPC for the receiver.
     const { data: updatedCount } = await supabase.rpc('mark_messages_read', {
+      p_message_ids: [messageId],
     });
 
     emitGlobalUnreadRefresh({
+      messagesDecrement: typeof updatedCount === 'number' ? updatedCount : 1,
     });
   };
 
@@ -2003,6 +2086,8 @@ const Chat = () => {
     
     try {
       const { data, error } = await supabase.functions.invoke('detect-phone-number', {
+        body: {
+          message: text,
           userId: currentUserId,
           conversationId,
           groupId
@@ -2027,9 +2112,11 @@ const Chat = () => {
         // Show different message for hosts with auto-deduction
         if (data.autoDeducted) {
           toast.error(`🚨 ${data.deductedAmount} Beans deducted!`, {
+            description: `Auto deduction for sharing phone number. Current balance: ${data.newBalance?.toLocaleString() || 0} Beans`
           });
         } else {
           toast.warning(`Warning (${data.violationCount}/3)`, {
+            description: "Sharing phone numbers is prohibited. Repeated violations may result in account ban."
           });
         }
         return true;
@@ -2049,6 +2136,13 @@ const Chat = () => {
   const appendSentGroupMessage = useCallback((newMsg: any) => {
     if (!newMsg) return;
     const ownSender = {
+      display_name: myProfile?.display_name || 'You',
+      avatar_url: myProfile?.avatar_url || null,
+      user_level: myProfile?.user_level || null,
+      host_level: myProfile?.host_level || null,
+      max_user_level: myProfile?.max_user_level || null,
+      gender: myProfile?.gender || null,
+      is_host: myProfile?.is_host || false,
     };
 
     setGroupMessages(prev => {
@@ -2075,6 +2169,15 @@ const Chat = () => {
     const optimisticId = `optimistic-${Date.now()}`;
     if (selectedConversation && currentUserId) {
       const optimisticMsg: Message = {
+        id: optimisticId,
+        content: originalContent,
+        sender_id: currentUserId,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        message_type: 'text',
+        status: 'sending',
+        reply_to_id: replyingTo?.messageId || null,
+        _optimistic: true,
       };
       setMessages(prev => [...prev, optimisticMsg]);
       anchorChatToBottomSoon();
@@ -2135,7 +2238,13 @@ const Chat = () => {
         const recipientId = selectedConversation.other_user?.id;
         if (recipientId && currentUserId) {
           supabase.functions.invoke('notify-new-message', {
+            body: {
+              conversationId: selectedConversation.id,
+              messageId: sentMessage.id,
+              senderId: currentUserId,
               recipientId,
+              messageContent: contentToSend,
+              messageType: 'text',
             }
           }).catch(err => console.log('[Push] Message notification background:', err));
         }
@@ -2154,8 +2263,11 @@ const Chat = () => {
         const otherUser = selectedConversation.other_user;
         if (otherUser && (otherUser.gender === 'female' || otherUser.gender === 'Female')) {
           supabase.functions.invoke('ai-chat-reply', {
+            body: {
+              conversationId: selectedConversation.id,
               userMessage: contentToSend,
               hostId: otherUser.id,
+              senderId: currentUserId
             }
           }).catch(err => console.log('AI reply background:', err));
         }
@@ -2163,6 +2275,10 @@ const Chat = () => {
         const { data: newMsg, error } = await supabase
           .from('group_messages')
           .insert({
+            group_id: selectedGroup.id,
+            sender_id: currentUserId,
+            content: contentToSend,
+            message_type: 'text'
           })
           .select()
           .single();
@@ -2213,6 +2329,12 @@ const Chat = () => {
       if (selectedConversation && currentUserId) {
         try {
           messageOutbox.enqueue({
+            id: optimisticId,
+            conversationId: selectedConversation.id,
+            senderId: currentUserId,
+            content: contentToSend,
+            messageType: 'text',
+            replyToId: replyingTo?.messageId,
           });
           // Mark the optimistic message as queued (waiting to send)
           setMessages(prev => prev.map(m =>
@@ -2258,6 +2380,9 @@ const Chat = () => {
       else if (m.message_type === "video") text = "Video";
       else if (m.message_type === "file") text = "📎 File";
       return {
+        id: m.id,
+        senderId: m.sender_id,
+        senderName: isMine ? "You" : otherName,
         text,
         createdAt: new Date(m.created_at).getTime() || Date.now(),
         avatarUrl: isMine ? null : otherAvatar,
@@ -2353,6 +2478,8 @@ const Chat = () => {
         }
         const path = `group-avatars/${newGroup.id}.${ext || 'jpg'}`;
         const { error: upErr } = await supabase.storage.from('assets').upload(path, newGroupPhoto, {
+          upsert: true,
+          contentType: newGroupPhoto.type,
         });
         if (!upErr) {
           const { data: urlData } = supabase.storage.from('assets').getPublicUrl(path);
@@ -2441,7 +2568,9 @@ const Chat = () => {
       const { error: joinError } = await supabase
         .from('group_members')
         .insert({
+          group_id: groupId,
           user_id: currentUserId,
+          role: 'member'
         });
 
       if (joinError) throw joinError;
@@ -2643,6 +2772,11 @@ const Chat = () => {
                     isMine={isMine}
                     sameAsPrev={sameAsPrev}
                     onReply={() => setReplyingTo({
+                      messageId: msg.id,
+                      content: msg.content || '',
+                      senderName: senderName,
+                      senderId: msg.sender_id,
+                      messageType: msg.message_type,
                     })}
                   >
                     {/* Avatar slot — only shows on last of cluster; otherwise reserved spacer keeps alignment */}
@@ -2857,6 +2991,11 @@ const Chat = () => {
                       <DropdownMenuContent align={isMine ? "end" : "start"} className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[200px] shadow-xl p-1.5">
                         <DropdownMenuItem onClick={() => {
                           setReplyingTo({
+                            messageId: msg.id,
+                            content: msg.content || '',
+                            senderName: senderName,
+                            senderId: msg.sender_id,
+                            messageType: msg.message_type,
                           });
                           toast.success("Replying to message");
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
@@ -3113,12 +3252,16 @@ const Chat = () => {
                             const recipientId = selectedConversation.other_user?.id;
                             if (recipientId && currentUserId) {
                               supabase.functions.invoke('notify-new-message', {
+                                body: { conversationId: selectedConversation.id, messageId: sentMessage.id, senderId: currentUserId, recipientId, messageContent: content, messageType: 'text' }
                               }).catch(() => {});
                             }
                           }).catch(() => setSending(false));
                         } else if (selectedGroup) {
                           Promise.resolve(supabase.from('group_messages').insert({
+                            group_id: selectedGroup.id,
+                            sender_id: currentUserId,
                             content,
+                            message_type: 'text'
                           }).select().single()).then(({ data, error }) => {
                             if (error) throw error;
                             appendSentGroupMessage(data);
@@ -3358,7 +3501,13 @@ const Chat = () => {
                         const recipientId = selectedConversation.other_user?.id;
                         if (recipientId) {
                           supabase.functions.invoke('notify-new-message', {
+                            body: {
+                              conversationId: selectedConversation.id,
+                              messageId: sentMessage.id,
+                              senderId: currentUserId,
                               recipientId,
+                              messageContent: '',
+                              messageType: pendingMedia.type,
                             }
                           }).catch(() => {});
                         }
@@ -3366,6 +3515,10 @@ const Chat = () => {
                         const { data: newMsg, error } = await supabase
                           .from('group_messages')
                           .insert({
+                            group_id: selectedGroup.id,
+                            sender_id: currentUserId,
+                            content: pendingMedia.url,
+                            message_type: pendingMedia.type
                           })
                           .select()
                           .single();
@@ -3880,9 +4033,13 @@ const Chat = () => {
           .map((m: any): GalleryItem => {
             const clean = extractChatMediaPath(m.content || '');
             return {
+              id: m.id,
               url: signedChatMediaUrls[clean] || clean,
+              type: isChatVideoMessage(m.message_type, m.content) ? 'video' : 'image',
+              sender: m.sender_id === currentUserId
                 ? (myProfile?.display_name || 'You')
                 : (selectedGroup ? m.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User',
+              createdAt: m.created_at,
             };
           })}
       />

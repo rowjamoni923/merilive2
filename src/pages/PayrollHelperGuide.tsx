@@ -44,42 +44,95 @@ const PayrollHelperGuide = () => {
       color: "from-amber-500 to-orange-500",
     },
     {
+      icon: Wallet,
+      title: "Process Agency Withdrawals",
+      desc: "Agencies request weekly salary withdrawals for their hosts. You process these payments by sending money to the agency owner and receiving diamonds as reward in return.",
+      color: "from-emerald-500 to-teal-500",
     },
     {
+      icon: Gem,
+      title: "Diamond Trading & Selling",
+      desc: "Every withdrawal you process earns you diamonds. These diamonds can be sold back to agencies or users at market rate, creating a profitable trading cycle for you.",
+      color: "from-cyan-500 to-blue-500",
     },
     {
+      icon: Globe,
+      title: "Agency Diamond Transfers",
+      desc: "Transfer diamonds to agencies who need balance for their operations. You act as the bridge between the platform's diamond economy and real-world currency.",
+      color: "from-purple-500 to-pink-500",
     },
   ];
 
   const benefits = [
     {
+      icon: TrendingUp,
+      title: "Commission on Every Transaction",
+      desc: `Earn a percentage commission on every top-up and withdrawal you process. Higher levels unlock higher commission rates (${topRateLabel}).`,
     },
 
     {
+      icon: Gem,
+      title: "Diamond Rewards from Withdrawals",
+      desc: "When you process an agency withdrawal, you receive diamonds as a reward. These diamonds have real monetary value and can be sold.",
     },
     {
+      icon: Star,
+      title: "Level-Up System (L1 → L5)",
+      desc: "Start at Level 1 and progress to Level 5 by completing more transactions. Each level increases your commission rate and unlocks new privileges.",
     },
     {
+      icon: Phone,
+      title: "Add Your Number to Resource Panel",
+      desc: "Your contact number is displayed in the Resource Panel so agencies and users can reach you directly for transactions. More visibility = more orders.",
     },
     {
+      icon: Shield,
+      title: "Verified Badge & Priority Support",
+      desc: "As a verified Payroll Helper, you get a trusted badge on your profile and access to priority admin support for any transaction issues.",
     },
     {
+      icon: Globe,
+      title: "Serve Your Entire Country",
+      desc: "You are assigned to your country and serve all users and agencies within that region. No geographical limits within your assigned zone.",
     },
   ];
 
   const howItWorks = [
     {
       step: "01",
+      title: "Apply & Get Verified",
+      desc: "Submit your Payroll Helper application through the app. Admin team reviews and verifies your identity within 24-48 hours.",
+      color: "bg-amber-500",
     },
     {
+      step: "02",
+      title: "Add Your Payment Methods",
+      desc: "Set up your local payment methods (bKash, Nagad, JazzCash, EasyPaisa, etc.) so users and agencies can send/receive payments.",
+      color: "bg-emerald-500",
     },
     {
+      step: "03",
+      title: "Register in Resource Panel",
+      desc: "Add your contact number to the Resource Panel. This makes you visible to all agencies and users in your country who need transaction help.",
+      color: "bg-cyan-500",
     },
     {
+      step: "04",
+      title: "Receive & Process Orders",
+      desc: "When a user wants to top-up or an agency requests withdrawal, you receive a notification. Process the payment and confirm the transaction.",
+      color: "bg-purple-500",
     },
     {
+      step: "05",
+      title: "Earn Diamonds & Commission",
+      desc: "For every completed transaction, you earn commission (percentage of amount) plus diamond rewards for withdrawal processing.",
+      color: "bg-pink-500",
     },
     {
+      step: "06",
+      title: "Sell Diamonds for Profit",
+      desc: "Accumulated diamonds can be sold to agencies or users who need them. This creates a secondary income stream on top of your commissions.",
+      color: "bg-orange-500",
     },
   ];
 

@@ -175,6 +175,8 @@ export const PKPunishmentOverlay = ({
             border: "1px solid rgba(252,165,165,0.55)",
             boxShadow:
               "0 10px 28px -6px rgba(239,68,68,0.55), 0 0 22px rgba(239,68,68,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
           }}
           animate={{ scale: [1, 1.04, 1] }}
           transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
@@ -196,6 +198,7 @@ export const PKPunishmentOverlay = ({
             className="font-mono text-sm font-extrabold tabular-nums text-white px-2 py-0.5 rounded-full"
             style={{
               background: "rgba(0,0,0,0.35)",
+              border: "1px solid rgba(255,255,255,0.12)",
               textShadow: "0 1px 2px rgba(0,0,0,0.6)",
             }}
           >

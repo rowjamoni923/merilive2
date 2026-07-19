@@ -38,6 +38,8 @@ serve(async (req) => {
       const auth = await requireAdminSession(req, supabase, { sectionKey: "agency-management", requireEdit: true });
       if (!auth.ok) {
         return new Response(JSON.stringify({ error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
@@ -48,11 +50,15 @@ serve(async (req) => {
     if (error) throw error;
 
     return new Response(JSON.stringify({ success: true, result: data }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("agency-commission-distribute error:", msg);
     return new Response(JSON.stringify({ success: false, error: msg }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
     });
   }
 });

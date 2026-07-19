@@ -123,6 +123,8 @@ export function installChatAttachmentHandlers(
   }
 
   const bindBytes = (
+    topic: typeof CHAT_TOPIC.image | typeof CHAT_TOPIC.voice | typeof CHAT_TOPIC.file,
+    kind: 'image' | 'voice' | 'file',
     cb?: (msg: IncomingChatBytes) => void | Promise<void>,
   ) => {
     if (!cb) return;
@@ -130,10 +132,17 @@ export function installChatAttachmentHandlers(
       registerByteStreamHandler(scope, id, topic, (ctx: ByteStreamHandlerContext) => {
         return cb({
           kind,
+          id: ctx.info.id,
           scope,
+          scopeId: id,
+          senderIdentity: ctx.info.senderIdentity,
           topic,
           bytes: ctx.bytes,
+          mimeType: ctx.info.mimeType,
           name: ctx.info.name,
+          size: ctx.info.size,
+          attributes: ctx.info.attributes,
+          timestamp: ctx.info.timestamp,
         });
       }),
     );

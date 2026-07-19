@@ -152,6 +152,10 @@ export default function PremiumGoldenBadge({
         style={{
           width: coinSize,
           height: coinSize,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 2,
           filter: 'drop-shadow(0 8px 16px rgba(184,134,11,0.45)) drop-shadow(0 2px 6px rgba(0,0,0,0.4))',
         }}
       >
@@ -225,7 +229,11 @@ export default function PremiumGoldenBadge({
               <span
                 className="relative font-extrabold uppercase leading-none"
                 style={{
+                  fontSize: captionFontSize,
+                  color: '#4a2c00',
                   textShadow: '0 1px 0 rgba(255,247,194,0.8)',
+                  letterSpacing: '0.1em',
+                  marginTop: Math.max(1, Math.round(size * 0.02)),
                 }}
               >
                 {caption}
@@ -241,6 +249,7 @@ export default function PremiumGoldenBadge({
             style={{
               background:
                 'radial-gradient(circle, rgba(255,200,60,0.5) 0%, transparent 65%)',
+              zIndex: -1,
             }}
             animate={{ scale: [1, 1.15, 1], opacity: [0.55, 0.9, 0.55] }}
             transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}

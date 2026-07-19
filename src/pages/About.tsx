@@ -220,6 +220,8 @@ const About = () => {
                 size="lg"
                 className="font-bold text-base px-8 py-6 rounded-2xl border-0"
                 style={{
+                  background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_SOFT} 100%)`,
+                  color: INK,
                   boxShadow: `0 10px 40px -10px ${GOLD}80`,
                 }}
                 onClick={() => openInApp(PLAY_STORE_URL)}
@@ -302,6 +304,7 @@ const About = () => {
               style={{
                 backgroundColor: INK_3,
                 border: `1px solid ${GOLD}1f`,
+                boxShadow: '0 8px 30px -12px rgba(0,0,0,0.6)'
               }}
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
               whileHover={{ y: -4 }}
@@ -536,6 +539,9 @@ const About = () => {
           <motion.div
             className="relative rounded-3xl p-8 md:p-14 text-center overflow-hidden"
             style={{
+              background: `linear-gradient(135deg, ${INK_2} 0%, ${INK_3} 100%)`,
+              border: `1px solid ${GOLD}55`,
+              boxShadow: `0 30px 80px -30px ${GOLD}40`,
             }}
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
           >

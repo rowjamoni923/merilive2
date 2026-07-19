@@ -87,6 +87,7 @@ export function useRoomProtection({
     const roomName = roomType === 'live' ? 'Live' : 'Party Room';
     
     toast.info(`Press X button to exit ${roomName}`, {
+      duration: 2000,
       id: 'back-button-blocked',
     });
 

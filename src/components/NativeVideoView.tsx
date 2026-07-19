@@ -114,6 +114,8 @@ export const NativeVideoView = ({
             if ((res as any)?.attached === false) {
               recordCallDiag('native-attach', 'attachRemoteSurface:pending', {
                 viewId, sid, mode: 'bounded', w: b.w, h: b.h,
+                reason: (res as any)?.reason ?? 'no_track',
+                retry: retryCountRef.current,
               }, 'warn');
               scheduleAttachRetry();
               return;

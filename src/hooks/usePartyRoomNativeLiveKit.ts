@@ -194,6 +194,10 @@ export function usePartyRoomNativeLiveKit(
       usingNativeRef.current = false;
       setState((prev) => ({
         ...prev,
+        isConnected: false,
+        isNativeMediaActive: false,
+        connectionState: ConnectionState.Disconnected,
+        nativeParticipants: new Map(),
       }));
       // Phase 3 #13: party rooms previously had no auto-reconnect on transient
       // drops (unlike the live-stream path). Brief WiFi/4G dips silently kicked
@@ -321,6 +325,14 @@ export function usePartyRoomNativeLiveKit(
     peerStreamsRef.current.clear();
 
     setState({
+      localStream: null,
+      peerStreams: new Map(),
+      isConnected: false,
+      isAudioEnabled: true,
+      isVideoEnabled: true,
+      connectionState: ConnectionState.Disconnected,
+      isNativeMediaActive: false,
+      nativeParticipants: new Map(),
     });
   }, [roomId]);
 
@@ -457,12 +469,15 @@ export function usePartyRoomNativeLiveKit(
               token,
               video: shouldOpenVideo,
               audio: partyCanPublish,
+              lens: 'front',
+              resolution: '1080p',
               // Party video/game seats render through <NativeVideoView /> bounded
               // surfaces. Do not also mount the legacy fullscreen local renderer;
               // double-binding the same native track can black out OEM EGL stacks.
               attachLocal: false,
               audioProfile: audioProfileRef.current === 'music' ? 'music' : 'broadcast',
               callType: 'Party Room',
+              roomScope: 'party',
               isHost: _isHost,
             });
 
@@ -474,6 +489,11 @@ export function usePartyRoomNativeLiveKit(
             await refreshNativeParticipants();
             setState((prev) => ({
               ...prev,
+              isConnected: true,
+              isAudioEnabled: partyCanPublish,
+              isVideoEnabled: partyCanPublish && isVideoPartyType(roomType) && cameraReadyRef.current,
+              connectionState: ConnectionState.Connected,
+              isNativeMediaActive: true,
             }));
             return;
           } catch (nativeError) {
@@ -711,6 +731,7 @@ export function usePartyRoomNativeLiveKit(
           setPeerStreamForParticipant(participant, peerStream);
           setState(prev => ({
             ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
           }));
         });
 
@@ -729,6 +750,7 @@ export function usePartyRoomNativeLiveKit(
           setPeerStreamForParticipant(participant, peerStream);
           setState(prev => ({
             ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
           }));
         });
 
@@ -752,6 +774,7 @@ export function usePartyRoomNativeLiveKit(
             setPeerStreamForParticipant(participant, peerStream);
             setState(prev => ({
               ...prev,
+              peerStreams: new Map(peerStreamsRef.current),
             }));
           }
         });
@@ -786,6 +809,7 @@ export function usePartyRoomNativeLiveKit(
           }
           setState(prev => ({
             ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
           }));
         });
 
@@ -795,6 +819,7 @@ export function usePartyRoomNativeLiveKit(
           deletePeerStreamForParticipant(participant);
           setState(prev => ({
             ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
         }));
         });
 
@@ -807,6 +832,8 @@ export function usePartyRoomNativeLiveKit(
           }
           setState(prev => ({ 
             ...prev, 
+            isConnected: cState === ConnectionState.Connected,
+            connectionState: cState 
           }));
         });
 
@@ -844,6 +871,7 @@ export function usePartyRoomNativeLiveKit(
           console.log('[PartyLiveKit] Rebuilt local VIDEO stream, video tracks:', liveVideoTracks);
           setState(prev => ({
             ...prev,
+            localStream: liveVideoTracks > 0 ? ms : null,
           }));
         };
 
@@ -995,6 +1023,9 @@ export function usePartyRoomNativeLiveKit(
 
         setState(prev => ({
           ...prev,
+          isConnected: true,
+          isAudioEnabled: partyCanPublish,
+          isVideoEnabled: partyCanPublish,
         }));
 
         if (!partyCanPublish) {
@@ -1050,6 +1081,7 @@ export function usePartyRoomNativeLiveKit(
 
         setState(prev => ({
           ...prev,
+          peerStreams: new Map(peerStreamsRef.current),
         }));
 
         const forceSubscribePass = () => {
@@ -1070,6 +1102,7 @@ export function usePartyRoomNativeLiveKit(
           });
           setState(prev => ({
             ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
           }));
         };
 
@@ -1162,6 +1195,8 @@ export function usePartyRoomNativeLiveKit(
             .catch(() => {});
           setState((prev) => ({
             ...prev,
+            isAudioEnabled: true,
+            isVideoEnabled: roomType === 'video' || roomType === 'game' ? true : prev.isVideoEnabled,
           }));
         } else {
           await room.localParticipant.setCameraEnabled(false);
@@ -1169,6 +1204,8 @@ export function usePartyRoomNativeLiveKit(
           await room.localParticipant.setMicrophoneEnabled(false);
           setState((prev) => ({
             ...prev,
+            isAudioEnabled: false,
+            isVideoEnabled: false,
           }));
         }
       } catch (err) {

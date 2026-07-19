@@ -419,8 +419,20 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
       glow: '0 7px 18px rgba(50, 54, 168, 0.28), inset 0 1px 0 rgba(255,255,255,0.28)',
     },
     luxury: {
+      background: 'linear-gradient(90deg, rgba(45,67,194,0.95) 0%, rgba(106,110,222,0.9) 48%, rgba(185,196,255,0.48) 84%, rgba(255,255,255,0.16) 100%)',
+      border: 'rgba(203, 213, 255, 0.38)',
+      avatarRing: 'rgba(205, 214, 255, 0.72)',
+      count: '#f3e9ff',
+      countShadow: '0 1px 5px rgba(45, 36, 102, 0.36)',
+      glow: '0 7px 16px rgba(55, 65, 185, 0.24), inset 0 1px 0 rgba(255,255,255,0.24)',
     },
     standard: {
+      background: 'linear-gradient(90deg, rgba(48,72,196,0.94) 0%, rgba(99,111,220,0.88) 50%, rgba(190,200,255,0.44) 84%, rgba(255,255,255,0.14) 100%)',
+      border: 'rgba(204, 214, 255, 0.32)',
+      avatarRing: 'rgba(216, 223, 255, 0.64)',
+      count: '#ffffff',
+      countShadow: '0 1px 5px rgba(40, 50, 128, 0.34)',
+      glow: '0 6px 14px rgba(54, 72, 174, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
     },
   }[tier];
   const displayedCount = Math.max(1, currentCount || gift.count || 1);
@@ -462,12 +474,15 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
             width: 'clamp(224px, 63vw, 264px)',
             minHeight: 36,
             padding: '2px 7px 2px 2px',
+            background: tierStyles.background,
             boxShadow: tierStyles.glow,
+            border: `1px solid ${tierStyles.border}`,
           }}
         >
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.06) 48%, rgba(25,30,118,0.08) 100%)',
             }}
           />
 
@@ -499,6 +514,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
                 style={{
                   borderColor: tierStyles.avatarRing,
                   color: '#ffffff',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+                  boxShadow: '0 2px 7px rgba(19, 25, 91, 0.3)',
                 }}
               >
                 {gift.senderName.charAt(0).toUpperCase()}
@@ -538,6 +555,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete, stackIndex = 0 }: Fly
             <span
               className="block min-w-[24px] text-right text-[18px] font-black italic leading-none"
               style={{
+                color: tierStyles.count,
                 textShadow: tierStyles.countShadow,
                 WebkitTextStroke: '0.35px rgba(255,255,255,0.25)',
               }}

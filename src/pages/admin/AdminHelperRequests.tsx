@@ -255,6 +255,8 @@ const AdminHelperRequests = () => {
       const { error } = await supabase
         .from(table)
         .update({
+          status: 'rejected',
+          admin_notes: adminNotes || 'Rejected by admin',
           ...(requestType === 'upgrade' 
             ? { reviewed_at: new Date().toISOString(), reviewed_by: user?.id }
             : { processed_at: new Date().toISOString(), processed_by: user?.id }

@@ -56,6 +56,7 @@ interface AppSettings {
     message: string;
   };
   admin_2fa: {
+    enabled: boolean;
   };
   withdrawal_settings: {
     min_withdrawal: number;
@@ -173,7 +174,9 @@ export default function AdminSettings() {
     };
     setSettings({
       ...settings,
+      withdrawal_settings: {
         ...settings.withdrawal_settings,
+        fees: [...settings.withdrawal_settings.fees, newFee]
       }
     });
   };
@@ -185,6 +188,7 @@ export default function AdminSettings() {
     );
     setSettings({
       ...settings,
+      withdrawal_settings: { ...settings.withdrawal_settings, fees: updated }
     });
   };
 
@@ -193,6 +197,7 @@ export default function AdminSettings() {
     const filtered = settings.withdrawal_settings.fees.filter(fee => fee.id !== id);
     setSettings({
       ...settings,
+      withdrawal_settings: { ...settings.withdrawal_settings, fees: filtered }
     });
   };
 
@@ -595,6 +600,9 @@ export default function AdminSettings() {
                         const pf = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
                         setSettings({
                           ...settings,
+                          helper_fee_settings: {
+                            platform_fee_percent: pf,
+                            helper_receives_percent: 100 - pf,
                           }
                         });
                       }}

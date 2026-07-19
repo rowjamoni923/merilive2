@@ -68,6 +68,8 @@ Deno.serve(async (req) => {
             // Send current participants to the new user
             const participants = Array.from(room.keys()).filter(id => id !== message.userId)
             socket.send(JSON.stringify({
+              type: 'room-info',
+              callId: message.callId,
               participants
             }))
             break
@@ -82,6 +84,9 @@ Deno.serve(async (req) => {
                 const targetSocket = targetRoom.get(message.targetUserId)
                 if (targetSocket && targetSocket.readyState === WebSocket.OPEN) {
                   targetSocket.send(JSON.stringify({
+                    type: message.type,
+                    userId: message.userId,
+                    callId: currentCallId,
                     payload: message.payload
                   }))
                 }
@@ -97,6 +102,9 @@ Deno.serve(async (req) => {
                 readyRoom.forEach((ws, oderId) => {
                   if (oderId !== message.userId && ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({
+                      type: 'peer-ready',
+                      userId: message.userId,
+                      callId: currentCallId
                     }))
                   }
                 })
@@ -115,6 +123,9 @@ Deno.serve(async (req) => {
                 leaveRoom.forEach((ws) => {
                   if (ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({
+                      type: 'user-left',
+                      userId: currentUserId,
+                      callId: currentCallId
                     }))
                   }
                 })
@@ -144,6 +155,9 @@ Deno.serve(async (req) => {
           room.forEach((ws) => {
             if (ws.readyState === WebSocket.OPEN) {
               ws.send(JSON.stringify({
+                type: 'user-left',
+                userId: currentUserId,
+                callId: currentCallId
               }))
             }
           })

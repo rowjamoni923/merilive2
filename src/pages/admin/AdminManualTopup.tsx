@@ -29,6 +29,7 @@ interface UserProfile {
   avatar_url: string;
   app_uid: string;
   diamonds: number;
+  diamonds: number;
   is_host: boolean;
   is_verified: boolean;
 }
@@ -182,6 +183,8 @@ const AdminManualTopup = () => {
       }
 
       toast({ 
+        title: "Success! ✅", 
+        description: `${diamondAmount.toLocaleString()} diamonds added to ${selectedUser.display_name}`
       });
 
       // Reset form

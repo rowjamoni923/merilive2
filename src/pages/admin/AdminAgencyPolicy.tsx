@@ -221,6 +221,7 @@ const AdminAgencyPolicy = () => {
         section_key: sectionKey,
         section_title: meta.title,
         content,
+        display_order: meta.display_order,
         is_active: true,
         updated_at: timestamp,
       };
@@ -286,6 +287,7 @@ const AdminAgencyPolicy = () => {
             min_weekly_income: tier.min_weekly_income,
             max_weekly_income: tier.max_weekly_income,
             commission_rate: tier.commission_rate,
+            updated_at: new Date().toISOString()
           })
           .eq('id', tier.id);
         

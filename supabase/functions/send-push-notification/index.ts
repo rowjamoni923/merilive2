@@ -383,6 +383,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (lockError?.code === "23505") {
         const replay = await waitForExistingDispatch(supabase, dispatchKey!);
         return new Response(JSON.stringify(replay), {
+          status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
@@ -499,6 +500,7 @@ const handler = async (req: Request): Promise<Response> => {
                     ...(isCallType ? {
                       ttl: '60s',
                     } : {
+                      notification: {
                         sound: 'default',
                         // Pkg425 Phase-8 — route to type-specific channel so
                         // killed-app FCM notifications inherit the correct
@@ -515,10 +517,12 @@ const handler = async (req: Request): Promise<Response> => {
                     }),
                   },
                   apns: {
+                    headers: {
                       ...(isCallType && { 'apns-priority': '10' }),
                     },
                     payload: {
                       aps: {
+                        sound: isCallType ? 'ringtone.caf' : 'default',
                         badge: 1,
                         ...(isCallType && { 'content-available': 1 }),
                       },
@@ -537,6 +541,7 @@ const handler = async (req: Request): Promise<Response> => {
                 `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
                 {
                   method: "POST",
+                  headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${accessToken}`,
                   },
@@ -606,6 +611,7 @@ const handler = async (req: Request): Promise<Response> => {
     // re-inserting them here creates an infinite notification -> push -> notification loop.
     if (!shouldPersistFallback) {
       const fallbackSkipped = {
+        success: false,
         error: "FCM not configured or failed; fallback persistence skipped",
         persisted: false,
         tokens_found: deviceTokens.length
@@ -622,10 +628,14 @@ const handler = async (req: Request): Promise<Response> => {
       user_id: userId,
       type,
       title,
+      message: body,
       data,
     });
 
     const persistedPayload = { 
+        success: true, 
+        message: "Notification stored in database (FCM not configured)",
+        tokens_found: deviceTokens.length 
       };
     await saveDispatchResult(supabase, dispatchKey, "completed", persistedPayload);
     return new Response(

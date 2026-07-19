@@ -37,6 +37,7 @@ interface RewardTier {
   rank_to: number;
   reward_diamonds: number;
   reward_beans: number;
+  reward_diamonds: number;
 }
 
 const PKLeaderboard = () => {
@@ -166,6 +167,7 @@ const PKLeaderboard = () => {
       case 1: return <Crown className="w-5 h-5 text-yellow-400" />;
       case 2: return <Medal className="w-5 h-5 text-slate-500" />;
       case 3: return <Award className="w-5 h-5 text-orange-400" />;
+      default: return <span className="text-xs font-bold text-muted-foreground">#{rank}</span>;
     }
   };
 

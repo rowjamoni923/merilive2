@@ -513,6 +513,7 @@ const AgencyDashboard = () => {
         // ===== Process pending hosts =====
         setPendingHosts(pendingHostsData.map(host => ({
           ...host,
+          profile: normalizeAgencyProfile((pendingHostProfilesRes.data as any[])?.find((p: any) => p.id === host.host_id))
         })));
 
         // ===== Process sub-agencies =====
@@ -544,6 +545,7 @@ const AgencyDashboard = () => {
         // ===== Process sub-agents =====
         setSubAgents(subAgentsData.map(sa => normalizeSubAgent({
           ...sa,
+          profile: normalizeAgencyProfile((subAgentProfilesRes.data as any[])?.find((p: any) => p.id === sa.user_id))
         })));
 
         // ===== Process beans rate =====
@@ -756,6 +758,9 @@ const AgencyDashboard = () => {
   const shareHostJoinLink = async () => {
     if (navigator.share) {
       await navigator.share({
+        title: `${agency?.name} - Join as Host`,
+        text: `Join my agency as a host and start earning!`,
+        url: hostJoinLink
       });
     } else {
       copyHostJoinLink();
@@ -772,6 +777,9 @@ const AgencyDashboard = () => {
     if (!subAgencyInviteLink) return;
     if (navigator.share) {
       await navigator.share({
+        title: `${agency?.name} - Create a Sub-Agency`,
+        text: `Use this link to create a sub-agency under my agency and start earning together!`,
+        url: subAgencyInviteLink
       });
     } else {
       copySubAgencyInviteLink();
@@ -2071,6 +2079,9 @@ const AgencyDashboard = () => {
                       <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
                       <Tooltip 
                         contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
                         }}
                       />
                       <Line 
@@ -2104,6 +2115,9 @@ const AgencyDashboard = () => {
                       <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
                       <Tooltip 
                         contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
                         }}
                       />
                       <Bar dataKey="hours" fill="#f59e0b" radius={[8, 8, 0, 0]} />
@@ -2141,6 +2155,9 @@ const AgencyDashboard = () => {
                       </Pie>
                       <Tooltip 
                         contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px'
                         }}
                       />
                     </PieChart>

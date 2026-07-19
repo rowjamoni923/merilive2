@@ -49,8 +49,12 @@ const FEATURE_COPY: Record<RequireNativeAndroidGateProps["feature"], { title: st
     body: "For the best broadcast quality our Live Streams use the original Android camera. Please open the MeriLive Android app to go live.",
   },
   call: {
+    title: "Private Call — Android app required",
+    body: "Private video calls run on the native Android camera. Please open the MeriLive Android app to call.",
   },
   party: {
+    title: "Party Room — Android app required",
+    body: "Party Rooms use the native Android camera and microphone. Please open the MeriLive Android app to join.",
   },
 };
 

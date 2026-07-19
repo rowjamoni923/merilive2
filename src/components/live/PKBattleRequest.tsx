@@ -290,6 +290,7 @@ export const PKBattleRequest = ({
                     style={{
                       background:
                         "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%)",
+                      animation: "giftSendShine 2.6s ease-in-out infinite",
                     }}
                   />
                   <Check className="w-5 h-5 mr-2 relative z-10" />

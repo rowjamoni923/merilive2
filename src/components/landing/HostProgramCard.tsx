@@ -159,8 +159,24 @@ const HostProgramCard = () => {
               valueColor: "text-emerald-600",
             },
             {
+              icon: Clock,
+              title: "Weekly Auto-Transfer",
+              value: "Every Week",
+              desc: "Earnings automatically transferred to your agency every Sunday at midnight",
+              gradient: "from-blue-500/15 to-cyan-500/10",
+              border: "border-blue-500/15",
+              iconColor: "text-blue-600",
+              valueColor: "text-blue-600",
             },
             {
+              icon: TrendingUp,
+              title: "100% Host Earnings",
+              value: "Full Amount",
+              desc: "Hosts receive 100% of their earned beans. Agency commission is a separate company bonus",
+              gradient: "from-amber-500/15 to-orange-500/10",
+              border: "border-amber-500/15",
+              iconColor: "text-amber-600",
+              valueColor: "text-amber-600",
             },
           ].map((card, i) => (
             <motion.div

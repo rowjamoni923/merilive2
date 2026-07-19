@@ -46,8 +46,30 @@ const HOME_PRESETS: Record<HomePresetKey, Record<string, unknown>> = {
     busy_boost: 24,
   },
   strict_quality: {
+    reject_penalty_threshold: 2,
+    reject_penalty_strong_threshold: 4,
+    reject_penalty_amount: 80,
+    reject_penalty_strong_amount: 180,
+    reject_penalty_per_extra_reject: 20,
+    reject_auto_scale_enabled: true,
+    viewer_weight: 8,
+    host_level_weight: 2,
+    live_boost: 70,
+    online_boost: 35,
+    busy_boost: 20,
   },
   growth_mode: {
+    reject_penalty_threshold: 3,
+    reject_penalty_strong_threshold: 6,
+    reject_penalty_amount: 35,
+    reject_penalty_strong_amount: 90,
+    reject_penalty_per_extra_reject: 8,
+    reject_auto_scale_enabled: true,
+    viewer_weight: 10,
+    host_level_weight: 4,
+    live_boost: 90,
+    online_boost: 45,
+    busy_boost: 28,
   },
 };
 
@@ -66,8 +88,30 @@ const PARTY_PRESETS: Record<PartyPresetKey, Record<string, unknown>> = {
     peak_hours: [18, 19, 20, 21, 22, 23],
   },
   strict_competitive: {
+    participant_weight: 12,
+    host_online_boost: 5,
+    recency_boost_10m: 14,
+    recency_boost_30m: 8,
+    recency_boost_120m: 4,
+    growth_boost_enabled: true,
+    growth_delta_threshold: 3,
+    growth_boost_amount: 24,
+    peak_hour_boost_enabled: true,
+    peak_hour_boost_amount: 10,
+    peak_hours: [17, 18, 19, 20, 21, 22, 23],
   },
   new_room_friendly: {
+    participant_weight: 8,
+    host_online_boost: 10,
+    recency_boost_10m: 26,
+    recency_boost_30m: 16,
+    recency_boost_120m: 9,
+    growth_boost_enabled: true,
+    growth_delta_threshold: 1,
+    growth_boost_amount: 14,
+    peak_hour_boost_enabled: true,
+    peak_hour_boost_amount: 6,
+    peak_hours: [18, 19, 20, 21, 22],
   },
 };
 
@@ -80,10 +124,25 @@ const MODES: Record<ModeKey, { label: string; home: HomePresetKey | null; party:
     desc: "Steady-state baseline for both feeds.",
   },
   peak_campaign: {
+    label: "Peak Campaign",
+    home: "growth_mode",
+    party: "new_room_friendly",
+    tone: "from-emerald-400 to-teal-500",
+    desc: "Maximise discovery & traffic during pushes.",
   },
   abuse_control: {
+    label: "Abuse Control",
+    home: "strict_quality",
+    party: "strict_competitive",
+    tone: "from-rose-400 to-red-500",
+    desc: "Tighten quality bar; punish rejects, surface big rooms.",
   },
   custom: {
+    label: "Custom",
+    home: null,
+    party: null,
+    tone: "from-slate-400 to-slate-500",
+    desc: "AI-recommended mix — review before applying.",
   },
 };
 
@@ -285,6 +344,9 @@ const AdminRankingAutomation = () => {
         await fetchAll();
       } catch (e) {
         recordAdminError({
+          kind: "other",
+          label: "AdminRankingAutomation.applyPresets",
+          message: formatAdminError(e),
         });
         toast.error("Failed to apply ranking presets");
       } finally {

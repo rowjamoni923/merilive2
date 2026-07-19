@@ -185,6 +185,8 @@ const AdminHelperDiamondTopup = () => {
       );
 
       toast({
+        title: "Success! ✅",
+        description: `${diamondAmount.toLocaleString()} 💎 diamonds added to ${selectedHelper.user?.display_name}'s trader wallet`,
       });
 
       // Reset
@@ -197,6 +199,9 @@ const AdminHelperDiamondTopup = () => {
     } catch (error: any) {
       console.error('Topup error:', error);
       toast({
+        title: "Failed",
+        description: error.message,
+        variant: "destructive"
       });
     } finally {
       setProcessing(false);

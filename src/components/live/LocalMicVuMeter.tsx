@@ -100,6 +100,7 @@ export function LocalMicVuMeter({
       aria-valuemin={0}
       aria-valuemax={100}
       style={{
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.04) inset',
       }}
     >
       {muted ? (

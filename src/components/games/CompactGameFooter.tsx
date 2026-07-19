@@ -813,6 +813,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       phase,
       timeLeft,
       onPlaceBet: handlePlaceBet,
+      onWin: handleWin,
       currentRound
     };
 
@@ -970,6 +971,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       <div 
         className="rounded-xl overflow-hidden shadow-xl"
         style={{
+          background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)',
           boxShadow: '0 -2px 20px rgba(139, 92, 246, 0.3), 0 5px 25px rgba(0,0,0,0.4)'
         }}
       >

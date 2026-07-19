@@ -23,6 +23,8 @@ export interface NfcPlugin {
   ): Promise<{ remove: () => void }>;
 
   addListener(
+    eventName: 'nfcWriteResult',
+    listener: (data: { success: boolean; type?: string; error?: string }) => void
   ): Promise<{ remove: () => void }>;
 }
 

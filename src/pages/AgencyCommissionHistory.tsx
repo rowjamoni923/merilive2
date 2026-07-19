@@ -157,6 +157,7 @@ const AgencyCommissionHistory = () => {
           todayCommission,
           thisWeekCommission,
           thisMonthCommission,
+          totalTransactions: commissionsWithProfiles.length
         });
       }
 

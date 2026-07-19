@@ -66,6 +66,9 @@ export const useBackgroundSync = () => {
           await BackgroundSync.enable({
             supabaseUrl,
             anonKey,
+            accessToken: session.access_token,
+            userId: session.user.id,
+            intervalMinutes: 15,
           });
         }
       } catch {

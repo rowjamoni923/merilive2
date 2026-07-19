@@ -68,6 +68,7 @@ const CreateAgency = () => {
     if (data && data.length > 0) {
       setParentAgency({
         id: data[0].id,
+        name: data[0].name,
         level: data[0].level
       });
     }
@@ -114,6 +115,7 @@ const CreateAgency = () => {
     if (!formData.name.trim()) {
       toast({
         title: "Error",
+        description: "Please enter agency name",
         variant: "destructive",
       });
       return;
@@ -121,12 +123,18 @@ const CreateAgency = () => {
 
     if (!formData.agencyCode || formData.agencyCode.length < 4) {
       toast({
+        title: "Error",
+        description: "Agency code must be at least 4 characters",
+        variant: "destructive",
       });
       return;
     }
 
     if (!codeAvailable) {
       toast({
+        title: "Error",
+        description: "This agency code is already taken",
+        variant: "destructive",
       });
       return;
     }
@@ -148,6 +156,9 @@ const CreateAgency = () => {
 
     if (existingAgency) {
       toast({
+        title: "Error",
+        description: "You already own an agency",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       return;
@@ -180,6 +191,9 @@ const CreateAgency = () => {
 
     if (error) {
       toast({
+        title: "Error",
+        description: error.message || "Failed to create agency",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       return;
@@ -188,6 +202,9 @@ const CreateAgency = () => {
     const result = typeof rpcResult === 'string' ? JSON.parse(rpcResult) : rpcResult;
     if (!result?.success) {
       toast({
+        title: "Error",
+        description: result?.error || "Failed to create agency",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       return;
@@ -205,6 +222,8 @@ const CreateAgency = () => {
     }
 
     toast({
+      title: "Success!",
+      description: "Your agency has been created successfully",
     });
 
     navigate("/n-dashboard");
@@ -214,17 +233,39 @@ const CreateAgency = () => {
   const payrollBenefits = [
     {
       icon: <Wallet className="w-5 h-5" />,
+      title: "Process Withdrawals",
+      description: "Handle user withdrawal requests and earn diamonds per transaction",
       color: "from-green-500 to-emerald-600"
     },
     {
+      icon: <CreditCard className="w-5 h-5" />,
+      title: "Handle Recharges",
+      description: "Process top-up orders from users in your country",
+      color: "from-blue-500 to-cyan-600"
     },
     {
+      icon: <Globe className="w-5 h-5" />,
+      title: "Country-Based Orders",
+      description: "Receive orders only from your country for easy local payments",
+      color: "from-purple-500 to-violet-600"
     },
     {
+      icon: <DollarSign className="w-5 h-5" />,
+      title: "Diamond Rewards",
+      description: "Earn diamond rewards for every successful transaction processed",
+      color: "from-amber-500 to-orange-600"
     },
     {
+      icon: <Shield className="w-5 h-5" />,
+      title: "Verified Badge",
+      description: "Get a special Payroll Member verified badge on your profile",
+      color: "from-pink-500 to-rose-600"
     },
     {
+      icon: <Clock className="w-5 h-5" />,
+      title: "Priority Support",
+      description: "Access to dedicated support channel for payroll members",
+      color: "from-indigo-500 to-blue-600"
     }
   ];
 
@@ -264,6 +305,8 @@ const CreateAgency = () => {
         <div
           className="mx-4 mt-4 rounded-3xl p-6 text-white relative overflow-hidden"
           style={{
+            background: 'linear-gradient(135deg,#7c3aed 0%,#6366f1 50%,#3b82f6 100%)',
+            boxShadow: '0 18px 40px -12px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)',
           }}
         >
           <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/15 blur-3xl pointer-events-none" />
@@ -301,12 +344,16 @@ const CreateAgency = () => {
         <div
           className="mx-4 mt-4 rounded-3xl p-4 border border-purple-200/70"
           style={{
+            background: 'linear-gradient(135deg,#faf5ff 0%,#eef2ff 100%)',
+            boxShadow: '0 8px 24px -10px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.7)',
           }}
         >
           <div className="flex items-center gap-3 mb-2">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{
+                background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                boxShadow: '0 4px 12px -2px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.3)',
               }}
             >
               <LinkIcon className="w-5 h-5 text-white drop-shadow" />

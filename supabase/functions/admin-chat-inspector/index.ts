@@ -56,6 +56,7 @@ serve(async (req) => {
         const query = url.searchParams.get("q") || "";
         if (!query || query.length < 2) {
           return new Response(JSON.stringify({ users: [] }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
@@ -68,6 +69,7 @@ serve(async (req) => {
         if (error) throw error;
 
         return new Response(JSON.stringify({ users: users || [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -75,6 +77,8 @@ serve(async (req) => {
         const userId = url.searchParams.get("userId");
         if (!userId) {
           return new Response(JSON.stringify({ error: "userId required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
@@ -139,6 +143,7 @@ serve(async (req) => {
         );
 
         return new Response(JSON.stringify({ conversations: conversationsWithDetails }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -150,6 +155,8 @@ serve(async (req) => {
 
         if (!conversationId) {
           return new Response(JSON.stringify({ error: "conversationId required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
@@ -218,6 +225,8 @@ serve(async (req) => {
         const identifier = url.searchParams.get("id") || "";
         if (!identifier) {
           return new Response(JSON.stringify({ error: "id required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
@@ -233,12 +242,15 @@ serve(async (req) => {
           
           if (lookupErr || !profile) {
             return new Response(JSON.stringify({ error: `User "${identifier}" not found` }), {
+              status: 404,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
           userId = profile.id;
         }
 
         return new Response(JSON.stringify({ userId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -248,6 +260,8 @@ serve(async (req) => {
 
         if (!user_id) {
           return new Response(JSON.stringify({ error: "user_id required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
@@ -262,6 +276,8 @@ serve(async (req) => {
             .maybeSingle();
           if (le || !prof) {
             return new Response(JSON.stringify({ error: `User "${user_id}" not found` }), {
+              status: 404,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
           resolvedUserId = prof.id;
@@ -282,6 +298,8 @@ serve(async (req) => {
         if (insertErr) {
           console.error("Ban insert error:", insertErr);
           return new Response(JSON.stringify({ error: insertErr.message }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
@@ -303,6 +321,7 @@ serve(async (req) => {
         }
 
         return new Response(JSON.stringify({ success: true, user_id: resolvedUserId, streams_ended: activeStreams?.length || 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -375,6 +394,7 @@ serve(async (req) => {
 
         const enriched = (txns || []).map((t: any) => ({
           ...t,
+          sender: profileMap[t.sender_id] || null,
           receiver: profileMap[t.receiver_id] || null,
           gift: giftMap[t.gift_id] || null,
         }));
@@ -429,7 +449,9 @@ serve(async (req) => {
         (moderationRes.data || []).forEach((a: any) => {
           alertMap.set(a.id, {
             id: a.id,
+            user_id: a.user_id,
             conversation_id: a.conversation_id,
+            detected_content: a.detected_content,
             action_taken: a.action_taken,
             created_at: a.created_at,
             notes: a.notes,
@@ -440,8 +462,17 @@ serve(async (req) => {
 
         (violationsRes.data || []).forEach((v: any) => {
           alertMap.set('v_' + v.id, {
+            id: 'v_' + v.id,
+            user_id: v.host_id,
+            conversation_id: v.source_id || null,
+            detected_content: v.detected_content,
+            action_taken: v.beans_deducted > 0 ? `${v.beans_deducted} beans deducted` : 'warned',
+            created_at: v.created_at,
+            notes: `Violation #${v.violation_number} | ${v.source_type} | Pattern: ${v.detected_pattern}`,
+            source: 'host_violation',
             violation_number: v.violation_number,
             beans_deducted: v.beans_deducted,
+            user: profileMap[v.host_id] || null,
           });
         });
 
@@ -451,17 +482,22 @@ serve(async (req) => {
           .slice(0, limit);
 
         return new Response(JSON.stringify({ alerts }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
     }
   } catch (error: unknown) {
     console.error("Chat inspector error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

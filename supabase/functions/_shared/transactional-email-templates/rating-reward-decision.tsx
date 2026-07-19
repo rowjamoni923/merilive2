@@ -94,6 +94,7 @@ export const template = {
       : `Your ${SITE_NAME} rating reward has been credited 🎉`,
   displayName: 'Rating reward decision',
   previewData: {
+    displayName: 'Jane',
     status: 'approved',
     rewardType: 'beans',
     rewardAmount: 5000,

@@ -40,14 +40,42 @@ const getTier = (level: number): Tier => {
     };
   if (level >= 30)
     return {
+      bg: "linear-gradient(110deg, rgba(168,85,247,0.88), rgba(236,72,153,0.82), rgba(244,63,94,0.78))",
+      border: "rgba(232,121,249,0.6)",
+      shadow: "0 7px 20px rgba(168,85,247,0.4)",
+      glow: "rgba(168,85,247,0.5)",
+      textBadge: "text-white",
+      icon: "💎",
+      premium: true,
     };
   if (level >= 20)
     return {
+      bg: "linear-gradient(110deg, rgba(34,211,238,0.85), rgba(59,130,246,0.82), rgba(99,102,241,0.78))",
+      border: "rgba(125,211,252,0.55)",
+      shadow: "0 6px 18px rgba(59,130,246,0.38)",
+      glow: "rgba(59,130,246,0.45)",
+      textBadge: "text-white",
+      icon: "⭐",
+      premium: false,
     };
   if (level >= 10)
     return {
+      bg: "linear-gradient(110deg, rgba(52,211,153,0.85), rgba(16,185,129,0.82), rgba(20,184,166,0.78))",
+      border: "rgba(110,231,183,0.55)",
+      shadow: "0 6px 18px rgba(16,185,129,0.35)",
+      glow: "rgba(16,185,129,0.4)",
+      textBadge: "text-white",
+      icon: "✨",
+      premium: false,
     };
   return {
+    bg: "linear-gradient(110deg, rgba(100,116,139,0.82), rgba(71,85,105,0.78), rgba(51,65,85,0.75))",
+    border: "rgba(148,163,184,0.4)",
+    shadow: "0 5px 14px rgba(0,0,0,0.35)",
+    glow: "rgba(148,163,184,0.3)",
+    textBadge: "text-white",
+    icon: "✨",
+    premium: false,
   };
 };
 

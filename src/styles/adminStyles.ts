@@ -97,18 +97,53 @@ export const statsCardColors = {
     textColor: "text-blue-400",
   },
   purple: {
+    bg: "bg-gradient-to-br from-purple-500/20 to-purple-600/10",
+    border: "border-purple-500/30",
+    iconBg: "bg-purple-500/30",
+    iconColor: "text-purple-400",
+    textColor: "text-purple-400",
   },
   pink: {
+    bg: "bg-gradient-to-br from-pink-500/20 to-pink-600/10",
+    border: "border-pink-500/30",
+    iconBg: "bg-pink-500/30",
+    iconColor: "text-pink-400",
+    textColor: "text-pink-400",
   },
   green: {
+    bg: "bg-gradient-to-br from-green-500/20 to-green-600/10",
+    border: "border-green-500/30",
+    iconBg: "bg-green-500/30",
+    iconColor: "text-green-400",
+    textColor: "text-green-400",
   },
   amber: {
+    bg: "bg-gradient-to-br from-amber-500/20 to-amber-600/10",
+    border: "border-amber-500/30",
+    iconBg: "bg-amber-500/30",
+    iconColor: "text-amber-400",
+    textColor: "text-amber-400",
   },
   cyan: {
+    bg: "bg-gradient-to-br from-cyan-500/20 to-cyan-600/10",
+    border: "border-cyan-500/30",
+    iconBg: "bg-cyan-500/30",
+    iconColor: "text-cyan-400",
+    textColor: "text-cyan-400",
   },
   red: {
+    bg: "bg-gradient-to-br from-red-500/20 to-red-600/10",
+    border: "border-red-500/30",
+    iconBg: "bg-red-500/30",
+    iconColor: "text-red-400",
+    textColor: "text-red-400",
   },
   emerald: {
+    bg: "bg-gradient-to-br from-emerald-500/20 to-emerald-600/10",
+    border: "border-emerald-500/30",
+    iconBg: "bg-emerald-500/30",
+    iconColor: "text-emerald-400",
+    textColor: "text-emerald-400",
   },
 };
 

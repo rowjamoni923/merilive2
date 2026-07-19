@@ -48,6 +48,8 @@ const getSupabaseUploadTarget = (file: File, requestedBucket: string) => {
   }
 
   return {
+    bucket: requestedBucket,
+    contentType: rawType || 'application/octet-stream',
   };
 };
 
@@ -124,6 +126,10 @@ export function useR2Upload() {
       
       // Upload part via edge function proxy
       const uploadResponse = await fetch(R2_FUNCTION_URL, {
+        method: 'POST',
+        headers: await buildR2Headers('application/json'),
+        body: JSON.stringify({
+          action: 'upload-part',
           uploadId,
           key,
           partNumber,
@@ -149,6 +155,10 @@ export function useR2Upload() {
     onProgress?.(98);
     
     const completeResponse = await fetch(R2_FUNCTION_URL, {
+      method: 'POST',
+      headers: await buildR2Headers('application/json'),
+      body: JSON.stringify({
+        action: 'complete-multipart',
         uploadId,
         key,
         parts: uploadedParts,
@@ -175,6 +185,9 @@ export function useR2Upload() {
     formData.append('folder', folder);
 
     const response = await fetch(R2_FUNCTION_URL, {
+      method: 'POST',
+      headers: await buildR2Headers(),
+      body: formData,
     });
 
     const result = await response.json();
@@ -195,7 +208,10 @@ export function useR2Upload() {
    * Upload to Supabase Storage (for smaller files)
    */
   const uploadToSupabase = async (
+    file: File, 
     bucket: string, 
+    folder: string,
+    onProgress?: (progress: number) => void
   ): Promise<string> => {
     const fileExt = getFileExtension(file);
     const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;

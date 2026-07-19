@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
       });
       if ((reJoin as any)?.ok) {
         return new Response(JSON.stringify({ status: "reconnected", ...(reJoin as any) }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
@@ -69,6 +70,8 @@ Deno.serve(async (req) => {
 
     if (!settings || !settings.is_enabled) {
       return new Response(JSON.stringify({ error: "feature_disabled" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -105,6 +108,8 @@ Deno.serve(async (req) => {
     if (profileErr || !profile) {
       console.error("[random-call-enqueue] profile lookup failed", profileErr);
       return new Response(JSON.stringify({ error: "profile_not_found" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -138,6 +143,7 @@ Deno.serve(async (req) => {
     if (cdObj.daily_exhausted) {
       return new Response(
         JSON.stringify({
+          error: "daily_skip_limit_reached",
           daily_used: cdObj.daily_used,
           daily_limit: cdObj.daily_limit,
         }),
@@ -172,6 +178,7 @@ Deno.serve(async (req) => {
 
       if (bcerr || !bc) {
         return new Response(JSON.stringify({ error: "broadcast_insert_failed", detail: bcerr?.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -191,6 +198,7 @@ Deno.serve(async (req) => {
             payload: {
               broadcast_id: bc.id,
               room: livekitRoom,
+              caller_id: userId,
               ring_timeout_seconds: ringTimeout,
             },
           });
@@ -214,7 +222,12 @@ Deno.serve(async (req) => {
             const results = await dispatchHighPriorityData(
               tokenList,
               {
+                type: "random_incoming_call",
+                broadcast_id: bc.id,
+                room: livekitRoom,
+                caller_id: userId,
                 caller_name: String(callerName),
+                ring_timeout_seconds: String(ringTimeout),
               },
               ringTimeout,
             );
@@ -231,8 +244,13 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
+          status: "broadcasting",
+          broadcast_id: bc.id,
+          room: livekitRoom,
           fanout: hostIds.length,
           fcm_sent: fcmSent,
+          ring_timeout_seconds: ringTimeout,
+          min_billable_seconds: settings.min_billable_seconds,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -256,6 +274,8 @@ Deno.serve(async (req) => {
         preferred_host_gender: preferredHostGender,
         is_vip: callerIsVip,
         score: Math.round(score),
+        hold_amount: holdAmount,
+        expires_at: expiresAt,
         device_id: deviceId,
       })
 
@@ -264,6 +284,8 @@ Deno.serve(async (req) => {
 
     if (qerr || !qrow) {
       return new Response(JSON.stringify({ error: "queue_insert_failed", detail: qerr?.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -292,14 +314,24 @@ Deno.serve(async (req) => {
     const { data: session, error: serr } = await supabase
       .from("random_call_sessions")
       .insert({
+        livekit_room: livekitRoom,
+        caller_id: userId,
         host_id: hostUserId,
         diamond_rate_per_min: hostRate,
+        free_trial_seconds: freeTrial,
+        min_billable_seconds: settings.min_billable_seconds,
+        host_split_pct: settings.host_split_pct,
+        hold_amount: holdAmount,
+        status: "ringing",
+        caller_device_id: deviceId,
       })
       .select("*")
       .single();
 
     if (serr || !session) {
       return new Response(JSON.stringify({ error: "session_insert_failed", detail: serr?.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -310,17 +342,29 @@ Deno.serve(async (req) => {
     try {
       const channel = supabase.channel(`user-${hostUserId}`);
       await channel.send({
+        type: "broadcast",
+        event: "random_incoming_call",
+        payload: { session_id: session.id, room: livekitRoom, caller_id: userId },
       });
     } catch (_) { /* best-effort */ }
 
     return new Response(
       JSON.stringify({
+        status: "matched",
         session_id: session.id,
+        room: livekitRoom,
+        host_id: hostUserId,
+        diamond_rate_per_min: hostRate,
+        free_trial_seconds: freeTrial,
+        min_billable_seconds: settings.min_billable_seconds,
+        ring_timeout_seconds: settings.ring_timeout_seconds,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
     return new Response(JSON.stringify({ error: "internal_error", detail: String(e?.message ?? e) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

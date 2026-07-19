@@ -132,6 +132,8 @@ const ProfessionalSeat = ({
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center"
             style={{
+              background: "radial-gradient(circle at 40% 30%, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+              border: "1.5px dashed rgba(168,85,247,0.25)",
             }}
           >
             <Plus className="w-4 h-4 text-white/30" />
@@ -164,6 +166,7 @@ const ProfessionalSeat = ({
             transition={{ duration: 1.2, repeat: Infinity }}
             className="absolute inset-0 -z-10 rounded-full"
             style={{
+              background: "linear-gradient(135deg, rgba(52,211,153,0.25), rgba(34,211,238,0.25))",
               filter: "blur(10px)",
             }}
           />

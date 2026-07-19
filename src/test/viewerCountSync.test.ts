@@ -48,6 +48,10 @@ describe('viewer count sync (join/leave regression guard)', () => {
   it('treats UPDATE with null left_at as a join (presence re-assert)', () => {
     let s = seed();
     s = applyViewerEvent(s, {
+      eventType: 'UPDATE',
+      streamId: S,
+      viewerId: 'u1',
+      leftAt: null,
     });
     expect(count(s, S)).toBe(1);
   });

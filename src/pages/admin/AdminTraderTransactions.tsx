@@ -37,6 +37,7 @@ interface Transaction {
   helper?: { 
     user: { display_name: string; avatar_url: string; app_uid: string } 
   };
+  user?: { display_name: string; avatar_url: string; app_uid: string };
 }
 
 const AdminTraderTransactions = () => {
@@ -77,6 +78,10 @@ const AdminTraderTransactions = () => {
       // Calculate stats
       const completedTxns = (data || []).filter(t => t.status === 'completed');
       setStats({
+        totalBought: completedTxns.filter(t => t.transaction_type === 'buy_from_platform').reduce((s, t) => s + t.diamond_amount, 0),
+        totalSold: completedTxns.filter(t => t.transaction_type === 'sell_to_user').reduce((s, t) => s + t.diamond_amount, 0),
+        totalTransferred: completedTxns.filter(t => t.transaction_type === 'transfer_to_user').reduce((s, t) => s + t.diamond_amount, 0),
+        pendingValue: (data || []).filter(t => t.status === 'pending').reduce((s, t) => s + t.usd_amount, 0)
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTraderTransactions", message: formatAdminError(error) });
@@ -100,6 +105,7 @@ const AdminTraderTransactions = () => {
       case 'sell_to_user': return 'Sold to User';
       case 'transfer_to_user': return 'Transferred to User';
       case 'withdraw': return 'Withdrawal';
+      default: return type;
     }
   };
 

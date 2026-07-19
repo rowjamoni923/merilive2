@@ -85,18 +85,26 @@ describe("admin/statusCounts shared module", () => {
 
     const counts = await fetchFilteredStatusCounts(
       {
+        from: () => ({ select: () => makeQ(rows) }),
+        rpc: async (_fn: string, args?: { _search?: string | null }) => {
           rpcCalled = true;
           const needle = String(args?._search || "").toLowerCase();
           const current = rows.filter((r) => r.full_name.toLowerCase().includes(needle));
           return {
+            data: {
               pending: current.filter((r) => !["approved", "rejected"].includes(r.status)).length,
               approved: current.filter((r) => r.status === "approved").length,
               rejected: current.filter((r) => r.status === "rejected").length,
             },
+            error: null,
           };
         },
       } as any,
       {
+        table: "face_verification_submissions",
+        searchColumn: "full_name",
+        searchQuery: "ali",
+        globalStatsRpc: "admin_face_verification_stats",
       },
     );
 

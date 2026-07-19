@@ -47,6 +47,8 @@ export default function HelperListingToggle({
     }
     onChange?.(next);
     toast({
+      title: next ? "You are now visible" : "You are now hidden",
+      description: next
         ? "Users in your country can see you on the Recharge page."
         : "You no longer appear in the public Verified Traders list.",
     });

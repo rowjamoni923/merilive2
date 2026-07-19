@@ -176,6 +176,9 @@ export function useGlobalLiveGame({
 
     if (error) {
       toast({
+        title: "Bet Failed",
+        description: error.message,
+        variant: "destructive"
       });
       return { success: false, error: error.message };
     }
@@ -185,6 +188,8 @@ export function useGlobalLiveGame({
     if (result.success && result.new_balance !== undefined) {
       setUserBalance(result.new_balance);
       toast({
+        title: "Bet Placed!",
+        description: `${betAmount} diamonds on ${betValue?.toUpperCase()}`,
       });
     }
 
@@ -201,6 +206,7 @@ export function useGlobalLiveGame({
     setLastResult(result);
 
     const { data, error } = await supabase.rpc('process_live_game_round', {
+      p_round_id: currentRound.id,
       p_winning_value: winningValue,
       p_result: result
     });

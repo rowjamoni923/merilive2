@@ -343,7 +343,18 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             senderLevel,
             receiverId,
             giftId,
+            giftName: gift?.name || 'Gift',
+            giftIconUrl: gift?.icon_url || undefined,
+            giftAnimationUrl: gift?.animation_url || undefined,
+            giftAnimationFormat: hintedFormat,
+            giftAnimationConfigUrl: gift?.animation_config_url || undefined,
+            giftSoundUrl: gift?.sound_url || undefined,
+            count: quantity,
+            giftCoins: gift?.diamonds || 0,
+            totalDiamonds: result.diamondsSpent || 0,
+            receiverBeans: result.hostReceived || 0,
             luckyBonus: result.diamondBonus || 0,
+            timestamp: Date.now(),
           }).catch((err) => console.warn('[Pkg76] fallback publishGiftSent failed:', err));
         } catch (err) {
           console.warn('[GiftingService] fallback broadcast failed (non-fatal):', err);
@@ -355,8 +366,14 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     return {
       success: true,
       transaction: {
+        id: result.transactionId || 'unknown',
+        diamonds_spent: result.diamondsSpent || 0,
+        beans_earned: result.hostReceived || 0,
+        diamond_bonus: result.diamondBonus || 0,
+        is_lucky: !!result.isLucky,
       },
       gift: {
+        id: giftId,
         name: 'Gift',
         diamonds: result.diamondsSpent || 0,
         category: 'popular',

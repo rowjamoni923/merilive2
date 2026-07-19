@@ -70,6 +70,7 @@ export function useContentModeration(userId: string | null | undefined) {
           });
         } else if (data.severity === 'high') {
           toast.warning("⚠️ Content Warning", {
+            description: "Your message contains inappropriate content. Repeated violations may result in penalties."
           });
         }
         return data as ModerationResult;

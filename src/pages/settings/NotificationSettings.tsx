@@ -140,7 +140,12 @@ export default function NotificationSettings() {
 
     // Update all categories
     const updates = CATEGORIES.map(cat => ({
+      user_id: user.id,
       category: cat.key,
+      enabled: ((prefs ?? {})[cat.key] || DEFAULT_PREF).enabled,
+      push_enabled: ((prefs ?? {})[cat.key] || DEFAULT_PREF).push_enabled,
+      sound_enabled: value,
+      updated_at: new Date().toISOString(),
     }));
 
     savingRef.current = true;

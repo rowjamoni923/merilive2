@@ -264,6 +264,9 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (missedCalls && missedCalls.length > 0) {
             const call = missedCalls[0];
             window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+              detail: {
+                type: 'incoming_call',
+                data: { call_id: call.id, caller_id: call.caller_id },
               },
             }));
             if (import.meta.env.DEV) console.info('[Presence] 🔔 Re-ringing missed call:', call.id);

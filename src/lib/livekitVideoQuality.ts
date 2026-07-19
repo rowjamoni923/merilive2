@@ -177,6 +177,8 @@ export function applyVideoQualityCapToRoom(
     // ignore
   }
   recordQualityEvent({
+    source: 'auto-cap',
+    quality: cap,
     affected,
     reason,
   });

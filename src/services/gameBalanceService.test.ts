@@ -96,6 +96,10 @@ describe("Roulette — place bet & process win", () => {
     expect(res.newBalance).toBe(63_000);
     expect(wallet.balance).toBe(63_000);
     expect(rpcMock).toHaveBeenCalledWith("process_game_win", {
+      p_user_id: USER_ID,
+      p_amount: 18_000,
+      p_game_id: "roulette",
+      p_game_name: "Roulette",
       p_multiplier: 36,
       p_is_jackpot: false,
     });

@@ -126,6 +126,10 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
           }
         } else if (data) {
           setParentAgency({
+            id: data.id,
+            name: data.name,
+            level: data.level,
+            logo_url: data.logo_url || null
           });
         }
       } catch (error) {
@@ -225,6 +229,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         }
         
         setFoundUser({
+          id: user.id,
           display_name: user.display_name,
           avatar_url: user.avatar_url,
           username: user.username,
@@ -261,6 +266,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
         body: {
           action: 'send',
+          userId: foundUser.id,
           purpose: 'sub_agency_verification',
           context: parentAgencyCode
         }
@@ -287,6 +293,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     }
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: { action: 'verify', userId: foundUser?.id, code: appCode, purpose: 'sub_agency_verification' }
       });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Verification failed"));
       if (!data?.success || !data?.verified_token) throw new Error(data?.error || "Verification failed");
@@ -318,6 +325,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     setErrorMessage("");
     try {
       const { data, error } = await supabase.functions.invoke('send-email-otp', {
+        body: { email: normalizedEmail, purpose: 'verify', context: 'sub_agency_signup' }
       });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send email OTP"));
       if (!data?.success) throw Object.assign(new Error(data?.error || "Failed to send email OTP"), { code: data?.code });
@@ -339,6 +347,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     setErrorMessage("");
     try {
       const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { email: formData.email.trim().toLowerCase(), otp: emailOtp, purpose: 'verify' }
       });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Email OTP verification failed"));
       if (!data?.success || !data?.verified_token) throw new Error(data?.error || "Email OTP verification failed");
@@ -385,8 +394,13 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     try {
       // Call edge function to create agency (bypasses RLS)
       const { data, error } = await supabase.functions.invoke('create-sub-agency-browser', {
+        body: {
+          name: formData.agencyName.trim(),
+          userId: foundUser?.id,
+          email: formData.email.trim() || null,
           emailVerifiedToken: formData.email.trim() ? emailVerifiedToken : null,
           appVerifiedToken,
+          phone: formData.phone.trim(),
           parentAgencyCode: parentAgencyCode
         }
       });
@@ -403,7 +417,12 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
       const pendingClaim = {
         agencyId: data.agency.id,
         agencyCode: data.agency.code,
+        agencyName: data.agency.name,
+        userId: foundUser?.id,
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         parentAgencyId: parentAgency.id,
+        parentAgencyCode: parentAgencyCode,
         createdAt: new Date().toISOString()
       };
       
@@ -474,6 +493,8 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{
+              background: 'linear-gradient(135deg,#34d399,#10b981)',
+              boxShadow: '0 14px 30px -8px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
             }}
           >
             <PartyPopper className="w-10 h-10 text-white drop-shadow" />
@@ -489,6 +510,9 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
           <div
             className="rounded-2xl p-4 mb-6"
             style={{
+              background: 'rgba(255,255,255,0.10)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
             }}
           >
             <p className="text-white/60 text-[10px] mb-1 uppercase tracking-[0.15em] font-bold">Your Agency Code</p>
@@ -506,6 +530,8 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
               onClick={() => window.location.href = PLAY_STORE_URL}
               className="w-full h-12 text-white font-bold rounded-2xl active:scale-[0.98] transition-transform"
               style={{
+                background: 'linear-gradient(180deg,#34d399 0%,#10b981 60%,#047857 100%)',
+                boxShadow: '0 10px 24px -6px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1.5px 0 rgba(0,0,0,0.2)',
                 textShadow: '0 1px 0 rgba(0,0,0,0.25)',
               }}
             >
@@ -542,12 +568,19 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         <div
           className="rounded-3xl p-4 mb-5"
           style={{
+            background: 'linear-gradient(180deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.04) 100%)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            boxShadow: '0 14px 30px -10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)',
           }}
         >
             <div className="flex items-center gap-3">
               <div
                 className="w-12 h-12 rounded-2xl flex items-center justify-center"
                 style={{
+                  background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                  boxShadow: '0 8px 20px -4px rgba(124,58,237,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
               >
                 <LinkIcon className="w-6 h-6 text-white drop-shadow" />

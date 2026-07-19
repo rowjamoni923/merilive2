@@ -323,12 +323,15 @@ export default function SwiftPayDepositModal({
       if (data?.status === "credited") {
         setStep("done");
         toast({
+          title: mode === "helper" ? "✅ Trader Wallet topped up!" : "✅ Diamonds credited!",
+          description: mode === "helper"
             ? `${fmt(deposit.diamonds_amount)} diamonds added to your Trader Wallet.`
             : `${fmt(deposit.diamonds_amount)} diamonds added to your balance.`,
         });
         onCredited?.(deposit.diamonds_amount, deposit.topup_id);
       } else if (data?.status === "pending" || data?.status === "paid" || data?.status === "expired") {
         supabase.functions.invoke("swift-pay-poll-deposits", {
+          body: { topup_id: deposit.topup_id },
         }).catch(() => {});
       }
     };

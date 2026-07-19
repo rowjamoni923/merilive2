@@ -61,6 +61,12 @@ export default function AdminReports() {
 
       const payload: any = data || {};
       setStats({
+        totalUsers: Number(payload.total_users || 0),
+        newUsersToday: Number(payload.new_users_today || 0),
+        totalCoinsSpent: Number(payload.total_coins_spent_90d || 0),
+        totalGiftsSent: Number(payload.total_gifts_sent || 0),
+        totalStreams: Number(payload.total_streams || 0),
+        totalCalls: Number(payload.total_calls || 0),
       });
 
       // Slice the 90-day series to selected period
@@ -105,6 +111,7 @@ export default function AdminReports() {
     change, 
     color 
   }: { 
+    icon: any; 
     label: string; 
     value: string | number; 
     change?: number; 
@@ -132,11 +139,16 @@ export default function AdminReports() {
   );
 
   const StatCardNew = ({ 
+    icon: Icon, 
     label, 
     value, 
     change, 
     colorClass 
   }: { 
+    icon: any; 
+    label: string; 
+    value: string | number; 
+    change?: number; 
     colorClass: string;
   }) => (
     <Card className={`${colorClass} border shadow-md`}>

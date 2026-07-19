@@ -146,6 +146,7 @@ export default function VaultPinManager() {
     setBusy(true);
     try {
       const { data, error } = await adminSupabase.functions.invoke("admin-pin-reset", {
+        body: {
           admin_id: session!.admin_id,
           action: "confirm",
           otp: otpCode,

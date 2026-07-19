@@ -76,6 +76,8 @@ const AdminRewardsManagement = () => {
         reward_type: weeklyRes.data.reward_type || "diamonds",
         reward_amount: String(weeklyRes.data.reward_amount ?? 500),
         label: weeklyRes.data.label || "",
+        description: weeklyRes.data.description || "",
+        is_active: !!weeklyRes.data.is_active,
       });
     }
   }, []);
@@ -104,6 +106,11 @@ const AdminRewardsManagement = () => {
   const saveWeekly = async () => {
     const amount = Math.max(0, Math.trunc(Number(weeklyDraft.reward_amount) || 0));
     const payload = {
+      reward_type: weeklyDraft.reward_type,
+      reward_amount: amount,
+      label: weeklyDraft.label || null,
+      description: weeklyDraft.description || null,
+      is_active: weeklyDraft.is_active,
       updated_at: new Date().toISOString(),
     };
     const result = weeklyConfig?.id
@@ -121,12 +128,16 @@ const AdminRewardsManagement = () => {
 
     const payload = {
       bonus_diamonds: firstRechargeConfig.bonus_diamonds ?? 0,
+      bonus_percentage: firstRechargeConfig.bonus_percentage ?? 0,
       bonus_multiplier: firstRechargeConfig.bonus_multiplier,
       bonus_label: firstRechargeConfig.bonus_label,
+      description: firstRechargeConfig.description,
+      is_active: firstRechargeConfig.is_active,
       banner_image_url: firstRechargeConfig.banner_image_url || null,
       banner_title: firstRechargeConfig.banner_title || 'First Recharge Bonus!',
       banner_subtitle: firstRechargeConfig.banner_subtitle || 'Get extra bonus diamonds on your first purchase',
       banner_type: firstRechargeConfig.banner_type || 'image',
+      updated_at: new Date().toISOString(),
     };
 
     const result = firstRechargeConfig.id
@@ -210,11 +221,17 @@ const AdminRewardsManagement = () => {
       return;
     }
     const { error } = await supabase.from("limited_time_offers").insert({
+      title: newOffer.title,
+      description: newOffer.description,
       diamonds_amount: 0,
       original_price: 0,
       offer_price: 0,
+      bonus_percentage: newOffer.bonus_percentage,
       discount_percent: newOffer.bonus_percentage,
       starts_at: new Date().toISOString(),
+      ends_at: newOffer.ends_at,
+      badge_text: newOffer.badge_text,
+      is_active: newOffer.is_active,
     });
     if (error) toast.error("Failed to add offer");
     else {
@@ -667,11 +684,15 @@ const blurOnEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
 const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (field: string, value: any) => void }) => {
   const [draft, setDraft] = useState({
     reward_diamonds: String(reward.reward_diamonds ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
     bonus_label: reward.bonus_label || "",
   });
 
   useEffect(() => {
     setDraft({
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
+      bonus_label: reward.bonus_label || "",
     });
   }, [reward.id, reward.reward_diamonds, reward.reward_diamonds, reward.bonus_label]);
 
@@ -747,6 +768,11 @@ const ConsumptionTierRow = ({ tier, onCommit, onDelete }: { tier: any; onCommit:
 
   useEffect(() => {
     setDraft({
+      tier_name: tier.tier_name || "",
+      min_spend: String(tier.min_spend ?? 0),
+      max_spend: tier.max_spend == null ? "" : String(tier.max_spend),
+      return_percentage: String(tier.return_percentage ?? 0),
+      max_return_diamonds: tier.max_return_diamonds == null ? "" : String(tier.max_return_diamonds),
     });
   }, [tier.id, tier.tier_name, tier.min_spend, tier.max_spend, tier.return_percentage, tier.max_return_diamonds]);
 

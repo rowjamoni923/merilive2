@@ -307,6 +307,7 @@ export const useRealtimeQuerySync = () => {
                 if (!root) return false;
                 return tableTokens.some((tok) => root.includes(tok));
               },
+              refetchType: 'active',
             });
           }, DEFAULT_DEBOUNCE_MS);
           pendingInvalidations.set(fallbackKey, timer);

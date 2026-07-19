@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
 
     if (!callId || !["private", "random"].includes(kind)) {
       return new Response(JSON.stringify({ error: "missing_fields" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -60,18 +61,23 @@ Deno.serve(async (req) => {
     if (action === "attempt") {
       if (!reconnectToken) {
         return new Response(JSON.stringify({ error: "missing_token" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const { data, error } = await supabase.rpc("attempt_call_reconnect", {
+        _kind: kind, _call_id: callId, _token: reconnectToken,
       });
       if (error) throw error;
       return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     return new Response(JSON.stringify({ error: "invalid_action" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: String((e as any)?.message ?? e) }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

@@ -188,6 +188,7 @@ export const PremiumFlyingGiftBanner = ({
               <motion.div
                 className="absolute -inset-1 rounded-full blur-md"
                 style={{
+                  background: isLegendary
                     ? 'radial-gradient(circle, rgba(251,191,36,0.65) 0%, transparent 70%)'
                     : isPremium
                       ? 'radial-gradient(circle, rgba(244,114,182,0.55) 0%, transparent 70%)'
@@ -211,6 +212,8 @@ export const PremiumFlyingGiftBanner = ({
                 <div
                   className="relative w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base"
                   style={{
+                    background: getLevelGradient(senderLevel),
+                    border: '2px solid rgba(255,255,255,0.65)',
                     boxShadow:
                       '0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
                   }}
@@ -223,6 +226,8 @@ export const PremiumFlyingGiftBanner = ({
               <div
                 className="absolute -bottom-1 -right-1 px-1.5 py-[1px] rounded-md text-[8px] font-bold text-white leading-none tabular-nums"
                 style={{
+                  background: getLevelGradient(senderLevel),
+                  border: '1px solid rgba(255,255,255,0.45)',
                   boxShadow:
                     '0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35)',
                 }}
@@ -258,6 +263,7 @@ export const PremiumFlyingGiftBanner = ({
               <motion.div
                 className="absolute -inset-2 rounded-xl blur-md"
                 style={{
+                  background: isLegendary
                     ? 'radial-gradient(circle, rgba(251,191,36,0.6) 0%, transparent 70%)'
                     : isPremium
                       ? 'radial-gradient(circle, rgba(244,114,182,0.55) 0%, transparent 70%)'
@@ -269,10 +275,13 @@ export const PremiumFlyingGiftBanner = ({
               <div
                 className="relative rounded-xl p-1.5 flex items-center justify-center"
                 style={{
+                  background: isLegendary
                     ? 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(245,158,11,0.18) 100%)'
                     : 'linear-gradient(135deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.08) 100%)',
+                  border: isLegendary
                     ? '1px solid rgba(251,191,36,0.5)'
                     : '1px solid rgba(255,255,255,0.32)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
                 }}
               >
                 {renderGiftIcon()}
@@ -312,7 +321,9 @@ export const PremiumFlyingGiftBanner = ({
                   key={i}
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{
+                    background: getSparkleColor(diamonds),
                     right: 0,
+                    boxShadow: isLegendary
                       ? '0 0 8px rgba(251,191,36,0.8), 0 0 14px rgba(245,158,11,0.45)'
                       : '0 0 6px rgba(244,114,182,0.7), 0 0 12px rgba(168,85,247,0.4)',
                   }}

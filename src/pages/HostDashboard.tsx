@@ -143,6 +143,9 @@ const HostDashboard = () => {
         setMinRate(callRates?.min_rate ?? 1000);
         setMaxRate(callRates?.max_rate ?? 10000);
         setCallRate(resolveEffectiveCallRate({
+          settings: callRates,
+          hostLevel: profileData?.host_level,
+          customRate: profileData?.call_rate_per_minute,
         }) || 0);
       } else if (profileData?.call_rate_per_minute) {
         setCallRate(profileData.call_rate_per_minute);
@@ -217,6 +220,11 @@ const HostDashboard = () => {
         if (giftDate >= startOfDay) todayGiftEarnings += hostEarnings;
 
         giftTransactions.push({
+          id: gift.id,
+          type: 'gift',
+          amount: hostEarnings,
+          date: gift.created_at,
+          otherUserName: sender?.display_name || 'User',
           otherUserAvatar: sender?.avatar_url,
         });
       });
@@ -231,6 +239,17 @@ const HostDashboard = () => {
       };
 
       setStats({
+        totalEarnings: Number(profileData?.total_earnings ?? (totalCallEarnings + totalGiftEarnings)),
+        thisWeekEarnings: weekCallEarnings + weekGiftEarnings,
+        thisMonthEarnings: monthCallEarnings + weekGiftEarnings,
+        todayEarnings: todayCallEarnings + todayGiftEarnings,
+        callEarnings: totalCallEarnings,
+        giftEarnings: totalGiftEarnings,
+        totalCalls: callsData?.length || 0,
+        totalCallMinutes: totalMinutes,
+        withdrawableBalance: Number(profileData?.beans ?? 0),
+        pendingEarnings: Number(profileData?.pending_earnings ?? 0),
+        nextTransferDate: getNextSunday(),
       });
 
       // Combine and sort transactions
@@ -444,6 +463,8 @@ const HostDashboard = () => {
                     <Calendar className="w-4 h-4 inline mr-2" />
                     Next Transfer: {new Date(stats.nextTransferDate).toLocaleDateString('en-US', {
                       weekday: 'long',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </p>
                 </div>

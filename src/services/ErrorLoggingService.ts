@@ -77,6 +77,11 @@ class ErrorLoggingService {
     window.addEventListener('unhandledrejection', (event) => {
       const error = event.reason;
       this.logError({
+        error_type: 'unhandled_rejection',
+        error_message: this.stringifyError(error),
+        error_stack: error?.stack,
+        page_url: window.location.href,
+        page_path: window.location.pathname,
       });
     });
 
@@ -177,6 +182,11 @@ class ErrorLoggingService {
     const userId = await this.getCurrentUserId();
 
     const fullErrorData: ErrorLogData = {
+      error_type: errorData.error_type || 'error',
+      error_message: this.normalizeMessage(errorData.error_message),
+      error_stack: errorData.error_stack,
+      page_url: errorData.page_url || window.location.href,
+      page_path: errorData.page_path || window.location.pathname,
       component_name: errorData.component_name,
       user_id: userId,
       browser_info: this.getBrowserInfo(),
@@ -205,7 +215,15 @@ class ErrorLoggingService {
     try {
       await supabase.from('system_error_logs').insert(
         errorsToProcess.map((errorData) => ({
+          error_type: errorData.error_type,
+          error_message: errorData.error_message,
+          error_stack: errorData.error_stack,
+          page_url: errorData.page_url,
+          page_path: errorData.page_path,
+          component_name: errorData.component_name,
+          user_id: errorData.user_id,
           user_agent: errorData.browser_info?.userAgent,
+          browser_info: errorData.browser_info as any,
         }))
       );
     } catch {
@@ -224,6 +242,10 @@ class ErrorLoggingService {
    */
   logRenderError(error: Error, componentName: string) {
     void this.logError({
+      error_type: 'render_error',
+      error_message: error.message,
+      error_stack: error.stack,
+      component_name: componentName,
     });
   }
 
@@ -232,6 +254,10 @@ class ErrorLoggingService {
    */
   logNetworkError(error: Error | string, endpoint?: string) {
     void this.logError({
+      error_type: 'network_error',
+      error_message: typeof error === 'string' ? error : error.message,
+      error_stack: typeof error === 'object' ? error.stack : undefined,
+      component_name: endpoint,
     });
   }
 }

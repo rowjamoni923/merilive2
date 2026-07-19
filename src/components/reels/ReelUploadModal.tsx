@@ -249,6 +249,8 @@ export const ReelUploadModal = ({
         const { error: thumbError } = await supabase.storage
           .from('reels')
           .upload(thumbnailFileName, thumbnailBlob, {
+            contentType: 'image/jpeg',
+            upsert: false
           });
 
         if (!thumbError) {

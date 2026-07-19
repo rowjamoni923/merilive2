@@ -68,16 +68,22 @@ serve(async (req) => {
     }
     if (!callerUserId) {
       return new Response(JSON.stringify({ error: "authentication required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const body = (await req.json()) as Body;
     if (!body?.userId || !body?.imageBase64) {
       return new Response(JSON.stringify({ error: "userId and imageBase64 required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (body.userId !== callerUserId) {
       return new Response(JSON.stringify({ error: "userId mismatch" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -96,6 +102,7 @@ serve(async (req) => {
 
     if (!result) {
       return new Response(JSON.stringify({ ok: false, skipped: "provider_unreachable" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -161,6 +168,7 @@ serve(async (req) => {
       if (faceCfg) {
         try {
           const search = await providerSearchFace(faceCfg, {
+            image_base64: body.imageBase64,
             threshold: IDENTITY_THRESHOLD,
             max_matches: 3,
           });

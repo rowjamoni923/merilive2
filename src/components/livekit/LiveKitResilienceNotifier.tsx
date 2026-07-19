@@ -40,6 +40,8 @@ export function LiveKitResilienceNotifier({ scope, id, onRejoin }: Props) {
       });
     } else if (!audio.active && lastAudioActiveRef.current) {
       toast.success('Connection restored — video resumed', {
+        id: `${TOAST_AUDIO_ONLY}-${scope}-${id}`,
+        duration: 3000,
       });
     }
     lastAudioActiveRef.current = audio.active;
@@ -52,6 +54,9 @@ export function LiveKitResilienceNotifier({ scope, id, onRejoin }: Props) {
       ? Math.max(1, Math.round(abandoned.durationMs / 60000))
       : 20;
     toast.error('Connection lost', {
+      id: `lk-abandoned-${scope}-${id}`,
+      duration: Infinity,
+      description: `We couldn't reconnect for ${mins} minutes. Please rejoin to continue.`,
       action: onRejoin
         ? { label: 'Rejoin', onClick: () => onRejoin() }
         : undefined,

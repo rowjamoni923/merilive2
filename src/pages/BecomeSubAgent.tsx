@@ -131,6 +131,8 @@ const BecomeSubAgent = () => {
   const searchAgency = async () => {
     if (!agencyCode.trim()) {
       toast({
+        title: "Error",
+        description: "Please enter agency code",
         variant: "destructive",
       });
       return;
@@ -139,6 +141,7 @@ const BecomeSubAgent = () => {
     setLoading(true);
     
     const { data } = await supabase.rpc('get_agency_by_code', {
+      agency_code: agencyCode.toUpperCase()
     });
 
     if (data && data.length > 0) {
@@ -146,6 +149,9 @@ const BecomeSubAgent = () => {
     } else {
       setAgency(null);
       toast({
+        title: "Agency not found",
+        description: "Please enter a valid agency code",
+        variant: "destructive",
       });
     }
     
@@ -191,7 +197,11 @@ const BecomeSubAgent = () => {
     setVerifyingOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: {
+          action: 'verify',
+          userId: currentUser.id,
           code: otpCode,
+          purpose: 'sub_agency_verification',
         },
       });
       if (error) throw error;
@@ -244,10 +254,15 @@ const BecomeSubAgent = () => {
       }
 
       toast({
+        title: "✅ You're now a Sub-Agent!",
+        description: "You have successfully joined as a sub-agent",
       });
 
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -257,6 +272,7 @@ const BecomeSubAgent = () => {
   const copyReferralLink = async () => {
     const { generateSmartLink } = await import('@/utils/shareLinks');
     const link = generateSmartLink('/join-agency', { 
+      code: agency?.agency_code || '', 
       ref: myReferralCode 
     });
     navigator.clipboard.writeText(link);
@@ -266,8 +282,11 @@ const BecomeSubAgent = () => {
   const shareReferralLink = async () => {
     const { generateSmartLink, shareLink } = await import('@/utils/shareLinks');
     const link = generateSmartLink('/join-agency', { 
+      code: agency?.agency_code || '', 
+      ref: myReferralCode 
     });
     await shareLink(link, {
+      title: "Join as Host",
       text: "Join this agency as a host and start earning!"
     });
   };

@@ -162,6 +162,12 @@ const AdminTransferHistory = () => {
       const agencyIds = new Set(transferData.map(t => t.agency_id));
       
       setStats({
+        totalTransfers: transferData.length,
+        totalAmount: transferData.reduce((sum, t) => sum + (t.amount || 0), 0),
+        totalGiftEarnings: transferData.reduce((sum, t) => sum + (t.gift_earnings || 0), 0),
+        totalCallEarnings: transferData.reduce((sum, t) => sum + (t.call_earnings || 0), 0),
+        uniqueHosts: hostIds.size,
+        uniqueAgencies: agencyIds.size
       });
 
     } catch (error) {

@@ -123,6 +123,8 @@ const ShootingStar = ({ delay }: { delay: number }) => {
       transition={{ duration: 2.5, delay, repeat: Infinity, repeatDelay: stable.repeatDelay }}
       className="absolute w-[2px] h-16 bg-gradient-to-b from-white via-white/80 to-transparent rotate-[45deg] pointer-events-none"
       style={{
+        left: stable.left,
+        top: stable.top,
         boxShadow: '0 0 6px 2px rgba(255,255,255,0.3)'
       }}
     />
@@ -233,6 +235,7 @@ const PremiumHostFrame = ({
         <div 
           className="px-2.5 py-0.5 rounded-md text-[9px] font-bold text-white truncate max-w-[65px]"
           style={{
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.7), rgba(30,0,60,0.8))',
             border: '1px solid rgba(255,215,0,0.4)',
             textShadow: '0 0 6px rgba(255,215,0,0.5)',
             letterSpacing: '0.5px'
@@ -243,6 +246,7 @@ const PremiumHostFrame = ({
         <div 
           className="px-1.5 py-0.5 rounded-full text-[7px] font-bold text-white mt-0.5"
           style={{
+            background: speaker.level >= 30 
               ? 'linear-gradient(135deg, #fbbf24, #f97316)' 
               : speaker.level >= 20 
                 ? 'linear-gradient(135deg, #ec4899, #a855f7)'
@@ -396,6 +400,8 @@ const OccupiedSeat = ({
         <div 
           className="px-2 py-0.5 rounded-md text-[8px] font-bold text-white truncate max-w-[60px]"
           style={{
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,0,40,0.7))',
+            border: '0.5px solid rgba(255,255,255,0.15)',
             letterSpacing: '0.3px'
           }}
         >
@@ -404,6 +410,7 @@ const OccupiedSeat = ({
         <div 
           className="px-1 py-0.5 rounded-full text-[6px] font-bold text-white mt-0.5"
           style={{
+            background: speaker.level >= 30 
               ? 'linear-gradient(135deg, #fbbf24, #f97316)' 
               : speaker.level >= 20 
                 ? 'linear-gradient(135deg, #ec4899, #a855f7)'
@@ -509,7 +516,13 @@ export function ProfessionalAudioRoom({
     // Get actual user level from hostInfo or default
     const actualUserLevel = hostInfo?.level || 1;
     const newMessage = {
+      id: Date.now().toString(),
+      userId: currentUserId || 'guest',
+      userName: 'You',
+      userLevel: actualUserLevel,
       message,
+      type: 'text' as const,
+      timestamp: new Date()
     };
     setChatMessages(prev => [...prev, newMessage]);
     
@@ -553,6 +566,7 @@ export function ProfessionalAudioRoom({
       />
       {/* Ambient glow effects */}
       <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at 50% 80%, rgba(147,51,234,0.3) 0%, transparent 60%), radial-gradient(ellipse at 20% 20%, rgba(236,72,153,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 30%, rgba(59,130,246,0.12) 0%, transparent 50%)'
       }} />
       
       {/* Starry overlay */}
@@ -584,11 +598,18 @@ export function ProfessionalAudioRoom({
             key={`sparkle-${i}`}
             className="absolute text-white/60"
             style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 80}%`,
               fontSize: `${8 + Math.random() * 8}px`
             }}
             animate={{
+              opacity: [0.2, 0.8, 0.2],
+              scale: [0.8, 1.2, 0.8]
             }}
             transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2
             }}
           >
             ✦
@@ -626,6 +647,7 @@ export function ProfessionalAudioRoom({
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-1.5"
             style={{
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(30, 30, 50, 0.8) 100%)',
               backdropFilter: 'blur(16px)',
               borderRadius: '22px',
               padding: '3px 12px 3px 3px',
@@ -715,12 +737,19 @@ export function ProfessionalAudioRoom({
               onClick={() => setShowViewerPanel(true)}
               className="relative flex items-center rounded-full overflow-hidden"
               style={{
+                background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.75) 0%, rgba(40, 40, 60, 0.85) 100%)',
+                backdropFilter: 'blur(12px)',
+                padding: '4px 10px 4px 6px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.4)'
               }}
             >
               {/* Eye Icon with subtle glow */}
               <div 
                 className="flex items-center justify-center w-5 h-5 rounded-full mr-1"
                 style={{
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(236, 72, 153, 0.9))',
+                  boxShadow: '0 0 8px rgba(139, 92, 246, 0.5)'
                 }}
               >
                 <Users className="w-2.5 h-2.5 text-white" />
@@ -796,6 +825,9 @@ export function ProfessionalAudioRoom({
             whileTap={{ scale: 0.85 }}
             className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg"
             style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.5), rgba(30,0,50,0.6))',
+              border: '1px solid rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(8px)'
             }}
             onClick={() => toast({ title: "😊 Stickers", description: "Coming soon!" })}
           >
@@ -807,6 +839,9 @@ export function ProfessionalAudioRoom({
             whileTap={{ scale: 0.85 }}
             className="w-11 h-11 rounded-full flex flex-col items-center justify-center shadow-lg"
             style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.5), rgba(30,0,50,0.6))',
+              border: '1px solid rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(8px)'
             }}
           >
             <span className="text-lg">🌍</span>
@@ -819,6 +854,9 @@ export function ProfessionalAudioRoom({
             onClick={() => navigate('/leaderboard')}
             className="w-11 h-11 rounded-full flex flex-col items-center justify-center shadow-lg"
             style={{
+              background: 'linear-gradient(135deg, rgba(234,88,12,0.6), rgba(220,38,38,0.6))',
+              border: '1px solid rgba(255,180,0,0.3)',
+              backdropFilter: 'blur(8px)'
             }}
           >
             <span className="text-[8px] font-bold text-yellow-300">🏆</span>
@@ -831,6 +869,9 @@ export function ProfessionalAudioRoom({
             onClick={() => setShowMusicPanel(true)}
             className="w-11 h-11 rounded-full flex flex-col items-center justify-center shadow-lg"
             style={{
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.5), rgba(168,85,247,0.6))',
+              border: '1px solid rgba(168,85,247,0.3)',
+              backdropFilter: 'blur(8px)'
             }}
           >
             <span className="text-lg">🎵</span>
@@ -879,7 +920,11 @@ export function ProfessionalAudioRoom({
           <div 
             className="flex-1 flex items-center gap-1.5 h-8 px-3 rounded-full"
             style={{
+              background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.3)',
+              border: '0.5px solid rgba(255, 255, 255, 0.08)'
             }}
           >
             <input
@@ -908,8 +953,10 @@ export function ProfessionalAudioRoom({
             <div 
               className="absolute inset-0 rounded-full"
               style={{
+                background: chatInput.trim() 
                   ? 'linear-gradient(135deg, #a855f7, #ec4899)' 
                   : 'rgba(255, 255, 255, 0.1)',
+                boxShadow: chatInput.trim() 
                   ? '0 4px 15px rgba(168, 85, 247, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)' 
                   : 'inset 0 1px 0 rgba(255,255,255,0.1)'
               }}
@@ -965,13 +1012,18 @@ export function ProfessionalAudioRoom({
         isOpen={showViewerPanel}
         onClose={() => setShowViewerPanel(false)}
         viewers={viewers.length > 0 ? viewers : topViewers.map((v) => ({
+          id: v.id,
           displayName: v.displayName,
           avatarUrl: v.avatarUrl,
           level: v.level,
           countryFlag: '🌍'
         }))}
         applicants={seatRequests.map(r => ({
+          id: r.id,
           user_id: (r as any).user_id, // CRITICAL: Pass user_id for callbacks
+          displayName: r.displayName,
+          avatarUrl: r.avatarUrl,
+          level: r.level,
           requestedAt: r.requestedAt
         }))}
         isHost={isHost}

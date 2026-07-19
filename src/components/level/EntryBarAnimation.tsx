@@ -101,6 +101,7 @@ const DefaultEntryBar = ({ user }: { user: UserInfo }) => {
               scale: [0.5, 1.5, 0.5],
             }}
             transition={{
+              duration: 1,
               delay: i * 0.15,
               repeat: Infinity,
             }}
@@ -114,9 +115,14 @@ const DefaultEntryBar = ({ user }: { user: UserInfo }) => {
             className="absolute h-[2px] bg-gradient-to-r from-white/80 to-transparent rounded-full"
             style={{
               width: `${30 + i * 20}px`,
+              left: '-50px',
+              top: `${30 + i * 20}%`,
             }}
             animate={{ x: [0, 400] }}
             transition={{
+              duration: 0.5,
+              delay: i * 0.1,
+              repeat: Infinity,
               repeatDelay: 1.5,
             }}
           />
@@ -155,6 +161,7 @@ const DefaultEntryBar = ({ user }: { user: UserInfo }) => {
           className="text-2xl"
           animate={{ 
             rotate: [0, 15, -15, 0],
+            scale: [1, 1.2, 1]
           }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
@@ -350,6 +357,8 @@ const EntryBarAnimation = ({
       const privileges = await getEquippedPrivilegesForUser(userId);
       if (privileges?.entry_bar?.animation_url) {
         setCustomEntryBar({
+          animation_url: privileges.entry_bar.animation_url,
+          animation_type: 'custom',
         });
       } else {
         // Check level_privileges table
@@ -366,6 +375,8 @@ const EntryBarAnimation = ({
 
         if (levelPrivilege?.animation_url) {
           setCustomEntryBar({
+            animation_url: levelPrivilege.animation_url,
+            animation_type: 'level',
           });
         }
       }

@@ -39,6 +39,7 @@ interface ViolationRecord {
   beans_deducted: number | null;
   created_at: string;
   host?: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     app_uid: string | null;
@@ -454,6 +455,12 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
                           onClick={() => {
                             if (v.host && onBanUser) {
                               onBanUser({
+                                id: v.host.id,
+                                display_name: v.host.display_name,
+                                avatar_url: v.host.avatar_url,
+                                app_uid: v.host.app_uid,
+                                is_host: v.host.is_host ?? false,
+                                is_blocked: v.host.is_blocked ?? false,
                               });
                             }
                           }}

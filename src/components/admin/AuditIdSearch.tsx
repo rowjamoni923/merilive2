@@ -127,6 +127,8 @@ export const AuditIdSearch = ({ compact = false }: { compact?: boolean }) => {
     setOpen(true);
     if (matches.length === 0) {
       toast({
+        title: "No matching audit ID",
+        description: `“${value}” doesn't match any known diagnostic.`,
         variant: "destructive",
       });
     }

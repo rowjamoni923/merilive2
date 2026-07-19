@@ -101,6 +101,7 @@ export const ChametStyleHeader = ({
             <motion.div
               className="absolute inset-0 pointer-events-none"
               style={{
+                background: "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.10) 50%, transparent 65%)",
               }}
               animate={{ x: ["-110%", "120%"] }}
               transition={{ duration: 4.5, repeat: Infinity, ease: "linear", repeatDelay: 2.2 }}
@@ -166,6 +167,8 @@ export const ChametStyleHeader = ({
               onClick={onInviteClick}
               className="w-6 h-6 rounded-full flex items-center justify-center ml-0.5"
               style={{
+                background: "linear-gradient(135deg, #a855f7, #ec4899)",
+                boxShadow: "0 3px 10px rgba(168,85,247,0.4)",
               }}
             >
               <Plus className="w-3 h-3 text-white" strokeWidth={3} />
@@ -180,6 +183,9 @@ export const ChametStyleHeader = ({
             onClick={onViewersClick}
             className="relative flex items-center gap-1.5 rounded-full px-3 py-1.5 overflow-hidden"
             style={{
+              background: "linear-gradient(135deg, rgba(168,85,247,0.8), rgba(236,72,153,0.8))",
+              border: "1px solid rgba(255,255,255,0.18)",
+              boxShadow: "0 6px 20px rgba(168,85,247,0.35)",
             }}
           >
             {/* Pulsing live dot — Bigo-style "LIVE" energy */}
@@ -212,6 +218,8 @@ export const ChametStyleHeader = ({
                   exit={{ scale: 0 }}
                   className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-white text-[9px] font-black rounded-full z-20 ring-2 ring-black/50"
                   style={{
+                    background: "linear-gradient(135deg, #ef4444, #f97316)",
+                    boxShadow: "0 3px 8px rgba(239,68,68,0.5)",
                   }}
                 >
                   {pendingRequestCount}
@@ -245,6 +253,7 @@ export const ChametStyleHeader = ({
                   <motion.div
                     className="absolute -inset-1 rounded-full pointer-events-none"
                     style={{
+                      background: "conic-gradient(from 0deg, transparent, rgba(251,191,36,0.85), transparent 40%, transparent 60%, rgba(251,191,36,0.85), transparent)",
                       filter: "blur(2px)",
                     }}
                     animate={{ rotate: 360 }}

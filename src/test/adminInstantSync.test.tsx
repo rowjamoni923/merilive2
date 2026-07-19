@@ -127,7 +127,12 @@ describe("Admin instant-sync broadcast contract", () => {
     expect(expectedKeys?.length).toBeGreaterThan(0);
 
     channelHandlers[0]({
+      new: {
         topic,
+        version: 99,
+        last_event: "UPDATE",
+        last_row_id: "ban-1",
+        updated_at: new Date().toISOString(),
       },
       eventType: "UPDATE",
     });

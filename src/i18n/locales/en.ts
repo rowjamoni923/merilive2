@@ -118,14 +118,18 @@ const en = {
   },
 
   // Profile Page
+  profile: {
+    title: "Profile",
     editProfile: "Edit Profile",
     followers: "Followers",
+    following: "Following",
     fans: "Fans",
     friends: "Friends",
     visitors: "Visitors",
     level: "Level",
     diamonds: "Diamonds",
     beans: "Beans",
+    diamonds: "Diamonds",
     wallet: "Wallet",
     myAgency: "My Agency",
     becomeHost: "Become Host",
@@ -135,6 +139,7 @@ const en = {
     tasks: "Daily Tasks",
     rewards: "Rewards",
     invitation: "Invitation",
+    settings: "Settings",
     rechargeHistory: "Recharge History",
     transferHistory: "Transfer History",
     callHistory: "Call History",
@@ -149,6 +154,8 @@ const en = {
   },
 
   // Home Page
+  home: {
+    title: "Home",
     recommended: "Recommended",
     popular: "Popular",
     nearby: "Nearby",
@@ -160,6 +167,8 @@ const en = {
   },
 
   // Live Streaming
+  live: {
+    title: "Live",
     goLive: "Go Live",
     viewers: "Viewers",
     watching: "watching",
@@ -185,6 +194,8 @@ const en = {
   },
 
   // Party Rooms
+  party: {
+    title: "Party Rooms",
     createParty: "Create Party",
     hotParties: "Hot Parties",
     newParties: "New Parties",
@@ -198,9 +209,12 @@ const en = {
   },
 
   // Chat
+  chat: {
+    title: "Messages",
     typeMessage: "Type a message...",
     noMessages: "No messages yet",
     startConversation: "Start a conversation",
+    online: "Online",
     lastSeen: "Last seen",
     typing: "typing...",
     delivered: "Delivered",
@@ -216,6 +230,7 @@ const en = {
     login: "Login",
     signup: "Sign Up",
     email: "Email",
+    password: "Password",
     confirmPassword: "Confirm Password",
     forgotPassword: "Forgot Password?",
     resetPassword: "Reset Password",
@@ -224,6 +239,7 @@ const en = {
     agreeTerms: "By continuing, you agree to our",
     termsOfService: "Terms of Service",
     and: "and",
+    privacyPolicy: "Privacy Policy",
     welcomeBack: "Welcome Back",
     createAccount: "Create Account",
     alreadyHaveAccount: "Already have an account?",
@@ -232,6 +248,7 @@ const en = {
 
   // Leaderboard
   leaderboard: {
+    title: "Leaderboard",
     daily: "Daily",
     weekly: "Weekly",
     monthly: "Monthly",
@@ -247,16 +264,20 @@ const en = {
 
   // Recharge / Wallet
   recharge: {
+    title: "Recharge",
     balance: "Balance",
     selectPackage: "Select Package",
     paymentMethod: "Payment Method",
     rechargeNow: "Recharge Now",
     transactionHistory: "Transaction History",
     bestValue: "Best Value",
+    popular: "Popular",
     bonus: "Bonus",
   },
 
   // Shop
+  shop: {
+    title: "Shop",
     avatarFrames: "Avatar Frames",
     entryBanners: "Entry Banners",
     nameBars: "Name Bars",
@@ -271,27 +292,36 @@ const en = {
 
   // Gifts
   gifts: {
+    title: "Gifts",
+    sendGift: "Send Gift",
     giftSent: "Gift Sent!",
     selectGift: "Select a gift",
     quantity: "Quantity",
     totalCost: "Total Cost",
     insufficientCoins: "Insufficient Diamonds",
+    rechargeNow: "Recharge Now",
   },
 
   // Agency
   agency: {
+    title: "Agency",
+    myAgency: "My Agency",
     createAgency: "Create Agency",
     joinAgency: "Join Agency",
     agencyCode: "Agency Code",
     hosts: "Hosts",
+    earnings: "Earnings",
     commission: "Commission",
     withdraw: "Withdraw",
     dashboard: "Dashboard",
     hostManagement: "Host Management",
+    transferHistory: "Transfer History",
     commissionHistory: "Commission History",
   },
 
   // Level System
+  level: {
+    title: "Level",
     currentLevel: "Current Level",
     nextLevel: "Next Level",
     experience: "Experience",
@@ -301,6 +331,8 @@ const en = {
   },
 
   // VIP
+  vip: {
+    title: "VIP",
     currentTier: "Current Tier",
     benefits: "Benefits",
     upgrade: "Upgrade",
@@ -308,30 +340,44 @@ const en = {
   },
 
   // Tasks & Rewards
+  tasks: {
+    title: "Daily Tasks",
     completed: "Completed",
     claim: "Claim",
     claimed: "Claimed",
     reward: "Reward",
+    progress: "Progress",
   },
+  rewards: {
+    title: "Rewards",
     dailyCheckIn: "Daily Check-in",
     streak: "Streak",
+    bonus: "Bonus",
     claimReward: "Claim Reward",
   },
 
   // Search
+  search: {
+    title: "Search",
     searchUsers: "Search users...",
     noResults: "No results found",
     recentSearches: "Recent Searches",
   },
 
   // Discover
+  discover: {
+    title: "Discover",
     trending: "Trending",
     newUsers: "New Users",
+    nearby: "Nearby",
   },
 
   // Host
   host: {
+    title: "Host",
+    becomeHost: "Become a Host",
     hostApplication: "Host Application",
+    hostDashboard: "Host Dashboard",
     totalEarnings: "Total Earnings",
     todayEarnings: "Today's Earnings",
     streamHours: "Stream Hours",
@@ -341,7 +387,9 @@ const en = {
 
   // Withdrawal
   withdrawal: {
+    title: "Withdrawal",
     withdrawAmount: "Withdraw Amount",
+    paymentMethod: "Payment Method",
     bankAccount: "Bank Account",
     mobileBanking: "Mobile Banking",
     minimumAmount: "Minimum Amount",
@@ -351,6 +399,7 @@ const en = {
   },
 
   // Errors & Notifications
+  notifications: {
     connectionLost: "Connection lost",
     connectionRestored: "Connection restored",
     newMessage: "New message",

@@ -209,6 +209,8 @@ export function AdvancedPartyBottomBar({
           >
             <div className="w-[60px] h-[60px] rounded-[20px] flex items-center justify-center relative overflow-hidden"
               style={{
+                background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 40%, #7c3aed 100%)',
+                boxShadow: '0 12px 32px rgba(168,85,247,0.5), 0 0 0 2px rgba(255,255,255,0.1), inset 0 2px 0 rgba(255,255,255,0.15)',
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
@@ -229,6 +231,9 @@ export function AdvancedPartyBottomBar({
                 whileTap={{ scale: 0.9 }}
                 className="w-10 h-10 rounded-full flex items-center justify-center"
                 style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255,255,255,0.12)',
                 }}
               >
                 <Settings className="w-5 h-5 text-white" />
@@ -238,7 +243,9 @@ export function AdvancedPartyBottomBar({
               side="bottom" 
               className="border-t rounded-t-[28px] h-auto p-0"
               style={{
+                background: 'linear-gradient(180deg, rgba(15,10,40,0.98) 0%, rgba(25,15,55,0.98) 40%, rgba(15,10,40,0.98) 100%)',
                 borderColor: 'rgba(168,85,247,0.15)',
+                backdropFilter: 'blur(32px)',
               }}
             >
               {/* Close */}
@@ -249,6 +256,10 @@ export function AdvancedPartyBottomBar({
                 onClick={() => setShowMoreOptions(false)}
                 className="absolute -top-14 right-4 w-10 h-10 rounded-full flex items-center justify-center z-50"
                 style={{
+                  background: 'rgba(0,0,0,0.6)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                 }}
               >
                 <X className="w-5 h-5 text-white" />
@@ -308,6 +319,7 @@ export function AdvancedPartyBottomBar({
           side="bottom" 
           className="h-auto max-h-[75vh] rounded-t-3xl border-0 p-0"
           style={{
+            background: 'linear-gradient(180deg, rgba(15,10,40,0.98) 0%, rgba(10,15,35,0.99) 100%)',
           }}
         >
           <div className="flex justify-center pt-3 pb-3">
@@ -319,6 +331,8 @@ export function AdvancedPartyBottomBar({
               <motion.div 
                 className="w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden"
                 style={{
+                  background: 'linear-gradient(135deg, #a855f7, #ec4899, #f97316)',
+                  boxShadow: '0 8px 24px rgba(168,85,247,0.4)',
                 }}
                 animate={{ rotate: [0, 3, -3, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}

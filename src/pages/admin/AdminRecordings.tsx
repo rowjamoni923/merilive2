@@ -54,6 +54,7 @@ interface Recording {
   total_diamonds: number;
   created_at: string;
   host?: {
+    id: string;
     display_name: string;
     avatar_url: string | null;
     app_uid: string | null;
@@ -113,6 +114,9 @@ export default function AdminRecordings() {
       }).length;
 
       setStats({
+        totalRecordings: validRows.length,
+        readyRecordings: validRows.filter((r) => ["ready", "completed"].includes(r.status)).length,
+        totalDuration: formattedData.reduce((sum, r) => sum + (r.duration_seconds || 0), 0),
         expiringToday,
       });
     } catch (error) {
@@ -202,6 +206,7 @@ export default function AdminRecordings() {
     if (!adminId) { toast.error("Not signed in"); return; }
     try {
       const { error } = await supabase.rpc("admin_delete_recording", {
+        _admin_id: adminId,
         _recording_id: recordingId,
       });
       if (error) throw error;

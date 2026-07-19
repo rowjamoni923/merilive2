@@ -248,6 +248,7 @@ interface HostApplication {
     agency_id: string | null;
   };
   agency?: {
+    id: string;
     name: string;
     agency_code: string;
   } | null;
@@ -634,6 +635,7 @@ export default function AdminUserManagement() {
     try {
       const toHost = !isHost;
       const { error } = await supabase.rpc('admin_convert_user_role', {
+        _user_id: userId,
         _to_host: toHost,
       });
       if (error) throw error;
@@ -657,6 +659,7 @@ export default function AdminUserManagement() {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
         _submission_id: submissionId,
         _action: 'approve',
+        _reason: `Manually converted to ${toHost ? 'Host' : 'User'} by admin from Auto Rejected.`,
         _approve_as: toHost ? 'host' : 'user',
         _set_gender: toHost ? 'female' : 'male',
       });
@@ -692,12 +695,15 @@ export default function AdminUserManagement() {
       const newVerified = !isVerified;
 
       const { data, error } = await supabase.rpc('admin_set_user_verification', {
+        _user_id: userId,
         _verified: newVerified,
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Verification update failed');
 
       const { data: faceData, error: faceError } = await supabase.rpc('admin_toggle_face_verification', {
+        _user_id: userId,
+        _verified: newVerified,
       });
       if (faceError) throw faceError;
       if ((faceData as any)?.success === false) throw new Error((faceData as any)?.error || 'Face verification update failed');
@@ -752,6 +758,11 @@ export default function AdminUserManagement() {
 
       if (hostData) {
         setHostStats({
+          totalHosts: hostData.length,
+          activeHosts: hostData.filter(h => h.host_status === "approved" && !h.is_blocked).length,
+          pendingHosts: hostData.filter(h => h.host_status === "pending").length,
+          blockedHosts: hostData.filter(h => h.is_blocked).length,
+          totalEarnings: hostData.reduce((sum, h) => sum + (h.total_earnings || 0), 0)
         });
       }
     } catch (error) {
@@ -778,6 +789,9 @@ export default function AdminUserManagement() {
       const rows = (data as any[]) || [];
       setVerifiedUsers(rows);
       setVerifiedUserStats({
+        total: rows.length,
+        active: rows.filter(r => !r.is_blocked).length,
+        blocked: rows.filter(r => r.is_blocked).length,
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingVerifiedUsers", message: formatAdminError(error)});
@@ -797,6 +811,7 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_set_host_status', {
+        _user_id: hostId,
         _make_host: true,
       });
       if (error) throw error;
@@ -821,6 +836,8 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_set_host_status', {
+        _user_id: hostId,
+        _make_host: false,
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Host rejection failed');
@@ -844,6 +861,9 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const { error } = await supabase.rpc("admin_block_user", {
+        _user_id: hostId,
+        _block: block,
+        _reason: block ? "Blocked by admin" : null
       });
       if (error) throw error;
       toast.success(block ? "Host blocked successfully" : "Host unblocked successfully");
@@ -958,6 +978,10 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_review_host_application', {
+        _application_id: selectedApplication.id,
+        _status: 'rejected',
+        _admin_notes: adminNotes || null,
+        _rejection_reason: rejectionReason,
       });
 
       if (error) throw error;
@@ -1005,11 +1029,16 @@ export default function AdminUserManagement() {
         : (faceActiveTab === "all" ? null : faceActiveTab);
       const [listResult, stats] = await Promise.all([
         supabase.rpc('admin_list_face_verification_paginated', {
+          _status: serverStatus,
           _search: q || null,
           _limit: FACE_VERIFICATION_FETCH_LIMIT,
           _offset: 0,
         }),
         fetchFilteredStatusCounts(supabase as any, {
+          table: 'face_verification_submissions',
+          searchColumn: 'full_name',
+          searchQuery: q,
+          globalStatsRpc: 'admin_face_verification_stats',
         }),
       ]);
 
@@ -1068,6 +1097,11 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: submission.id,
+        _action: faceActionType,
+        _reason: faceActionReason || null,
+        _approve_as: faceActionType === 'approve' ? faceApproveAs : 'user',
+        _set_gender: faceActionType === 'approve' ? (faceApproveAs === 'host' ? 'female' : 'male') : null
       });
 
       if (error) throw error;
@@ -1097,6 +1131,7 @@ export default function AdminUserManagement() {
   };
 
   const processFaceSubmission = async (
+    submission: FaceVerificationSubmission,
     action: 'approve' | 'reject',
     approveAs: 'host' | 'user' = submission.verification_type === 'host' ? 'host' : 'user',
     reason?: string,
@@ -1125,6 +1160,11 @@ export default function AdminUserManagement() {
 
     try {
       const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: submission.id,
+        _action: action,
+        _reason: nextReason,
+        _approve_as: action === 'approve' ? approveAs : 'user',
+        _set_gender: action === 'approve' ? (approveAs === 'host' ? 'female' : 'male') : null,
       });
 
       if (error) throw error;
@@ -1250,11 +1290,15 @@ export default function AdminUserManagement() {
   const handleUnbanModUser = async (userId: string) => {
     try {
       const { error: unblockError } = await supabase.rpc("admin_block_user", {
+        _user_id: userId,
+        _block: false,
+        _reason: null,
       });
 
       if (unblockError) throw unblockError;
 
       const { data: resetData, error: resetError } = await supabase.rpc('admin_reset_phone_violation_count', {
+        _user_id: userId,
       });
 
       if (resetError) throw resetError;
@@ -1318,6 +1362,8 @@ export default function AdminUserManagement() {
   const handleUnblockUser = async (userId: string) => {
     try {
       const { error } = await supabase.rpc("admin_block_user", {
+        _user_id: userId,
+        _block: false
       });
       if (error) throw error;
       toast.success("User unblocked successfully");
@@ -1332,6 +1378,7 @@ export default function AdminUserManagement() {
     try {
       const { error } = await supabase.rpc("admin_block_agency", {
         _agency_id: agencyId,
+        _block: false
       });
       if (error) throw error;
       toast.success("Agency unblocked successfully");
@@ -1401,6 +1448,8 @@ export default function AdminUserManagement() {
         call_rate_per_minute: profile.call_rate_per_minute,
         created_at: profile.created_at,
         bio: profile.bio,
+        agency: agencyHost?.agencies ? {
+          id: (agencyHost.agencies as any).id,
           name: (agencyHost.agencies as any)?.name,
           agency_code: (agencyHost.agencies as any)?.agency_code,
         } : null,
@@ -1426,6 +1475,7 @@ export default function AdminUserManagement() {
     setDeletingUser(true);
     try {
       const { error } = await supabase.rpc('admin_delete_user', {
+        _user_id: selectedBlockedUser.id
       });
       
       if (error) throw error;

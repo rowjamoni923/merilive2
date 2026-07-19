@@ -25,6 +25,7 @@ export interface TranscriptionEvent {
   roomName: string;
   identity: string | undefined;
   segments: Array<{
+    id: string;
     text: string;
     language?: string;
     final: boolean;
@@ -89,6 +90,7 @@ export function registerRoomForTranscription(
       id,
       roomName: room.name,
       identity: participant?.identity,
+      segments: segments.map(normalize),
     };
     window.dispatchEvent(new CustomEvent('livekit-transcription', { detail }));
   };
@@ -152,10 +154,13 @@ export async function persistTranscriptionSegment(input: {
   if (!input.text?.trim()) return { ok: false, error: 'empty_text' };
   try {
     const { error } = await supabase.from('transcription_segments').insert({
+      scope: input.scope,
       scope_id: input.scopeId,
       room_name: input.roomName,
       participant_identity: input.participantIdentity ?? null,
       segment_id: input.segmentId ?? null,
+      text: input.text,
+      language: input.language ?? null,
       is_final: true,
       start_time: input.startTime ?? null,
       end_time: input.endTime ?? null,

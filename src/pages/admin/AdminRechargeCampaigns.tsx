@@ -209,6 +209,9 @@ export default function AdminRechargeCampaigns() {
     const bonusDiamonds = pct > 0 ? Math.round(pkg.diamonds_amount * pct / 100) : 0;
     setForm(prev => ({
       ...prev,
+      diamonds_amount: pkg.diamonds_amount,
+      original_price_usd: pkg.price_usd,
+      bonus_diamonds: bonusDiamonds,
     }));
   };
 
@@ -218,6 +221,8 @@ export default function AdminRechargeCampaigns() {
     const bonusDiamonds = pct > 0 ? Math.round(diamondsBase * pct / 100) : 0;
     setForm(prev => ({
       ...prev,
+      bonus_percentage: pct,
+      bonus_diamonds: bonusDiamonds,
     }));
   };
 
@@ -238,6 +243,24 @@ export default function AdminRechargeCampaigns() {
     setSaving(true);
     try {
       const payload = {
+        campaign_name: form.campaign_name!.trim(),
+        campaign_type: form.campaign_type || "bonus",
+        original_price_usd: form.original_price_usd || 0,
+        offer_price_usd: form.offer_price_usd || null,
+        diamonds_amount: form.diamonds_amount || 0,
+        bonus_diamonds: form.bonus_diamonds || 0,
+        bonus_percentage: form.bonus_percentage || 0,
+        duration_minutes: form.duration_minutes || 60,
+        banner_image_url: form.banner_image_url || null,
+        badge_text: form.badge_text || "Limited Offer",
+        display_locations: form.display_locations || ["home"],
+        target_audience: form.target_audience || "all",
+        is_first_recharge_only: form.is_first_recharge_only || false,
+        is_active: form.is_active ?? true,
+        priority: form.priority || 0,
+        schedule_start: form.schedule_start || null,
+        schedule_end: form.schedule_end || null,
+        milestone_amount: form.milestone_amount || null,
         template_id: selectedTemplate?.id || 'royal-gold',
       };
 
@@ -317,6 +340,7 @@ export default function AdminRechargeCampaigns() {
       const current = prev.display_locations || [];
       return {
         ...prev,
+        display_locations: current.includes(loc)
           ? current.filter(l => l !== loc)
           : [...current, loc],
       };

@@ -199,6 +199,8 @@ export function useLiveGameRound({
             const result = generateResult();
             return {
               ...prev,
+              phase: 'playing',
+              timeLeft: 0,
               result
             };
           }
@@ -329,6 +331,11 @@ export function useLiveGameRound({
         setLastLossAmount(0);
         
         setClientState({
+          roundNumber: clientState.roundNumber + 1,
+          phase: 'betting',
+          timeLeft: bettingSeconds,
+          bettingEndAt: Date.now() + bettingSeconds * 1000,
+          result: null
         });
       }, 2000);
       
@@ -357,6 +364,7 @@ export function useLiveGameRound({
       betting_end_at: new Date(bettingEndAtMs).toISOString(),
       game_start_at: null,
       game_end_at: null,
+      result: clientState.result,
       total_bets: bets.length,
       total_bet_amount: bets.reduce((sum, b) => sum + b.bet_amount, 0),
       total_players: new Set(bets.map(b => b.user_id)).size,
@@ -386,6 +394,7 @@ export function useLiveGameRound({
 
     // OPTIMISTIC: Create bet immediately for instant UI feedback
     const newBet: LiveGameBet = {
+      id: `bet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       round_id: `client-${gameId}-${clientState.roundNumber}`,
       user_id: user.id,
       bet_amount: betAmount,
@@ -395,6 +404,7 @@ export function useLiveGameRound({
       multiplier: 1,
       is_winner: false,
       is_processed: false,
+      created_at: new Date().toISOString()
     };
 
     // INSTANT: Add to local state immediately (optimistic update)
@@ -435,6 +445,13 @@ export function useLiveGameRound({
         supabase
           .from('game_bets')
           .insert({
+            user_id: user.id,
+            game_id: gameId,
+            bet_amount: betAmount,
+            bet_type: betType || 'bet',
+            bet_value: betValue || null,
+            is_winner: null,
+            win_amount: null
           })
       ]);
       
@@ -466,6 +483,7 @@ export function useLiveGameRound({
   // Process round result (auto-called by game loop)
   const processResult = useCallback(async (
     winningValue: string,
+    result: any = {}
   ) => {
     // Process winners from current bets
     const { data: { user } } = await supabase.auth.getUser();
@@ -482,6 +500,12 @@ export function useLiveGameRound({
     if (totalWin > 0) {
       // Credit winnings using process_game_win (allows self-crediting)
       const { data: winResult, error: winError } = await supabase.rpc('process_game_win', {
+        p_user_id: user.id,
+        p_amount: Math.floor(totalWin),
+        p_game_id: gameId,
+        p_game_name: gameId,
+        p_multiplier: null,
+        p_is_jackpot: false,
       });
       
       if (!winError) {
@@ -521,6 +545,11 @@ export function useLiveGameRound({
   // Create new round (client-side)
   const createRound = useCallback(async () => {
     setClientState({
+      roundNumber: clientState.roundNumber + 1,
+      phase: 'betting',
+      timeLeft: bettingSeconds,
+      bettingEndAt: Date.now() + bettingSeconds * 1000,
+      result: null
     });
     return `client-${gameId}-${clientState.roundNumber + 1}`;
   }, [clientState.roundNumber, bettingSeconds, gameId]);

@@ -31,6 +31,7 @@ interface CallRecord {
   created_at: string;
   end_reason: string | null;
   other_user: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
     is_verified: boolean | null;

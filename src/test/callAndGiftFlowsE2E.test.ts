@@ -172,6 +172,7 @@ class FakeSupabase {
     sender.diamonds -= diamonds;
     recv.beans   += beans;
     const tx: GiftTx = {
+      id: this.uid(), sender_id: senderId, receiver_id: receiverId,
       gift_id: giftId, diamonds, beans_credited: beans, room_id: roomId, room_type: roomType,
     };
     this.gifts.push(tx);
@@ -272,6 +273,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     it('21-second rule: <21s charges full minute, host gets 0 beans', async () => {
       const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
@@ -283,6 +285,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     it('rejects browser/non-native callers (Pkg36)', async () => {
       const r = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: false,
       });
       expect(r).toEqual({ ok: false, reason: 'native_app_required' });
       expect(sb.calls.size).toBe(0);
@@ -291,12 +294,14 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('rejects when caller cannot afford one minute', async () => {
       caller.diamonds = 50; sb.seedProfile(caller);
       const r = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       expect(r.reason).toBe('insufficient_diamonds');
     });
 
     it('settle is idempotent — second call returns already_settled', async () => {
       const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
@@ -308,6 +313,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('caps host beans to actually charged diamonds when caller balance is short at settle', async () => {
       caller.diamonds = 150; sb.seedProfile(caller);
       const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
@@ -319,6 +325,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     it('per-minute billing ignores duplicate RPC calls inside the same minute', async () => {
       const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
@@ -334,6 +341,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('per-minute billing charges the next minute once and credits admin percentage only', async () => {
       host.host_percent = 45; sb.seedProfile(host);
       const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 200, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
@@ -350,6 +358,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
   describe('Incoming call modal (Pkg31 reliable delivery)', () => {
     it('expires after 30s ring window (industry standard)', async () => {
       await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id, 30_000);
       expect(modal.state).toBe('ringing');
@@ -359,6 +368,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     it('decline cancels the ring timer (no late expire)', async () => {
       await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       modal.decline();
@@ -368,6 +378,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     it('dedups duplicate broadcast for the same callId (notif + activity race)', async () => {
       const r = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);
       // Simulate a duplicate event from the FCM notification path.
@@ -378,6 +389,7 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('cold-start: pre-existing broadcast is drained on subscribe', async () => {
       // Broadcast happened BEFORE the modal mounted.
       await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
       });
       const modal = new IncomingCallModal(sb, host.id);   // mounts AFTER
       expect(modal.state).toBe('ringing');
@@ -403,6 +415,8 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
     it('party room: same path, broadcast topic switches to party:*', async () => {
       const r = await sb.process_gift_transaction({
+        senderId: viewer.id, receiverId: host.id, giftId: 'g-crown',
+        diamonds: 500, roomId: 'room-party-7', roomType: 'party',
       });
       expect(r.ok).toBe(true);
       expect(sb.broadcasts.some(b => b.topic === 'party:room-party-7' && b.event === 'gift')).toBe(true);
@@ -412,6 +426,8 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       const otherUser: Profile = { id: 'u-other', diamonds: 0, beans: 0, is_host: false };
       sb.seedProfile(otherUser);
       const r = await sb.process_gift_transaction({
+        senderId: viewer.id, receiverId: otherUser.id, giftId: 'g-rose',
+        diamonds: 1_000, roomId: 'r', roomType: 'live',
       });
       expect(r.beansCredited).toBe(0);
       expect(sb.profiles.get(otherUser.id)!.beans).toBe(0);
@@ -420,6 +436,8 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
     it('rejects when sender lacks diamonds — no debit, no broadcast', async () => {
       viewer.diamonds = 100; sb.seedProfile(viewer);
       const r = await sb.process_gift_transaction({
+        senderId: viewer.id, receiverId: host.id, giftId: 'g-yacht',
+        diamonds: 50_000, roomId: 'room-live-1', roomType: 'live',
       });
       expect(r).toEqual({ ok: false, reason: 'insufficient_diamonds' });
       expect(sb.profiles.get(viewer.id)!.diamonds).toBe(100);
@@ -443,11 +461,14 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
 
   it('viewer can gift the host mid-call without affecting call settlement', async () => {
     const start = await sb.start_private_call({
+      callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
     });
     const modal = new IncomingCallModal(sb, host.id);
     await modal.accept();
 
     await sb.process_gift_transaction({
+      senderId: viewer.id, receiverId: host.id, giftId: 'g-rose',
+      diamonds: 1_000, roomId: 'room-live-1', roomType: 'live',
     });
     const settled = await sb.settle_private_call(start.callId!, 60);
 

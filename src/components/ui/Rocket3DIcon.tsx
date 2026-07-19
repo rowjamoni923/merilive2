@@ -74,6 +74,8 @@
              opacity: [0.9, 1, 0.9]
            }}
            transition={{ 
+             duration: 0.3, 
+             repeat: Infinity 
            }}
            style={{ transformOrigin: "center top" }}
          />

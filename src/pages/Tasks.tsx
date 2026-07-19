@@ -680,6 +680,7 @@ const Tasks = () => {
                 transition={{ delay: index * 0.1 }}
                 className="relative overflow-hidden rounded-2xl p-4 transition-all hover:-translate-y-0.5 active:translate-y-0"
                 style={{
+                  background: status === 'claimed'
                     ? 'linear-gradient(135deg, rgba(16,185,129,0.10), rgba(34,197,94,0.06))'
                     : status === 'completed'
                       ? 'linear-gradient(135deg, #ffffff, rgba(254,243,199,0.95))'
@@ -689,6 +690,7 @@ const Tasks = () => {
                     : status === 'completed'
                       ? '1px solid rgba(245,158,11,0.55)'
                       : '1px solid rgba(217,182,107,0.4)',
+                  boxShadow: status === 'completed'
                     ? '0 12px 28px -10px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.95)'
                     : '0 6px 18px -10px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.95)',
                 }}
@@ -701,6 +703,8 @@ const Tasks = () => {
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{
+                      background: `linear-gradient(135deg, ${task.icon_color}, ${task.icon_color}cc)`,
+                      boxShadow: `0 8px 18px -6px ${task.icon_color}66, inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.15)`
                     }}
                   >
                     <IconComponent
@@ -736,13 +740,20 @@ const Tasks = () => {
                         <>
                           <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg"
                             style={{
+                              background: 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.1))',
+                              border: '1px solid rgba(251,191,36,0.3)',
                               color: '#d97706',
+                              boxShadow: '0 2px 8px rgba(251,191,36,0.15)',
                             }}
                           >
                             Hosts: 10,000 🫘 Beans
                           </span>
                           <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg"
                             style={{
+                              background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(168,85,247,0.1))',
+                              border: '1px solid rgba(139,92,246,0.3)',
+                              color: '#7c3aed',
+                              boxShadow: '0 2px 8px rgba(139,92,246,0.15)',
                             }}
                           >
                             Users: 5,000 💎 Diamonds
@@ -778,6 +789,8 @@ const Tasks = () => {
                             size="sm"
                             className="text-white text-xs h-8 gap-1 rounded-lg font-bold border-0"
                             style={{
+                              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                              boxShadow: '0 3px 12px rgba(245,158,11,0.4)',
                             }}
                             onClick={() => handleRatingTaskAction('do_it')}
                           >
@@ -787,6 +800,9 @@ const Tasks = () => {
                             size="sm"
                             className="text-xs h-8 gap-1 rounded-lg font-bold border-0"
                             style={{
+                              background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(168,85,247,0.08))',
+                              border: '1px solid rgba(139,92,246,0.3)',
+                              color: '#7c3aed',
                             }}
                             onClick={() => handleRatingTaskAction('claim')}
                           >
@@ -852,6 +868,8 @@ const Tasks = () => {
         <DialogContent
           className="max-w-sm mx-auto border-0 p-0 overflow-hidden"
           style={{
+            background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 100%)',
+            border: '1px solid rgba(167,139,250,0.3)',
           }}
         >
           {!ratingSubmitted ? (
@@ -865,6 +883,9 @@ const Tasks = () => {
                 {/* Premium reward card */}
                 <div className="rounded-2xl p-5 text-center relative overflow-hidden"
                   style={{
+                    background: 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(124,58,237,0.06) 100%)',
+                    border: '1px solid rgba(251,191,36,0.2)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                   }}
                 >
                   {/* Subtle glow */}
@@ -874,6 +895,9 @@ const Tasks = () => {
                   <div className="relative">
                     <div className="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center"
                       style={{
+                        background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.1))',
+                        border: '1px solid rgba(251,191,36,0.3)',
+                        boxShadow: '0 4px 20px rgba(251,191,36,0.15)',
                       }}
                     >
                       <Gift className="w-7 h-7 text-amber-700" />
@@ -882,14 +906,24 @@ const Tasks = () => {
                     <div className="flex items-center justify-center gap-3 mt-3">
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         style={{
+                          background: 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(245,158,11,0.1))',
+                          border: '1px solid rgba(251,191,36,0.35)',
+                          color: '#b45309',
+                          boxShadow: '0 2px 8px rgba(251,191,36,0.1)',
                         }}
                       >
+                        Hosts: 10,000 🫘
                       </span>
                       <span className="text-purple-500/70 text-xs">•</span>
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         style={{
+                          background: 'linear-gradient(135deg, rgba(139,92,246,0.18), rgba(168,85,247,0.1))',
+                          border: '1px solid rgba(139,92,246,0.35)',
+                          color: '#6d28d9',
+                          boxShadow: '0 2px 8px rgba(139,92,246,0.1)',
                         }}
                       >
+                        Users: 5,000 💎
                       </span>
                     </div>
                   </div>
@@ -913,8 +947,10 @@ const Tasks = () => {
                     disabled={ratingUploading}
                     className="w-full h-12 gap-2 font-bold rounded-xl text-white border-0"
                     style={{
+                      background: ratingUploading
                         ? 'rgba(167,139,250,0.35)'
                         : 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                      boxShadow: ratingUploading ? 'none' : '0 4px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
                     }}
                   >
                     {ratingUploading ? (
@@ -945,6 +981,9 @@ const Tasks = () => {
               >
                 <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
                   style={{
+                    background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(52,211,153,0.08))',
+                    border: '1px solid rgba(16,185,129,0.3)',
+                    boxShadow: '0 4px 20px rgba(16,185,129,0.2)',
                   }}
                 >
                   <CheckCircle className="w-9 h-9 text-emerald-700" />
@@ -964,6 +1003,8 @@ const Tasks = () => {
                 onClick={() => setShowRatingUpload(false)}
                 className="w-full h-10 rounded-xl text-white font-bold border-0"
                 style={{
+                  background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                  boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
                 }}
               >
                 Got it!

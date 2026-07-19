@@ -108,10 +108,36 @@ export default function AdminBanners() {
     if (banner) {
       setEditingBanner(banner);
       setFormData({
+        title: banner.title,
+        subtitle: banner.subtitle || "",
+        image_url: banner.image_url || "",
+        link_url: banner.link_url || "",
+        link_type: banner.link_type || "popup",
+        background_color: banner.background_color || "#8B1538",
+        text_color: banner.text_color || "#FFFFFF",
+        accent_color: banner.accent_color || "#FFD700",
+        display_order: banner.display_order,
+        is_active: banner.is_active,
+        start_date: banner.start_date?.split("T")[0] || "",
+        end_date: banner.end_date?.split("T")[0] || "",
+        location: banner.location || "home",
       });
     } else {
       setEditingBanner(null);
       setFormData({
+        title: "",
+        subtitle: "",
+        image_url: "",
+        link_url: "",
+        link_type: "popup",
+        background_color: "#8B1538",
+        text_color: "#FFFFFF",
+        accent_color: "#FFD700",
+        display_order: banners.length,
+        is_active: true,
+        start_date: "",
+        end_date: "",
+        location: "home",
       });
     }
     setShowEditor(true);
@@ -155,6 +181,19 @@ export default function AdminBanners() {
     setSaving(true);
     try {
       const bannerData = {
+        title: formData.title,
+        subtitle: formData.subtitle || null,
+        image_url: formData.image_url || null,
+        link_url: formData.link_url || null,
+        link_type: formData.link_type,
+        background_color: formData.background_color,
+        text_color: formData.text_color,
+        accent_color: formData.accent_color,
+        display_order: formData.display_order,
+        is_active: formData.is_active,
+        start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+        location: formData.location || "home",
       };
 
       if (editingBanner) {

@@ -53,10 +53,37 @@ const SEVERITY_CONFIG: Record<Severity, {
   durationUnit: string;
 }> = {
   medium: {
+    label: "Medium",
+    icon: AlertCircle,
+    color: "from-yellow-500 to-amber-600",
+    ring: "ring-yellow-500/30",
+    bg: "bg-yellow-500/10 border-yellow-500/30",
+    text: "text-yellow-400",
+    description: "Account suspended for X days. Device, IP, and face are NOT blocked.",
+    durationLabel: "Duration (days)",
+    durationUnit: "days",
   },
   high: {
+    label: "High",
+    icon: AlertTriangle,
+    color: "from-orange-500 to-red-600",
+    ring: "ring-orange-500/30",
+    bg: "bg-orange-500/10 border-orange-500/30",
+    text: "text-orange-400",
+    description: "Account suspended for X hours. Device, IP, and face are NOT blocked.",
+    durationLabel: "Duration (hours)",
+    durationUnit: "hours",
   },
   urgent: {
+    label: "Urgent",
+    icon: Skull,
+    color: "from-rose-600 to-red-800",
+    ring: "ring-rose-500/40",
+    bg: "bg-rose-500/10 border-rose-500/40",
+    text: "text-rose-400",
+    description: "LIFETIME ban. Account + Device ID + IP Address + Face Hash all permanently blocked. Factory-reset proof.",
+    durationLabel: "(Permanent)",
+    durationUnit: "lifetime",
   },
 };
 
@@ -179,6 +206,7 @@ export default function AdminPermanentBan() {
 
     const { data, error } = await supabase.rpc("admin_apply_severity_ban" as any, {
       _target_user_id: searchedUser.id,
+      _severity: activeSeverity,
       _duration_value: durationInt ?? 0,
       _reason: reason.trim(),
       _evidence: evidenceArr,

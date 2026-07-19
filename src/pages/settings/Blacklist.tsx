@@ -124,6 +124,8 @@ const Blacklist = () => {
       });
     } catch (error: unknown) {
       toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to unblock user",
         variant: "destructive",
       });
     } finally {

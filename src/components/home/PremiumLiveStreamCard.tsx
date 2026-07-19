@@ -286,6 +286,7 @@ export const PremiumLiveStreamCard = ({
           <motion.div
             className="absolute top-0 right-0 w-8 h-8 pointer-events-none"
             style={{
+              background: "linear-gradient(-135deg, rgba(255,215,0,0.5) 0%, transparent 60%)",
             }}
             animate={{ opacity: [0.5, 0.8, 0.5] }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}

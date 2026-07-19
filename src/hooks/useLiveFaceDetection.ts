@@ -454,6 +454,10 @@ export function useLiveFaceDetection({
 
     setState(prev => ({
       ...prev,
+      isCountdownActive: true,
+      countdownSeconds: timeout,
+      countdownTotalSeconds: timeout,
+      isFaceVisible: false,
     }));
 
     countdownIntervalRef.current = setInterval(() => {
@@ -504,6 +508,10 @@ export function useLiveFaceDetection({
 
     setState(prev => ({
       ...prev,
+      isCountdownActive: false,
+      countdownSeconds: AUTO_CLOSE_COUNTDOWN_SECONDS,
+      countdownTotalSeconds: AUTO_CLOSE_COUNTDOWN_SECONDS,
+      isFaceVisible: true,
     }));
   }, []);
 
@@ -683,16 +691,20 @@ export function useLiveFaceDetection({
 
     try {
       const { data, error } = await supabase.rpc('is_user_live_banned', {
+        p_user_id: userId,
       });
 
       if (error) throw error;
 
       if (data) {
         const { data: banData } = await supabase.rpc('get_user_live_ban', {
+          p_user_id: userId,
         });
 
         setState(prev => ({
           ...prev,
+          isBanned: true,
+          banInfo: banData?.[0] ? {
             reason: banData[0].ban_reason,
             endTime: banData[0].ban_end ? new Date(banData[0].ban_end) : null,
             remainingHours: banData[0].remaining_hours,

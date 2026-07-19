@@ -246,6 +246,7 @@ const ShopItemCard = ({
         <div
           className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.22) 0%, rgba(255,251,242,0.0) 70%)',
           }}
         />
 
@@ -332,6 +333,9 @@ const ShopItemCard = ({
         <div
           className="flex items-center justify-center gap-1.5 mx-auto w-fit px-2.5 py-1 rounded-full"
           style={{
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,182,107,0.12) 100%)',
+            border: '1px solid rgba(217,182,107,0.35)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
           }}
         >
           <Diamond3DIcon size={14} />
@@ -348,6 +352,9 @@ const ShopItemCard = ({
           <div
             className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-700"
             style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+              border: '1px solid rgba(16,185,129,0.40)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
             }}
           >
             ✓ Owned
@@ -357,6 +364,8 @@ const ShopItemCard = ({
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
             className="w-full py-2 rounded-full text-xs font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
             style={{
+              background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
+              boxShadow: '0 8px 20px -6px rgba(147,51,234,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.15)',
               textShadow: '0 1px 2px rgba(0,0,0,0.20)',
             }}
           >
@@ -598,6 +607,7 @@ const Shop = () => {
       <div
         className="sticky top-0 z-50 safe-area-top"
         style={{
+          background: 'linear-gradient(135deg, rgba(255,251,242,0.92) 0%, rgba(245,239,223,0.92) 100%)',
           borderBottom: '1px solid rgba(217,182,107,0.30)',
           boxShadow: '0 4px 18px rgba(180,140,40,0.10)',
           backdropFilter: 'blur(14px)',
@@ -624,6 +634,8 @@ const Shop = () => {
               onClick={() => navigate('/recharge')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
               style={{
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(217,182,107,0.25) 100%)',
+                boxShadow: '0 8px 18px -6px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.75), 0 0 0 1px rgba(217,182,107,0.55)',
               }}
             >
               <Diamond3DIcon size={14} />
@@ -639,6 +651,7 @@ const Shop = () => {
       <div
         className="px-4 py-3"
         style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
@@ -653,9 +666,13 @@ const Shop = () => {
                     isActive ? 'text-white' : 'text-heading'
                   }`}
                   style={isActive ? {
+                    background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
+                    boxShadow: '0 8px 20px -6px rgba(147,51,234,0.55), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
                     textShadow: '0 1px 2px rgba(0,0,0,0.20)',
                   } : {
+                    background: 'rgba(255,255,255,0.85)',
                     border: '1px solid rgba(217,182,107,0.40)',
+                    boxShadow: '0 2px 6px -2px rgba(180,140,40,0.15), inset 0 1px 0 rgba(255,255,255,0.9)',
                   }}
                 >
                   <cat.icon className={`w-3.5 h-3.5 ${isActive ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]' : ''}`} />
@@ -686,6 +703,9 @@ const Shop = () => {
               <div
                 className="relative w-24 h-24 rounded-full flex items-center justify-center"
                 style={{
+                  background: 'linear-gradient(160deg, #FFFBF2 0%, #F5EFDF 100%)',
+                  border: '1px solid rgba(217,182,107,0.45)',
+                  boxShadow: '0 12px 28px -10px rgba(180,140,40,0.30), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -3px 6px rgba(180,140,40,0.10)',
                 }}
               >
                 <ShoppingBag className="w-11 h-11 text-amber-600/70" strokeWidth={1.5} />
@@ -723,6 +743,9 @@ const Shop = () => {
           }`}
           data-shop-preview-dialog="true"
           style={{
+            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+            border: '1px solid rgba(217,182,107,0.35)',
+            boxShadow: '0 25px 60px rgba(120,90,30,0.25), 0 0 40px rgba(251,191,36,0.12)',
           }}
         >
           {selectedItem && (
@@ -744,6 +767,8 @@ const Shop = () => {
                         : 'aspect-square'
                   } rounded-2xl flex items-center justify-center ${isEntryNameBarCategory(selectedItem.category) ? 'p-0' : 'p-6'} relative overflow-hidden`}
                   style={{
+                    background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
+                    border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
                   {(() => {
@@ -831,6 +856,9 @@ const Shop = () => {
                   <div
                     className="w-full py-3 rounded-full text-center font-bold text-emerald-700"
                     style={{
+                      background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+                      border: '1px solid rgba(16,185,129,0.40)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 4px rgba(16,185,129,0.10)',
                     }}
                   >
                     ✓ Already Owned
@@ -839,6 +867,9 @@ const Shop = () => {
                   <div
                     className="w-full py-3 rounded-full text-center font-bold text-red-600 flex items-center justify-center gap-2"
                     style={{
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.14) 0%, rgba(220,38,38,0.10) 100%)',
+                      border: '1px solid rgba(239,68,68,0.35)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',
                     }}
                   >
                     <Lock className="w-4 h-4" />
@@ -849,6 +880,9 @@ const Shop = () => {
                     onClick={() => navigate("/recharge")}
                     className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
                     style={{
+                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                      boxShadow: '0 12px 28px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.12)',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.20)',
                     }}
                   >
                     <Diamond3DIcon size={16} />
@@ -860,6 +894,9 @@ const Shop = () => {
                     disabled={purchasing}
                     className="w-full py-3 rounded-full font-bold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:hover:translate-y-0"
                     style={{
+                      background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
+                      boxShadow: '0 14px 32px -8px rgba(168,85,247,0.60), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(0,0,0,0.18)',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.22)',
                     }}
                   >
                     {purchasing ? (

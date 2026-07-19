@@ -89,6 +89,9 @@ const TransferHistory = () => {
 
   const groupedTransfers = filteredTransfers.reduce((groups, transfer) => {
     const date = new Date(transfer.created_at).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric"
     });
     if (!groups[date]) {
       groups[date] = [];
@@ -184,6 +187,8 @@ const TransferHistory = () => {
                       </p>
                       <p className="text-xs text-muted-foreground/70 mt-0.5">
                         {new Date(tx.created_at).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit"
                         })}
                       </p>
                     </div>

@@ -246,6 +246,14 @@ const initializeRealtimeSubscription = () => {
     const detail = (e as CustomEvent).detail;
     const table = detail?.table;
     const refreshMap: Record<string, (() => Promise<void> | void)> = {
+      banners: refreshBanners,
+      gifts: refreshGifts,
+      diamond_packages: refreshDiamondPackages,
+      currency_rates: refreshCurrencyRates,
+      branding_settings: refreshBranding,
+      game_settings: refreshGameSettings,
+      app_settings: refreshAppSettings,
+      topup_payment_methods: refreshPaymentMethods,
     };
       if (table && refreshMap[table]) {
         await guardedRefresh(table, async () => { await refreshMap[table](); });

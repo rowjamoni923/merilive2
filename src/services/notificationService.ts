@@ -232,8 +232,14 @@ export const sendWithdrawalNotification = async (
       message: `$${amount.toLocaleString()} withdrawal has been approved`
     },
     rejected: {
+      type: 'withdrawal_rejected',
+      title: '❌ Withdrawal Rejected',
+      message: reason || 'Sorry, your withdrawal request has been rejected'
     },
     pending: {
+      type: 'withdrawal',
+      title: '⏳ Withdrawal Pending',
+      message: `$${amount.toLocaleString()} withdrawal request has been submitted`
     }
   };
 
@@ -241,6 +247,9 @@ export const sendWithdrawalNotification = async (
   
   return sendNotification({
     userId,
+    type: notification.type,
+    title: notification.title,
+    message: notification.message,
     data: { status, amount, reason }
   });
 };

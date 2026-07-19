@@ -289,7 +289,13 @@ export function ChametStyleVideoRoom({
     } else {
       // Otherwise add locally
       const newMessage: ChatMessage = {
+        id: Date.now().toString(),
+        userId: currentUserId || 'guest',
+        userName: 'You',
+        userLevel: 15,
         message,
+        type: 'text',
+        timestamp: new Date()
       };
       setLocalChatMessages(prev => [...prev, newMessage]);
     }
@@ -633,6 +639,7 @@ export function ChametStyleVideoRoom({
         isOpen={showViewerPanel}
         onClose={() => setShowViewerPanel(false)}
         viewers={viewers.length > 0 ? viewers : topViewers.map((v, i) => ({
+          id: v.id || `viewer-${i}`,
           displayName: v.displayName || `Viewer ${i + 1}`,
           avatarUrl: v.avatarUrl,
           level: v.level,

@@ -457,6 +457,8 @@ class PlayStoreBillingSDK {
           );
           results.push({
             success: verifyResult.success,
+            orderId: p.orderId,
+            purchaseToken: p.purchaseToken,
             productId: p.productId,
             error: verifyResult.error,
           });

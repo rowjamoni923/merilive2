@@ -61,6 +61,8 @@ serve(async (req) => {
     const auth = await requireAdminSession(req, supabase, { sectionKey: "gifts", requireEdit: true });
     if (!auth.ok) {
       return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -133,9 +135,12 @@ serve(async (req) => {
     }).then(() => undefined, () => undefined);
 
     return new Response(JSON.stringify({ success: true, moved_count: moved.length, failed_count: failed.length, updated_gifts: updatedRows, failed }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Migration failed" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

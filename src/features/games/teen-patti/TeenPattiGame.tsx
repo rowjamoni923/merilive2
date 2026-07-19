@@ -177,6 +177,7 @@ export const TeenPattiGame = () => {
     const evalC = evaluateHand(handC);
 
     setHands({
+      A: { cards: handA, ...evalA },
       B: { cards: handB, ...evalB },
       C: { cards: handC, ...evalC }
     });

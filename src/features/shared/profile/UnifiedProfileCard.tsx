@@ -41,10 +41,13 @@ const FloatingParticles = () => {
           className="absolute text-xs opacity-60"
           style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
           animate={{
+            y: [0, -20, 0],
             opacity: [0, 0.6, 0],
             scale: [0.5, 1, 0.5],
           }}
           transition={{
+            duration: particle.duration,
+            delay: particle.delay,
             repeat: Infinity,
             ease: "easeInOut",
           }}

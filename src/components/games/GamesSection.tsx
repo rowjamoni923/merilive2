@@ -121,6 +121,7 @@ export function GamesSection() {
                   "relative overflow-hidden group"
                 )}
                 style={{
+                  boxShadow: '0 14px 30px -10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -3px 8px rgba(0,0,0,0.3)'
                 }}
               >
                 <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none" />
@@ -168,6 +169,7 @@ export function GamesSection() {
                 "flex flex-col items-center justify-center gap-1"
               )}
               style={{
+                boxShadow: '0 8px 20px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -2px 6px rgba(0,0,0,0.3)'
               }}
             >
               <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />

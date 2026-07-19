@@ -100,6 +100,7 @@ export default function AdminDiamonds() {
     currency_code: '',
     currency_symbol: '',
     rate_to_usd: 1,
+    is_active: true
   });
 
   // International exchange rates (market rate - 5 for our app)
@@ -146,6 +147,14 @@ export default function AdminDiamonds() {
 
     return {
       id: String(pkg?.id ?? ''),
+      diamonds: Number.isFinite(totalDiamonds) ? totalDiamonds : 0,
+      base_diamonds: Number.isFinite(baseDiamonds) ? baseDiamonds : 0,
+      price_usd: Number(pkg?.price_usd ?? 0),
+      bonus_percentage: Number.isFinite(bonusPercentage) ? bonusPercentage : 0,
+      is_popular: Boolean(pkg?.is_popular),
+      is_best_value: Boolean(pkg?.is_best_value),
+      is_active: pkg?.is_active ?? true,
+      display_order: Number(pkg?.display_order ?? 0),
     };
   };
 
@@ -245,6 +254,7 @@ export default function AdminDiamonds() {
           const { error } = await supabase
             .from("currency_rates")
             .update({ 
+              rate_to_usd: rate.adjustedRate,
               updated_at: new Date().toISOString()
             })
             .eq("id", existing.id);
@@ -253,6 +263,11 @@ export default function AdminDiamonds() {
           const { error } = await supabase
             .from("currency_rates")
             .insert({
+              country_code: rate.code,
+              currency_code: rate.currency,
+              currency_symbol: rate.symbol,
+              rate_to_usd: rate.adjustedRate,
+              is_active: true
             });
           if (!error) successCount++;
         }
@@ -287,12 +302,19 @@ export default function AdminDiamonds() {
           await supabase
             .from("currency_rates")
             .update({ 
+              rate_to_usd: adjustedRate,
+              updated_at: new Date().toISOString()
             })
             .eq("id", existing.id);
         } else {
           await supabase
             .from("currency_rates")
             .insert({
+              country_code: countryCode,
+              currency_code: countryCode === 'US' ? 'USD' : countryCode,
+              currency_symbol: rateInfo.symbol,
+              rate_to_usd: adjustedRate,
+              is_active: true
             });
         }
       }
@@ -311,6 +333,14 @@ export default function AdminDiamonds() {
   const handleAddPackage = () => {
     setEditingPackage(null);
     setPackageForm({
+      diamonds: 1000,
+      base_diamonds: 1000,
+      price_usd: 0.99,
+      bonus_percentage: 0,
+      is_popular: false,
+      is_best_value: false,
+      is_active: true,
+      display_order: packages.length + 1
     });
     setShowPackageDialog(true);
   };
@@ -318,6 +348,14 @@ export default function AdminDiamonds() {
   const handleEditPackage = (pkg: DiamondPackage) => {
     setEditingPackage(pkg);
     setPackageForm({
+      diamonds: pkg.diamonds,
+      base_diamonds: pkg.base_diamonds,
+      price_usd: pkg.price_usd,
+      bonus_percentage: pkg.bonus_percentage,
+      is_popular: pkg.is_popular,
+      is_best_value: pkg.is_best_value,
+      is_active: pkg.is_active,
+      display_order: pkg.display_order
     });
     setShowPackageDialog(true);
   };
@@ -332,7 +370,12 @@ export default function AdminDiamonds() {
       const packagePayload = {
         diamonds_amount: baseDiamonds,
         bonus_diamonds: bonusDiamonds,
+        price_usd: Number(packageForm.price_usd || 0),
         discount_percent: Number(packageForm.bonus_percentage || 0),
+        display_order: Number(packageForm.display_order || 0),
+        is_popular: packageForm.is_popular,
+        is_active: packageForm.is_active,
+        name: `${baseDiamonds} Diamonds`,
         description: '',
         product_id: `diamonds_${baseDiamonds}`,
       };
@@ -393,6 +436,11 @@ export default function AdminDiamonds() {
   const handleAddCurrency = () => {
     setEditingCurrency(null);
     setCurrencyForm({
+      country_code: '',
+      currency_code: '',
+      currency_symbol: '',
+      rate_to_usd: 1,
+      is_active: true
     });
     setShowCurrencyDialog(true);
   };
@@ -400,6 +448,11 @@ export default function AdminDiamonds() {
   const handleEditCurrency = (currency: CurrencyRate) => {
     setEditingCurrency(currency);
     setCurrencyForm({
+      country_code: currency.country_code,
+      currency_code: currency.currency_code,
+      currency_symbol: currency.currency_symbol,
+      rate_to_usd: currency.rate_to_usd,
+      is_active: currency.is_active
     });
     setShowCurrencyDialog(true);
   };

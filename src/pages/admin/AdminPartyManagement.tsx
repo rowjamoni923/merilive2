@@ -40,6 +40,9 @@ export default function AdminPartyManagement() {
       if (error) throw error;
       const s = (data as any) || {};
       setStats({
+        activeRooms: s.activeRooms || 0,
+        totalBanners: s.totalBanners || 0,
+        totalBackgrounds: s.totalBackgrounds || 0
       });
     } catch (e) {
       console.error('Error fetching party management stats:', e);

@@ -25,18 +25,53 @@ const getVIPConfig = (tier: number) => {
       };
     case 5:
       return {
+        gradient: "from-rose-500 via-pink-500 to-rose-600",
+        glow: "shadow-[0_0_16px_rgba(244,114,182,0.6)]",
+        icon: Gem,
+        label: "VIP 5",
+        borderGradient: "from-rose-300 via-pink-300 to-rose-400",
+        textColor: "text-rose-100",
+        pulseColor: "rgba(244,114,182,0.5)",
       };
     case 4:
       return {
+        gradient: "from-cyan-400 via-blue-500 to-cyan-500",
+        glow: "shadow-[0_0_14px_rgba(34,211,238,0.6)]",
+        icon: Gem,
+        label: "VIP 4",
+        borderGradient: "from-cyan-300 via-blue-300 to-cyan-400",
+        textColor: "text-cyan-100",
+        pulseColor: "rgba(34,211,238,0.4)",
       };
     case 3:
       return {
+        gradient: "from-gray-300 via-gray-200 to-gray-400",
+        glow: "shadow-[0_0_12px_rgba(229,231,235,0.5)]",
+        icon: Star,
+        label: "VIP 3",
+        borderGradient: "from-gray-200 via-white to-gray-300",
+        textColor: "text-gray-800",
+        pulseColor: "rgba(229,231,235,0.4)",
       };
     case 2:
       return {
+        gradient: "from-amber-400 via-yellow-400 to-amber-500",
+        glow: "shadow-[0_0_10px_rgba(251,191,36,0.5)]",
+        icon: Sparkles,
+        label: "VIP 2",
+        borderGradient: "from-amber-300 via-yellow-300 to-amber-400",
+        textColor: "text-amber-900",
+        pulseColor: "rgba(251,191,36,0.4)",
       };
     case 1:
       return {
+        gradient: "from-slate-400 via-gray-400 to-slate-500",
+        glow: "shadow-[0_0_8px_rgba(148,163,184,0.4)]",
+        icon: Shield,
+        label: "VIP 1",
+        borderGradient: "from-slate-300 via-gray-300 to-slate-400",
+        textColor: "text-slate-100",
+        pulseColor: "rgba(148,163,184,0.3)",
       };
     default:
       return null;

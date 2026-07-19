@@ -59,6 +59,7 @@ async function createDispatch(roomName: string, agentName: string, metadata?: un
     body: JSON.stringify({
       room: roomName,
       agent_name: agentName,
+      metadata: metadata ? JSON.stringify(metadata) : undefined,
     }),
   });
   if (!res.ok) throw new Error(`agent_dispatch_http_${res.status}`);

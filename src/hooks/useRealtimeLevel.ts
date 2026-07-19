@@ -158,9 +158,13 @@ export const useRealtimeLevel = (userId: string | null) => {
         user_level: resolved.levelType === 'user' ? displayLevel : (data.user_level ?? 0),
         host_level: resolved.levelType === 'host' ? displayLevel : (data.host_level ?? 0),
         max_user_level: data.max_user_level ?? data.user_level ?? 1,
+        diamonds: data.diamonds ?? 0,
         total_earnings: data.total_earnings ?? 0,
+        total_consumption: data.total_consumption ?? 0,
+        total_recharged: resolved.levelType === 'user' ? resolved.totalPoints : ((data as any).total_recharged ?? 0),
         is_host: data.is_host ?? false,
         weekly_earnings: resolved.levelType === 'host' ? resolved.currentXP : (data.weekly_earnings ?? 0),
+        weekly_reset_at: data.weekly_reset_at ?? null,
         gender: data.gender ?? null,
       };
       

@@ -523,6 +523,7 @@ const Level = () => {
                 className="w-28 h-28 relative"
                 animate={{ 
                   rotate: [0, 5, -5, 0],
+                  scale: [1, 1.05, 1]
                 }}
                 transition={{ repeat: Infinity, duration: 4 }}
               >

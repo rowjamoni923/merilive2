@@ -124,6 +124,7 @@ export default function AdminDeviceManagement() {
       if (actionType === 'delete' || actionType === 'block') {
         const { data, error } = await adminSupabase.rpc('admin_revoke_device' as any, {
           _device_id: selectedDevice.id,
+          _owner_admin_id: session.admin_id,
           _reason: actionType === 'delete' ? 'Deleted by owner' : 'Blocked by owner',
         });
         if (error) throw error;
@@ -131,6 +132,8 @@ export default function AdminDeviceManagement() {
         toast.success(actionType === 'delete' ? 'Device removed successfully' : 'Device blocked successfully');
       } else {
         const { data, error } = await adminSupabase.rpc('admin_approve_device' as any, {
+          _device_id: selectedDevice.id,
+          _owner_admin_id: session.admin_id,
         });
         if (error) throw error;
         if (!(data as any)?.success) throw new Error((data as any)?.error || 'Action failed');

@@ -97,7 +97,11 @@ export const useFeatureLevelCheck = () => {
     if (!requirement) {
       // Feature not configured in admin panel - allow access
       return {
+        canAccess: true,
+        requiredLevel: 0,
+        currentLevel: userLevel,
         isHost,
+        featureName: featureKey,
       };
     }
 
@@ -110,7 +114,9 @@ export const useFeatureLevelCheck = () => {
     return {
       canAccess,
       requiredLevel,
+      currentLevel: userLevel,
       isHost,
+      featureName: normalizedRequirement.feature_name,
     };
   }, [requirements]);
 

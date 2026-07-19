@@ -68,6 +68,8 @@ export default function AdminOtpProviders() {
   });
 
   const settingsQ = useQuery({
+    queryKey: ["admin-otp-settings"],
+    queryFn: async () => {
       const { data, error } = await adminSupabase
         .from("otp_orchestrator_settings")
         .select("*")
@@ -78,6 +80,8 @@ export default function AdminOtpProviders() {
   });
 
   const logsQ = useQuery({
+    queryKey: ["admin-otp-logs-7d"],
+    queryFn: async () => {
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await adminSupabase
         .from("email_send_log")
@@ -158,6 +162,7 @@ export default function AdminOtpProviders() {
       .update({
         mode: settingsDirty.mode ?? settingsQ.data.mode,
         per_provider_timeout_ms: settingsDirty.per_provider_timeout_ms ?? settingsQ.data.per_provider_timeout_ms,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", true);
     if (error) { toast.error(`Save failed: ${error.message}`); return; }

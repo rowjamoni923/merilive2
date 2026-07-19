@@ -262,7 +262,10 @@ const AdminFaceVerificationTimeline = () => {
       const s = String(row.status || "").toLowerCase();
       if (row.reviewed_at && (s === "approved" || s === "rejected" || s === "auto_approved" || s === "auto_rejected")) {
         list.push({
+          kind: "decision",
+          at: row.reviewed_at,
           row,
+          label: STATUS_LABEL[s] || s,
         });
       }
     });

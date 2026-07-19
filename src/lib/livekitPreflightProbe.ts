@@ -58,7 +58,9 @@ export async function runPreflightProbe(): Promise<PreflightResult> {
     clearTimeout(timeoutId);
     return {
       rttMs: null,
+      quality: effectiveType === '2g' || effectiveType === 'slow-2g' ? 'poor' : 'unknown',
       effectiveType,
+      timedOut: true,
     };
   }
 }

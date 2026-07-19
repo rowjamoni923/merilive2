@@ -106,11 +106,13 @@ describe('Pkg79 livekitChatSignaling', () => {
 
     // Wrong id
     let env = buildEnvelope('chat', 'chat_message', {
+      scope: 'live', id: 'stream-OTHER', messageId: 'm', userId: 'u', message: 'x',
     }, 'u');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'u' });
 
     // Wrong scope
     env = buildEnvelope('chat', 'chat_message', {
+      scope: 'call', id: 'stream-1', messageId: 'm', userId: 'u', message: 'x',
     }, 'u');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'u' });
 
@@ -125,6 +127,7 @@ describe('Pkg79 livekitChatSignaling', () => {
     window.addEventListener('livekit-chat-message', listener);
 
     const env = buildEnvelope('gift', 'gift_sent', {
+      scope: 'live', id: 'stream-1', senderId: 's',
     }, 's');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 's' });
 
@@ -140,6 +143,7 @@ describe('Pkg79 livekitChatSignaling', () => {
 
     // missing message
     const env = buildEnvelope('chat', 'chat_message', {
+      scope: 'call', id: 'call-1', messageId: 'm', userId: 'u',
     } as any, 'u');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'u' });
 
@@ -154,6 +158,7 @@ describe('Pkg79 livekitChatSignaling', () => {
     window.addEventListener('livekit-chat-message', listener);
 
     const env = buildEnvelope('chat', 'chat_message', {
+      scope: 'party', id: 'party-1', messageId: 'm', userId: 'u', message: 'hi',
     }, 'u');
     const bytes = encodeEnvelope(env);
     room.__emit(RoomEvent.DataReceived, bytes, { identity: 'u' });
@@ -176,6 +181,11 @@ describe('Pkg79 livekitChatSignaling', () => {
     registerChatRoom('call', 'call-1', room as any);
 
     const ok = await publishChatMessage('call', 'call-1', {
+      messageId: 'm1',
+      userId: 'sender-1',
+      displayName: 'Alice',
+      message: 'hello',
+      messageType: 'text',
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();
@@ -186,6 +196,7 @@ describe('Pkg79 livekitChatSignaling', () => {
 
   it('publishChatMessage returns false when (scope,id) is unknown', async () => {
     const ok = await publishChatMessage('live', 'does-not-exist', {
+      messageId: 'm1', userId: 'u', message: 'x',
     });
     expect(ok).toBe(false);
   });
@@ -194,6 +205,7 @@ describe('Pkg79 livekitChatSignaling', () => {
     const room = makeFakeRoom();
     registerChatRoom('live', 'stream-1', room as any);
     const ok = await publishChatMessage('live', 'stream-1', {
+      messageId: '', userId: 'u', message: 'x',
     });
     expect(ok).toBe(false);
   });
@@ -203,6 +215,7 @@ describe('Pkg79 livekitChatSignaling', () => {
     (room as any).state = 'disconnected';
     registerChatRoom('party', 'party-2', room as any);
     const ok = await publishChatMessage('party', 'party-2', {
+      messageId: 'm', userId: 'u', message: 'x',
     });
     expect(ok).toBe(false);
   });

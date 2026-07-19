@@ -90,6 +90,7 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
   }) => {
     onGiftReceived({
       id: `local_gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      senderName: params.senderName,
       giftName: params.gift.name,
       giftIcon: '🎁',
       giftImageUrl: params.gift.icon_url || undefined,
@@ -97,6 +98,8 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
       animationFormat: (params.gift as any).animation_format || null,
       animationConfigUrl: (params.gift as any).animation_config_url || undefined,
       giftColor: 'from-pink-500 to-purple-500',
+      count: params.count,
+      diamonds: params.diamonds,
     });
   }, [onGiftReceived]);
 

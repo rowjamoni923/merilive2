@@ -120,11 +120,15 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
       if (error) throw error;
 
       toast({
+        title: "Application Submitted! 🎉",
+        description: "Your Payroll Helper application is pending approval",
       });
       markShown();
       setIsOpen(false);
     } catch (error: any) {
       toast({
+        title: "Error",
+        description: error.message || "Failed to submit application",
         variant: "destructive"
       });
     } finally {

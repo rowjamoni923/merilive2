@@ -133,6 +133,10 @@ const AdminRankingRewards = () => {
         .insert({
           ranking_type: fullRankingType,
           period_type: activePeriod,
+          rank_position: formData.rank_position,
+          reward_diamonds: formData.reward_diamonds,
+          reward_badge: formData.reward_badge || null,
+          min_income_requirement: formData.min_income_requirement,
         });
 
       if (error) throw error;
@@ -157,6 +161,9 @@ const AdminRankingRewards = () => {
       const { error } = await supabase
         .from('ranking_rewards')
         .update({
+          reward_diamonds: formData.reward_diamonds,
+          reward_badge: formData.reward_badge || null,
+          min_income_requirement: formData.min_income_requirement,
         })
         .eq('id', editingReward.id);
 
@@ -194,12 +201,20 @@ const AdminRankingRewards = () => {
 
   const openEditDialog = (reward: RankingReward) => {
     setFormData({
+      rank_position: reward.rank_position,
+      reward_diamonds: reward.reward_diamonds,
+      reward_badge: reward.reward_badge || '',
+      min_income_requirement: reward.min_income_requirement,
     });
     setEditingReward(reward);
   };
 
   const resetForm = () => {
     setFormData({
+      rank_position: filteredRewards.length + 1,
+      reward_diamonds: 10000,
+      reward_badge: '',
+      min_income_requirement: 0,
     });
   };
 

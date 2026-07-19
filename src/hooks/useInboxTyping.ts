@@ -116,6 +116,8 @@ export async function emitInboxTyping(params: {
       type: "broadcast",
       event: "typing",
       payload: {
+        conversationId: params.conversationId,
+        fromUserId: params.fromUserId,
       },
     });
   } catch {

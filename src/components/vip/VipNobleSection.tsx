@@ -217,6 +217,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                 <div
                   className="p-3 flex items-center justify-between gap-3"
                   style={{
+                    background: `linear-gradient(135deg, ${card.badge_color || '#FFD700'}26, transparent)`,
                   }}
                 >
                   <div className="flex items-center gap-3">

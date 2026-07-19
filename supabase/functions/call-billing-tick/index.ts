@@ -167,9 +167,15 @@ serve(async (req) => {
           // Industry pattern: pre-warn at 2 min, critical at 1 min.
           if (remainingMinutes <= 2) {
             signals.push({
+              topic: `call_signaling:${callId}`,
+              event: "signal",
+              payload: {
+                action: "low_balance",
                 remaining_minutes: remainingMinutes,
                 remaining_seconds: remainingMinutes * 60,
                 severity: remainingMinutes <= 1 ? "critical" : "warning",
+                call_id: callId,
+                ts: Date.now(),
               },
             });
           }

@@ -125,6 +125,12 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
       }
       if (payload.type === 'viewer_joined') {
         upsertViewerFromPacket({
+          id: payload.userId,
+          app_uid: payload.appUid || null,
+          display_name: payload.userName || 'User',
+          avatar_url: payload.userAvatar || null,
+          user_level: payload.userLevel ?? 1,
+          is_vip: (payload.userLevel ?? 1) >= 5,
           joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
         });
       }
@@ -141,6 +147,12 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
       }
       if (payload.type === 'participant_joined') {
         upsertViewerFromPacket({
+          id: payload.userId,
+          display_name: payload.userName || 'User',
+          avatar_url: payload.userAvatar || null,
+          user_level: payload.userLevel ?? 1,
+          is_vip: (payload.userLevel ?? 1) >= 5,
+          joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
         });
       }
     };

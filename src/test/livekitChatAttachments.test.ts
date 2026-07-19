@@ -99,6 +99,7 @@ describe('Pkg142 chat-attachment topic handlers', () => {
     const voices: any[] = [];
     const files: any[] = [];
     installChatAttachmentHandlers('party', 'p1', {
+      onImage: (m) => void imgs.push(m),
       onVoice: (m) => void voices.push(m),
       onFile: (m) => void files.push(m),
     });
@@ -116,6 +117,10 @@ describe('Pkg142 chat-attachment topic handlers', () => {
     const room: any = makeRoom();
     registerStreamRoom('call', 'c2', room);
     const dispose = installChatAttachmentHandlers('call', 'c2', {
+      onText: () => {},
+      onImage: () => {},
+      onVoice: () => {},
+      onFile: () => {},
     });
     expect(room.textHandlers.size + room.byteHandlers.size).toBe(4);
     dispose();

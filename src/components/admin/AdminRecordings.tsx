@@ -144,6 +144,11 @@ export default function AdminRecordings() {
       hostName: filtered[0].host_name,
       hostUid: filtered[0].host_uid,
       days,
+      totalStreams: filtered.length,
+      totalDuration: filtered.reduce((s, r) => s + (r.duration_seconds || 0), 0),
+      totalViewers: filtered.reduce((s, r) => s + (r.total_viewers || 0), 0),
+      totalGifts: filtered.reduce((s, r) => s + (r.total_gifts || 0), 0),
+      totalDiamonds: filtered.reduce((s, r) => s + (r.total_diamonds || 0), 0),
     };
   }, [recordings, searchQuery]);
 
@@ -165,6 +170,12 @@ export default function AdminRecordings() {
       .map(([date, recs]) => ({
         date,
         label: date === today ? "Today" : date === yesterday ? "Yesterday" : new Date(date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+        recordings: recs,
+        totalStreams: recs.length,
+        totalDuration: recs.reduce((s, r) => s + (r.duration_seconds || 0), 0),
+        totalViewers: recs.reduce((s, r) => s + (r.total_viewers || 0), 0),
+        totalGifts: recs.reduce((s, r) => s + (r.total_gifts || 0), 0),
+        totalDiamonds: recs.reduce((s, r) => s + (r.total_diamonds || 0), 0),
       }));
   }, [recordings, searchQuery]);
 

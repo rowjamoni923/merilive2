@@ -85,6 +85,7 @@ const Game3DCard = ({
       <motion.div
         animate={{
           rotateY: isHovered ? 6 : 0,
+          rotateX: isHovered ? -6 : 0,
         }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className={cn(
@@ -94,6 +95,7 @@ const Game3DCard = ({
           isSelected && "ring-2 ring-white/70"
         )}
         style={{ 
+          transformStyle: 'preserve-3d',
           background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
           boxShadow: isHovered 
             ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(168, 85, 247, 0.2)' 
@@ -132,6 +134,8 @@ const Game3DCard = ({
         <div className="absolute inset-0 z-10 flex items-center justify-center p-1.5" style={{ transform: 'translateZ(25px)' }}>
           <motion.div
             animate={{
+              y: isHovered ? -5 : 0,
+              scale: isHovered ? 1.15 : 1,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 18 }}
             className="w-full h-full flex items-center justify-center drop-shadow-2xl"
@@ -148,6 +152,8 @@ const Game3DCard = ({
       {/* 3D Shadow */}
       <motion.div
         animate={{
+          scale: isHovered ? 1.1 : 0.92,
+          opacity: isHovered ? 0.3 : 0.15
         }}
         className="absolute inset-0 -bottom-2 rounded-2xl bg-black blur-xl -z-10"
       />
@@ -387,6 +393,8 @@ export function ProfessionalBottomBar({
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className="fixed inset-x-0 bottom-0 z-50 h-[65dvh] rounded-t-3xl overflow-hidden"
             style={{
+              background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)',
+              boxShadow: '0 -10px 60px rgba(139, 92, 246, 0.25)'
             }}
           >
             {/* Handle */}

@@ -111,6 +111,7 @@ class NativeLiveKitController {
 
     recordCallDiag('error', 'attachLocal:exhausted', {
       lastResult, lastError: String((lastError as Error)?.message ?? lastError ?? ''),
+      scope: this.activeFeature ?? this.previewFeature,
     }, 'error');
     console.warn('[NativeLiveKitController] attachLocal incomplete after retries:', lastResult, lastError);
   }
@@ -258,11 +259,16 @@ class NativeLiveKitController {
         this.autoAttachLocalRenderer = opts.attachLocal !== false;
 
         recordCallDiag('session', 'connect', {
+          scope: requestedFeature,
+          callType: opts.callType,
+          boundedSurfaces: payload.boundedSurfaces === true,
           surfaceMode: payload.boundedSurfaces ? 'bounded' : 'fullscreen',
           captureW: payload.captureWidth,
           captureH: payload.captureHeight,
+          maxBitrate: payload.maxBitrate,
         });
         recordCallDiag('surface-mode', payload.boundedSurfaces ? 'bounded' : 'fullscreen', {
+          scope: requestedFeature, callType: opts.callType,
         });
 
         if (this.autoAttachLocalRenderer) await this.attachLocalWithRetry();
@@ -625,6 +631,7 @@ class NativeLiveKitController {
   }
 
   async setVirtualBackground(opts: {
+    mode: 'none' | 'blur' | 'image';
     blurRadius?: number;
     imagePath?: string;
   }): Promise<{ ok: boolean; segmenterReady: boolean; imageApplied: boolean }> {

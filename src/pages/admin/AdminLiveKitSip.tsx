@@ -333,6 +333,7 @@ export default function AdminLiveKitSip() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <ShieldCheck className="w-3 h-3" />
+                                auth: {item.authUsername ? "yes" : "no"}
                               </span>
                             </>
                           )}
@@ -366,7 +367,9 @@ export default function AdminLiveKitSip() {
                           className="border-red-700/50 text-red-400 hover:bg-red-950/40 hover:text-red-300"
                           onClick={() =>
                             setConfirmDelete({
+                              type: tab,
                               id,
+                              name: item.name || id,
                             })
                           }
                         >

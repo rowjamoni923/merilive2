@@ -109,6 +109,7 @@ export default function OwnerAccessLinkGenerator() {
     if (!session?.is_owner) return;
     try {
       const { data, error } = await adminSupabase.rpc('admin_list_owners' as any, {
+        _admin_id: session.admin_id,
       });
       if (!error && Array.isArray(data)) setOwners(data as OwnerRow[]);
     } catch (err) {
@@ -150,6 +151,7 @@ export default function OwnerAccessLinkGenerator() {
     setBusy(true);
     try {
       const { data, error } = await adminSupabase.rpc('admin_add_owner' as any, {
+        _admin_id: session.admin_id,
         _new_email: email,
         _display_name: newOwnerName.trim() || null,
       });
@@ -173,6 +175,7 @@ export default function OwnerAccessLinkGenerator() {
     setBusy(true);
     try {
       const { data, error } = await adminSupabase.rpc('admin_remove_owner' as any, {
+        _admin_id: session.admin_id,
         _target_email: email,
       });
       if (error) throw error;
@@ -342,6 +345,7 @@ export default function OwnerAccessLinkGenerator() {
                 </div>
                 {subAdminToken && (
                   <p className="text-[10px] text-purple-300/70 mt-1.5 font-mono">
+                    Token: <span className="font-bold">{showSubAdminSecret ? subAdminToken : maskToken(subAdminToken)}</span>
                   </p>
                 )}
                 {subAdminRotatedAt && (

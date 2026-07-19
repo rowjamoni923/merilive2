@@ -62,6 +62,9 @@ const FloatAnimation = ({ gift, count = 1 }: { gift: LegacyGiftItem; count: numb
             rotate: Math.random() * 60 - 30,
           }}
           animate={{
+            y: -100,
+            x: Math.random() * 200 + 50,
+            rotate: Math.random() * 360,
             opacity: [0, 1, 1, 0],
           }}
           transition={{
@@ -214,6 +217,9 @@ const ShakeAnimation = ({ gift }: { gift: LegacyGiftItem }) => {
           className="absolute w-4 h-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500"
           initial={{ scale: 0, x: 0, y: 0 }}
           animate={{
+            scale: [0, 1, 0],
+            x: Math.cos((i / 8) * Math.PI * 2) * 120,
+            y: Math.sin((i / 8) * Math.PI * 2) * 120,
           }}
           transition={{ duration: 0.8, delay: 0.2 }}
         />

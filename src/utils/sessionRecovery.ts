@@ -90,8 +90,13 @@ const recoverSessionFromDevice = async (minFreshMs: number, expectedUserId?: str
   if (!account.exchange_token) return null;
 
   const recoverResponse = await fetch(`${SUPABASE_URL}/functions/v1/device-session-recover`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ device_id: deviceId, exchange_token: account.exchange_token }),
   });
 
   const data = await recoverResponse.json().catch(() => null);

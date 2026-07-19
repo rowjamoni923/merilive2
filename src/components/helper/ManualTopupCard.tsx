@@ -322,6 +322,9 @@ export default function ManualTopupCard({
                     }
                     if (!helperId) {
                       toast({
+                        title: "Helper not loaded",
+                        description: "Please refresh the page",
+                        variant: "destructive",
                       });
                       return;
                     }

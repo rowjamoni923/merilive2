@@ -443,6 +443,7 @@ export function CallProvider({ children }: CallProviderProps) {
         // BEFORE setAcceptedCallInfo, which left the receiver staring at
         // the incoming-call modal long after their tap.
         setAcceptedCallInfo({
+          callId: accepted.callId,
           callerId: accepted.callerId,
           callerName: accepted.callerName,
           callerAvatar: accepted.callerAvatar,
@@ -532,10 +533,17 @@ export function CallProvider({ children }: CallProviderProps) {
         setShowCallEndedModal(false);
         setCallEndedInfo(null);
         setAcceptedCallInfo({
+          callId: event.callId,
+          callerId: event.callerId,
+          callerName: event.callerName || 'User',
+          callerAvatar: null,
         });
         setIsHost(true);
         try {
           await supabase.rpc('mark_call_delivered', {
+            p_call_id: event.callId,
+            p_channel: 'native_action',
+            p_device_info: { source: 'NativeCall', action: 'accept', ts: event.ts },
           });
         } catch (_) {}
         await acceptCallRef.current(event.callId);

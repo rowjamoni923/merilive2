@@ -200,10 +200,25 @@ const AgencyCard = () => {
                   bg: "from-blue-500/15 to-blue-600/5",
                 },
                 {
+                  icon: Banknote,
+                  title: "100% Host Earnings",
+                  desc: "Hosts receive their full earned amount. Agency commission comes as a separate bonus from the company",
+                  color: "text-emerald-600",
+                  bg: "from-emerald-500/15 to-emerald-600/5",
                 },
                 {
+                  icon: CreditCard,
+                  title: "Payment Methods",
+                  desc: "USDT, ePay, and other international payment systems supported for global withdrawals",
+                  color: "text-purple-600",
+                  bg: "from-purple-500/15 to-purple-600/5",
                 },
                 {
+                  icon: Shield,
+                  title: "Payroll Helper System",
+                  desc: "Dedicated payment helpers process withdrawals quickly and ensure timely delivery to your local account",
+                  color: "text-amber-600",
+                  bg: "from-amber-500/15 to-amber-600/5",
                 },
               ].map((item, i) => (
                 <motion.div

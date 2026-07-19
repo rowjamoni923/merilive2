@@ -37,6 +37,7 @@ interface Reel {
     icon: string | null;
   } | null;
   user?: {
+    id: string;
     display_name: string | null;
     avatar_url: string | null;
   } | null;
@@ -148,6 +149,10 @@ const AdminReels = () => {
 
   const toggleFeatured = async (reel: Reel) => {
     const { error } = await supabase.rpc('admin_update_reel_status', {
+      _reel_id: reel.id,
+      _is_approved: null,
+      _is_active: null,
+      _is_featured: !reel.is_featured,
     });
     
     if (error) {
@@ -238,7 +243,10 @@ const AdminReels = () => {
       const { error } = await supabase
         .from('reel_categories')
         .insert({
+          name: newCategoryName,
           slug,
+          icon: newCategoryIcon || null,
+          display_order: newCategoryOrder
         });
       
       if (error) {

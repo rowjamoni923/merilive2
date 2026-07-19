@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
 
     if (!sessionRow?.admin_user_id) {
       return new Response(JSON.stringify({ success: false, error: "Invalid admin session" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -106,6 +108,8 @@ Deno.serve(async (req) => {
 
     if (!adminUser) {
       return new Response(JSON.stringify({ success: false, error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -130,6 +134,7 @@ Deno.serve(async (req) => {
       }));
 
       const response = new Response(JSON.stringify({ success: true, results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
       // Background mimetype backfill — runs after response is sent.
@@ -165,6 +170,8 @@ Deno.serve(async (req) => {
 
     if (!bucket || DENIED_BUCKETS.has(bucket) || !path || path.includes("..")) {
       return new Response(JSON.stringify({ success: false, error: "Invalid storage path" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -176,6 +183,8 @@ Deno.serve(async (req) => {
       const { data: fileBlob, error: downloadError } = await supabase.storage.from(bucket).download(path);
       if (downloadError || !fileBlob) {
         return new Response(JSON.stringify({ success: false, error: downloadError?.message || "Failed to download media" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -188,6 +197,7 @@ Deno.serve(async (req) => {
         || "application/octet-stream";
 
       return new Response(fileBlob, {
+        headers: {
           ...corsHeaders,
           "Content-Type": resolvedType,
           "Cache-Control": "private, max-age=600",
@@ -199,10 +209,13 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
     if (error || !data?.signedUrl) {
       return new Response(JSON.stringify({ success: false, error: error?.message || "Failed to sign URL" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const response = new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl, contentType: extensionContentType || extFallback || null }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
     // Background mimetype backfill — runs after response.
@@ -226,6 +239,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

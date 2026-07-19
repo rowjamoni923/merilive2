@@ -44,6 +44,7 @@ export interface NativeReelsPlayerPlugin {
   addListener(
     event: 'reel:ready' | 'reel:complete' | 'reel:error' | 'reel:playing',
     cb: (data: {
+      url?: string;
       durationMs?: number;
       isPlaying?: boolean;
       errorCode?: number;

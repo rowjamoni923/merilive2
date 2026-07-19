@@ -217,6 +217,7 @@ serve(async (req) => {
       const { error: sessionUpdateError } = await supabaseAdmin
         .from("helper_orders")
         .update({ 
+          payment_details: {
             ...order.payment_details as any,
             ssl_session_key: sslData.sessionkey,
           }
@@ -257,6 +258,9 @@ serve(async (req) => {
       };
 
       const aamarRes = await fetch(baseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(aamarPayload),
       });
 
       const aamarData = await aamarRes.json();
@@ -277,7 +281,11 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       url: paymentUrl, 
       order_id: order.id,
+      gateway: gatewayType,
+      txn_id: txnId,
     }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
     });
 
   } catch (error: any) {
@@ -287,6 +295,8 @@ serve(async (req) => {
         await supabaseAdmin
           .from("helper_orders")
           .update({
+            status: "failed",
+            payment_details: {
               ...(createdOrderDetails || {}),
               payment_session_failure: String(error?.message || error),
               failed_at: new Date().toISOString(),
@@ -299,6 +309,8 @@ serve(async (req) => {
       }
     }
     return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
     });
   }
 });

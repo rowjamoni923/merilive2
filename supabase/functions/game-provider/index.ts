@@ -31,6 +31,7 @@ const providerHandlers: Record<string, {
   
   // Deck of Cards API - Completely FREE
   deckofcards: {
+    testConnection: async () => {
       try {
         const response = await fetch('https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
         const data = await response.json();
@@ -42,6 +43,7 @@ const providerHandlers: Record<string, {
         return { success: false, message: `Error: ${getErrorMessage(e)}` };
       }
     },
+    fetchGames: async () => {
       return [
         { code: 'blackjack', name: 'Blackjack', category: 'Card Games' },
         { code: 'poker', name: 'Poker', category: 'Card Games' },
@@ -51,6 +53,7 @@ const providerHandlers: Record<string, {
         { code: 'hilo', name: 'Hi-Lo', category: 'Card Games' },
       ];
     },
+    launchGame: async (_config, gameCode, userId, balance) => {
       // Create a new shuffled deck
       const deckResponse = await fetch('https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6');
       const deckData = await deckResponse.json();
@@ -71,6 +74,7 @@ const providerHandlers: Record<string, {
 
   // GameDistribution - FREE HTML5 Games with Ads
   gamedistribution: {
+    testConnection: async () => {
       try {
         const response = await fetch('https://html5.gamedistribution.com/status');
         if (response.ok || response.status === 404) {
@@ -83,6 +87,7 @@ const providerHandlers: Record<string, {
         return { success: true, message: '✅ GameDistribution ready (SDK mode)' };
       }
     },
+    fetchGames: async () => {
       return [
         { code: 'ludo-hero', name: 'Ludo Hero', category: 'Board Games', gameId: 'c3d28eba03884ad89f1c8c9d7bec3b34' },
         { code: 'snake-io', name: 'Snake.io', category: 'Action', gameId: 'snake-io-2020' },
@@ -94,14 +99,18 @@ const providerHandlers: Record<string, {
         { code: 'racing-3d', name: 'Racing 3D', category: 'Racing', gameId: 'racing-3d-2024' },
       ];
     },
+    launchGame: async (config, gameCode, _userId, _balance) => {
       const gameId = config.game_id || gameCode;
       return {
+        url: `https://html5.gamedistribution.com/${gameId}/?gd_sdk_referrer_url=${encodeURIComponent(config.api_url || 'https://merilive.com')}`,
+        gameData: { provider: 'gamedistribution', gameId, iframe: true }
       };
     }
   },
 
   // GamePix - FREE HTML5 Games
   gamepix: {
+    testConnection: async () => {
       try {
         const response = await fetch('https://www.gamepix.com/api/v1/games?limit=1');
         if (response.ok) {
@@ -112,6 +121,7 @@ const providerHandlers: Record<string, {
         return { success: true, message: '✅ GamePix ready for iframe embedding' };
       }
     },
+    fetchGames: async () => {
       return [
         { code: 'ludo-king-online', name: 'Ludo King Online', category: 'Board Games' },
         { code: 'chess-online', name: 'Chess Master', category: 'Board Games' },
@@ -123,13 +133,17 @@ const providerHandlers: Record<string, {
         { code: 'fruit-ninja', name: 'Fruit Ninja', category: 'Action' },
       ];
     },
+    launchGame: async (_config, gameCode, _userId, _balance) => {
       return {
+        url: `https://www.gamepix.com/embed/${gameCode}`,
+        gameData: { provider: 'gamepix', iframe: true }
       };
     }
   },
 
   // GamerPower - FREE Giveaways API
   gamerpower: {
+    testConnection: async () => {
       try {
         const response = await fetch('https://www.gamerpower.com/api/giveaways?platform=pc&type=game');
         if (response.ok) {
@@ -144,6 +158,7 @@ const providerHandlers: Record<string, {
         return { success: false, message: `Error: ${getErrorMessage(e)}` };
       }
     },
+    fetchGames: async () => {
       try {
         const response = await fetch('https://www.gamerpower.com/api/giveaways?type=game');
         const giveaways = await response.json();
@@ -161,16 +176,21 @@ const providerHandlers: Record<string, {
         ];
       }
     },
+    launchGame: async (_config, gameCode, _userId, _balance) => {
       const giveawayId = gameCode.replace('giveaway-', '');
       return {
+        url: `https://www.gamerpower.com/open/giveaway?id=${giveawayId}`,
+        gameData: { type: 'giveaway', external: true }
       };
     }
   },
 
   // CrazyGames - FREE Browser Games
   crazygames: {
+    testConnection: async () => {
       return { success: true, message: '✅ CrazyGames ready! Ready for browser games' };
     },
+    fetchGames: async () => {
       return [
         { code: '1v1-lol', name: '1v1.LOL', category: 'Shooter' },
         { code: 'krunker', name: 'Krunker.io', category: 'Shooter' },
@@ -180,15 +200,20 @@ const providerHandlers: Record<string, {
         { code: 'minecraft-classic', name: 'Minecraft Classic', category: 'Sandbox' },
       ];
     },
+    launchGame: async (_config, gameCode, _userId, _balance) => {
       return {
+        url: `https://www.crazygames.com/embed/${gameCode}`,
+        gameData: { provider: 'crazygames', iframe: true }
       };
     }
   },
 
   // Playroom SDK - Free Tier Multiplayer
   playroom: {
+    testConnection: async () => {
       return { success: true, message: '✅ Playroom SDK ready! Multiplayer games enabled' };
     },
+    fetchGames: async () => {
       return [
         { code: 'multiplayer-ludo', name: 'Multiplayer Ludo', category: 'Multiplayer' },
         { code: 'multiplayer-chess', name: 'Multiplayer Chess', category: 'Multiplayer' },
@@ -196,8 +221,12 @@ const providerHandlers: Record<string, {
         { code: 'drawing-game', name: 'Drawing Game', category: 'Multiplayer' },
       ];
     },
+    launchGame: async (_config, gameCode, userId, _balance) => {
       const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       return {
+        url: `https://joinplayroom.com/game/${gameCode}?room=${roomCode}&user=${userId}`,
+        token: roomCode,
+        gameData: { multiplayer: true, roomCode }
       };
     }
   },
@@ -206,6 +235,7 @@ const providerHandlers: Record<string, {
   
   // ZEGOCLOUD Mini-Game SDK
   zegocloud: {
+    testConnection: async (config) => {
       if (!config.api_key || !config.app_id) {
         return { success: false, message: 'Missing API Key or App ID' };
       }
@@ -224,6 +254,7 @@ const providerHandlers: Record<string, {
         return { success: false, message: `Error: ${getErrorMessage(e)}` };
       }
     },
+    fetchGames: async () => {
       return [
         { code: 'ludo', name: 'Ludo', category: 'Board Games' },
         { code: 'uno', name: 'UNO', category: 'Card Games' },
@@ -235,9 +266,11 @@ const providerHandlers: Record<string, {
         { code: 'lucky_wheel', name: 'Lucky Wheel', category: 'Luck Games' },
       ];
     },
+    launchGame: async (config, gameCode, userId, balance) => {
       const baseUrl = config.api_url || 'https://minigame.zegocloud.com';
       const token = btoa(JSON.stringify({ userId, balance, appId: config.app_id, timestamp: Date.now() }));
       return {
+        url: `${baseUrl}/game/${gameCode}?token=${token}&app_id=${config.app_id}`,
         token
       };
     }
@@ -245,12 +278,14 @@ const providerHandlers: Record<string, {
 
   // SudMGP (Sud Tech)
   sudmgp: {
+    testConnection: async (config) => {
       if (!config.api_key || !config.app_id) {
         return { success: false, message: 'Missing API Key or App ID' };
       }
       try {
         const response = await fetch(`${config.api_url || 'https://api.sud.tech'}/v1/app/verify`, {
           method: 'POST',
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${config.api_key}`
           },
@@ -264,6 +299,7 @@ const providerHandlers: Record<string, {
         return { success: false, message: `Error: ${getErrorMessage(e)}` };
       }
     },
+    fetchGames: async () => {
       return [
         { code: 'teenpatti', name: 'Teen Patti', category: 'Card Games' },
         { code: 'ludo', name: 'Ludo King', category: 'Board Games' },
@@ -275,21 +311,26 @@ const providerHandlers: Record<string, {
         { code: 'andar_bahar', name: 'Andar Bahar', category: 'Card Games' },
       ];
     },
+    launchGame: async (config, gameCode, userId, balance) => {
       const baseUrl = config.api_url || 'https://game.sud.tech';
       const timestamp = Date.now();
       const sign = btoa(`${config.app_id}:${userId}:${timestamp}:${config.api_secret}`);
       return {
+        url: `${baseUrl}/${gameCode}?app_id=${config.app_id}&user_id=${userId}&balance=${balance}&sign=${sign}&t=${timestamp}`,
+        token: sign
       };
     }
   },
 
   // Spribe (Aviator, Mines, etc.)
   spribe: {
+    testConnection: async (config) => {
       if (!config.api_key || !config.merchant_id) {
         return { success: false, message: 'Missing API Key or Merchant ID' };
       }
       try {
         const response = await fetch(`${config.api_url || 'https://api.spribe.co'}/v1/merchants/${config.merchant_id}/status`, {
+          headers: {
             'X-Api-Key': config.api_key
           }
         });
@@ -301,6 +342,7 @@ const providerHandlers: Record<string, {
         return { success: false, message: `Error: ${getErrorMessage(e)}` };
       }
     },
+    fetchGames: async () => {
       return [
         { code: 'aviator', name: 'Aviator', category: 'Crash Games' },
         { code: 'mines', name: 'Mines', category: 'Instant Win' },
@@ -312,15 +354,19 @@ const providerHandlers: Record<string, {
         { code: 'mini_roulette', name: 'Mini Roulette', category: 'Table Games' },
       ];
     },
+    launchGame: async (config, gameCode, userId, balance) => {
       const baseUrl = config.api_url || 'https://game.spribe.co';
       const sessionData = {
         merchant_id: config.merchant_id,
+        user_id: userId,
+        balance: balance,
         currency: 'DIAMONDS',
         game: gameCode,
         timestamp: Date.now()
       };
       const token = btoa(JSON.stringify(sessionData));
       return {
+        url: `${baseUrl}/launch/${gameCode}?session=${token}`,
         token
       };
     }
@@ -328,6 +374,7 @@ const providerHandlers: Record<string, {
 
   // Generic iframe handler for custom providers
   custom: {
+    testConnection: async (config) => {
       if (!config.api_url) {
         return { success: false, message: 'Missing Game URL' };
       }
@@ -341,8 +388,10 @@ const providerHandlers: Record<string, {
         return { success: false, message: `Error: ${getErrorMessage(e)}` };
       }
     },
+    fetchGames: async () => {
       return [{ code: 'custom_game', name: 'Custom Game', category: 'Custom' }];
     },
+    launchGame: async (config, gameCode, userId, balance) => {
       const url = new URL(config.api_url);
       url.searchParams.set('user_id', userId);
       url.searchParams.set('balance', balance.toString());

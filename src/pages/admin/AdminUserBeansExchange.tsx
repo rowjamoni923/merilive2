@@ -82,6 +82,12 @@
          const { error } = await supabase
             .from('user_beans_exchange_tiers')
              .insert({
+               tier_name: formData.tier_name.trim() || "New Tier",
+              min_beans: parseInt(formData.min_beans),
+              max_beans: formData.max_beans ? parseInt(formData.max_beans) : null,
+              exchange_rate: Number(formData.exchange_rate),
+              bonus_percent: Number(formData.bonus_percent) || 0,
+              display_order: parseInt(formData.display_order)
             });
          
          if (error) throw error;
@@ -128,6 +134,12 @@
    const openEditModal = (tier: ExchangeTier) => {
      setEditingTier(tier);
       setFormData({
+        min_beans: tier.min_beans.toString(),
+        max_beans: tier.max_beans?.toString() || "",
+        exchange_rate: tier.exchange_rate.toString(),
+        bonus_percent: (tier.bonus_percent ?? 0).toString(),
+        display_order: tier.display_order.toString(),
+        tier_name: tier.tier_name || ""
       });
      setShowAddModal(true);
    };

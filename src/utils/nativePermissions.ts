@@ -176,6 +176,10 @@ export const checkPermissionStatus = async (): Promise<{
   notifications: boolean;
 }> => {
   const status = {
+    camera: false,
+    microphone: false,
+    location: false,
+    notifications: false,
   };
 
   permLog('check.start', { native: isNativeApp() });
@@ -321,6 +325,9 @@ export const getCurrentLocation = async (): Promise<{
         timeout: 10000,
       });
       return {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
       };
     } catch (error) {
       console.error('Native location error:', error);
@@ -332,6 +339,9 @@ export const getCurrentLocation = async (): Promise<{
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
       }),
       () => resolve(null),
       { enableHighAccuracy: true, timeout: 10000 }

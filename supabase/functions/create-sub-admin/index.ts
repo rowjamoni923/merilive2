@@ -171,6 +171,7 @@ serve(async (req) => {
       .from("admin_users")
       .insert({
         user_id: userId,
+        email: normalizedEmail,
         display_name: safeDisplayName || normalizedEmail.split('@')[0],
         role: "sub_admin",
         is_active: true,
@@ -274,7 +275,13 @@ serve(async (req) => {
         success: true,
         admin_user: {
           id: adminUser.id,
+          user_id: adminUser.user_id,
+          email: adminUser.email,
+          display_name: adminUser.display_name,
+          role: adminUser.role,
+          is_active: adminUser.is_active,
           invited_at: adminUser.invited_at,
+          accepted_at: adminUser.accepted_at,
           last_login_at: adminUser.last_login_at,
         },
         login_link: loginLink,

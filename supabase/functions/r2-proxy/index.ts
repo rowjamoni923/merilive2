@@ -34,6 +34,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Invalid URL format' }),
         { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -53,6 +55,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ error: 'R2 credentials not configured' }),
           { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
       }
@@ -76,6 +80,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ error: 'Could not parse R2 file path' }),
           { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
       }
@@ -96,6 +102,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ error: `R2 fetch failed: ${response.status}` }),
           { 
+            status: response.status, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
       }
@@ -116,6 +124,8 @@ serve(async (req) => {
       }
 
       return new Response(response.body, {
+        status: 200,
+        headers: responseHeaders,
       });
     }
 
@@ -123,6 +133,7 @@ serve(async (req) => {
     console.log('Proxying non-R2 file:', fileUrl.split('/').pop());
 
     const response = await fetch(fileUrl, {
+      headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MeriLive/1.0)',
       },
     });
@@ -132,6 +143,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: `Failed to fetch file: ${response.status}` }),
         { 
+          status: response.status, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -150,6 +163,8 @@ serve(async (req) => {
     }
 
     return new Response(response.body, {
+      status: 200,
+      headers: responseHeaders,
     });
   } catch (error: unknown) {
     console.error('Proxy error:', error);
@@ -157,6 +172,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }

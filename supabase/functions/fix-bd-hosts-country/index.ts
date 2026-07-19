@@ -127,11 +127,17 @@ async function detectCountryFromIP(ip: string): Promise<{ code: string; name: st
       parse: (d: any) => !d.error ? d.country_code : null,
     },
     {
+      url: `https://ipwho.is/${ip}`,
+      parse: (d: any) => d.success ? d.country_code : null,
     },
     // ip-api.com only works with IPv4
     ...(!isIPv6 ? [{
+      url: `http://ip-api.com/json/${ip}?fields=countryCode,country,city`,
+      parse: (d: any) => d.countryCode || null,
     }] : []),
     {
+      url: `https://freeipapi.com/api/json/${ip}`,
+      parse: (d: any) => d.countryCode || null,
     },
   ];
 
@@ -278,10 +284,13 @@ Deno.serve(async (req) => {
       skipped,
       results,
     }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

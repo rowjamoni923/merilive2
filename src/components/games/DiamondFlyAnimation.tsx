@@ -30,6 +30,10 @@ export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationPr
             opacity: 1 
           }}
           animate={{ 
+            x: coin.endX, 
+            y: coin.endY, 
+            scale: 0.5,
+            opacity: 0.8
           }}
           exit={{ opacity: 0, scale: 0 }}
           transition={{ 
@@ -145,8 +149,13 @@ export const WinCelebration = ({
                   x: 0, 
                   y: 0, 
                   opacity: 1,
+                  rotate: 0
                 }}
                 animate={{ 
+                  x: (Math.random() - 0.5) * 200,
+                  y: (Math.random() - 0.5) * 200,
+                  opacity: 0,
+                  rotate: Math.random() * 360
                 }}
                 transition={{ 
                   duration: 1.5,

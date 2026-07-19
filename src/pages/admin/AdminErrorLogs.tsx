@@ -193,6 +193,9 @@ export default function AdminErrorLogs() {
         .slice(0, 5);
 
       setStats({
+        total: totalRes.count || 0,
+        unresolved: unresolvedRes.count || 0,
+        todayErrors: todayRes.count || 0,
         topPages,
       });
 
@@ -347,6 +350,7 @@ export default function AdminErrorLogs() {
 
   const getErrorTypeBadge = (type: string) => {
     const colors: Record<string, string> = {
+      error: 'bg-red-500/20 text-red-400 border-red-500/30',
       render_error: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
       network_error: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       unhandled_rejection: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
@@ -614,6 +618,7 @@ export default function AdminErrorLogs() {
                           </p>
                           {error.component_name && (
                             <p className="text-xs text-muted-foreground">
+                              Component: {error.component_name}
                             </p>
                           )}
                         </div>
