@@ -713,7 +713,7 @@ const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (fie
       </Badge>
       <div className="flex-1 grid grid-cols-3 gap-3">
         <div>
-          <Label className="text-xs">Coins</Label>
+          <Label className="text-xs">Diamonds (legacy)</Label>
           <Input
             type="number"
             inputMode="numeric"
