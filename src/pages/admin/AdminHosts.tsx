@@ -16,7 +16,7 @@ import {
   Phone, 
   Camera, 
   Clock, 
-  Coins, 
+  Gem, 
   TrendingUp, 
   Download} from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -256,7 +256,7 @@ export default function AdminHosts() {
 
   const filteredHosts = hosts;
 
-  const formatCoins = (diamonds: number) => {
+  const formatDiamonds = (diamonds: number) => {
     if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
     if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
     return diamonds.toString();
@@ -288,7 +288,7 @@ export default function AdminHosts() {
           { label: "Active", value: stats.activeHosts, Icon: CheckCircle, tint: "emerald" },
           { label: "Pending", value: stats.pendingHosts, Icon: Clock, tint: "amber" },
           { label: "Blocked", value: stats.blockedHosts, Icon: Ban, tint: "rose" },
-          { label: "Total Earnings", value: formatCoins(stats.totalEarnings), Icon: Coins, tint: "violet" },
+          { label: "Total Earnings", value: formatDiamonds(stats.totalEarnings), Icon: Coins, tint: "violet" },
         ].map(({ label, value, Icon, tint }) => {
           const tintMap: Record<string, string> = {
             blue: "bg-blue-50 border-blue-100 text-blue-600",
@@ -454,7 +454,7 @@ export default function AdminHosts() {
                     </TableCell>
                     <TableCell>
                       <span className="text-green-400 font-medium">
-                        {formatCoins(host.total_earnings || 0)}
+                        {formatDiamonds(host.total_earnings || 0)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -572,8 +572,8 @@ export default function AdminHosts() {
                   <p className="text-slate-500 text-xs">Call Minutes</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4 text-center">
-                  <Coins className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-slate-900">{formatCoins(selectedHost.total_earnings || 0)}</p>
+                  <Gem className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-slate-900">{formatDiamonds(selectedHost.total_earnings || 0)}</p>
                   <p className="text-slate-500 text-xs">Total Earnings</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4 text-center">

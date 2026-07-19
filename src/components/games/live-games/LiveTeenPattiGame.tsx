@@ -4,7 +4,7 @@ import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import teenPattiBg from "@/assets/games-bg/teen-patti-bg.jpg";
 
 import { cn } from "@/lib/utils";
-import { Coins } from "lucide-react";
+import { Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
@@ -24,7 +24,7 @@ interface LiveTeenPattiGameProps {
   myBets: any[];
   onPlaceBet: (betType?: string, betValue?: string) => Promise<any>;
   onProcessResult: (result: any) => void;
-  onUpdateCoins?: (newBalance: number) => void;
+  onUpdateDiamonds?: (newBalance: number) => void;
   onGameWin?: (winAmount: number) => void;
   onTimerUpdate?: (timeLeft: number, phase: 'betting' | 'dealing') => void;
 }
@@ -99,7 +99,7 @@ export function LiveTeenPattiGame({
   myBets,
   onPlaceBet,
   onProcessResult,
-  onUpdateCoins,
+  onUpdateDiamonds,
   onGameWin,
   onTimerUpdate
 }: LiveTeenPattiGameProps) {
@@ -282,7 +282,7 @@ export function LiveTeenPattiGame({
       setWinAmount(totalWinnings);
       setShowWinPopup(true);
       sounds.playWinSound();
-      sounds.playCoinSound();
+      sounds.playDiamondSound();
       playLiveEffect('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
@@ -295,8 +295,8 @@ export function LiveTeenPattiGame({
           const { processWin } = await import('@/services/gameBalanceService');
           const result = await processWin(user.id, 'teen_patti', 'Teen Patti', Math.floor(totalWinnings), multiplier, false);
           
-          if (result.success && result.newBalance !== undefined && onUpdateCoins) {
-            onUpdateCoins(result.newBalance);
+          if (result.success && result.newBalance !== undefined && onUpdateDiamonds) {
+            onUpdateDiamonds(result.newBalance);
           }
         } catch (error) {
           console.error('[TeenPatti] Credit error:', error);
@@ -379,7 +379,7 @@ export function LiveTeenPattiGame({
       setWon(true);
       setShowWinPopup(true);
       sounds.playWinSound();
-      sounds.playCoinSound();
+      sounds.playDiamondSound();
       playLiveEffect('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
@@ -389,7 +389,7 @@ export function LiveTeenPattiGame({
         if (user) {
           const result = await processWin(user.id, game?.id || 'teen-patti', game?.name || 'Teen Patti', winTotal, 2);
           if (result.success && result.newBalance !== undefined) {
-            onUpdateCoins?.(result.newBalance);
+            onUpdateDiamonds?.(result.newBalance);
             console.log('[TeenPatti dealCards] Credited winnings via RPC:', winTotal, 'New balance:', result.newBalance);
           }
         }
@@ -735,7 +735,7 @@ export function LiveTeenPattiGame({
                 {won && betAmounts[winner] > 0 && (
                   <div className="flex items-center justify-center gap-1 text-green-300 text-xs">
                     <span>+{(betAmounts[winner] * 2).toLocaleString()}</span>
-                    <Coins className="w-3 h-3" />
+                    <Gem className="w-3 h-3" />
                   </div>
                 )}
               </div>

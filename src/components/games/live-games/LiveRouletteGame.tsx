@@ -20,7 +20,7 @@ interface LiveRouletteGameProps {
   myBets: any[];
   onPlaceBet: (betType?: string, betValue?: string) => Promise<any>;
   onProcessResult: (result: any) => void;
-  onUpdateCoins?: (newBalance: number) => void;
+  onUpdateDiamonds?: (newBalance: number) => void;
   onGameWin?: (winAmount: number) => void;
   onTimerUpdate?: (timeLeft: number, phase: 'betting' | 'spinning') => void;
 }
@@ -113,7 +113,7 @@ export function LiveRouletteGame({
   myBets,
   onPlaceBet,
   onProcessResult,
-  onUpdateCoins,
+  onUpdateDiamonds,
   onGameWin,
   onTimerUpdate
 }: LiveRouletteGameProps) {
@@ -359,7 +359,7 @@ export function LiveRouletteGame({
         setWinAmount(totalWinnings);
         setShowWinPopup(true);
         sounds.playWinSound();
-        sounds.playCoinSound();
+        sounds.playDiamondSound();
         playLiveEffect('win');
         if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
         
@@ -372,8 +372,8 @@ export function LiveRouletteGame({
             const { processWin } = await import('@/services/gameBalanceService');
             const result = await processWin(user.id, 'roulette', 'Roulette', Math.floor(totalWinnings), undefined, false);
             
-            if (result.success && result.newBalance !== undefined && onUpdateCoins) {
-              onUpdateCoins(result.newBalance);
+            if (result.success && result.newBalance !== undefined && onUpdateDiamonds) {
+              onUpdateDiamonds(result.newBalance);
             }
           } catch (error) {
             console.error('[Roulette] Credit error:', error);

@@ -9,7 +9,7 @@ import {
   Camera, 
   PartyPopper, 
   Gift, 
-  Coins, 
+  Gem, 
   TrendingUp, 
   TrendingDown, 
   Activity, 

@@ -9,7 +9,7 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle2,
-  Coins,
+  Gem,
   Gift,
   Clock,
   Star,

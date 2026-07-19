@@ -655,7 +655,7 @@ const FullScreenGiftAnimation = ({
               </div>
             </motion.div>
 
-            {/* Coin value */}
+            {/* Diamond value */}
             <motion.p 
               className={cn(
                 "mt-2 font-bold text-xl flex items-center gap-2",

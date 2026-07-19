@@ -297,7 +297,7 @@ const en = {
     selectGift: "Select a gift",
     quantity: "Quantity",
     totalCost: "Total Cost",
-    insufficientCoins: "Insufficient Diamonds",
+    insufficientDiamonds: "Insufficient Diamonds",
     rechargeNow: "Recharge Now",
   },
 

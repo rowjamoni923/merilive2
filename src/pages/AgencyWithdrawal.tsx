@@ -1785,7 +1785,7 @@ const AgencyWithdrawal = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
+  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [withdrawalFees, setWithdrawalFees] = useState<Array<{id: string; min_amount: number; max_amount: number; fee_type: string; fee_value: number}>>([]);
   const [freeWithdrawalLimit, setFreeWithdrawalLimit] = useState(0); // beans below this = no fee (admin-controlled)
   const [minWithdrawalBeans, setMinWithdrawalBeans] = useState(100000);
@@ -2170,7 +2170,7 @@ const AgencyWithdrawal = () => {
           ? JSON.parse(beansRateValue)
           : (beansRateValue as { rate?: number });
         if (rateValue?.rate) {
-          setCoinsToUsdRate(rateValue.rate);
+          setDiamondsToUsdRate(rateValue.rate);
         }
       } else if (commissionFallbackValue) {
         // Fallback to agency_commission setting
@@ -2178,7 +2178,7 @@ const AgencyWithdrawal = () => {
           ? JSON.parse(commissionFallbackValue)
           : (commissionFallbackValue as CommissionSettings);
         if (commissionSettings?.coins_to_dollar_rate) {
-          setCoinsToUsdRate(commissionSettings.coins_to_dollar_rate);
+          setDiamondsToUsdRate(commissionSettings.coins_to_dollar_rate);
         }
       }
 
@@ -2204,7 +2204,7 @@ const AgencyWithdrawal = () => {
         }
         if (ws.free_withdrawal_limit) setFreeWithdrawalLimit(ws.free_withdrawal_limit);
         if (ws.min_withdrawal) setMinWithdrawalBeans(ws.min_withdrawal);
-        if (ws.coins_to_dollar_rate) setCoinsToUsdRate(ws.coins_to_dollar_rate);
+        if (ws.coins_to_dollar_rate) setDiamondsToUsdRate(ws.coins_to_dollar_rate);
       }
 
       // Auto withdrawal fee (flat USD for ePay/USDT/Binance/Crypto)

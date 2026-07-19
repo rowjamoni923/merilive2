@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { X, Gamepad2, Coins, Sparkles, Loader2 } from "lucide-react";
+import { X, Gamepad2, Gem, Sparkles, Loader2 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 
@@ -294,7 +294,7 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context
                 animate={{ y: [0, -3, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Coins className="w-5 h-5 text-yellow-400" />
+                <Gem className="w-5 h-5 text-yellow-400" />
               </motion.div>
               <span className="text-white/70 text-sm font-medium">
                 Win big with live multiplayer games!

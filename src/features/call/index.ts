@@ -35,7 +35,7 @@ export { default as CallHistoryPage } from '@/pages/CallHistory';
 
 // ========== HOOKS ==========
 // NOTE: useCallBilling intentionally NOT exported — per-minute billing lives in
-// usePrivateCall.deductCoinsPerMinute (single source of truth, fired from notifyMediaConnected).
+// usePrivateCall.deductDiamondsPerMinute (single source of truth, fired from notifyMediaConnected).
 // Re-introducing the old hook would create a second 60s timer hitting
 // `deduct_call_diamonds_per_minute` → double-charge caller + double-credit host.
 export { useHostCallRate } from '@/hooks/useHostCallRate';

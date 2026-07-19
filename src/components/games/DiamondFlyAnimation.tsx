@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Coins } from "lucide-react";
+import { Gem } from "lucide-react";
 
-interface FlyingCoin {
+interface FlyingDiamond {
   id: number;
   startX: number;
   startY: number;
@@ -12,7 +12,7 @@ interface FlyingCoin {
 }
 
 interface CoinFlyAnimationProps {
-  diamonds: FlyingCoin[];
+  diamonds: FlyingDiamond[];
   onComplete?: (id: number) => void;
 }
 
@@ -45,7 +45,7 @@ export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationPr
           onAnimationComplete={() => onComplete?.(coin.id)}
         >
           <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-yellow-400 px-2 py-1 rounded-full shadow-lg shadow-amber-500/50">
-            <Coins className="w-4 h-4 text-amber-900" />
+            <Gem className="w-4 h-4 text-amber-900" />
             <span className="text-amber-900 font-bold text-xs">{coin.amount.toLocaleString()}</span>
           </div>
         </motion.div>
@@ -55,28 +55,28 @@ export const DiamondFlyAnimation = ({ diamonds, onComplete }: CoinFlyAnimationPr
 };
 
 // Hook to manage flying diamonds
-export const useFlyingCoins = () => {
-  const [diamonds, setCoins] = useState<FlyingCoin[]>([]);
+export const useFlyingDiamonds = () => {
+  const [diamonds, setDiamonds] = useState<FlyingDiamond[]>([]);
   const [nextId, setNextId] = useState(0);
 
-  const addCoin = (startX: number, startY: number, endX: number, endY: number, amount: number) => {
+  const addDiamond = (startX: number, startY: number, endX: number, endY: number, amount: number) => {
     const id = nextId;
     setNextId(prev => prev + 1);
-    setCoins(prev => [...prev, { id, startX, startY, endX, endY, amount }]);
+    setDiamonds(prev => [...prev, { id, startX, startY, endX, endY, amount }]);
     
     // Auto remove after animation
     setTimeout(() => {
-      setCoins(prev => prev.filter(c => c.id !== id));
+      setDiamonds(prev => prev.filter(c => c.id !== id));
     }, 700);
     
     return id;
   };
 
-  const removeCoin = (id: number) => {
-    setCoins(prev => prev.filter(c => c.id !== id));
+  const removeDiamond = (id: number) => {
+    setDiamonds(prev => prev.filter(c => c.id !== id));
   };
 
-  return { diamonds, addCoin, removeCoin };
+  return { diamonds, addDiamond, removeDiamond };
 };
 
 // Win celebration animation
@@ -134,7 +134,7 @@ export const WinCelebration = ({
                 transition={{ delay: 0.3 }}
                 className="flex items-center justify-center gap-2"
               >
-                <Coins className="w-6 h-6 text-yellow-300" />
+                <Gem className="w-6 h-6 text-yellow-300" />
                 <span className="text-yellow-300 font-black text-2xl">
                   +{amount.toLocaleString()}
                 </span>
@@ -215,7 +215,7 @@ export const LossDisplay = ({
             </motion.div>
             <h2 className="text-white font-black text-xl text-center mb-1">LOST</h2>
             <div className="flex items-center justify-center gap-2">
-              <Coins className="w-5 h-5 text-red-200" />
+              <Gem className="w-5 h-5 text-red-200" />
               <span className="text-red-200 font-bold text-lg">
                 -{amount.toLocaleString()}
               </span>
@@ -227,15 +227,15 @@ export const LossDisplay = ({
   );
 };
 
-// Coin stacking on bet area
-export const BetAreaCoins = ({ 
+// Diamond stacking on bet area
+export const BetAreaDiamonds = ({ 
   amount, 
-  maxCoins = 5 
+  maxDiamonds = 5 
 }: { 
   amount: number; 
-  maxCoins?: number 
+  maxDiamonds?: number 
 }) => {
-  const diamondCount = Math.min(Math.ceil(amount / 10000), maxCoins);
+  const diamondCount = Math.min(Math.ceil(amount / 10000), maxDiamonds);
   
   return (
     <div className="relative flex items-end justify-center h-8">

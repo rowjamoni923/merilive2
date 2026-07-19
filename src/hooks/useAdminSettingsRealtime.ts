@@ -306,20 +306,20 @@ const refreshDiamondPackages = async () => {
     .order('display_order', { ascending: true });
 
   globalDiamondPackages = (data || []).map((pkg: any) => {
-    const normalizedCoins = Number(pkg.diamonds ?? pkg.diamonds_amount ?? 0);
-    const normalizedBaseCoins = Number(pkg.base_diamonds ?? pkg.diamonds ?? pkg.diamonds_amount ?? 0);
+    const normalizedDiamonds = Number(pkg.diamonds ?? pkg.diamonds_amount ?? 0);
+    const normalizedBaseDiamonds = Number(pkg.base_diamonds ?? pkg.diamonds ?? pkg.diamonds_amount ?? 0);
     const normalizedBonusPercentage = Number(
       pkg.bonus_percentage ?? (
-        pkg.bonus_diamonds && normalizedBaseCoins > 0
-          ? Math.round((Number(pkg.bonus_diamonds) / normalizedBaseCoins) * 100)
+        pkg.bonus_diamonds && normalizedBaseDiamonds > 0
+          ? Math.round((Number(pkg.bonus_diamonds) / normalizedBaseDiamonds) * 100)
           : 0
       )
     );
 
     return {
       ...pkg,
-      diamonds: normalizedCoins,
-      base_diamonds: normalizedBaseCoins,
+      diamonds: normalizedDiamonds,
+      base_diamonds: normalizedBaseDiamonds,
       bonus_percentage: normalizedBonusPercentage,
       price_usd: Number(pkg.price_usd ?? 0),
       is_popular: Boolean(pkg.is_popular),
@@ -411,7 +411,7 @@ const initializeData = async () => {
   await Promise.all([
     guardedRefresh('banners', refreshBanners),
     guardedRefresh('gifts', refreshGifts),
-    guardedRefresh('coin packages', refreshDiamondPackages),
+    guardedRefresh('diamond packages', refreshDiamondPackages),
     guardedRefresh('currency rates', refreshCurrencyRates),
     guardedRefresh('branding', refreshBranding),
     guardedRefresh('game settings', refreshGameSettings),
@@ -487,7 +487,7 @@ export const useDiamondPackagesRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalDiamondPackages.length === 0) {
-      guardedRefresh('coin packages', refreshDiamondPackages).then(() => {
+      guardedRefresh('diamond packages', refreshDiamondPackages).then(() => {
         setPackages(globalDiamondPackages);
         setLoading(false);
       });

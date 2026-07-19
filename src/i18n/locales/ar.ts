@@ -272,7 +272,7 @@ const ar = {
     selectGift: "اختر هدية",
     quantity: "الكمية",
     totalCost: "التكلفة الإجمالية",
-    insufficientCoins: "Insufficient Diamonds",
+    insufficientDiamonds: "Insufficient Diamonds",
     rechargeNow: "اشحن الآن",
   },
   agency: {

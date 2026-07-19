@@ -289,7 +289,7 @@ export const AdminAnalyticsCharts = memo(() => {
               </CardContent>
             </Card>
 
-            {/* Gift Revenue (Coins) */}
+            {/* Gift Revenue (Diamonds) */}
             <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border-slate-700/40 backdrop-blur-sm shadow-xl overflow-hidden">
               <CardHeader className="pb-2 border-b border-slate-700/30">
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
@@ -304,7 +304,7 @@ export const AdminAnalyticsCharts = memo(() => {
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="colorCoins" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="colorDiamonds" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor={COLORS.diamonds} stopOpacity={0.9} />
                           <stop offset="100%" stopColor={COLORS.diamonds} stopOpacity={0.3} />
                         </linearGradient>
@@ -313,7 +313,7 @@ export const AdminAnalyticsCharts = memo(() => {
                       <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="Diamonds" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Diamonds" fill="url(#colorDiamonds)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : <ChartEmpty label="gifts sent" />}

@@ -14,8 +14,8 @@ export { default as AgencyPolicyPage } from '@/pages/AgencyPolicy';
 export { default as AgencyHostManagementPage } from '@/pages/AgencyHostManagement';
 
 // Financial Pages
-export { default as AgencyCoinExchangePage } from '@/pages/AgencyDiamondExchange';
-export { default as AgencyCoinTraderPage } from '@/pages/AgencyDiamondTrader';
+export { default as AgencyDiamondExchangePage } from '@/pages/AgencyDiamondExchange';
+export { default as AgencyDiamondTraderPage } from '@/pages/AgencyDiamondTrader';
 export { default as AgencyWithdrawalPage } from '@/pages/AgencyWithdrawal';
 export { default as AgencyTransferHistoryPage } from '@/pages/AgencyTransferHistory';
 export { default as AgencyCommissionHistoryPage } from '@/pages/AgencyCommissionHistory';

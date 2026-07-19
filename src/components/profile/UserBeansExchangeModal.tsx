@@ -31,7 +31,7 @@ interface CoinExchangeSettings {
   min_exchange_amount: number;
 }
 
-const normalizeCoinExchangeSettings = (value: unknown): CoinExchangeSettings | null => {
+const normalizeDiamondExchangeSettings = (value: unknown): CoinExchangeSettings | null => {
   if (!value || typeof value !== "object") return null;
   const raw = value as Partial<Record<keyof CoinExchangeSettings, unknown>>;
   const rate = Number(raw.beans_to_diamonds_rate ?? 0);
@@ -95,7 +95,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
   const [processing, setProcessing] = useState(false);
   const [customBeans, setCustomBeans] = useState("");
   const [useCustom, setUseCustom] = useState(false);
-  const [coinExchangeSettings, setCoinExchangeSettings] = useState<CoinExchangeSettings | null>(null);
+  const [coinExchangeSettings, setDiamondExchangeSettings] = useState<CoinExchangeSettings | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -131,8 +131,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       .eq('setting_key', 'diamond_exchange')
       .maybeSingle();
     const settingsValue = parseAppSettingValue(settingsRow?.setting_value);
-    const settings = normalizeCoinExchangeSettings(settingsValue);
-    setCoinExchangeSettings(settings);
+    const settings = normalizeDiamondExchangeSettings(settingsValue);
+    setDiamondExchangeSettings(settings);
 
     if (activeTiers.length === 0 && settings) {
       const baseAmounts = [settings.min_exchange_amount, settings.min_exchange_amount * 5, settings.min_exchange_amount * 10]

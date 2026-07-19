@@ -23,7 +23,7 @@ export interface NativeGiftEnqueueOptions {
   url: string;
   /** Optional gift sound URL — routed through the shared GiftAudioMixer. */
   soundUrl?: string;
-  /** Coin value (drives priority ordering when ties on `priority`). */
+  /** Diamond value (drives priority ordering when ties on `priority`). */
   diamonds?: number;
   /** Higher wins (default 0). Range -1000..1000. */
   priority?: number;

@@ -3,7 +3,7 @@ import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdm
 import { startAdminGlobalRealtime, stopAdminGlobalRealtime } from "@/utils/adminGlobalRealtime";
 import { useNavigate, Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {LayoutDashboard, Users, Building2, Camera, PartyPopper, Gift, Settings, Shield, ShieldCheck, LogOut, Menu, X, Bell, Search, ChevronRight, ChevronDown, Coins, FileText, MessageSquare, TrendingUp, UserCheck, Ban, Percent, Sparkles, Image, CreditCard, Moon, Sun, Wallet, Activity, ScanFace, Check, CheckCheck, Clock, AlertCircle, UserPlus, DollarSign, Phone, PhoneIncoming, Radio, Antenna, Crown, Star, TrendingDown, ArrowUpCircle, Gamepad2, Play, Film, ShoppingBag, UserCog, Smartphone, Lock, Megaphone, ShieldAlert, Mail, Map, Package, ScrollText} from "lucide-react";
+import {LayoutDashboard, Users, Building2, Camera, PartyPopper, Gift, Settings, Shield, ShieldCheck, LogOut, Menu, X, Bell, Search, ChevronRight, ChevronDown, Gem, FileText, MessageSquare, TrendingUp, UserCheck, Ban, Percent, Sparkles, Image, CreditCard, Moon, Sun, Wallet, Activity, ScanFace, Check, CheckCheck, Clock, AlertCircle, UserPlus, DollarSign, Phone, PhoneIncoming, Radio, Antenna, Crown, Star, TrendingDown, ArrowUpCircle, Gamepad2, Play, Film, ShoppingBag, UserCog, Smartphone, Lock, Megaphone, ShieldAlert, Mail, Map, Package, ScrollText} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -489,7 +489,7 @@ const navGroups: NavGroup[] = [
         icon: Sparkles,
         path: "/admin/gift-animation-config",
         hubKey: "visual-hub",
-        description: "Global full-screen gift animation toggle + coin threshold (web + Flutter).",
+        description: "Global full-screen gift animation toggle + diamond threshold (web + Flutter).",
       },
       {
         label: "Entry Banners",
@@ -1653,7 +1653,7 @@ export default function AdminLayout() {
         '/admin/visual-assets': 0,
         // Calling
         '/admin/pricing-hub': 0,
-        // Coin & Finance
+        // Diamond & Finance
         '/admin/diamond-trader-hub': coinTransfersCount,
         '/admin/finance': financeCount,
         '/admin/payroll-orders': payrollCount,
@@ -2561,7 +2561,7 @@ export default function AdminLayout() {
       case 'topup_rejected':
       case 'diamond_purchase_helper':
       case 'helper_topup_request':
-        return <Coins className="w-4 h-4 text-yellow-500" />;
+        return <Gem className="w-4 h-4 text-yellow-500" />;
       case 'level_upgrade_approved':
       case 'level_upgrade_rejected':
       case 'helper_upgrade_request':

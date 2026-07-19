@@ -150,7 +150,7 @@ export default function AdminProfitAnalytics() {
   >([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [includeTimeline, setIncludeTimeline] = useState(true);
-  const [coinRate, setCoinRate] = useState<number | null>(null);
+  const [coinRate, setDiamondRate] = useState<number | null>(null);
 
   const handlePreset = useCallback((p: Preset) => {
     setPreset(p);
@@ -163,7 +163,7 @@ export default function AdminProfitAnalytics() {
   useEffect(() => {
     supabase.rpc("get_official_diamond_usd_rate").then(({ data }) => {
       if (typeof data === "number" || (typeof data === "string" && !isNaN(Number(data)))) {
-        setCoinRate(Number(data));
+        setDiamondRate(Number(data));
       }
     });
   }, [refreshKey]);

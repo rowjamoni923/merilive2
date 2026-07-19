@@ -387,8 +387,8 @@ export function useCasinoSound() {
     });
   }, [playTone]);
 
-  // Coin cascade sound
-  const playCoinSound = useCallback(() => {
+  // Diamond cascade sound
+  const playDiamondSound = useCallback(() => {
     if (isMutedRef.current) return;
 
     const frequencies = [2000, 2400, 2800, 3200, 3600];
@@ -445,7 +445,7 @@ export function useCasinoSound() {
     playBetSound,
     playWinSound,
     playLoseSound,
-    playCoinSound,
+    playDiamondSound,
     playJackpotSound,
     playTickSound,
   };

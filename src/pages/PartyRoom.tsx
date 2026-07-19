@@ -259,7 +259,7 @@ const PartyRoom = () => {
   // const [entranceUserId, setEntranceUserId] = useState<string | null>(null);
   // const [entranceUserInfo, setEntranceUserInfo] = useState<{...} | null>(null);
   const [isGameExpanded, setIsGameExpanded] = useState(true);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [myPendingRequest, setMyPendingRequest] = useState<number | null>(null);
   const [games, setGames] = useState<{id: string; name: string; emoji: string; color: string; description?: string}[]>([]);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -285,7 +285,7 @@ const PartyRoom = () => {
   // Phase III.e — per-seat gift target (null = default to host on open).
   const [giftRecipientId, setGiftRecipientId] = useState<string | null>(null);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
-  // Per-participant SENT coin totals (sender_id -> total diamonds spent in this room)
+  // Per-participant SENT diamond totals (sender_id -> total diamonds spent in this room)
   const [participantBeans, setParticipantBeans] = useState<Record<string, number>>({});
   // PR-2.3 (G) — Per-seat RECEIVED beans (receiver_id -> beans earned).
   // Mirrors Chamet/Bigo: each co-host seat shows their own earnings, host
@@ -344,7 +344,7 @@ const PartyRoom = () => {
   const roomIdRef = useRef<string | undefined>(roomId);
   const sessionAccessTokenRef = useRef<string | null>(null);
   const hostCommissionPercentRef = useRef(55);
-  const userCoinsRef = useRef(0);
+  const userDiamondsRef = useRef(0);
   const pendingGiftCostRef = useRef(0);
   
   // Keep refs in sync with state
@@ -355,7 +355,7 @@ const PartyRoom = () => {
   }, [currentUser, room, roomId]);
 
   useEffect(() => {
-    userCoinsRef.current = userDiamonds;
+    userDiamondsRef.current = userDiamonds;
   }, [userDiamonds]);
 
   // Pkg424: Party participant heartbeat (30s) — keeps server-side "active" status fresh so
@@ -917,8 +917,8 @@ const PartyRoom = () => {
         if (userData) {
           setCurrentUser(userData);
           sessionAccessTokenRef.current = userData.access_token || null;
-                userCoinsRef.current = userData.profile?.diamonds || 0;
-          setUserCoins(userData.profile?.diamonds || 0);
+                userDiamondsRef.current = userData.profile?.diamonds || 0;
+          setUserDiamonds(userData.profile?.diamonds || 0);
           
           // ✅ LEVEL CHECK: Block joining if user doesn't meet minimum level
           const isHost = roomData.data?.host_id === userData.id;
@@ -1147,8 +1147,8 @@ const PartyRoom = () => {
         animation_config_url: giftData.giftAnimationConfigUrl || null,
         sound_url: giftData.giftSoundUrl || null,
       } as any);
-      const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.giftCoins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
-      const broadcastCoins = Number(giftData.totalDiamonds ?? (giftData.giftCoins || 0) * (giftData.count || 1));
+      const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.giftDiamonds || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
+      const broadcastDiamonds = Number(giftData.totalDiamonds ?? (giftData.giftDiamonds || 0) * (giftData.count || 1));
       if (giftData.receiverId === cuid && broadcastBeans > 0) {
         window.dispatchEvent(new CustomEvent('own-beans-updated', {
           detail: { userId: cuid, beansDelta: broadcastBeans },
@@ -1167,11 +1167,11 @@ const PartyRoom = () => {
         soundUrl: giftData.giftSoundUrl || undefined,
         giftColor: 'from-pink-500 to-purple-500',
         count: giftData.count || 1,
-        diamonds: giftData.giftCoins || 0,
+        diamonds: giftData.giftDiamonds || 0,
         isReceiverGift: giftData.receiverId ? giftData.receiverId === cuid : false,
       });
 
-      if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
+      if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastDiamonds);
       setTotalRoomBeans(prev => prev + broadcastBeans);
       if (giftData.receiverId && broadcastBeans > 0) {
         setSeatBeansReceived(prev => ({
@@ -1182,7 +1182,7 @@ const PartyRoom = () => {
       if (giftData.senderId) {
         setParticipantBeans(prev => ({
           ...prev,
-          [giftData.senderId!]: (prev[giftData.senderId!] || 0) + broadcastCoins,
+          [giftData.senderId!]: (prev[giftData.senderId!] || 0) + broadcastDiamonds,
         }));
       }
       playSound('gift');
@@ -2979,8 +2979,8 @@ const PartyRoom = () => {
               }
               
               const totalCost = gift.diamonds * count;
-              const availableCoins = userCoinsRef.current;
-              if (availableCoins < totalCost) {
+              const availableDiamonds = userDiamondsRef.current;
+              if (availableDiamonds < totalCost) {
                 toast.error("Not enough diamonds!");
                 return;
               }
@@ -2988,10 +2988,10 @@ const PartyRoom = () => {
               // ========== INSTANT UI UPDATE (< 100ms) ==========
               // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
               
-              // Optimistic coin deduction (instant visual feedback)
-              userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+              // Optimistic diamond deduction (instant visual feedback)
+              userDiamondsRef.current = Math.max(0, availableDiamonds - totalCost);
               pendingGiftCostRef.current += totalCost;
-              setUserCoins(userCoinsRef.current);
+              setUserDiamonds(userDiamondsRef.current);
               
               // Play gift sound IMMEDIATELY
               playSound('gift');
@@ -3074,8 +3074,8 @@ const PartyRoom = () => {
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
 
                   if (!result.success) {
-                    userCoinsRef.current += totalCost;
-                    setUserCoins(userCoinsRef.current);
+                    userDiamondsRef.current += totalCost;
+                    setUserDiamonds(userDiamondsRef.current);
                     toast.error(result.error || "Gift failed - diamonds refunded");
                     return;
                   }
@@ -3091,11 +3091,11 @@ const PartyRoom = () => {
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   
                   if (updatedProfile && pendingGiftCostRef.current === 0) {
-                    userCoinsRef.current = updatedProfile.diamonds || 0;
-                    setUserCoins(userCoinsRef.current);
+                    userDiamondsRef.current = updatedProfile.diamonds || 0;
+                    setUserDiamonds(userDiamondsRef.current);
                     // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                     const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-                    updateCachedBalance(userCoinsRef.current);
+                    updateCachedBalance(userDiamondsRef.current);
                   }
                   
                   // Save gift message to party_room_messages
@@ -3129,8 +3129,8 @@ const PartyRoom = () => {
                   if (transactionSucceeded) return;
                   // Refund diamonds only when the transaction itself failed before server success.
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
-                  userCoinsRef.current += totalCost;
-                  setUserCoins(userCoinsRef.current);
+                  userDiamondsRef.current += totalCost;
+                  setUserDiamonds(userDiamondsRef.current);
                   toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);
                 }
               })();

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, Crown, Medal, Coins, Loader2, Users, Calendar, CalendarDays, CalendarRange, Mic, Gamepad2, Building2, Swords } from "lucide-react";
+import { X, Trophy, Crown, Medal, Gem, Loader2, Users, Calendar, CalendarDays, CalendarRange, Mic, Gamepad2, Building2, Swords } from "lucide-react";
 import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { Button } from "@/components/ui/button";
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, Search, Coins, Send, User, Check, History,
+  ArrowLeft, Search, Gem, Send, User, Check, History,
   Diamond, Sparkles, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -234,7 +234,7 @@ const AdminManualTopup = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Coins className="w-5 h-5 text-amber-500" />
+              <Gem className="w-5 h-5 text-amber-500" />
               Diamond Top-Up
             </CardTitle>
           </CardHeader>

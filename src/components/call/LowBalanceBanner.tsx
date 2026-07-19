@@ -2,7 +2,7 @@
  * LowBalanceBanner — Phase 3 Step 3
  *
  * Non-blocking top banner shown during a private call when the viewer's
- * remaining coin balance drops to <= 2 minutes (warning) or <= 1 minute
+ * remaining diamond balance drops to <= 2 minutes (warning) or <= 1 minute
  * (critical). Industry standard (Chamet/Bigo/Poppo): pre-warn → critical →
  * hard stop at 0. Tap "Recharge" to navigate to top-up.
  *
@@ -10,7 +10,7 @@
  * blends with the in-call UI without introducing new visual language.
  */
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coins, AlertTriangle } from 'lucide-react';
+import { Gem, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -46,7 +46,7 @@ export function LowBalanceBanner({ visible, severity, remainingMinutes, onRechar
           {isCritical ? (
             <AlertTriangle className="w-4.5 h-4.5 text-white shrink-0" />
           ) : (
-            <Coins className="w-4.5 h-4.5 text-white shrink-0" />
+            <Gem className="w-4.5 h-4.5 text-white shrink-0" />
           )}
           <span className="text-white text-xs font-semibold whitespace-nowrap">
             {isCritical ? 'Balance critical' : 'Low balance'} · {minutesText} left

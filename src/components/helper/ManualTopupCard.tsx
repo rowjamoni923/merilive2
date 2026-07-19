@@ -94,8 +94,8 @@ export default function ManualTopupCard({
   };
 
   const customDigits = parseInt((customAmount || "").replace(/,/g, "")) || 0;
-  const effectiveCoins = selectedPackage || customDigits || 0;
-  const ready = effectiveCoins >= 500000;
+  const effectiveDiamonds = selectedPackage || customDigits || 0;
+  const ready = effectiveDiamonds >= 500000;
 
   return (
     <>
@@ -284,10 +284,10 @@ export default function ManualTopupCard({
                     <span className="text-slate-700 text-sm">You will receive:</span>
                     <div className="text-right">
                       <p className="text-slate-900 font-bold text-lg">
-                        {formatDiamonds(effectiveCoins)} 💎
+                        {formatDiamonds(effectiveDiamonds)} 💎
                       </p>
                       <p className="text-emerald-600 text-xs">
-                        ${calculateUSD(effectiveCoins).toFixed(2)} USD
+                        ${calculateUSD(effectiveDiamonds).toFixed(2)} USD
                       </p>
                     </div>
                   </div>
@@ -348,8 +348,8 @@ export default function ManualTopupCard({
           packages={[]}
           mode="helper"
           helperId={helperId}
-          helperCustomCoins={effectiveCoins}
-          helperCustomPriceUsd={Number(calculateUSD(effectiveCoins).toFixed(2))}
+          helperCustomDiamonds={effectiveDiamonds}
+          helperCustomPriceUsd={Number(calculateUSD(effectiveDiamonds).toFixed(2))}
           onCredited={(diamonds) => {
             onCredited?.(diamonds);
             setShowForm(false);

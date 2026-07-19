@@ -412,13 +412,13 @@ const Tasks = () => {
       }
 
       const earnedBeans = Number((result as any)?.beans ?? task.reward_beans ?? 0);
-      const earnedCoins = Number((result as any)?.diamonds ?? task.reward_diamonds ?? 0);
+      const earnedDiamonds = Number((result as any)?.diamonds ?? task.reward_diamonds ?? 0);
 
       // Force balance refresh on next balance check
       updateCachedBalance(0);
 
       // Show reward animation
-      setShowReward({ beans: earnedBeans, diamonds: earnedCoins });
+      setShowReward({ beans: earnedBeans, diamonds: earnedDiamonds });
       setTimeout(() => setShowReward(null), 3000);
 
       // Update local state immediately
@@ -427,10 +427,10 @@ const Tasks = () => {
         [task.id]: { ...prev[task.id], is_claimed: true }
       }));
 
-      toast.success(`🎉 Reward claimed! +${earnedBeans} Beans, +${earnedCoins} Diamonds`);
+      toast.success(`🎉 Reward claimed! +${earnedBeans} Beans, +${earnedDiamonds} Diamonds`);
     } catch (error) {
       console.error('Error claiming reward:', error);
-      recordClientError({ label: "Tasks.earnedCoins", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "Tasks.earnedDiamonds", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to claim reward");
     } finally {
       setClaimingTask(null);

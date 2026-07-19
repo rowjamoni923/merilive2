@@ -94,7 +94,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   landing_page_sections: [['landing-page']],
   app_content: [['app-content']],
   // Financial
-  diamond_transactions: [['coin-transactions'], ['user-profile']],
+  diamond_transactions: [['diamond-transactions'], ['user-profile']],
   payment_gateways: [['payment-gateways']],
   first_recharge_bonus: [['first-recharge']],
   limited_time_offers: [['limited-offers']],

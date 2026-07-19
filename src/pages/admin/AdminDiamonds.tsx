@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import {
-  Coins,
+  Gem,
   Plus,
   Edit,
   Trash2,
@@ -499,12 +499,12 @@ export default function AdminDiamonds() {
     }
   };
 
-  const formatCoins = (diamonds: number | null | undefined) => {
-    const safeCoins = Number(diamonds ?? 0);
-    if (!Number.isFinite(safeCoins)) return "0";
-    if (safeCoins >= 1000000) return `${(safeCoins / 1000000).toFixed(1)}M`;
-    if (safeCoins >= 1000) return `${(safeCoins / 1000).toFixed(1)}K`;
-    return safeCoins.toString();
+  const formatDiamonds = (diamonds: number | null | undefined) => {
+    const safeDiamonds = Number(diamonds ?? 0);
+    if (!Number.isFinite(safeDiamonds)) return "0";
+    if (safeDiamonds >= 1000000) return `${(safeDiamonds / 1000000).toFixed(1)}M`;
+    if (safeDiamonds >= 1000) return `${(safeDiamonds / 1000).toFixed(1)}K`;
+    return safeDiamonds.toString();
   };
 
   return (
@@ -548,7 +548,7 @@ export default function AdminDiamonds() {
           <Card className="bg-slate-50 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-amber-400">
-                <Coins className="w-5 h-5" />
+                <Gem className="w-5 h-5" />
                 Beans to USD Exchange Rate
               </CardTitle>
               <p className="text-slate-300 text-sm">
@@ -560,7 +560,7 @@ export default function AdminDiamonds() {
                 <div className="flex-1">
                   <Label className="text-amber-400 font-medium">Beans Amount (per $1 USD)</Label>
                   <div className="relative mt-1">
-                    <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
+                    <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
                     <Input
                       type="number"
                       value={beansToUsdRate}
@@ -817,11 +817,11 @@ export default function AdminDiamonds() {
                         <Diamond className="w-7 h-7 text-slate-900" />
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">
-                        {formatCoins(pkg.diamonds)}
+                        {formatDiamonds(pkg.diamonds)}
                       </h3>
                       {pkg.diamonds !== pkg.base_diamonds && (
                         <p className="text-slate-400 text-sm line-through">
-                          {formatCoins(pkg.base_diamonds)}
+                          {formatDiamonds(pkg.base_diamonds)}
                         </p>
                       )}
                     </div>
@@ -1103,11 +1103,11 @@ export default function AdminDiamonds() {
                       </div>
                       <div>
                         <div className="text-slate-900 font-bold text-xl">
-                          {formatCoins(packageForm.diamonds)}
+                          {formatDiamonds(packageForm.diamonds)}
                         </div>
                         {packageForm.bonus_percentage > 0 && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 text-xs line-through">{formatCoins(packageForm.base_diamonds)}</span>
+                            <span className="text-slate-400 text-xs line-through">{formatDiamonds(packageForm.base_diamonds)}</span>
                             <span className="text-amber-400 text-xs font-bold bg-amber-500/20 px-1.5 py-0.5 rounded">
                               +{packageForm.bonus_percentage}%
                             </span>
@@ -1121,7 +1121,7 @@ export default function AdminDiamonds() {
                       </div>
                       {packageForm.bonus_percentage > 0 && (
                         <div className="text-amber-400 text-xs font-semibold">
-                          +{formatCoins(Math.round(packageForm.base_diamonds * packageForm.bonus_percentage / 100))} FREE
+                          +{formatDiamonds(Math.round(packageForm.base_diamonds * packageForm.bonus_percentage / 100))} FREE
                         </div>
                       )}
                     </div>

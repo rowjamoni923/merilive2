@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Gift, Phone, Users, Radio, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Bell, Gift, Phone, Users, Radio, Gem, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { PageSkeleton } from "@/components/common/PageSkeleton";

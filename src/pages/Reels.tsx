@@ -3,7 +3,7 @@ import { useNativeImagePrefetch } from "@/hooks/useNativeImagePrefetch";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
-import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
+import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -136,7 +136,7 @@ const Reels = () => {
   const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<Comment['user'] | null>(null);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [isHost, setIsHost] = useState(false);
   const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -162,7 +162,7 @@ const Reels = () => {
   const [submittingReport, setSubmittingReport] = useState(false);
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const containerRef = useRef<HTMLDivElement>(null);
-  const userCoinsRef = useRef(0);
+  const userDiamondsRef = useRef(0);
   const currentIndexRef = useRef(0);
   const currentUserIdRef = useRef<string | null>(null);
 
@@ -184,7 +184,7 @@ const Reels = () => {
   });
   
   useEffect(() => {
-    userCoinsRef.current = userDiamonds;
+    userDiamondsRef.current = userDiamonds;
   }, [userDiamonds]);
   useEffect(() => {
     currentIndexRef.current = currentIndex;
@@ -234,8 +234,8 @@ const Reels = () => {
           gender: (profileRes.data as any).gender,
           is_host: profileRes.data.is_host,
         } : null);
-        userCoinsRef.current = profileRes.data?.diamonds || 0;
-        setUserCoins(profileRes.data?.diamonds || 0);
+        userDiamondsRef.current = profileRes.data?.diamonds || 0;
+        setUserDiamonds(profileRes.data?.diamonds || 0);
         if (categoriesRes.data) {
           setCategories(categoriesRes.data);
           reelsCache.categories = categoriesRes.data;
@@ -683,15 +683,15 @@ const Reels = () => {
     }
 
     const totalCost = gift.diamonds * count;
-    const availableCoins = userCoinsRef.current;
-    if (totalCost > availableCoins) {
+    const availableDiamonds = userDiamondsRef.current;
+    if (totalCost > availableDiamonds) {
       toast.error("Not enough diamonds!");
       return;
     }
 
-    const previousCoins = availableCoins;
-    userCoinsRef.current = Math.max(0, availableCoins - totalCost);
-    setUserCoins(userCoinsRef.current);
+    const previousDiamonds = availableDiamonds;
+    userDiamondsRef.current = Math.max(0, availableDiamonds - totalCost);
+    setUserDiamonds(userDiamondsRef.current);
     const { updateCachedBalance, getCachedBalance } = await import("@/hooks/useUserBalance");
     updateCachedBalance(getCachedBalance() - totalCost);
     setShowGiftPanel(false);
@@ -740,18 +740,18 @@ const Reels = () => {
         .eq('id', sendingUserId)
         .single();
       if (updatedProfile) {
-        userCoinsRef.current = updatedProfile.diamonds || 0;
-        setUserCoins(userCoinsRef.current);
-        updateCachedBalance(userCoinsRef.current);
+        userDiamondsRef.current = updatedProfile.diamonds || 0;
+        setUserDiamonds(userDiamondsRef.current);
+        updateCachedBalance(userDiamondsRef.current);
       }
 
       toast.success(`Sent ${count}x ${gift.name}!`);
     } catch (error) {
       console.error('Gift error:', error);
       recordClientError({ label: "Reels.beansEarned", message: error instanceof Error ? error.message : String(error) });
-      userCoinsRef.current = previousCoins;
-      setUserCoins(previousCoins);
-      updateCachedBalance(previousCoins);
+      userDiamondsRef.current = previousDiamonds;
+      setUserDiamonds(previousDiamonds);
+      updateCachedBalance(previousDiamonds);
       const msg = error instanceof Error ? error.message : 'Failed to send gift';
       toast.error(msg);
     }
@@ -986,7 +986,7 @@ const Reels = () => {
                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                     className="absolute top-14 left-3 flex items-center gap-1 rounded-full px-2 py-0.5 backdrop-blur-md bg-black/40 ring-1 ring-amber-300/30"
                   >
-                    <Coins className="w-3 h-3 text-amber-300" />
+                    <Gem className="w-3 h-3 text-amber-300" />
                     <span className="text-white text-[10.5px] font-semibold tracking-wide">{formatCount(currentReel.beans_earned || 0)}</span>
                   </motion.div>
                 )}

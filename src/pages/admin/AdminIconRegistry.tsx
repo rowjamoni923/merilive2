@@ -7,7 +7,7 @@ import {
   Image, Palette, Eye, Filter, X, Home, Diamond, Gem, Users,
   Phone, Camera, Music, Gift, Shield, Star, Heart, Zap,
   Crown, Sparkles, Globe, Wallet, Award, Settings, Bell,
-  MessageCircle, Play, Trophy, Clock, Target, Coins,
+  MessageCircle, Play, Trophy, Clock, Target, Gem,
   ArrowRight, ChevronDown, Package, Layers
 } from 'lucide-react';
 import { icons as allLucideIcons } from 'lucide-react';
@@ -61,7 +61,7 @@ const POPULAR_LUCIDE_ICONS = [
   'Home', 'Diamond', 'Gem', 'Users', 'Phone', 'Camera', 'Music', 'Gift',
   'Shield', 'Star', 'Heart', 'Zap', 'Crown', 'Sparkles', 'Globe', 'Wallet',
   'Award', 'Settings', 'Bell', 'MessageCircle', 'Play', 'Trophy', 'Clock',
-  'Target', 'Coins', 'Package', 'Layers', 'Eye', 'Search', 'Filter',
+  'Target', 'Diamonds', 'Package', 'Layers', 'Eye', 'Search', 'Filter',
   'Image', 'Palette', 'Upload', 'ArrowRight', 'ChevronDown',
 ];
 

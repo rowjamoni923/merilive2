@@ -170,7 +170,7 @@ export default function PremiumGoldenBadge({
           animate={animated ? { rotate: 360 } : undefined}
           transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
         >
-          {/* Inner coin face */}
+          {/* Inner diamond face */}
           <div
             className="w-full h-full rounded-full relative overflow-hidden flex flex-col items-center justify-center"
             style={{

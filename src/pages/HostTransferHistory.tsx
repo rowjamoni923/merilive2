@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Gift, Phone, TrendingUp, Calendar, Clock, Building2, Loader2, Coins, DollarSign } from "lucide-react";
+import { ArrowLeft, Gift, Phone, TrendingUp, Calendar, Clock, Building2, Loader2, Gem, DollarSign } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -228,7 +228,7 @@ const HostTransferHistory = () => {
         {/* Weekly Reports List */}
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Coins className="w-4 h-4 text-amber-500" />
+            <Gem className="w-4 h-4 text-amber-500" />
             Weekly Earnings Report
           </h2>
           
@@ -286,7 +286,7 @@ const HostTransferHistory = () => {
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <Coins className="w-3 h-3 text-amber-500" />
+                        <Gem className="w-3 h-3 text-amber-500" />
                         <span className="text-[10px] text-gray-500">Total</span>
                       </div>
                       <p className="font-bold text-amber-600 text-sm">

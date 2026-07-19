@@ -102,7 +102,7 @@ describe("media surfaces — subscription handlers wired", () => {
 
   it("party gift send guards rapid taps, stale rooms, and instant gift chat fanout", () => {
     const src = read("src/pages/PartyRoom.tsx");
-    expect(src).toMatch(/userCoinsRef/);
+    expect(src).toMatch(/userDiamondsRef/);
     expect(src).toMatch(/pendingGiftCostRef/);
     expect(src).toMatch(/roomIdRef\.current !== sendingRoomId/);
     expect(src).toMatch(/if \(transactionSucceeded\) return/);
@@ -121,9 +121,9 @@ describe("media surfaces — subscription handlers wired", () => {
   it("call and reels gift send use ref-backed balances for rapid combo taps", () => {
     const call = read("src/components/call/ActiveCallScreen.tsx");
     const reels = read("src/pages/Reels.tsx");
-    expect(call).toMatch(/userCoinsRef\.current/);
-    expect(call).toMatch(/const availableCoins = userCoinsRef\.current/);
-    expect(reels).toMatch(/userCoinsRef\.current/);
+    expect(call).toMatch(/userDiamondsRef\.current/);
+    expect(call).toMatch(/const availableDiamonds = userDiamondsRef\.current/);
+    expect(reels).toMatch(/userDiamondsRef\.current/);
     expect(reels).toMatch(/currentUserIdRef\.current/);
   });
 

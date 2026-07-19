@@ -192,7 +192,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
   if (liveKitScope && liveKitId) {
     try {
       const cachedGift = requestGift || await getGiftById(giftId); // caller metadata = zero network wait
-      const unitCoins = cachedGift?.diamonds || 0;
+      const unitDiamonds = cachedGift?.diamonds || 0;
       const hintedFormat = getProfessionalGiftFormat(cachedGift);
       const optimisticPayload = {
         senderId,
@@ -206,8 +206,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         giftAnimationConfigUrl: cachedGift?.animation_config_url || undefined,
         giftSoundUrl: cachedGift?.sound_url || undefined,
         count: quantity,
-        giftCoins: unitCoins,
-        totalDiamonds: unitCoins * quantity,
+        giftDiamonds: unitDiamonds,
+        totalDiamonds: unitDiamonds * quantity,
         receiverBeans: 0, // unknown until RPC settles — receiver beans counter reconciles via own-beans-updated
         timestamp: Date.now(),
       };
@@ -350,7 +350,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftAnimationConfigUrl: gift?.animation_config_url || undefined,
             giftSoundUrl: gift?.sound_url || undefined,
             count: quantity,
-            giftCoins: gift?.diamonds || 0,
+            giftDiamonds: gift?.diamonds || 0,
             totalDiamonds: result.diamondsSpent || 0,
             receiverBeans: result.hostReceived || 0,
             luckyBonus: result.diamondBonus || 0,
@@ -389,9 +389,9 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
 
 
 /**
- * Format coin value for display
+ * Format diamond value for display
  */
-export function formatCoinValue(diamonds: number): string {
+export function formatDiamondValue(diamonds: number): string {
   if (diamonds >= 1000000) {
     return (diamonds / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }

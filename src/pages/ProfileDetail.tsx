@@ -311,7 +311,7 @@ const ProfileDetail = () => {
   
   // Call modal state
   const [showCallConfirmModal, setShowCallConfirmModal] = useState(false);
-  const [currentUserCoins, setCurrentUserCoins] = useState(0);
+  const [currentUserDiamonds, setCurrentUserDiamonds] = useState(0);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
 
@@ -450,7 +450,7 @@ const ProfileDetail = () => {
     ]);
 
     // Set current user diamonds (ZERO-COIN: single spend wallet)
-    setCurrentUserCoins((currentUserProfileResult?.data as any)?.diamonds || 0);
+    setCurrentUserDiamonds((currentUserProfileResult?.data as any)?.diamonds || 0);
 
     // Set slideshow interval
     if (intervalSettingResult?.data?.setting_value) {
@@ -1920,7 +1920,7 @@ const ProfileDetail = () => {
         hostName={profile?.display_name || 'Host'}
         hostAvatar={profile?.avatar_url || null}
         hostLevel={level}
-        userDiamonds={currentUserCoins}
+        userDiamonds={currentUserDiamonds}
       />
       
       {/* Gift Panel - Same as Live/Party/Chat */}
@@ -1930,7 +1930,7 @@ const ProfileDetail = () => {
         onSendGift={async (gift: GiftData, count: number) => {
           if (!currentUser?.id || !userId) return;
           const totalCost = gift.diamonds * count;
-          if (currentUserCoins < totalCost) {
+          if (currentUserDiamonds < totalCost) {
             toast({
               title: "Not Enough Diamonds!",
               description: "Please recharge your diamonds.",
@@ -1939,8 +1939,8 @@ const ProfileDetail = () => {
             return;
           }
 
-          const previousCoins = currentUserCoins;
-          setCurrentUserCoins(prev => prev - totalCost);
+          const previousDiamonds = currentUserDiamonds;
+          setCurrentUserDiamonds(prev => prev - totalCost);
           const { updateCachedBalance, getCachedBalance } = await import("@/hooks/useUserBalance");
           updateCachedBalance(getCachedBalance() - totalCost);
 
@@ -1973,8 +1973,8 @@ const ProfileDetail = () => {
           });
 
           if (!result.success) {
-            setCurrentUserCoins(previousCoins);
-            updateCachedBalance(previousCoins);
+            setCurrentUserDiamonds(previousDiamonds);
+            updateCachedBalance(previousDiamonds);
             toast({ title: "Failed", description: result.error || "Could not send gift", variant: "destructive" });
             return;
           }
@@ -1986,7 +1986,7 @@ const ProfileDetail = () => {
 
           setShowGiftPanel(false);
         }}
-        userDiamonds={currentUserCoins}
+        userDiamonds={currentUserDiamonds}
       />
 
       {/* Full-screen SVGA Gift Animations (own gift instant feedback) */}

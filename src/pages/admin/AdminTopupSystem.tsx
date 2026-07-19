@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, Search, Coins, Send, User, Check, History,
+  ArrowLeft, Search, Gem, Send, User, Check, History,
   Diamond, Sparkles, Users, Clock, MoreVertical, Eye, Ban,
   ArrowUpRight, ArrowDownLeft, Loader2, DollarSign, Settings,
   CreditCard, Smartphone, Plus, X, Package, Filter, RefreshCw,
@@ -203,7 +203,7 @@ const AdminTopupSystem = () => {
     totalHelpers: 0,
     activeHelpers: 0,
     pendingOrders: 0,
-    totalCoinsTraded: 0,
+    totalDiamondsTraded: 0,
     totalManualTopups: 0
   });
   
@@ -443,7 +443,7 @@ const AdminTopupSystem = () => {
         ...prev,
         totalHelpers: (data || []).length,
         activeHelpers: (data || []).filter((h: any) => h.is_active && h.is_verified).length,
-        totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
+        totalDiamondsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
       }));
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
@@ -502,7 +502,7 @@ const AdminTopupSystem = () => {
     fetchHelpers();
   };
 
-  const handleCoinTransfer = async () => {
+  const handleDiamondTransfer = async () => {
     if (!selectedHelper || !transferAmount) return;
     const amt = parseInt(transferAmount);
     if (isNaN(amt) || amt <= 0) {
@@ -654,7 +654,7 @@ const AdminTopupSystem = () => {
                 <Diamond className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div>
-                <p className="text-lg sm:text-2xl font-bold">{stats.totalCoinsTraded.toLocaleString()}</p>
+                <p className="text-lg sm:text-2xl font-bold">{stats.totalDiamondsTraded.toLocaleString()}</p>
                 <p className="text-xs text-slate-700">Total Traded</p>
               </div>
             </div>
@@ -722,7 +722,7 @@ const AdminTopupSystem = () => {
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
         <TabsList className="w-full h-auto flex-wrap bg-white/80 backdrop-blur-sm shadow-sm rounded-xl p-1 gap-1">
           <TabsTrigger value="manual" className="flex-1 min-w-[80px] gap-1 sm:gap-2 text-xs sm:text-sm py-2">
-            <Coins className="w-3 h-3 sm:w-4 sm:h-4" />
+            <Gem className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Manual</span> Topup
           </TabsTrigger>
           <TabsTrigger value="traders" className="flex-1 min-w-[80px] gap-1 sm:gap-2 text-xs sm:text-sm py-2">
@@ -752,7 +752,7 @@ const AdminTopupSystem = () => {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Coins className="w-5 h-5 text-amber-500" />
+                  <Gem className="w-5 h-5 text-amber-500" />
                   Add Diamonds to User
                 </CardTitle>
                   <CardDescription>Search for any user and add diamonds directly</CardDescription>
@@ -1521,7 +1521,7 @@ const AdminTopupSystem = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTransferModal(false)}>Cancel</Button>
             <Button 
-              onClick={handleCoinTransfer} 
+              onClick={handleDiamondTransfer} 
               disabled={!transferAmount || isTransferring}
               className="bg-emerald-500 hover:bg-emerald-600"
             >

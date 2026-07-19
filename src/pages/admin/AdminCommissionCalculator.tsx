@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, Calculator, Save, Gift, Phone, Coins, 
+  ArrowLeft, Calculator, Save, Gift, Phone, Gem, 
   TrendingUp, Building2, Users, Sparkles, CheckCircle,
   RefreshCw
 } from "lucide-react";

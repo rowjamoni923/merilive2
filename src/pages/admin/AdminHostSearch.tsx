@@ -9,7 +9,7 @@ import {
   Phone,
   Calendar,
   Clock,
-  Coins,
+  Gem,
   CheckCircle,
   Ban,
   Crown,
@@ -315,7 +315,7 @@ export default function AdminHostSearch() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-white/5 rounded-lg p-3 text-center">
-                      <Coins className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
+                      <Gem className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
                       <p className="text-slate-900 font-bold">{host.total_earnings?.toLocaleString() || 0}</p>
                       <p className="text-xs text-slate-500">Total Earnings</p>
                     </div>

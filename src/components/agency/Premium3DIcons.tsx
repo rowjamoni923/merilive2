@@ -96,11 +96,11 @@ export const DiamondExchangeIcon3D = memo(() => (
   <div className="relative">
     <div className="absolute inset-0 bg-white/20 rounded-xl blur-md" />
     <svg viewBox="0 0 48 48" className={iconSize} style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}>
-      {/* Back coin */}
+      {/* Back diamond */}
       <circle cx="19" cy="24" r="12" fill="rgba(255,255,255,0.6)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
       <circle cx="19" cy="24" r="9" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
       <text x="19" y="28" fontSize="11" fontWeight="bold" fill="rgba(0,0,0,0.25)" textAnchor="middle">◆</text>
-      {/* Front coin */}
+      {/* Front diamond */}
       <circle cx="30" cy="22" r="12" fill="white" stroke="rgba(255,255,255,0.8)" strokeWidth="1" />
       <circle cx="30" cy="22" r="9" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="0.8" />
       <text x="30" y="26" fontSize="12" fontWeight="bold" fill={ACCENT_GOLD_DEEP} textAnchor="middle">$</text>

@@ -2,13 +2,13 @@ import { useCallback, useEffect, useRef } from 'react';
 import { ensureAudioUnlocked, isAudioUnlocked } from '@/utils/audioUnlock';
 
 // Sound types
-type SoundType = 'ringtone' | 'notification' | 'message' | 'coin' | 'gift' | 'call-end' | 'call-connect' | 'entrance';
+type SoundType = 'ringtone' | 'notification' | 'message' | 'diamond' | 'gift' | 'call-end' | 'call-connect' | 'entrance';
 
 // ─────────────────────────────────────────────────────────────
 // GLOBAL SINGLETON AudioContext
 // Previously every component that called useSound() created its
 // own AudioContext and CLOSED it on unmount — that destroyed
-// in-flight sounds (notification/coin/gift/SVGA chime) and made
+// in-flight sounds (notification/diamond/gift/SVGA chime) and made
 // every subsequent sound "break" or never play. We now keep one
 // shared context for the whole app and never close it.
 // ─────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ const playMessageSound = (ctx: AudioContext, gainNode: GainNode) => {
   osc.stop(t0 + 0.2);
 };
 
-const playCoinSound = (ctx: AudioContext, gainNode: GainNode) => {
+const playDiamondSound = (ctx: AudioContext, gainNode: GainNode) => {
   const frequencies = [1318.51, 1567.98, 2093];
   const t0 = ctx.currentTime;
   frequencies.forEach((freq, i) => {
@@ -244,7 +244,7 @@ const playSoundInternal = (type: SoundType) => {
       case 'ringtone': playRingtone(ctx, sharedGain); break;
       case 'notification': playNotificationSound(ctx, sharedGain); break;
       case 'message': playMessageSound(ctx, sharedGain); break;
-      case 'coin': playCoinSound(ctx, sharedGain); break;
+      case 'diamond': playDiamondSound(ctx, sharedGain); break;
       case 'gift': playGiftSound(ctx, sharedGain); break;
       case 'call-connect': playCallConnectSound(ctx, sharedGain); break;
       case 'call-end': playCallEndSound(ctx, sharedGain); break;

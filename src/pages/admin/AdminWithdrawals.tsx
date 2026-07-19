@@ -135,7 +135,7 @@ export default function AdminWithdrawals() {
   const [actionNotes, setActionNotes] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
+  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [helperPlatformFee, setHelperPlatformFee] = useState(10);
   const [globalCounts, setGlobalCounts] = useState({ pending: 0, approved: 0, totalPendingAmount: 0 });
   const actionGuardRef = useRef<Set<string>>(new Set());
@@ -176,7 +176,7 @@ export default function AdminWithdrawals() {
     if (data?.setting_value) {
       const settings = data.setting_value as { coins_to_dollar_rate?: number };
       if (settings.coins_to_dollar_rate) {
-        setCoinsToUsdRate(settings.coins_to_dollar_rate);
+        setDiamondsToUsdRate(settings.coins_to_dollar_rate);
       }
     }
 

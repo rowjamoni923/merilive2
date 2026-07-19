@@ -1079,7 +1079,7 @@ export default function AdminGifts() {
               />
             </div>
 
-            {/* Coin Value */}
+            {/* Diamond Value */}
             <div>
               <Label className="text-slate-300 font-medium text-sm md:text-base">Diamond Value</Label>
               <Input

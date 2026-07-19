@@ -678,7 +678,7 @@ function CampaignFloatingButton() {
       try {
         const diamonds = campaign.diamonds_amount;
         await loadPlayStoreProducts();
-        const productId = playStoreBilling.getProductIdForCoins(diamonds);
+        const productId = playStoreBilling.getProductIdForDiamonds(diamonds);
         if (!productId) { toast({ title: 'Product not found', variant: 'destructive' }); return; }
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { toast({ title: 'Please login first', variant: 'destructive' }); return; }
@@ -1586,7 +1586,7 @@ function CampaignFloatingButton() {
             diamonds: matchedPackage.diamonds_amount,
             price_usd: matchedPackage.price_usd,
           }] : []}
-          userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}
+          userCustomDiamonds={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}
           userCustomPriceUsd={campaign.offer_price_usd || campaign.original_price_usd}
           userCustomLabel={campaign.campaign_name}
           userCustomPurpose="campaign"

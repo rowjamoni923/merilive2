@@ -19,7 +19,7 @@ import {
   XCircle, 
   Crown, 
   Clock, 
-  Coins, 
+  Gem, 
   Camera, 
   ChevronLeft, 
   ChevronRight, 
@@ -1492,7 +1492,7 @@ export default function AdminUserManagement() {
   };
 
   // Helper functions
-  const formatCoins = (diamonds: number) => {
+  const formatDiamonds = (diamonds: number) => {
     if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
     if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
     return diamonds.toString();
@@ -1781,7 +1781,7 @@ export default function AdminUserManagement() {
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
                             <div className="flex items-center gap-1 text-yellow-500 font-bold">
-                              <Coins className="w-4 h-4" />
+                              <Gem className="w-4 h-4" />
                               <span>{user.diamonds?.toLocaleString() || 0}</span>
                             </div>
                           </TableCell>
@@ -1913,10 +1913,10 @@ export default function AdminUserManagement() {
             <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Coins className="w-8 h-8 text-purple-500" />
+                  <Gem className="w-8 h-8 text-purple-500" />
                   <div>
                     <p className="text-purple-600 text-xs font-medium">Total Earnings</p>
-                    <p className="text-purple-900 font-bold text-xl">{formatCoins(hostStats.totalEarnings)}</p>
+                    <p className="text-purple-900 font-bold text-xl">{formatDiamonds(hostStats.totalEarnings)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -2017,7 +2017,7 @@ export default function AdminUserManagement() {
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
                             <span className="text-green-600 font-medium">
-                              {formatCoins(host.total_earnings || 0)}
+                              {formatDiamonds(host.total_earnings || 0)}
                             </span>
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">

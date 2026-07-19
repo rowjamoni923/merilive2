@@ -170,7 +170,7 @@ export const PKBattleActive = ({
     const onLiveKitGift = (event: Event) => {
       const detail = (event as CustomEvent<GiftSentDetail>).detail;
       if (!detail) return;
-      const diamonds = detail.totalDiamonds || (detail.giftCoins || 0) * (detail.count || 1);
+      const diamonds = detail.totalDiamonds || (detail.giftDiamonds || 0) * (detail.count || 1);
       if (!diamonds) return;
       if (challengerId && detail.receiverId === challengerId) {
         const base = pendingChallengerRef.current ?? latestChallengerScoreRef.current;

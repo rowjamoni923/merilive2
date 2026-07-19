@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { Coins, Users, Package, Activity, CreditCard, Wallet, DollarSign, Settings, Phone } from "lucide-react";
+import { Gem, Users, Package, Activity, CreditCard, Wallet, DollarSign, Settings, Phone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +68,7 @@ export default function AdminDiamondTraderHub() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
-            <Coins className="w-6 h-6 text-slate-900" />
+            <Gem className="w-6 h-6 text-slate-900" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Diamond Trader Hub</h1>
@@ -175,7 +175,7 @@ export default function AdminDiamondTraderHub() {
             value="diamond-packages" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white gap-2"
           >
-            <Coins className="w-4 h-4" />
+            <Gem className="w-4 h-4" />
             Packages
           </TabsTrigger>
           <TabsTrigger 
@@ -206,7 +206,7 @@ export default function AdminDiamondTraderHub() {
              value="user-exchange" 
              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-white gap-2"
            >
-             <Coins className="w-4 h-4" />
+             <Gem className="w-4 h-4" />
              User Exchange
            </TabsTrigger>
         </TabsList>
@@ -300,7 +300,7 @@ export default function AdminDiamondTraderHub() {
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
-                <Coins className="w-5 h-5 text-cyan-400" />
+                <Gem className="w-5 h-5 text-cyan-400" />
                 Diamond Packages
                 <Badge variant="outline" className="ml-2 text-cyan-400 border-cyan-500/50">
                   Pricing
@@ -368,7 +368,7 @@ export default function AdminDiamondTraderHub() {
            <Card className="bg-white/30 border-slate-200">
              <CardHeader className="pb-2">
                <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
-                 <Coins className="w-5 h-5 text-amber-400" />
+                 <Gem className="w-5 h-5 text-amber-400" />
                  User Beans Exchange Rates
                  <Badge variant="outline" className="ml-2 text-amber-400 border-amber-500/50">
                    Regular Users

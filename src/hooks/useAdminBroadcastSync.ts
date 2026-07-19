@@ -101,7 +101,7 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   helper_applications: [['helper-applications']],
   helper_transactions: [['helper-transactions'], ['trader-transactions']],
   agency_hosts: [['agency-hosts'], ['agency-detail']],
-  diamond_transfers: [['coin-transfers']],
+  diamond_transfers: [['diamond-transfers']],
   // Pkg55 additions — Content/Assets
   user_role_frames: [['user-role-frames'], ['my-role-frames'], ['vip-privileges']],
   // Pkg57 additions — Content/Assets re-audit

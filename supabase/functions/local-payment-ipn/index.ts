@@ -31,7 +31,7 @@ function assertSamePayment(order: any, bodyFields: { userId?: string; totalDiamo
   if (bodyFields.userId && bodyFields.userId !== order.user_id) throw new Error("IPN user mismatch");
   if (bodyFields.paymentMethodId && bodyFields.paymentMethodId !== details.payment_method_id) throw new Error("IPN payment method mismatch");
   if (bodyFields.txnId && details.txn_id && bodyFields.txnId !== details.txn_id) throw new Error("IPN transaction mismatch");
-  if (bodyFields.totalDiamonds && Number(order.diamond_amount || 0) !== bodyFields.totalDiamonds) throw new Error("IPN coin amount mismatch");
+  if (bodyFields.totalDiamonds && Number(order.diamond_amount || 0) !== bodyFields.totalDiamonds) throw new Error("IPN diamond amount mismatch");
 
   const paidAmount = asMoney(bodyFields.amount);
   if (paidAmount !== null && Math.abs(paidAmount - Number(order.amount_local || 0)) > 0.01) throw new Error("IPN amount mismatch");
@@ -126,7 +126,7 @@ serve(async (req) => {
               user_id: userId,
               order_id: orderId,
               transaction_id: txnId,
-              amount_coins: totalDiamonds,
+              amount_diamonds: totalDiamonds,
               metadata: { reason: "SSLCommerz API validation failed", val_response: valData },
             });
           }
@@ -140,7 +140,7 @@ serve(async (req) => {
             user_id: userId,
             order_id: orderId,
             transaction_id: txnId,
-            amount_coins: totalDiamonds,
+            amount_diamonds: totalDiamonds,
             metadata: { reason: "Gateway credentials not found for verification" },
           });
         }
@@ -200,7 +200,7 @@ serve(async (req) => {
               user_id: userId,
               order_id: orderId,
               transaction_id: txnId,
-              amount_coins: totalDiamonds,
+              amount_diamonds: totalDiamonds,
               metadata: { reason: "AamarPay API validation failed", check_response: checkData },
             });
           } else {
@@ -215,7 +215,7 @@ serve(async (req) => {
             user_id: userId,
             order_id: orderId,
             transaction_id: txnId,
-            amount_coins: totalDiamonds,
+            amount_diamonds: totalDiamonds,
             metadata: { reason: "Gateway credentials not found for AamarPay verification" },
           });
         }

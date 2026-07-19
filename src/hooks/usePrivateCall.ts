@@ -26,9 +26,9 @@ interface CallState {
   hostId: string | null;
   duration: number;
   coinsPerMinute: number;
-  totalCoinsSpent: number;
+  totalDiamondsSpent: number;
   hostEarned: number;
-  callerRemainingCoins: number;
+  callerRemainingDiamonds: number;
 }
 
 interface IncomingCall {
@@ -49,9 +49,9 @@ const INITIAL_CALL_STATE: CallState = {
   hostId: null,
   duration: 0,
   coinsPerMinute: 0,
-  totalCoinsSpent: 0,
+  totalDiamondsSpent: 0,
   hostEarned: 0,
-  callerRemainingCoins: 0,
+  callerRemainingDiamonds: 0,
 };
 
 // Incoming-call instant delivery is FCM notifications + a scoped private_calls
@@ -80,7 +80,7 @@ export function usePrivateCall(userId: string | null) {
   // so users don't see seconds tick during a frozen feed.
   const reconnectingRef = useRef<boolean>(false);
   const toastRef = useRef(toast);
-  const deductCoinsRef = useRef<((callId: string) => Promise<void>) | null>(null);
+  const deductDiamondsRef = useRef<((callId: string) => Promise<void>) | null>(null);
   const resetCallStateRef = useRef<(() => void) | null>(null);
   const clearAllTimersRef = useRef<(() => void) | null>(null);
   // Track ended call IDs to NEVER show them again
@@ -345,7 +345,7 @@ export function usePrivateCall(userId: string | null) {
       callId,
       status: 'connected',
       duration: 0,
-      totalCoinsSpent: 0,
+      totalDiamondsSpent: 0,
       hostEarned: 0,
     }));
 
@@ -374,7 +374,7 @@ export function usePrivateCall(userId: string | null) {
         if (callInfo && !callEndedRef.current && currentCallIdRef.current === callId) {
           setCallState(prev => ({
             ...prev,
-            totalCoinsSpent: callInfo.total_diamonds_deducted || 0,
+            totalDiamondsSpent: callInfo.total_diamonds_deducted || 0,
             hostEarned: callInfo.host_earned || 0,
             coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
           }));
@@ -398,7 +398,7 @@ export function usePrivateCall(userId: string | null) {
 
 
   // Function to deduct diamonds per minute
-  const deductCoinsPerMinute = useCallback(async (callId: string) => {
+  const deductDiamondsPerMinute = useCallback(async (callId: string) => {
     // Don't process if call ended
     if (callEndedRef.current || currentCallIdRef.current !== callId) {
       console.log('[Billing] Skipping - call ended or different call');
@@ -437,7 +437,7 @@ export function usePrivateCall(userId: string | null) {
       if (currentCallIdRef.current === callId && !callEndedRef.current && typeof remaining === 'number') {
         setCallState(prev => ({
           ...prev,
-          callerRemainingCoins: remaining,
+          callerRemainingDiamonds: remaining,
         }));
         // Mirror to global cached balance so Profile/header updates instantly
         try { updateCachedBalance(remaining); } catch {}
@@ -473,16 +473,16 @@ export function usePrivateCall(userId: string | null) {
     // Server cron `call-billing-tick` → `bill_call_minute()` is the single source
     // of truth (idempotent UNIQUE(call_id, minute_number), FOR UPDATE SKIP LOCKED).
     // Running a parallel client setInterval here re-introduced double-charge.
-    // Live coin counter now refreshes from the `private_calls` realtime UPDATE
+    // Live diamond counter now refreshes from the `private_calls` realtime UPDATE
     // payload (caller-side handler below) when bill_call_minute writes
     // last_billed_minute / total_minutes_billed.
-    void deductCoinsPerMinute; // keep symbol referenced for dev-tools/debug only
-  }, [callState.status, callState.callId, callState.hostId, userId, deductCoinsPerMinute]);
+    void deductDiamondsPerMinute; // keep symbol referenced for dev-tools/debug only
+  }, [callState.status, callState.callId, callState.hostId, userId, deductDiamondsPerMinute]);
 
   // Keep refs updated for stable subscription effect
   useEffect(() => {
     toastRef.current = toast;
-    deductCoinsRef.current = deductCoinsPerMinute;
+    deductDiamondsRef.current = deductDiamondsPerMinute;
     resetCallStateRef.current = resetCallState;
     clearAllTimersRef.current = clearAllTimers;
     softEndCallRef.current = softEndCall;
@@ -603,7 +603,7 @@ export function usePrivateCall(userId: string | null) {
         status: 'calling', 
         remoteUserId: hostId,
         hostId: hostId,
-        callerRemainingCoins: callerDiamonds,
+        callerRemainingDiamonds: callerDiamonds,
       }));
 
       // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
@@ -672,7 +672,7 @@ export function usePrivateCall(userId: string | null) {
 
 
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
-      const resolvedCoinsPerMinute = Number(rpcPayload?.diamonds_per_minute ?? callRate);
+      const resolvedDiamondsPerMinute = Number(rpcPayload?.diamonds_per_minute ?? callRate);
       const resolvedTimeoutSeconds = Number(
         rpcPayload?.timeout_seconds ?? callSettings.call_timeout_seconds ?? DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS,
       ) || DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS;
@@ -697,8 +697,8 @@ export function usePrivateCall(userId: string | null) {
         remoteUserName: hostProfile?.display_name || 'Host',
         remoteUserAvatar: hostProfile?.avatar_url,
         remoteUserLevel: getRequiredDisplayLevel(hostProfile),
-        coinsPerMinute: resolvedCoinsPerMinute,
-        totalCoinsSpent: 0,
+        coinsPerMinute: resolvedDiamondsPerMinute,
+        totalDiamondsSpent: 0,
         hostEarned: 0,
       }));
 
@@ -865,7 +865,7 @@ export function usePrivateCall(userId: string | null) {
         remoteUserAvatar: incomingSnapshot?.callerAvatar || prev.remoteUserAvatar || null,
         remoteUserLevel: incomingSnapshot?.callerLevel ?? prev.remoteUserLevel ?? 1,
         duration: 0,
-        totalCoinsSpent: 0,
+        totalDiamondsSpent: 0,
         hostEarned: 0,
       }));
 
@@ -968,7 +968,7 @@ export function usePrivateCall(userId: string | null) {
           if (callInfo && !callEndedRef.current) {
             setCallState(prev => ({
               ...prev,
-              totalCoinsSpent: callInfo.total_diamonds_deducted || 0,
+              totalDiamondsSpent: callInfo.total_diamonds_deducted || 0,
               hostEarned: callInfo.host_earned || 0,
               coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
             }));

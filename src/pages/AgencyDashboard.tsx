@@ -10,7 +10,7 @@ import {
   Crown,
   Clock,
   Gift,
-  Coins,
+  Gem,
   Copy,
   CheckCircle2,
   User,
@@ -266,7 +266,7 @@ const AgencyDashboard = () => {
   const [subAgentLink, setSubAgentLink] = useState("");
   const [subAgencyInviteLink, setSubAgencyInviteLink] = useState("");
   const [hostJoinLink, setHostJoinLink] = useState("");
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
+  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(9000); // 9000 beans = $1 (as per policy)
   const [localExchangeRate, setLocalExchangeRate] = useState(1); // Default USD rate
   const [localCurrency, setLocalCurrency] = useState({ code: 'USD', symbol: '$', flag: '🇺🇸' });
   const [userCountryCode, setUserCountryCode] = useState('US');
@@ -551,7 +551,7 @@ const AgencyDashboard = () => {
         // ===== Process beans rate =====
         if (beansRateRes.data?.setting_value) {
           const rateSettings = beansRateRes.data.setting_value as { rate?: number };
-          if (rateSettings?.rate) setCoinsToUsdRate(rateSettings.rate);
+          if (rateSettings?.rate) setDiamondsToUsdRate(rateSettings.rate);
         }
 
         // ===== Process country/currency =====
@@ -1192,7 +1192,7 @@ const AgencyDashboard = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Coins className="w-5 h-5" />
+                  <Gem className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-white/80 text-[10px] uppercase tracking-wide">Total Beans</p>

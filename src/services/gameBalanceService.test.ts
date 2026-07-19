@@ -4,8 +4,8 @@
  * These tests mock the Supabase client to simulate the server-side RPCs
  * (`place_game_bet`, `process_game_win`) and verify:
  *   1. Correct RPC name + payload (floored amount, game_id, game_name).
- *   2. Coins are deducted on bet (cached balance updated).
- *   3. Coins are credited on win (cached balance updated, multiplier passed).
+ *   2. Diamonds are deducted on bet (cached balance updated).
+ *   3. Diamonds are credited on win (cached balance updated, multiplier passed).
  *   4. Insufficient balance is reported back with the server's real balance.
  *   5. Net per-round math (bet → win) reflects expected delta.
  */

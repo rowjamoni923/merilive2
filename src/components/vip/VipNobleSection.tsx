@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Gift, Gem, Sparkles, Shield, Ghost, EyeOff, Coins, Zap, CheckCircle2, Clock } from "lucide-react";
+import { Crown, Gift, Gem, Sparkles, Shield, Ghost, EyeOff, Gem, Zap, CheckCircle2, Clock } from "lucide-react";
 import { useNobleSubscription } from "@/hooks/useNobleSubscription";
 import { useVipDailyReward } from "@/hooks/useVipDailyReward";
 import { toast } from "sonner";
@@ -178,7 +178,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                 {noble.anti_kick_protection && <Badge variant="outline" className="text-xs border-emerald-400 text-emerald-700"><Shield className="w-3 h-3 mr-1" />Anti-Kick</Badge>}
                 {noble.stealth_mode && <Badge variant="outline" className="text-xs border-violet-400 text-violet-700"><Ghost className="w-3 h-3 mr-1" />Stealth</Badge>}
                 {noble.hide_real_level && <Badge variant="outline" className="text-xs border-slate-300 text-slate-600"><EyeOff className="w-3 h-3 mr-1" />Hide Lvl</Badge>}
-                {noble.recharge_bonus_percent > 0 && <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-700"><Coins className="w-3 h-3 mr-1" />+{noble.recharge_bonus_percent}%</Badge>}
+                {noble.recharge_bonus_percent > 0 && <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-700"><Gem className="w-3 h-3 mr-1" />+{noble.recharge_bonus_percent}%</Badge>}
               </div>
             </div>
           </div>

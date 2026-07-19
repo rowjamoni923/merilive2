@@ -84,7 +84,7 @@ describe('Pkg76 livekitGiftSignaling', () => {
       senderId: 'sender-1',
       giftName: 'Rose',
       count: 3,
-      giftCoins: 10,
+      giftDiamonds: 10,
       receiverBeans: 27,
     }, 'sender-1');
     room.__emit(RoomEvent.DataReceived, encodeEnvelope(env), { identity: 'sender-1' });
@@ -171,7 +171,7 @@ describe('Pkg76 livekitGiftSignaling', () => {
       senderId: 'sender-1',
       giftName: 'Rose',
       count: 1,
-      giftCoins: 10,
+      giftDiamonds: 10,
     });
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();

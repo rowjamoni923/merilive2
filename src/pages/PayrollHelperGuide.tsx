@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, Shield, Wallet, TrendingUp, Globe, Users, 
   CheckCircle2, Sparkles, Gem, Phone, DollarSign, Star,
-  Zap, Award, BadgeCheck, Clock, ArrowRight, Coins
+  Zap, Award, BadgeCheck, Clock, ArrowRight, Gem
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

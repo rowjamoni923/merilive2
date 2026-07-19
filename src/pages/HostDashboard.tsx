@@ -9,7 +9,7 @@ import {
   Clock, 
   Calendar,
   ChevronRight,
-  Coins,
+  Gem,
   ArrowUpRight,
   Download,
   Diamond,
@@ -414,7 +414,7 @@ const HostDashboard = () => {
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                <Coins className="w-6 h-6 text-white" />
+                <Gem className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
                 <p className="text-white/85 text-sm">Current Earnings Balance</p>

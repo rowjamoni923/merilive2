@@ -129,7 +129,7 @@ export default function AdminRechargeCampaigns() {
   const [form, setForm] = useState<Partial<Campaign>>(defaultForm);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [diamondPackages, setCoinPackages] = useState<DiamondPackage[]>([]);
+  const [diamondPackages, setDiamondPackages] = useState<DiamondPackage[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate>(CAMPAIGN_TEMPLATES[0]);
 
@@ -148,19 +148,19 @@ export default function AdminRechargeCampaigns() {
     setLoading(false);
   }, []);
 
-  const fetchCoinPackages = useCallback(async () => {
+  const fetchDiamondPackages = useCallback(async () => {
     const { data } = await supabase
       .from("diamond_packages")
       .select("id, name, diamonds_amount, price_usd, bonus_diamonds, is_active, display_order")
       .eq("is_active", true)
       .order("display_order", { ascending: true });
-    setCoinPackages((data as DiamondPackage[]) || []);
+    setDiamondPackages((data as DiamondPackage[]) || []);
   }, []);
 
   useEffect(() => {
     fetchCampaigns();
-    fetchCoinPackages();
-  }, [fetchCampaigns, fetchCoinPackages]);
+    fetchDiamondPackages();
+  }, [fetchCampaigns, fetchDiamondPackages]);
 
   useAdminRealtime(["recharge_campaigns"], fetchCampaigns, "admin-recharge-campaigns-rt");
 
@@ -197,7 +197,7 @@ export default function AdminRechargeCampaigns() {
     const savedTemplateId = (c as any).template_id;
     const matchedTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === savedTemplateId);
     if (matchedTemplate) setSelectedTemplate(matchedTemplate);
-    // Try to match a coin package
+    // Try to match a diamond package
     const matchedPkg = diamondPackages.find(p => p.diamonds_amount === c.diamonds_amount && Math.abs(p.price_usd - c.original_price_usd) < 0.01);
     setSelectedPackageId(matchedPkg?.id || null);
     setDialogOpen(true);

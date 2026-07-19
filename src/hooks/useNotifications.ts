@@ -49,13 +49,13 @@ const playNotificationSound = (type?: string) => {
     const isCall = type === 'call_received' || type === 'incoming_call';
     const isMissedCall = type === 'call_missed';
     const isGift = type === 'gift_received' || type === 'gift';
-    const isCoins = type?.includes('coin') || type?.includes('diamond') || type === 'topup_approved';
+    const isDiamonds = type?.includes('diamond') || type?.includes('diamond') || type === 'topup_approved';
 
     let frequencies: number[];
     if (isCall) frequencies = [784, 988, 784, 988, 784];
     else if (isMissedCall) frequencies = [523, 392];
     else if (isGift) frequencies = [1047, 1319, 1568];
-    else if (isCoins) frequencies = [1175, 1397, 1760];
+    else if (isDiamonds) frequencies = [1175, 1397, 1760];
     else frequencies = [880, 1109, 1319];
 
     const oscType: OscillatorType = isCall ? 'square' : 'sine';

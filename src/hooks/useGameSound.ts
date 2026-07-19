@@ -178,8 +178,8 @@ export function useGameSound() {
     source.start();
   }, []);
 
-  // Coin cascade sound
-  const playCoinSound = useCallback(() => {
+  // Diamond cascade sound
+  const playDiamondSound = useCallback(() => {
     const frequencies = [2000, 2500, 3000, 3500, 4000];
     frequencies.forEach((freq, i) => {
       setTimeout(() => playTone(freq, 0.1, 'sine', 0.18), i * 25);
@@ -347,7 +347,7 @@ export function useGameSound() {
     playLoseSound,
     playBetSound,
     playCardFlip,
-    playCoinSound,
+    playDiamondSound,
     playCrashSound,
     playTickSound,
     playSpinSound,

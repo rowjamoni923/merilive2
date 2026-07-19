@@ -1933,7 +1933,7 @@ const HelperDashboard = () => {
                   packages={[]}
                   mode="helper"
                   helperId={helperId}
-                  helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
+                  helperCustomDiamonds={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
                   helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
                   onCredited={(diamonds) => {
                     setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + diamonds } : prev);
@@ -2073,9 +2073,9 @@ const HelperDashboard = () => {
           open={showUpgradeCryptoModal}
           onOpenChange={setShowUpgradeCryptoModal}
           packages={[]}
-          userCustomCoins={Math.floor(selectedUpgradeLevel.upgrade_cost_usd * upgradeDiamondsPerUsd)}
+          userCustomDiamonds={Math.floor(selectedUpgradeLevel.upgrade_cost_usd * upgradeDiamondsPerUsd)}
           userCustomPriceUsd={Number(selectedUpgradeLevel.upgrade_cost_usd)}
-          onCredited={async (_coins, topupId) => {
+          onCredited={async (_diamonds, topupId) => {
             try {
               if (!helperData || !selectedUpgradeLevel) return;
               const { error } = await supabase

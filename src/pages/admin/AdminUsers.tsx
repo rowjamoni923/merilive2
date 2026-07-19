@@ -20,7 +20,7 @@ import {
   Mail, 
   Phone, 
   Calendar, 
-  Coins, 
+  Gem, 
   Camera, 
   RefreshCw, 
   Users} from "lucide-react";
@@ -427,7 +427,7 @@ export default function AdminUsers() {
                       </td>
                       <td className="p-4 hidden lg:table-cell">
                         <div className="flex items-center gap-1 text-amber-600 font-medium">
-                          <Coins className="w-4 h-4" />
+                          <Gem className="w-4 h-4" />
                           <span>{user.diamonds?.toLocaleString() || 0}</span>
                         </div>
                       </td>

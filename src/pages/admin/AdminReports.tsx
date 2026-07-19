@@ -1,7 +1,7 @@
 import ReportExportMenu from "@/components/admin/ReportExportMenu";
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import {TrendingUp, Users, Coins, Gift, Camera, Phone, Calendar, Download, ArrowUp, ArrowDown} from "lucide-react";
+import {TrendingUp, Users, Gem, Gift, Camera, Phone, Calendar, Download, ArrowUp, ArrowDown} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -37,7 +37,7 @@ export default function AdminReports() {
   const [stats, setStats] = useState({
     totalUsers: 0,
     newUsersToday: 0,
-    totalCoinsSpent: 0,
+    totalDiamondsSpent: 0,
     totalGiftsSent: 0,
     totalStreams: 0,
     totalCalls: 0
@@ -63,7 +63,7 @@ export default function AdminReports() {
       setStats({
         totalUsers: Number(payload.total_users || 0),
         newUsersToday: Number(payload.new_users_today || 0),
-        totalCoinsSpent: Number(payload.total_coins_spent_90d || 0),
+        totalDiamondsSpent: Number(payload.total_diamonds_spent_90d || 0),
         totalGiftsSent: Number(payload.total_gifts_sent || 0),
         totalStreams: Number(payload.total_streams || 0),
         totalCalls: Number(payload.total_calls || 0),
@@ -98,7 +98,7 @@ export default function AdminReports() {
     }
   };
 
-  const formatCoins = (diamonds: number) => {
+  const formatDiamonds = (diamonds: number) => {
     if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
     if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
     return diamonds.toString();
@@ -210,7 +210,7 @@ export default function AdminReports() {
               summary: [
                 { label: "Total Users", value: stats.totalUsers.toLocaleString() },
                 { label: "New Today", value: stats.newUsersToday },
-                { label: "Diamonds (90d)", value: stats.totalCoinsSpent.toLocaleString() },
+                { label: "Diamonds (90d)", value: stats.totalDiamondsSpent.toLocaleString() },
                 { label: "Gifts", value: stats.totalGiftsSent.toLocaleString() },
                 { label: "Streams", value: stats.totalStreams.toLocaleString() },
                 { label: "Calls", value: stats.totalCalls.toLocaleString() },
@@ -239,7 +239,7 @@ export default function AdminReports() {
         <StatCardNew
           icon={Coins}
           label="Total Diamonds Spent"
-          value={formatCoins(stats.totalCoinsSpent)}
+          value={formatDiamonds(stats.totalDiamondsSpent)}
           change={8}
           colorClass="bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/30 text-amber-300"
         />
@@ -294,11 +294,11 @@ export default function AdminReports() {
           </CardContent>
         </Card>
 
-        {/* Coins Chart */}
+        {/* Diamonds Chart */}
         <Card className="bg-white border-slate-200 shadow-lg">
           <CardHeader>
             <CardTitle className="text-slate-900 flex items-center gap-2">
-              <Coins className="w-5 h-5 text-amber-400" />
+              <Gem className="w-5 h-5 text-amber-400" />
               Diamonds Spent
             </CardTitle>
           </CardHeader>

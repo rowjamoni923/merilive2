@@ -64,7 +64,7 @@ const AgentWallet = () => {
     diamondBalance: number;
     agencyDiamondBalance: number;
     helperWalletBalance: number;
-    profileCoins: number;
+    profileDiamonds: number;
     beansBalance: number;
   };
   const [walletCache, setWalletCache, hadWalletCache] = usePersistedCache<WalletSnapshot>("agentWallet:balances", null);
@@ -72,7 +72,7 @@ const AgentWallet = () => {
   const diamondBalance = walletCache?.diamondBalance ?? 0;
   const agencyDiamondBalance = walletCache?.agencyDiamondBalance ?? 0;
   const helperWalletBalance = walletCache?.helperWalletBalance ?? 0;
-  const profileCoins = walletCache?.profileCoins ?? 0;
+  const profileDiamonds = walletCache?.profileDiamonds ?? 0;
   const beansBalance = walletCache?.beansBalance ?? 0;
   const transfers = transfersCache ?? [];
   const setTransfers = (next: TransferRecord[]) => setTransfersCache(next);
@@ -104,7 +104,7 @@ const AgentWallet = () => {
       diamondBalance: agencyDiamonds + helperWallet + userDiamonds,
       agencyDiamondBalance: agencyDiamonds,
       helperWalletBalance: helperWallet,
-      profileCoins: userDiamonds,
+      profileDiamonds: userDiamonds,
       beansBalance: userBeans,
     });
   };

@@ -5,7 +5,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { SmartImage } from "@/components/ui/smart-image";
 import {
-  ArrowLeft, Search, Filter, RefreshCw, Coins, User, Calendar,
+  ArrowLeft, Search, Filter, RefreshCw, Gem, User, Calendar,
   CheckCircle, XCircle, Clock, CreditCard, Smartphone, DollarSign,
   ChevronLeft, ChevronRight, Eye
 } from "lucide-react";

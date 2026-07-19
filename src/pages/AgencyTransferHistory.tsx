@@ -7,7 +7,7 @@ import {
   Loader2,
   Clock,
   TrendingUp,
-  Coins,
+  Gem,
   Percent,
   Filter,
   ChevronDown,
@@ -176,7 +176,7 @@ const AgencyTransferHistory = () => {
   const transfers = transfersCache ?? [];
   const commissions = commissionsCache ?? [];
   const [loading, setLoading] = useState(!(hadTransfersCache && hadCommCache));
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(10000);
+  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(10000);
   const [activeTab, setActiveTab] = useState<'earnings' | 'commission'>('earnings');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this_week');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -199,7 +199,7 @@ const AgencyTransferHistory = () => {
       
       if (settingsData?.setting_value) {
         const cs = settingsData.setting_value as unknown as { coins_to_dollar_rate?: number };
-        if (cs?.coins_to_dollar_rate) setCoinsToUsdRate(cs.coins_to_dollar_rate);
+        if (cs?.coins_to_dollar_rate) setDiamondsToUsdRate(cs.coins_to_dollar_rate);
       }
 
       const { data: agencyData } = await supabase
@@ -457,7 +457,7 @@ const AgencyTransferHistory = () => {
             <Card className="bg-gradient-to-br from-info-500/20 to-info-500/20 border-info-500/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-info-600 mb-2">
-                  <Coins className="w-5 h-5" />
+                  <Gem className="w-5 h-5" />
                   <span className="text-sm">Transfers</span>
                 </div>
                 <p className="text-2xl font-bold text-info-600">

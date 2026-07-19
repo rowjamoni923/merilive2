@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
-  Coins, 
+  Gem, 
   Trophy, 
   Loader2, 
   Users,
@@ -65,8 +65,8 @@ const formatBet = (amount: number): string => {
   return amount.toString();
 };
 
-// Floating Coin Animation Component
-const FloatingCoin = ({ startPos, endPos, onComplete }: {
+// Floating Diamond Animation Component
+const FloatingDiamond = ({ startPos, endPos, onComplete }: {
   startPos: { x: number; y: number };
   endPos: { x: number; y: number };
   onComplete: () => void;
@@ -80,7 +80,7 @@ const FloatingCoin = ({ startPos, endPos, onComplete }: {
       className="fixed z-[100] pointer-events-none"
     >
       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/50">
-        <Coins className="w-5 h-5 text-amber-800" />
+        <Gem className="w-5 h-5 text-amber-800" />
       </div>
     </motion.div>
   );
@@ -664,7 +664,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [loading, setLoading] = useState(true);
   const { buildGameUrl } = useGameToken();
   const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
-  const [userDiamonds, setUserCoins] = useState(0);
+  const [userDiamonds, setUserDiamonds] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [showGamePicker, setShowGamePicker] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
@@ -681,17 +681,17 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [lossAmount, setLossAmount] = useState(0);
   
   // Flying diamonds state
-  const [flyingCoins, setFlyingCoins] = useState<{ id: string; startPos: { x: number; y: number }; endPos: { x: number; y: number } }[]>([]);
+  const [flyingDiamonds, setFlyingDiamonds] = useState<{ id: string; startPos: { x: number; y: number }; endPos: { x: number; y: number } }[]>([]);
   
   const coinDisplayRef = useRef<HTMLDivElement>(null);
 
   // Fetch games
   useEffect(() => {
     fetchGames();
-    fetchUserCoins();
+    fetchUserDiamonds();
     
     const refreshFromCache = () => {
-      getBalanceWithFetch().then((diamonds) => setUserCoins(diamonds)).catch(() => {});
+      getBalanceWithFetch().then((diamonds) => setUserDiamonds(diamonds)).catch(() => {});
     };
     const onOwnBeansUpdated = () => refreshFromCache();
     window.addEventListener('own-beans-updated', onOwnBeansUpdated);
@@ -743,11 +743,11 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   };
 
 
-  const fetchUserCoins = async () => {
+  const fetchUserDiamonds = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase.from('profiles').select('diamonds').eq('id', user.id).single();
-      if (data) setUserCoins(data.diamonds);
+      if (data) setUserDiamonds(data.diamonds);
     }
   };
 
@@ -789,18 +789,18 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       return { success: false, error: deductResult?.error || error?.message };
     }
 
-    // Animate coin flying away
+    // Animate diamond flying away
     if (coinDisplayRef.current) {
       const rect = coinDisplayRef.current.getBoundingClientRect();
       const coinId = Date.now().toString();
-      setFlyingCoins(prev => [...prev, {
+      setFlyingDiamonds(prev => [...prev, {
         id: coinId,
         startPos: { x: rect.left, y: rect.top },
         endPos: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
       }]);
     }
 
-    setUserCoins(deductResult.new_balance);
+    setUserDiamonds(deductResult.new_balance);
     updateCachedBalance(deductResult.new_balance);
     toast.success(`Bet placed: ${formatBet(betAmount)} 🪙`);
     return { success: true };
@@ -823,7 +823,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     if (!winError) {
       const winResult = winData as any;
       if (winResult?.success && winResult?.new_balance !== undefined) {
-        setUserCoins(winResult.new_balance);
+        setUserDiamonds(winResult.new_balance);
         updateCachedBalance(winResult.new_balance);
       }
     }
@@ -837,8 +837,8 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     setShowLoss(true);
   };
 
-  const removeFlyingCoin = (id: string) => {
-    setFlyingCoins(prev => prev.filter(c => c.id !== id));
+  const removeFlyingDiamond = (id: string) => {
+    setFlyingDiamonds(prev => prev.filter(c => c.id !== id));
   };
 
   const currentGame = games.find(g => g.game_id === activeGame);
@@ -923,9 +923,9 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       case 'aviator':
         return <CrashGame {...props} />;
       case 'lucky_number':
-        return <LuckyNumberGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userDiamonds={userDiamonds} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateCoins={(newBal) => { setUserCoins(newBal); fetchUserCoins(); }} onGameWin={(amt) => handleWin(amt)} />;
+        return <LuckyNumberGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userDiamonds={userDiamonds} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateDiamonds={(newBal) => { setUserDiamonds(newBal); fetchUserDiamonds(); }} onGameWin={(amt) => handleWin(amt)} />;
       case 'rocket_race':
-        return <RocketRaceGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userDiamonds={userDiamonds} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateCoins={(newBal) => { setUserCoins(newBal); fetchUserCoins(); }} onGameWin={(amt) => handleWin(amt)} />;
+        return <RocketRaceGame game={{}} betAmount={betAmount} setBetAmount={() => {}} userDiamonds={userDiamonds} phase={phase} timeLeft={timeLeft} currentRound={null} bets={[]} myBets={[]} onPlaceBet={handlePlaceBet} onProcessResult={() => {}} onUpdateDiamonds={(newBal) => { setUserDiamonds(newBal); fetchUserDiamonds(); }} onGameWin={(amt) => handleWin(amt)} />;
       case 'lucky28':
       case 'plinko':
       case 'mines':
@@ -961,13 +961,13 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
         {showLoss && <LossDisplay show={showLoss} amount={lossAmount} onComplete={() => setShowLoss(false)} />}
       </AnimatePresence>
 
-      {/* Flying Coins */}
-      {flyingCoins.map(coin => (
-        <FloatingCoin
+      {/* Flying Diamonds */}
+      {flyingDiamonds.map(coin => (
+        <FloatingDiamond
           key={coin.id}
           startPos={coin.startPos}
           endPos={coin.endPos}
-          onComplete={() => removeFlyingCoin(coin.id)}
+          onComplete={() => removeFlyingDiamond(coin.id)}
         />
       ))}
 
@@ -1058,14 +1058,14 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
               )}
             </div>
 
-            {/* Right Side - Coins & Controls */}
+            {/* Right Side - Diamonds & Controls */}
             <div className="flex items-center gap-1">
-              {/* Compact Coins Display */}
+              {/* Compact Diamonds Display */}
               <div 
                 ref={coinDisplayRef}
                 className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded text-[10px]"
               >
-                <Coins className="w-2.5 h-2.5 text-amber-400" />
+                <Gem className="w-2.5 h-2.5 text-amber-400" />
                 <motion.span 
                   key={userDiamonds}
                   initial={{ scale: 1.05 }}
@@ -1146,7 +1146,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
               <div className="flex items-center justify-between mb-2">
                 <span className="text-white/60 text-xs">Bet Amount</span>
                 <div className="flex items-center gap-1">
-                  <Coins className="w-4 h-4 text-amber-400" />
+                  <Gem className="w-4 h-4 text-amber-400" />
                   <span className="text-amber-300 font-bold">{betAmount.toLocaleString()}</span>
                 </div>
               </div>

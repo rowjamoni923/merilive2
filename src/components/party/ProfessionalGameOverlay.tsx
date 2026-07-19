@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { 
   X, 
   Users, 
-  Coins, 
+  Gem, 
   ChevronLeft,
   Volume2,
   MessageSquare,
@@ -95,7 +95,7 @@ const LeaderboardCard = ({ player, rank }: { player: PlayerInfo; rank: number })
         </div>
         {player.betAmount && (
           <div className="flex items-center gap-1 text-amber-400 text-xs">
-            <Coins className="w-3 h-3" />
+            <Gem className="w-3 h-3" />
             <span>{player.betAmount.toLocaleString()}</span>
           </div>
         )}
@@ -180,7 +180,7 @@ export function ProfessionalGameOverlay({
               <span className="text-sm">{gameEmoji}</span>
               <span className="text-white font-bold text-xs">{gameName}</span>
               <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 text-[9px] px-1 py-0">
-                <Coins className="w-2.5 h-2.5 mr-0.5" />
+                <Gem className="w-2.5 h-2.5 mr-0.5" />
                 {(totalPool / 1000).toFixed(1)}K
               </Badge>
             </div>
@@ -212,7 +212,7 @@ export function ProfessionalGameOverlay({
               
               {/* Bet badge */}
               <div className="absolute -top-0.5 -right-0.5 z-10 flex items-center gap-0.5 px-1 py-0.5 bg-amber-500/90 rounded-md text-[7px] font-bold text-black">
-                <Coins className="w-2 h-2" />
+                <Gem className="w-2 h-2" />
                 {((player.betAmount || 0) / 1000).toFixed(1)}K
               </div>
               

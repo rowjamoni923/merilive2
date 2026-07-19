@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Crown, Diamond, Sparkles, Star, Gift, Car, Headphones, Image, TrendingUp, Coins } from "lucide-react";
+import { ArrowLeft, ChevronRight, Crown, Diamond, Sparkles, Star, Gift, Car, Headphones, Image, TrendingUp, Gem } from "lucide-react";
 import { Skeleton as SkeletonPrim } from "@/components/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -233,7 +233,7 @@ const Level = () => {
   // Paginated sum to bypass Supabase 1000-row limit
   const resolveEffectiveUserRechargeTotal = async (userId: string, profileTotalRecharged: number) => {
     try {
-      let totalCoin = 0;
+      let totalDiamond = 0;
       let totalPayment = 0;
       const PAGE_SIZE = 1000;
 
@@ -250,7 +250,7 @@ const Level = () => {
           .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
         if (error) throw error;
         if (!data || data.length === 0) { hasMore = false; break; }
-        totalCoin += data.reduce((s, tx) => s + Number(tx.diamonds_amount ?? 0), 0);
+        totalDiamond += data.reduce((s, tx) => s + Number(tx.diamonds_amount ?? 0), 0);
         if (data.length < PAGE_SIZE) hasMore = false;
         page++;
       }
@@ -272,7 +272,7 @@ const Level = () => {
         page++;
       }
 
-      return Math.max(profileTotalRecharged, totalCoin, totalPayment);
+      return Math.max(profileTotalRecharged, totalDiamond, totalPayment);
     } catch (error) {
       console.warn('[Level] Failed to resolve effective recharge total:', error);
       return profileTotalRecharged;
@@ -713,7 +713,7 @@ const Level = () => {
               </>
             ) : (
               <>
-                <Coins className="w-5 h-5 mr-2" />
+                <Gem className="w-5 h-5 mr-2" />
                 Top Up Now
               </>
             )}

@@ -116,7 +116,7 @@ export default function AdminPricingHub() {
   });
 
   // Beans → Diamonds exchange (app_settings.diamond_exchange)
-  const [coinExchange, setCoinExchange] = useState<any>(null);
+  const [coinExchange, setDiamondExchange] = useState<any>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -164,7 +164,7 @@ export default function AdminPricingHub() {
         helper_receives_percent: map.helper_fee_settings?.helper_receives_percent ?? "",
       });
 
-      setCoinExchange(map.diamond_exchange ?? {});
+      setDiamondExchange(map.diamond_exchange ?? {});
 
       const tw = map.trader_wallet_topup_rate;
       setTraderWalletTopupRate(
@@ -926,7 +926,7 @@ export default function AdminPricingHub() {
                     step="0.01"
                     value={NUM(coinExchange?.beans_to_diamonds_rate)}
                     onChange={(e) =>
-                      setCoinExchange({ ...(coinExchange ?? {}), beans_to_diamonds_rate: inputNumber(e.target.value) })
+                      setDiamondExchange({ ...(coinExchange ?? {}), beans_to_diamonds_rate: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -936,7 +936,7 @@ export default function AdminPricingHub() {
                     step="0.1"
                     value={NUM(coinExchange?.exchange_fee_percent)}
                     onChange={(e) =>
-                      setCoinExchange({ ...(coinExchange ?? {}), exchange_fee_percent: inputNumber(e.target.value) })
+                      setDiamondExchange({ ...(coinExchange ?? {}), exchange_fee_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -945,7 +945,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(coinExchange?.min_exchange_amount)}
                     onChange={(e) =>
-                      setCoinExchange({ ...(coinExchange ?? {}), min_exchange_amount: inputNumber(e.target.value) })
+                      setDiamondExchange({ ...(coinExchange ?? {}), min_exchange_amount: inputNumber(e.target.value) })
                     }
                   />
                 </Field>

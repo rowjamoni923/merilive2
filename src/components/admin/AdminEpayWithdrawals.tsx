@@ -104,7 +104,7 @@ interface EpayWithdrawal {
    const [actionType, setActionType] = useState<'complete' | 'reject'>('complete');
    const [actionNotes, setActionNotes] = useState("");
    const [searchQuery, setSearchQuery] = useState("");
-   const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000);
+   const [coinsToUsdRate, setDiamondsToUsdRate] = useState(9000);
  
    useEffect(() => {
      fetchEpayWithdrawals();
@@ -121,7 +121,7 @@ interface EpayWithdrawal {
      if (data?.setting_value) {
        const settings = data.setting_value as { rate?: number };
        if (settings.rate) {
-         setCoinsToUsdRate(settings.rate);
+         setDiamondsToUsdRate(settings.rate);
        }
      }
    };

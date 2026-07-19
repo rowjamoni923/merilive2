@@ -4,7 +4,7 @@ import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import fireWheelBg from "@/assets/games-bg/fire-wheel-bg.jpg";
 
 import { cn } from "@/lib/utils";
-import { Coins } from "lucide-react";
+import { Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
@@ -23,7 +23,7 @@ interface LiveFerrisWheelGameProps {
   myBets: any[];
   onPlaceBet: (betType?: string, betValue?: string) => Promise<any>;
   onProcessResult: (result: any) => void;
-  onUpdateCoins?: (newBalance: number) => void;
+  onUpdateDiamonds?: (newBalance: number) => void;
   onGameWin?: (winAmount: number) => void;
   onTimerUpdate?: (timeLeft: number, phase: 'betting' | 'spinning') => void;
 }
@@ -57,7 +57,7 @@ export function LiveFerrisWheelGame({
   myBets,
   onPlaceBet,
   onProcessResult,
-  onUpdateCoins,
+  onUpdateDiamonds,
   onGameWin,
   onTimerUpdate
 }: LiveFerrisWheelGameProps) {
@@ -235,7 +235,7 @@ export function LiveFerrisWheelGame({
       setWinAmount(totalWinnings);
       setShowWinPopup(true);
       sounds.playWinSound();
-      sounds.playCoinSound();
+      sounds.playDiamondSound();
       liveEffects.play('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
@@ -248,8 +248,8 @@ export function LiveFerrisWheelGame({
           const { processWin } = await import('@/services/gameBalanceService');
           const result = await processWin(user.id, 'ferris_wheel', 'Ferris Wheel', Math.floor(totalWinnings), winningMultiplier, false);
           
-          if (result.success && result.newBalance !== undefined && onUpdateCoins) {
-            onUpdateCoins(result.newBalance);
+          if (result.success && result.newBalance !== undefined && onUpdateDiamonds) {
+            onUpdateDiamonds(result.newBalance);
           }
         } catch (error) {
           console.error('[FerrisWheel] Credit error:', error);
@@ -602,7 +602,7 @@ export function LiveFerrisWheelGame({
                 {won && (
                   <div className="flex items-center justify-center gap-1 text-green-300 text-xs">
                     <span>+{winAmount.toLocaleString()}</span>
-                    <Coins className="w-3 h-3" />
+                    <Gem className="w-3 h-3" />
                   </div>
                 )}
               </div>

@@ -17,7 +17,7 @@ import {
   Mail,
   Star,
   Gem,
-  Coins,
+  Gem,
   Crown,
   Building2,
   Phone,
@@ -170,7 +170,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   });
   const [nextLevel, setNextLevel] = useState(1);
   const [levelProgress, setLevelProgress] = useState(0);
-  const [isCoinTrader, setIsCoinTrader] = useState(false);
+  const [isDiamondTrader, setIsDiamondTrader] = useState(false);
   const [traderWallet, setTraderWallet] = useState(0);
   const [traderId, setTraderId] = useState<string | null>(null);
   const [isInActiveAgency, setIsInActiveAgency] = useState(false);
@@ -490,13 +490,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       return {
         traderWallet: Number(traderWallet || 0),
         agencyBalance: Number(agencyData?.diamond_balance || 0),
-        personalCoins: Number(resolvedDiamondBalance || 0),
+        personalDiamonds: Number(resolvedDiamondBalance || 0),
         total: availableTransferBalance,
         selfRechargeTotal: selfRechargeSourceBalance,
       };
     }
 
-    const shouldLoadAgency = Boolean(agencyData || profile?.is_agency_owner || isCoinTrader);
+    const shouldLoadAgency = Boolean(agencyData || profile?.is_agency_owner || isDiamondTrader);
     const agencyPromise = shouldLoadAgency
       ? supabase
           .from("agencies")
@@ -531,9 +531,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     const nextTraderWallet = Number(helperResult.data?.wallet_balance || 0);
     const nextAgencyBalance = Number(latestAgencyResult.data?.diamond_balance || 0);
-      const personalCoins = Number(profileResult.data?.diamonds || 0);
+      const personalDiamonds = Number(profileResult.data?.diamonds || 0);
 
-    setIsCoinTrader(Boolean(helperResult.data));
+    setIsDiamondTrader(Boolean(helperResult.data));
     setTraderWallet(nextTraderWallet);
     setTraderId(helperResult.data?.id ?? null);
 
@@ -551,7 +551,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return {
       traderWallet: nextTraderWallet,
       agencyBalance: nextAgencyBalance,
-      personalCoins,
+      personalDiamonds,
       total: nextTraderWallet + nextAgencyBalance,
       selfRechargeTotal: nextTraderWallet + nextAgencyBalance,
     };
@@ -898,7 +898,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           setHasUnclaimedReward((unclaimedResult?.count || 0) > 0);
 
           if (helperResult?.data) {
-            setIsCoinTrader(true);
+            setIsDiamondTrader(true);
             setTraderWallet(helperResult.data.wallet_balance || 0);
             setTraderId(helperResult.data.id);
             
@@ -920,7 +920,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }
             }
           } else {
-            setIsCoinTrader(false);
+            setIsDiamondTrader(false);
             setTraderWallet(0);
             setTraderId(null);
           }
@@ -1077,11 +1077,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           if (table === 'topup_helpers' && payload?.user_id === activeProfileId) {
             if (event === 'DELETE' || payload?.is_verified === false) {
-              setIsCoinTrader(false);
+              setIsDiamondTrader(false);
               setTraderWallet(0);
               setTraderId(null);
             } else {
-              setIsCoinTrader(true);
+              setIsDiamondTrader(true);
               setTraderWallet(Number(payload.wallet_balance || 0));
               setTraderId(payload.id || null);
             }
@@ -1449,7 +1449,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
       // Update cached user balance
       const { updateCachedBalance } = await import('@/hooks/useUserBalance');
-      updateCachedBalance(result.new_coins);
+      updateCachedBalance(result.new_diamonds);
 
       toast({
         title: "Self Recharge Successful! ✅",
@@ -2446,8 +2446,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         beans_balance: agency.wallet_balance || 0
                       });
                       
-                      invalidateAppSetting('agency_coin_exchange');
-                      const settingVal = await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 });
+                      invalidateAppSetting('agency_diamond_exchange');
+                      const settingVal = await getAppSetting<Record<string, unknown>>('agency_diamond_exchange', { maxAgeMs: 0 });
                       
                       if (settingVal) {
                         setAgencyExchangeSettings({
@@ -2535,8 +2535,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               or Sub-Agency) below — locked/empty state shown until they recharge. */}
 
           {/* Trader Wallet Card for Diamond Traders - Opens Transfer Modal directly.
-              Agency-only: only shown to confirmed Agency owners who are also coin traders. */}
-          {isCoinTrader && isAgencyOwner && false && (
+              Agency-only: only shown to confirmed Agency owners who are also diamond traders. */}
+          {isDiamondTrader && isAgencyOwner && false && (
             <button 
               onClick={() => {
                 const combined = Number(traderWallet || 0) + Number(agencyData?.diamond_balance || 0);

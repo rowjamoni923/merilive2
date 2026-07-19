@@ -426,7 +426,7 @@ export const PremiumViewerProfileCard = ({
                       <span className="text-xs text-muted-foreground">Following</span>
                     </motion.div>
 
-                    {/* Coins */}
+                    {/* Diamonds */}
                     <motion.div 
                       className="text-center"
                       whileHover={{ scale: 1.05 }}

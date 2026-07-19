@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import {Save, Phone, TrendingUp, Building2, Users, Percent, Gift, PartyPopper, Music, Gamepad2, Camera, Plus, Trash2, Clock, Calendar, DollarSign, ArrowRightLeft, Diamond, Coins} from "lucide-react";
+import {Save, Phone, TrendingUp, Building2, Users, Percent, Gift, PartyPopper, Music, Gamepad2, Camera, Plus, Trash2, Clock, Calendar, DollarSign, ArrowRightLeft, Diamond, Gem} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -235,7 +235,7 @@ export default function AdminCommissions() {
     setSettings({ ...settings, diamond_exchange: newExchange });
   };
 
-  const handleCoinTraderChange = (field: string, value: number | boolean) => {
+  const handleDiamondTraderChange = (field: string, value: number | boolean) => {
     if (!settings) return;
     const newTrader = { ...settings.coin_trader, [field]: value };
     setSettings({ ...settings, coin_trader: newTrader });
@@ -324,7 +324,7 @@ export default function AdminCommissions() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-white/5 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <Coins className="w-4 h-4 text-amber-400" />
+                      <Gem className="w-4 h-4 text-amber-400" />
                       <Label className="text-amber-300">Beans Per Minute</Label>
                     </div>
                     <Input
@@ -373,7 +373,7 @@ export default function AdminCommissions() {
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div className="bg-red-500/10 rounded-lg p-4 border border-red-500/20">
                           <div className="flex items-center justify-center gap-2 mb-2">
-                            <Coins className="w-5 h-5 text-red-400" />
+                            <Gem className="w-5 h-5 text-red-400" />
                           </div>
                           <p className="text-red-400 font-bold text-2xl">-{beansPerMinute}</p>
                           <p className="text-slate-500 text-xs mt-1">Deducted from user</p>
@@ -778,7 +778,7 @@ export default function AdminCommissions() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg border border-amber-500/20">
                   <div className="flex items-center gap-2 mb-3">
-                    <Coins className="w-5 h-5 text-amber-400" />
+                    <Gem className="w-5 h-5 text-amber-400" />
                     <h3 className="text-slate-900 font-medium">Exchange Rate</h3>
                   </div>
                   <Label className="text-slate-600 text-sm">Beans → Diamonds Rate</Label>
@@ -864,7 +864,7 @@ export default function AdminCommissions() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-center">
                         {/* Input Beans */}
                         <div className="p-3 bg-amber-500/10 rounded-lg">
-                          <Coins className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+                          <Gem className="w-5 h-5 text-amber-400 mx-auto mb-1" />
                           <p className="text-amber-400 font-bold text-lg">{calcBeansInput.toLocaleString()}</p>
                           <p className="text-slate-500 text-xs">Input Beans</p>
                         </div>
@@ -947,7 +947,7 @@ export default function AdminCommissions() {
                   <input
                     type="checkbox"
                     checked={settings?.coin_trader.enabled || false}
-                    onChange={(e) => handleCoinTraderChange("enabled", e.target.checked)}
+                    onChange={(e) => handleDiamondTraderChange("enabled", e.target.checked)}
                     className="w-5 h-5 rounded"
                   />
                   <span className="text-slate-600 text-sm">{settings?.coin_trader.enabled ? 'Active' : 'Inactive'}</span>
@@ -966,7 +966,7 @@ export default function AdminCommissions() {
                     type="number"
                     min={1}
                     value={settings?.coin_trader.buy_rate || 9500}
-                    onChange={(e) => handleCoinTraderChange("buy_rate", parseInt(e.target.value) || 9500)}
+                    onChange={(e) => handleDiamondTraderChange("buy_rate", parseInt(e.target.value) || 9500)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
@@ -985,7 +985,7 @@ export default function AdminCommissions() {
                     type="number"
                     min={1}
                     value={settings?.coin_trader.sell_rate || 10500}
-                    onChange={(e) => handleCoinTraderChange("sell_rate", parseInt(e.target.value) || 10500)}
+                    onChange={(e) => handleDiamondTraderChange("sell_rate", parseInt(e.target.value) || 10500)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
@@ -996,7 +996,7 @@ export default function AdminCommissions() {
                 {/* Min Amount */}
                 <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg border border-amber-500/20">
                   <div className="flex items-center gap-2 mb-3">
-                    <Coins className="w-5 h-5 text-amber-400" />
+                    <Gem className="w-5 h-5 text-amber-400" />
                     <h3 className="text-slate-900 font-medium">Minimum Amount</h3>
                   </div>
                   <Label className="text-slate-600 text-sm">Minimum Beans</Label>
@@ -1004,7 +1004,7 @@ export default function AdminCommissions() {
                     type="number"
                     min={100}
                     value={settings?.coin_trader.min_trade_amount || 1000}
-                    onChange={(e) => handleCoinTraderChange("min_trade_amount", parseInt(e.target.value) || 1000)}
+                    onChange={(e) => handleDiamondTraderChange("min_trade_amount", parseInt(e.target.value) || 1000)}
                     className="bg-white/5 border-white/10 text-slate-900 mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">

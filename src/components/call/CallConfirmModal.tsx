@@ -35,7 +35,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
 
   // Check if rate is configured and user has enough diamonds
   const rateConfigured = callRate !== null && callRate > 0;
-  const hasEnoughCoins = rateConfigured && userDiamonds >= callRate;
+  const hasEnoughDiamonds = rateConfigured && userDiamonds >= callRate;
 
   // Handle call or redirect to recharge
   const handleAction = () => {
@@ -43,7 +43,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
       // Rate not set - cannot call
       return;
     }
-    if (hasEnoughCoins) {
+    if (hasEnoughDiamonds) {
       onConfirm();
     } else {
       onClose();
@@ -159,7 +159,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
               className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
                 loading || !rateConfigured
                   ? "bg-amber-50/70 text-slate-700 cursor-not-allowed"
-                  : hasEnoughCoins 
+                  : hasEnoughDiamonds 
                     ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg shadow-pink-500/30"
                     : "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30"
               }`}
@@ -169,7 +169,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
                   <X className="w-5 h-5" />
                   <span>Call Rate Not Set</span>
                 </>
-              ) : hasEnoughCoins ? (
+              ) : hasEnoughDiamonds ? (
                 <>
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}

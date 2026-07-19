@@ -248,7 +248,7 @@ export function useLiveGameRound({
         processedRoundsRef.current.add(roundNum);
         
         // Skip auto-processing for self-managed games
-        // They handle their own win/loss logic and coin updates
+        // They handle their own win/loss logic and diamond updates
         if (isSelfManagedGame) {
           console.log(`[useLiveGameRound] Skipping auto-processing for ${gameId} - game handles its own results`);
           setClientState(p => ({ ...p, phase: 'result' }));
@@ -411,7 +411,7 @@ export function useLiveGameRound({
     setBets(prev => [...prev, newBet]);
     setMyBets(prev => [...prev, newBet]);
 
-    // PARALLEL: Run profile fetch and coin deduction concurrently
+    // PARALLEL: Run profile fetch and diamond deduction concurrently
     // Use Promise.all for maximum speed
     try {
       // First get current diamonds (use maybeSingle to avoid throwing when row not found / RLS)
@@ -438,7 +438,7 @@ export function useLiveGameRound({
 
       // PARALLEL: Atomic deduct diamonds and save bet history simultaneously
       const [updateResult, betInsertResult] = await Promise.all([
-        // Atomic coin deduction (race-condition safe)
+        // Atomic diamond deduction (race-condition safe)
         supabase.rpc('deduct_diamonds', { p_user_id: user.id, p_amount: betAmount }),
         
         // Save bet to history (fire-and-forget)

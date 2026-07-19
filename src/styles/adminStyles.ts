@@ -60,7 +60,7 @@ export const sectionGradients = {
   callSettings: "from-cyan-600 via-blue-600 to-indigo-600",
   callPricing: "from-blue-600 via-cyan-500 to-teal-500",
   
-  // Coin & Trader System - Gold/Yellow
+  // Diamond & Trader System - Gold/Yellow
   diamonds: "from-yellow-500 via-amber-500 to-orange-500",
   topup: "from-amber-600 via-yellow-500 to-orange-500",
   paymentGateways: "from-green-500 via-emerald-500 to-teal-500",

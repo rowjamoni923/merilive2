@@ -492,7 +492,7 @@ export default function AdminStreams() {
     return `${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m`;
   };
 
-  const formatCoins = (diamonds: number) => {
+  const formatDiamonds = (diamonds: number) => {
     if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
     if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
     return diamonds.toString();
@@ -563,7 +563,7 @@ export default function AdminStreams() {
               </div>
               <div>
                 <p className="text-slate-600 text-[10px] sm:text-xs">Total Diamonds</p>
-                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{formatCoins(stats.totalDiamonds)}</p>
+                <p className="text-slate-900 font-bold text-lg sm:text-2xl">{formatDiamonds(stats.totalDiamonds)}</p>
               </div>
             </div>
           </CardContent>
@@ -662,7 +662,7 @@ export default function AdminStreams() {
                       </div>
                       <div className="flex items-center justify-between text-xs sm:text-sm mb-3 sm:mb-4">
                         <div className="flex items-center gap-1 text-pink-500"><Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{stream.total_gifts || 0}</span></div>
-                        <div className="flex items-center gap-1 text-yellow-600"><Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{formatCoins(stream.total_diamonds_earned || 0)}</span></div>
+                        <div className="flex items-center gap-1 text-yellow-600"><Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{formatDiamonds(stream.total_diamonds_earned || 0)}</span></div>
                       </div>
                       <div className="flex gap-2">
                         {stream.is_active ? (

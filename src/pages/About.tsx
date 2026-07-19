@@ -8,7 +8,7 @@ import {
   Download, Users, Radio, Gift, Phone, Shield, Star,
   Building2, DollarSign, Globe, Smartphone, Play,
   Heart, Music, Tv, Award, ChevronRight, ExternalLink,
-  Sparkles, Crown, Zap, Lock, Coins, TrendingUp, MessageCircle, Languages
+  Sparkles, Crown, Zap, Lock, Gem, TrendingUp, MessageCircle, Languages
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLAY_STORE_URL, APK_DOWNLOAD_URL, PRODUCTION_DOMAIN } from "@/utils/shareLinks";

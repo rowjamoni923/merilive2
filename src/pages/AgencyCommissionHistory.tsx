@@ -10,7 +10,7 @@ import {
   Gift,
   Phone,
   Gamepad2,
-  Coins,
+  Gem,
   Percent
 } from "lucide-react";
 import { PageSkeleton } from "@/components/common/PageSkeleton";
@@ -61,7 +61,7 @@ const AgencyCommissionHistory = () => {
     totalTransactions: 0
   };
   const [loading, setLoading] = useState(!(hadCommCache && hadStatsCache));
-  const [coinsToUsdRate, setCoinsToUsdRate] = useState(9000); // Default: 9000 beans = $1 (matching AgencyDashboard)
+  const [coinsToUsdRate, setDiamondsToUsdRate] = useState(9000); // Default: 9000 beans = $1 (matching AgencyDashboard)
 
   useEffect(() => {
     fetchData();
@@ -87,7 +87,7 @@ const AgencyCommissionHistory = () => {
       if (settingsData?.setting_value) {
         const rateSettings = settingsData.setting_value as unknown as { rate?: number };
         if (rateSettings?.rate) {
-          setCoinsToUsdRate(rateSettings.rate);
+          setDiamondsToUsdRate(rateSettings.rate);
         }
       }
 
@@ -193,7 +193,7 @@ const AgencyCommissionHistory = () => {
       case 'game':
         return <Gamepad2 className="w-4 h-4 text-brand-500" />;
       default:
-        return <Coins className="w-4 h-4 text-warning-500" />;
+        return <Gem className="w-4 h-4 text-warning-500" />;
     }
   };
 
@@ -279,7 +279,7 @@ const AgencyCommissionHistory = () => {
           <Card className="bg-gradient-to-br from-brand-500/20 to-brand-500/20 border-brand-500/30">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-brand-600 mb-2">
-                <Coins className="w-5 h-5" />
+                <Gem className="w-5 h-5" />
                 <span className="text-sm">This Month</span>
               </div>
               <p className="text-2xl font-bold text-brand-600">
@@ -318,7 +318,7 @@ const AgencyCommissionHistory = () => {
           <CardContent>
             {commissions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Coins className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <Gem className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p>No Commissions Yet</p>
                 <p className="text-xs mt-1">Commissions from host gifts and calls will appear here</p>
               </div>

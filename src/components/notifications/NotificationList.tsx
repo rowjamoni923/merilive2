@@ -14,7 +14,7 @@ import {
   Shield,
   Star,
   Sparkles,
-  Coins,
+  Gem,
   Diamond,
   UserPlus,
   Radio,
@@ -196,7 +196,7 @@ const getNotificationLink = (notification: Notification): string | null => {
     'gift_received': data?.sender_id ? `/profile-detail/${data.sender_id}` : '/host-dashboard',
     'gift_sent': data?.receiver_id ? `/profile-detail/${data.receiver_id}` : null,
     
-    // Coins & Top-up
+    // Diamonds & Top-up
     'topup_approved': '/recharge-history',
     'topup_rejected': '/recharge-history',
     'diamond_purchase_helper': '/recharge-history',
@@ -545,10 +545,10 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
   const isDirectPurchase = notification.type === 'diamond_purchase_direct';
   const isTopupApproved = notification.type === 'topup_approved';
   const isWithdrawalApproved = notification.type === 'withdrawal_approved';
-  const isCoinExchange = notification.type === 'diamond_exchange';
-  const isCoinsReceived = notification.type === 'diamonds_received';
+  const isDiamondExchange = notification.type === 'diamond_exchange';
+  const isDiamondsReceived = notification.type === 'diamonds_received';
   const isLevelUpgradeApproved = notification.type === 'level_upgrade_approved';
-  const isCoinNotification = isHelperPurchase || isDirectPurchase || isTopupApproved || isCoinsReceived || isCoinExchange;
+  const isDiamondNotification = isHelperPurchase || isDirectPurchase || isTopupApproved || isDiamondsReceived || isDiamondExchange;
   const isLevelUp = notification.type === 'level_up' || isLevelUpgradeApproved;
   const isSuccessNotification = isTopupApproved || isWithdrawalApproved || isLevelUpgradeApproved;
   const isAdminNotice = notification.type === 'admin_notice';
@@ -566,7 +566,7 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
       className={cn(
         "p-4 hover:bg-accent/50 transition-colors cursor-pointer relative overflow-hidden group",
         !notification.is_read && "bg-primary/5",
-        isCoinNotification && !notification.is_read && "bg-gradient-to-r from-amber-500/10 to-primary/10",
+        isDiamondNotification && !notification.is_read && "bg-gradient-to-r from-amber-500/10 to-primary/10",
         isLevelUp && !notification.is_read && "bg-gradient-to-r from-yellow-500/10 to-amber-500/10",
         isSuccessNotification && !notification.is_read && "bg-gradient-to-r from-green-500/10 to-emerald-500/10",
         // Admin notice special styling
@@ -577,7 +577,7 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
       onClick={onClick}
     >
       {/* Sparkle animation for special notifications */}
-      {(isCoinNotification || isLevelUp) && !notification.is_read && (
+      {(isDiamondNotification || isLevelUp) && !notification.is_read && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
           initial={{ opacity: 0 }}
@@ -649,7 +649,7 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
                 "font-medium text-sm line-clamp-1",
                 !notification.is_read && "text-foreground",
                 notification.is_read && "text-muted-foreground",
-                isCoinNotification && "text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-500",
+                isDiamondNotification && "text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-500",
                 isLevelUp && "text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600",
                 isUrgentNotice && "text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 font-bold",
                 isHighPriorityNotice && "text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 font-semibold",
@@ -674,12 +674,12 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
                 <motion.span 
                   className={cn(
                     "w-2 h-2 rounded-full flex-shrink-0",
-                    isCoinNotification ? "bg-amber-500" : 
+                    isDiamondNotification ? "bg-amber-500" : 
                     isUrgentNotice ? "bg-red-500" :
                     isHighPriorityNotice ? "bg-orange-500" :
                     "bg-primary"
                   )}
-                  animate={(isCoinNotification || isLevelUp || isAdminNotice) ? { scale: [1, 1.3, 1] } : {}}
+                  animate={(isDiamondNotification || isLevelUp || isAdminNotice) ? { scale: [1, 1.3, 1] } : {}}
                   transition={{ duration: 1, repeat: Infinity }}
                 />
               )}
@@ -690,7 +690,7 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
           </div>
           
           {/* Special display for Diamond amount */}
-          {isCoinNotification && notificationData?.amount && (
+          {isDiamondNotification && notificationData?.amount && (
             <motion.div 
               className="flex items-center gap-2 mt-1"
               initial={{ scale: 0.8 }}

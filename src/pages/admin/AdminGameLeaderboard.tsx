@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { Trophy, Crown, Medal, Coins, Loader2, Gift, Calendar, CalendarDays, CalendarRange, RefreshCw, Diamond, Mic, Gamepad2, Building2, Swords, Users } from "lucide-react";
+import { Trophy, Crown, Medal, Gem, Loader2, Gift, Calendar, CalendarDays, CalendarRange, RefreshCw, Diamond, Mic, Gamepad2, Building2, Swords, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

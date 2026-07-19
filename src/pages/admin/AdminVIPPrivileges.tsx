@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Crown, Plus, Edit2, Trash2, Sparkles, Gem, Gift, 
   Upload, Save, Image, Play, MessageCircle, Star, X,
-  RefreshCw, Shield, EyeOff, Ghost, Coins, Calendar, Zap, Lock, TrendingUp
+  RefreshCw, Shield, EyeOff, Ghost, Gem, Calendar, Zap, Lock, TrendingUp
 } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AnimationUploader, { type AnimationFormat } from "@/components/admin/AnimationUploader";
@@ -566,7 +566,7 @@ const AdminVIPPrivileges = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-50 p-3 rounded-lg">
                       <label className="text-sm text-slate-900 flex items-center gap-2 mb-2">
-                        <Coins className="w-4 h-4 text-amber-400" />
+                        <Gem className="w-4 h-4 text-amber-400" />
                         Recharge Bonus %
                       </label>
                       <p className="text-xs text-slate-500 mb-2">Extra diamonds on every recharge (e.g. 5 = +5%)</p>

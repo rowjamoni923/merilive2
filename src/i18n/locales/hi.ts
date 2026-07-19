@@ -272,7 +272,7 @@ const hi = {
     selectGift: "एक गिफ्ट चुनें",
     quantity: "मात्रा",
     totalCost: "कुल लागत",
-    insufficientCoins: "Insufficient Diamonds",
+    insufficientDiamonds: "Insufficient Diamonds",
     rechargeNow: "अभी रिचार्ज करें",
   },
   agency: {

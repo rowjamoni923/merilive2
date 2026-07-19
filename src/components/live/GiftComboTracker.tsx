@@ -67,12 +67,12 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
       const now = Date.now();
       const existing = lanesRef.current.get(key);
       const addCount = Math.max(1, Number(data.count) || 1);
-      const unitCoins = Math.max(0, Number(data.giftCoins) || 0);
+      const unitDiamonds = Math.max(0, Number(data.giftDiamonds) || 0);
 
       if (existing && now - existing.lastAt < COMBO_WINDOW_MS) {
         if (existing.timer) clearTimeout(existing.timer);
         existing.count += addCount;
-        existing.totalValue += unitCoins * addCount;
+        existing.totalValue += unitDiamonds * addCount;
         existing.lastAt = now;
         existing.timer = setTimeout(() => {
           lanesRef.current.delete(key);
@@ -91,7 +91,7 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
           giftEmoji: (data as any).giftIcon || "🎁",
           giftIcon: data.giftIconUrl || undefined,
           count: addCount,
-          totalValue: unitCoins * addCount,
+          totalValue: unitDiamonds * addCount,
           lastAt: now,
           timer: null,
         };

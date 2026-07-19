@@ -9,7 +9,7 @@ const corsHeaders = {
  * Admin Manual Purchase Verification & Credit
  *
  * When a user reports "I paid but didn't get diamonds", admin can:
- * 1. Enter the user_id and coin amount
+ * 1. Enter the user_id and diamond amount
  * 2. This function credits the diamonds and records it as admin_manual
  *
  * Pkg321: Added section permission check (user-management with edit right).
@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
 
     const newBalance = Number(recoveryData.newBalance ?? 0);
     const creditedDiamonds = Number(recoveryData.diamondAmount ?? diamondAmount);
-    const firstRechargeBonusCoins = Number(recoveryData.firstRechargeBonusCoins ?? 0);
+    const firstRechargeBonusDiamonds = Number(recoveryData.firstRechargeBonusDiamonds ?? 0);
     const vipBonusDiamonds = Number(recoveryData.vipBonusDiamonds ?? 0);
 
     // Log admin action
@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
         diamond_amount: creditedDiamonds,
         base_diamonds: recoveryData.baseDiamonds,
         package_bonus_diamonds: recoveryData.packageBonusDiamonds,
-        first_recharge_bonus_coins: firstRechargeBonusCoins,
+        first_recharge_bonus_diamonds: firstRechargeBonusDiamonds,
         vip_bonus_diamonds: vipBonusDiamonds,
         price_usd: recoveryData.priceUsd,
         google_order_id: googleOrderId,
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         diamondAmount: creditedDiamonds,
         baseDiamonds: recoveryData.baseDiamonds,
         packageBonusDiamonds: recoveryData.packageBonusDiamonds,
-        firstRechargeBonusCoins,
+        firstRechargeBonusDiamonds,
         vipBonusDiamonds,
         newBalance,
         transactionId: recoveryData.transactionId,

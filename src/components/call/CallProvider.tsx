@@ -338,7 +338,7 @@ export function CallProvider({ children }: CallProviderProps) {
 
     const captureEndedInfo = async () => {
       let finalDuration = callState.duration;
-      let diamondsSpent = callState.totalCoinsSpent;
+      let diamondsSpent = callState.totalDiamondsSpent;
       let hostEarnedAmount = callState.hostEarned;
       // Honest-private-call fix (F-15 / F-04): default to 'normal' but
       // overwrite from the DB row whenever it is available.
@@ -788,9 +788,9 @@ export function CallProvider({ children }: CallProviderProps) {
             callStatus={callState.status}
             duration={callState.duration}
             coinsPerMinute={callState.coinsPerMinute}
-            totalCoinsSpent={callState.totalCoinsSpent}
+            totalDiamondsSpent={callState.totalDiamondsSpent}
             hostEarned={callState.hostEarned}
-            callerRemainingCoins={callState.callerRemainingCoins}
+            callerRemainingDiamonds={callState.callerRemainingDiamonds}
             onEndCall={handleEndCall}
             onMediaConnected={notifyMediaConnected}
             isHost={isHost}

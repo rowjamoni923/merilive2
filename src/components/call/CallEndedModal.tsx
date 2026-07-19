@@ -38,7 +38,7 @@ export function CallEndedModal({
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const formatCoins = (diamonds: number) => {
+  const formatDiamonds = (diamonds: number) => {
     if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
     return diamonds.toString();
   };
@@ -228,7 +228,7 @@ export function CallEndedModal({
                     <div className="flex items-center justify-center gap-1">
                       <BeansIcon size={18} />
                       <span className="text-green-600 text-lg font-bold tabular-nums">
-                        +{formatCoins(hostEarned)}
+                        +{formatDiamonds(hostEarned)}
                       </span>
                     </div>
                   </div>
