@@ -256,6 +256,10 @@ const AdminFaceVerification = () => {
   const actionInFlightRef = useRef(false);
   const fetchRequestIdRef = useRef(0);
   const optimisticTerminalRowsRef = useRef<Map<string, Submission>>(new Map());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkProgress, setBulkProgress] = useState<{ total: number; done: number; ok: number; fail: number } | null>(null);
+  const toggleRowSelected = (id: string) => setSelectedIds((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const clearSelection = () => setSelectedIds(new Set());
 
   const matchesSubmissionQuery = (sub: Submission, rawQuery: string) => {
     const trimmed = rawQuery.trim();
