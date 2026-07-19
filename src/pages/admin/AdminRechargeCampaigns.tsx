@@ -646,7 +646,7 @@ export default function AdminRechargeCampaigns() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground italic">No coin packages found in database</p>
+                  <p className="text-xs text-muted-foreground italic">No diamond packages found in database</p>
                 )}
               </div>
 
