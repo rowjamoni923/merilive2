@@ -122,7 +122,7 @@ export default function AdminGiftAnimationConfig() {
         <CardHeader>
           <CardTitle className="text-lg text-slate-900">Full-Screen Playback</CardTitle>
           <CardDescription>
-            When a gift's per-unit coin value meets or exceeds the threshold, a full-screen VAP/SVGA/Lottie/MP4
+            When a gift's per-unit diamond value meets or exceeds the threshold, a full-screen VAP/SVGA/Lottie/MP4
             animation plays. Below the threshold, only the compact flying banner appears.
           </CardDescription>
         </CardHeader>
