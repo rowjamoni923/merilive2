@@ -225,7 +225,7 @@ export function AdminPushNotificationBroadcast() {
       </div>
 
       {/* Quick Preset Templates (from DB) */}
-      <Card className="bg-gray-900/50 border-gray-800">
+      <Card className="bg-white/50 border-gray-800">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-white flex items-center gap-2 text-lg">
@@ -282,7 +282,7 @@ export function AdminPushNotificationBroadcast() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form Card */}
-        <Card className="bg-gray-900/50 border-gray-800">
+        <Card className="bg-white/50 border-gray-800">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Send className="w-5 h-5" />
@@ -449,7 +449,7 @@ export function AdminPushNotificationBroadcast() {
         </Card>
 
         {/* Preview Card */}
-        <Card className="bg-gray-900/50 border-gray-800">
+        <Card className="bg-white/50 border-gray-800">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Smartphone className="w-5 h-5" />
@@ -557,21 +557,21 @@ export function AdminPushNotificationBroadcast() {
 
       {/* Edit Template Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white border-slate-200 text-slate-900">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white"><Edit3 className="w-5 h-5 text-purple-400" /> Edit Template</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-white/80">Title</Label>
-              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" />
+              <Label className="text-sm font-medium text-slate-600">Title</Label>
+              <Input value={editForm.title} onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white border-slate-300 text-slate-900" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Message Body</Label>
-              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-white" />
+              <Label className="text-sm font-medium text-slate-600">Message Body</Label>
+              <Textarea value={editForm.body} onChange={(e) => setEditForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white border-slate-300 text-slate-900" />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-white/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setEditDialog(false)} className="flex-1 border-white/20 text-slate-600 hover:bg-white/10">Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={saving} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />} Save
               </Button>
@@ -582,15 +582,15 @@ export function AdminPushNotificationBroadcast() {
 
       {/* Add Template Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-white">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white border-slate-200 text-slate-900">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white"><Plus className="w-5 h-5 text-green-400" /> Add Template</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-white/80">Category</Label>
+              <Label className="text-sm font-medium text-slate-600">Category</Label>
               <Select value={addCategory} onValueChange={setAddCategory}>
-                <SelectTrigger className="mt-1.5 bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1.5 bg-white border-slate-300 text-slate-900"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(PUSH_CATEGORIES).map(([key, val]) => (
                     <SelectItem key={key} value={key}>{val.label}</SelectItem>
@@ -599,15 +599,15 @@ export function AdminPushNotificationBroadcast() {
               </Select>
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Title *</Label>
-              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white/5 border-white/10 text-white" placeholder="Notification title..." />
+              <Label className="text-sm font-medium text-slate-600">Title *</Label>
+              <Input value={addForm.title} onChange={(e) => setAddForm(prev => ({ ...prev, title: e.target.value }))} className="mt-1.5 bg-white border-slate-300 text-slate-900" placeholder="Notification title..." />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/80">Message Body *</Label>
-              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white/5 border-white/10 text-white" placeholder="Notification message..." />
+              <Label className="text-sm font-medium text-slate-600">Message Body *</Label>
+              <Textarea value={addForm.body} onChange={(e) => setAddForm(prev => ({ ...prev, body: e.target.value }))} className="mt-1.5 min-h-[120px] bg-white border-slate-300 text-slate-900" placeholder="Notification message..." />
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-white/80 hover:bg-white/10">Cancel</Button>
+              <Button variant="outline" onClick={() => setAddDialog(false)} className="flex-1 border-white/20 text-slate-600 hover:bg-white/10">Cancel</Button>
               <Button onClick={handleAddTemplate} disabled={saving} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />} Add
               </Button>

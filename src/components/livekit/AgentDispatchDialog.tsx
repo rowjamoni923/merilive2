@@ -130,7 +130,7 @@ export function AgentDispatchDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+      <DialogContent className="bg-white border-slate-200 text-slate-900 max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Bot className="w-5 h-5 text-indigo-400" />

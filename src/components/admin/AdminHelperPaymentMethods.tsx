@@ -548,7 +548,7 @@ export default function AdminHelperPaymentMethods() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingMethod ? 'Edit Payment Method' : 'Add New Payment Method'}

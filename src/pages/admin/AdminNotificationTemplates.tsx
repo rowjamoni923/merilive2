@@ -368,7 +368,7 @@ const AdminNotificationTemplates = () => {
       </div>
 
       <div className="p-4 grid gap-4 lg:grid-cols-2">
-        <Card className="bg-white/5 border-white/10 overflow-hidden">
+        <Card className="bg-white border-slate-300 overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-slate-900 flex items-center gap-2"><Sparkles className="w-5 h-5 text-amber-300" /> Premium 3D PNG Icons</CardTitle>
             <CardDescription className="text-slate-900/50">5 industry-standard PNG icons for push + in-app notifications.</CardDescription>
@@ -383,7 +383,7 @@ const AdminNotificationTemplates = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 overflow-hidden">
+        <Card className="bg-white border-slate-300 overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-slate-900 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-blue-300" /> Premium Event Banners</CardTitle>
             <CardDescription className="text-slate-900/50">5 universal event banners ready for campaigns and notification images.</CardDescription>
@@ -413,7 +413,7 @@ const AdminNotificationTemplates = () => {
           <CardContent className="space-y-4">
             {/* Size selector */}
             <div>
-              <Label className="text-slate-900/80 text-xs uppercase tracking-wider mb-1.5 block">Banner Size</Label>
+              <Label className="text-slate-700 text-xs uppercase tracking-wider mb-1.5 block">Banner Size</Label>
               <div className="flex flex-wrap gap-1.5">
                 {BANNER_SIZES.map((s) => (
                   <button
@@ -508,7 +508,7 @@ const AdminNotificationTemplates = () => {
       {/* Templates List */}
       <div className="p-4 space-y-4">
         {templates.map((template) => (
-          <Card key={template.id} className="overflow-hidden bg-white/5 border-white/10">
+          <Card key={template.id} className="overflow-hidden bg-white border-slate-300">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -542,7 +542,7 @@ const AdminNotificationTemplates = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => previewTemplate(template)}
-                  className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10 hover:text-slate-900"
+                  className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 >
                   <Eye className="w-4 h-4 mr-1" />
                   Preview
@@ -572,7 +572,7 @@ const AdminNotificationTemplates = () => {
 
       {/* Edit Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#1a1a2e] border-white/10 text-slate-900">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white border-slate-200 text-slate-900">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900">
               <Edit3 className="w-5 h-5 text-purple-400" />
@@ -582,48 +582,48 @@ const AdminNotificationTemplates = () => {
 
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Template Key</Label>
+              <Label className="text-sm font-medium text-slate-700">Template Key</Label>
               <Input
                 value={selectedTemplate?.template_key || ""}
                 disabled
-                className="mt-1.5 bg-white/5 border-white/10 text-slate-900/60"
+                className="mt-1.5 bg-white border-slate-300 text-slate-900/60"
               />
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Description</Label>
+              <Label className="text-sm font-medium text-slate-700">Description</Label>
               <Input
                 value={editForm.description}
                 onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Description of this template"
-                className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
+                className="mt-1.5 bg-white border-slate-300 text-slate-900 placeholder:text-slate-900/30"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-sm font-medium text-slate-900/80">Unicode Emoji</Label>
+                <Label className="text-sm font-medium text-slate-700">Unicode Emoji</Label>
                 <Input
                   value={editForm.icon_emoji}
                   onChange={(e) => setEditForm(prev => ({ ...prev, icon_emoji: e.target.value }))}
                   placeholder="💎"
-                  className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
+                  className="mt-1.5 bg-white border-slate-300 text-slate-900 placeholder:text-slate-900/30"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-900/80">Image URL</Label>
+                <Label className="text-sm font-medium text-slate-700">Image URL</Label>
                 <Input
                   value={editForm.image_url}
                   onChange={(e) => setEditForm(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="Pick below or paste URL"
-                  className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
+                  className="mt-1.5 bg-white border-slate-300 text-slate-900 placeholder:text-slate-900/30"
                 />
               </div>
             </div>
 
             {/* Visual Icon Picker */}
             <div>
-              <Label className="text-sm font-medium text-slate-900/80 flex items-center gap-2">
+              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-300" /> Pick Premium 3D Icon
               </Label>
               <div className="mt-2 grid grid-cols-5 gap-2">
@@ -647,7 +647,7 @@ const AdminNotificationTemplates = () => {
 
             {/* Visual Banner Picker */}
             <div>
-              <Label className="text-sm font-medium text-slate-900/80 flex items-center gap-2">
+              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-blue-300" /> Pick Event Banner
               </Label>
               <div className="mt-2 grid grid-cols-2 gap-2">
@@ -671,7 +671,7 @@ const AdminNotificationTemplates = () => {
                 <button
                   type="button"
                   onClick={() => setEditForm(prev => ({ ...prev, image_url: '' }))}
-                  className="mt-2 text-xs text-slate-900/50 hover:text-slate-900/80 underline"
+                  className="mt-2 text-xs text-slate-900/50 hover:text-slate-700 underline"
                 >
                   Clear image (use emoji only)
                 </button>
@@ -679,22 +679,22 @@ const AdminNotificationTemplates = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Title Template *</Label>
+              <Label className="text-sm font-medium text-slate-700">Title Template *</Label>
               <Input
                 value={editForm.title_template}
                 onChange={(e) => setEditForm(prev => ({ ...prev, title_template: e.target.value }))}
                 placeholder="Notification title"
-                className="mt-1.5 bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
+                className="mt-1.5 bg-white border-slate-300 text-slate-900 placeholder:text-slate-900/30"
               />
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-900/80">Message Template *</Label>
+              <Label className="text-sm font-medium text-slate-700">Message Template *</Label>
               <Textarea
                 value={editForm.message_template}
                 onChange={(e) => setEditForm(prev => ({ ...prev, message_template: e.target.value }))}
                 placeholder="Notification message"
-                className="mt-1.5 min-h-[150px] bg-white/5 border-white/10 text-slate-900 placeholder:text-slate-900/30"
+                className="mt-1.5 min-h-[150px] bg-white border-slate-300 text-slate-900 placeholder:text-slate-900/30"
               />
               <p className="text-xs text-slate-900/40 mt-1">
                 Variables: {"{{code}}"}, {"{{agency_name}}"}, {"{{agency_code}}"}, {"{{display_name}}"}
@@ -705,7 +705,7 @@ const AdminNotificationTemplates = () => {
               <Button
                 variant="outline"
                 onClick={() => setEditDialog(false)}
-                className="flex-1 border-white/20 text-slate-900/80 hover:bg-white/10"
+                className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
@@ -728,7 +728,7 @@ const AdminNotificationTemplates = () => {
 
       {/* Preview Dialog */}
       <Dialog open={previewDialog} onOpenChange={setPreviewDialog}>
-        <DialogContent className="max-w-sm bg-[#1a1a2e] border-white/10 text-slate-900">
+        <DialogContent className="max-w-sm bg-white border-slate-200 text-slate-900">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900">
               <MessageSquare className="w-5 h-5 text-purple-400" />

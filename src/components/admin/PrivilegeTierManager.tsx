@@ -170,15 +170,15 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-900 border-white/10">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white border-slate-200">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center justify-between">
             <span>{categoryName} – Tier Manager</span>
-            <Button size="sm" variant="ghost" onClick={fetchTiers} className="text-white/70">
+            <Button size="sm" variant="ghost" onClick={fetchTiers} className="text-slate-500">
               <RefreshCw className="w-4 h-4" />
             </Button>
           </DialogTitle>
-          <DialogDescription className="text-white/60">
+          <DialogDescription className="text-slate-500">
             Upload one item per level (0–100). Each level can be locked or unlocked for users based on their progression.
           </DialogDescription>
         </DialogHeader>
@@ -235,10 +235,10 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
                       onCheckedChange={(v) => handleToggleActive(tier, v)}
                     />
                     <Button size="icon" variant="ghost" onClick={() => startCopyFrom(tier)} title="Duplicate to next level">
-                      <Copy className="w-4 h-4 text-white/70" />
+                      <Copy className="w-4 h-4 text-slate-500" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => setEditing(tier)}>
-                      <Pencil className="w-4 h-4 text-white/70" />
+                      <Pencil className="w-4 h-4 text-slate-500" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => handleDelete(tier.id)}>
                       <Trash2 className="w-4 h-4 text-red-400" />
@@ -255,16 +255,16 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/60">Name</Label>
+                <Label className="text-slate-500">Name</Label>
                 <Input
                   value={editing.name}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                   placeholder="e.g. Royal Entry Bar"
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-slate-300 text-slate-900"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white/60">Unlock Level (0-100)</Label>
+                <Label className="text-slate-500">Unlock Level (0-100)</Label>
                 <Input
                   type="number"
                   min={0}
@@ -276,24 +276,24 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
                       unlock_level: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)),
                     })
                   }
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-slate-300 text-slate-900"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/60">Description</Label>
+              <Label className="text-slate-500">Description</Label>
               <Textarea
                 value={editing.description || ""}
                 onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                 placeholder="Short description shown to users"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white border-slate-300 text-slate-900"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/60">Icon Bg Color</Label>
+                <Label className="text-slate-500">Icon Bg Color</Label>
                 <div className="flex gap-2">
                   <Input
                     type="color"
@@ -304,12 +304,12 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
                   <Input
                     value={editing.icon_bg_color || ""}
                     onChange={(e) => setEditing({ ...editing, icon_bg_color: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-white border-slate-300 text-slate-900"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-white/60">Icon Color</Label>
+                <Label className="text-slate-500">Icon Color</Label>
                 <div className="flex gap-2">
                   <Input
                     type="color"
@@ -320,7 +320,7 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
                   <Input
                     value={editing.icon_color || ""}
                     onChange={(e) => setEditing({ ...editing, icon_color: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-white border-slate-300 text-slate-900"
                   />
                 </div>
               </div>
@@ -345,27 +345,27 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
             />
 
             <div className="space-y-2">
-              <Label className="text-white/60">Preview Image URL (optional)</Label>
+              <Label className="text-slate-500">Preview Image URL (optional)</Label>
               <Input
                 value={editing.preview_url || ""}
                 onChange={(e) => setEditing({ ...editing, preview_url: e.target.value })}
                 placeholder="https://..."
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white border-slate-300 text-slate-900"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/60">Sound URL (optional)</Label>
+                <Label className="text-slate-500">Sound URL (optional)</Label>
                 <Input
                   value={editing.sound_url || ""}
                   onChange={(e) => setEditing({ ...editing, sound_url: e.target.value })}
                   placeholder="https://..."
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-slate-300 text-slate-900"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white/60">Duration (ms)</Label>
+                <Label className="text-slate-500">Duration (ms)</Label>
                 <Input
                   type="number"
                   min={500}
@@ -375,7 +375,7 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
                   onChange={(e) =>
                     setEditing({ ...editing, duration_ms: parseInt(e.target.value) || 3000 })
                   }
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white border-slate-300 text-slate-900"
                 />
               </div>
             </div>
