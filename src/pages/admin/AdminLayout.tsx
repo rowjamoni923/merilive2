@@ -1654,7 +1654,7 @@ export default function AdminLayout() {
         // Calling
         '/admin/pricing-hub': 0,
         // Coin & Finance
-        '/admin/coin-trader-hub': coinTransfersCount,
+        '/admin/diamond-trader-hub': coinTransfersCount,
         '/admin/finance': financeCount,
         '/admin/payroll-orders': payrollCount,
         '/admin/recharge-history': 0,
