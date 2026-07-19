@@ -451,7 +451,7 @@ const AdminCommissionCalculator = () => {
               <CardContent>
                 <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
                   <p className="text-sm text-slate-600 mb-3 text-center">
-                    Every 60 seconds <span className="font-bold text-lg text-blue-600">{formatNumber(callPerMinuteRate)}</span> coins deducted
+                    Every 60 seconds <span className="font-bold text-lg text-blue-600">{formatNumber(callPerMinuteRate)}</span> diamonds deducted
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white rounded-lg p-4 shadow-sm text-center">
