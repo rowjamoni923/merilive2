@@ -98,7 +98,7 @@ export default function MatchCall() {
       const { data: u } = await supabase.auth.getUser();
       if (u?.user) {
         const { data: p } = await supabase.from("profiles")
-          .select("id, coins, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
+          .select("id, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
         if (p) setProfile(p as any);
       }
       await refreshHostsCount();
@@ -490,7 +490,7 @@ export default function MatchCall() {
   const maxRate = Number(settings?.host_max_rate_coins_per_min ?? settings?.default_host_rate_coins_per_min ?? 0);
   const preauthMin = Number(settings?.preauth_minutes_hold ?? 2);
   const holdAmount = Math.max(0, maxRate * preauthMin);
-  const profileBalance = Math.max(Number(profile?.diamonds ?? 0), Number(profile?.coins ?? 0)); // DU-3: diamonds canonical; coins fallback until DU-5
+  const profileBalance = Number(profile?.diamonds ?? 0); // ZERO-COIN: Diamonds is the single spend wallet.
   const profileIsVip = Number(profile?.vip_tier ?? 0) > 0 || !!profile?.current_vip_tier_id;
 
   return (

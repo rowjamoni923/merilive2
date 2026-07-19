@@ -424,7 +424,7 @@ const ProfileDetail = () => {
       traderResult,
     ] = await Promise.all([
       // Current user's diamond balance
-      user?.id ? supabase.from("profiles").select("coins").eq("id", user.id).single() : { data: null },
+      user?.id ? supabase.from("profiles").select("diamonds").eq("id", user.id).single() : { data: null },
       // Slideshow interval setting
       supabase.from("app_settings").select("setting_value").eq("setting_key", "profile_slideshow_interval").maybeSingle(),
       // Profile data
@@ -449,8 +449,8 @@ const ProfileDetail = () => {
       supabase.from("topup_helpers").select("id, trader_level, payroll_enabled").eq("user_id", targetId).eq("is_active", true).eq("is_verified", true).maybeSingle(),
     ]);
 
-    // Set current user coins
-    setCurrentUserCoins(currentUserProfileResult?.data?.coins || 0);
+    // Set current user diamonds (ZERO-COIN: single spend wallet)
+    setCurrentUserCoins((currentUserProfileResult?.data as any)?.diamonds || 0);
 
     // Set slideshow interval
     if (intervalSettingResult?.data?.setting_value) {
