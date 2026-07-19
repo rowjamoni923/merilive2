@@ -333,7 +333,7 @@ export default function AdminRandomCallSettings() {
               <Field label="VIP free-trial bonus seconds" hint="Extra free seconds added on top of free_trial_seconds for VIPs.">
                 <Input type="number" min={0} max={120} value={s.vip_free_trial_bonus_seconds} onChange={(e) => update("vip_free_trial_bonus_seconds", NUM(e.target.value))} />
               </Field>
-              <Field label="Coins per USD (display only)">
+              <Field label="Diamonds per USD (display only)">
                 <Input type="number" value={s.coins_to_usd_rate} onChange={(e) => update("coins_to_usd_rate", NUM(e.target.value))} />
               </Field>
               <Field label="Beans per USD (display only)">
