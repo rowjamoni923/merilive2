@@ -77,7 +77,7 @@ export default function AdminReports() {
         return {
           date: d.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
           users: Number(row.users || 0),
-          coins: Number(row.coins || 0),
+          coins: Number(row.diamonds || 0),
           streams: Number(row.streams || 0),
         };
       });
@@ -200,7 +200,7 @@ export default function AdminReports() {
             columns={[
               { key: "date", label: "Date", weight: 1 },
               { key: "users", label: "Users", weight: 0.8 },
-              { key: "coins", label: "Diamonds Spent", weight: 1.2 },
+              { key: "diamonds", label: "Diamonds Spent", weight: 1.2 },
               { key: "streams", label: "Streams", weight: 0.8 },
             ]}
             meta={{
@@ -315,7 +315,7 @@ export default function AdminReports() {
                   />
                   <Line
                     type="monotone"
-                    dataKey="coins"
+                    dataKey="diamonds"
                     stroke="#f59e0b"
                     strokeWidth={2}
                     dot={{ fill: "#f59e0b", strokeWidth: 2 }}

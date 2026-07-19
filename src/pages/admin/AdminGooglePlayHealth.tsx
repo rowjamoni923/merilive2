@@ -91,7 +91,7 @@ export default function AdminGooglePlayHealth() {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>${p.priceUsd}</span>
-                      <Badge variant="secondary" className="text-[10px]">{p.coins?.toLocaleString() ?? "?"} 💎</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{p.diamonds?.toLocaleString() ?? "?"} 💎</Badge>
                     </div>
                   </div>
                 ))}

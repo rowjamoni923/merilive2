@@ -9,7 +9,7 @@ import AdminWithdrawals from "./AdminWithdrawals";
 import AdminPayrollOrders from "./AdminPayrollOrders";
 import AdminTransferHistory from "./AdminTransferHistory";
 import AdminBalanceDeduction from "./AdminBalanceDeduction";
-import AdminCoins from "./AdminCoins";
+import AdminDiamonds from "./AdminDiamonds";
 import AdminHelperMessaging from "@/components/admin/AdminHelperMessaging";
 import AdminEpayWithdrawals from "@/components/admin/AdminEpayWithdrawals";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -167,7 +167,7 @@ const AdminFinance = () => {
         </TabsContent>
 
         <TabsContent value="currency" className="mt-0">
-          <AdminCoins />
+          <AdminDiamonds />
         </TabsContent>
 
         <TabsContent value="deduction" className="mt-0">

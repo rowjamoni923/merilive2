@@ -1312,7 +1312,7 @@ export function usePrivateCall(userId: string | null) {
 
       // Phase 3B (Step 3): sync live caller balance from server-cron billing writes.
       // bill_call_minute() updates last_billed_minute on each successful tick;
-      // the new viewer balance lives in profiles.coins, but we also surface the
+      // the new viewer balance lives in profiles.diamonds, but we also surface the
       // total_minutes_billed counter here so the in-call HUD never drifts.
       if (row.caller_id === userId && currentCallIdRef.current === callId && !callEndedRef.current) {
         const minutesBilled = typeof row.total_minutes_billed === 'number' ? row.total_minutes_billed : null;
@@ -1344,7 +1344,7 @@ export function usePrivateCall(userId: string | null) {
         // Phase 3B (Step 3): surface server-cron auto-end reasons to the caller UI.
         const finalStatus = String(row.final_status || '');
         const endReason = String(row.end_reason || '');
-        if (row.caller_id === userId && (finalStatus === 'insufficient_balance' || endReason === 'insufficient_coins')) {
+        if (row.caller_id === userId && (finalStatus === 'insufficient_balance' || endReason === 'insufficient_diamonds')) {
           toastRef.current({
             title: 'Insufficient Diamonds',
             description: 'Call ended automatically — please recharge to continue',

@@ -107,7 +107,7 @@ export const TeenPattiGame = () => {
         setUserId(user.id);
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("id, coins, display_name")
+          .select("id, diamonds, display_name")
           .eq("id", user.id)
           .single();
         if (profileData) {
@@ -468,7 +468,7 @@ export const TeenPattiGame = () => {
             "from-purple-400 to-purple-600"
           ];
           const isSelected = selectedChip === value;
-          const isDisabled = (profile?.coins || 0) < value;
+          const isDisabled = (profile?.diamonds || 0) < value;
           
           return (
             <motion.button
@@ -501,7 +501,7 @@ export const TeenPattiGame = () => {
         <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full">
           <Diamond className="w-5 h-5 text-yellow-400" />
           <span className="text-white font-bold">
-            {(profile?.coins || 0).toLocaleString()}
+            {(profile?.diamonds || 0).toLocaleString()}
           </span>
         </div>
       </div>

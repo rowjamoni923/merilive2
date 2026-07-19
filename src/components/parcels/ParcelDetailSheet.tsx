@@ -135,7 +135,7 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
                       <h2 className="text-2xl font-bold text-foreground">🎉 Congratulations!</h2>
                       <div className="text-center">
                         <p className="text-lg text-amber-400 font-bold">
-                          +{claimResult.reward_amount} {claimResult.reward_type === 'coins' ? 'Diamonds' : claimResult.reward_type}
+                          +{claimResult.reward_amount} {claimResult.reward_type === 'diamonds' ? 'Diamonds' : claimResult.reward_type}
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">Reward added to your account</p>
                       </div>

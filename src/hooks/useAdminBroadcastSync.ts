@@ -60,7 +60,7 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   beauty_filters: [['beauty-filters']],
   ar_stickers: [['ar-stickers']],
 
-  diamond_packages: [['coin-packages'], ['diamond-packages'], ['recharge-packages']],
+  diamond_packages: [['diamond-packages'], ['diamond-packages'], ['recharge-packages']],
   currency_rates: [['currency-rates']],
   topup_payment_methods: [['topup-payment-methods'], ['payment-methods']],
   branding_settings: [['branding-settings'], ['branding']],
@@ -92,7 +92,7 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   helper_level_config: [['helper-level-config']],
   user_beans_exchange_tiers: [['user-beans-exchange-tiers']],
   // Pkg53 additions — User Management
-  topup_helpers: [['topup-helpers'], ['level5-helpers'], ['helpers'], ['coin-traders']],
+  topup_helpers: [['topup-helpers'], ['level5-helpers'], ['helpers'], ['diamond-traders']],
   host_conversion_requests: [['host-conversion-requests']],
   // Pkg54 additions — Agency/Helper
   helper_orders: [['helper-orders'], ['trader-orders']],

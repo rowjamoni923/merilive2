@@ -385,7 +385,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   // no quantity stepper. Keeps lottery-tier gifts feeling intentional & exclusive.
   const SINGLE_ONLY_THRESHOLD = 50000;
   const COMBO_PRESETS = [1, 11, 37, 77] as const;
-  const isSingleOnly = !!selectedGift && selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+  const isSingleOnly = !!selectedGift && selectedGift.diamonds >= SINGLE_ONLY_THRESHOLD;
 
   const handleGiftTap = useCallback((gift: GiftData) => {
     const required = Number(gift.min_level ?? 0) || 0;
@@ -419,9 +419,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
     // Premium gifts (≥ 50k) are single-send only — ignore stale combo count
     // and skip combo accumulation so the lottery-tier UI stays clean.
-    const singleOnly = selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+    const singleOnly = selectedGift.diamonds >= SINGLE_ONLY_THRESHOLD;
     const effectiveCount = singleOnly ? 1 : count;
-    const cost = selectedGift.coins * effectiveCount;
+    const cost = selectedGift.diamonds * effectiveCount;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
     onSendGift(selectedGift, effectiveCount);
@@ -438,9 +438,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     if (!selectedGift) return;
     warmSelectedVideoGift(selectedGift.animation_url || selectedGift.icon_url);
     // Premium gifts (≥ 50k) clamp to single send and skip combo accumulation.
-    const singleOnly = selectedGift.coins >= SINGLE_ONLY_THRESHOLD;
+    const singleOnly = selectedGift.diamonds >= SINGLE_ONLY_THRESHOLD;
     const effectiveCount = singleOnly ? 1 : quickCount;
-    const cost = selectedGift.coins * effectiveCount;
+    const cost = selectedGift.diamonds * effectiveCount;
     if (userCoinsRef.current < cost) return;
     userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
     setCount(effectiveCount);
@@ -496,7 +496,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     return VIDEO_OR_GIF_PATTERN.test(url);
   }, []);
 
-  const hasBalance = selectedGift ? userDiamonds >= selectedGift.coins * count : false;
+  const hasBalance = selectedGift ? userDiamonds >= selectedGift.diamonds * count : false;
 
   // Don't render if not open OR if native is active
   if (!isOpen || isNative) return null;
@@ -739,7 +739,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   <p className="text-white font-semibold text-xs">{selectedGift.name}</p>
                   <div className="text-cyan-400 text-[10px] flex items-center gap-0.5 font-medium">
                     <Diamond3DIcon size={12} />
-                    {formatCoinValue(selectedGift.coins)} each
+                    {formatCoinValue(selectedGift.diamonds)} each
                   </div>
                 </div>
               </div>
@@ -749,7 +749,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 <p className="text-white/70 text-[9px] font-medium">Total Cost</p>
                 <div className="font-bold text-sm flex items-center gap-1 justify-end bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
                   <Diamond3DIcon size={16} />
-                  {formatCoinValue(selectedGift.coins * count)}
+                  {formatCoinValue(selectedGift.diamonds * count)}
                 </div>
               </div>
             </div>
@@ -768,7 +768,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 {/* Combo Presets: 1, 11, 37, 77 — Chamet style */}
                 <div className="flex gap-1 flex-1 justify-between">
                   {COMBO_PRESETS.map((n) => {
-                    const canAfford = userDiamonds >= selectedGift.coins * n;
+                    const canAfford = userDiamonds >= selectedGift.diamonds * n;
                     const isActive = count === n;
                     return (
                       <button

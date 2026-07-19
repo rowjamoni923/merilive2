@@ -1929,7 +1929,7 @@ const ProfileDetail = () => {
         onClose={() => setShowGiftPanel(false)}
         onSendGift={async (gift: GiftData, count: number) => {
           if (!currentUser?.id || !userId) return;
-          const totalCost = gift.coins * count;
+          const totalCost = gift.diamonds * count;
           if (currentUserCoins < totalCost) {
             toast({
               title: "Not Enough Diamonds!",
@@ -1959,7 +1959,7 @@ const ProfileDetail = () => {
             soundUrl: (gift as any).sound_url || undefined,
             giftColor: 'from-pink-500 to-purple-500',
             count,
-            coins: gift.coins,
+            coins: gift.diamonds,
             isOwnGift: true,
           });
 

@@ -119,8 +119,8 @@ Deno.serve(async (req) => {
 
     // Normalize all historical RPC payload shapes. The current DB function returns
     // total_cost / beans_received / new_sender_balance, while older clients expect
-    // coinsSpent / hostReceived. Missing normalization made Pkg85 read zeros.
-    const coinsSpent = Number(result.diamonds_spent ?? result.total_cost ?? 0)
+    // diamondsSpent / hostReceived. Missing normalization made Pkg85 read zeros.
+    const diamondsSpent = Number(result.diamonds_spent ?? result.total_cost ?? 0)
     const hostReceived = Number(result.beans_earned ?? result.beans_received ?? 0)
     const newBalance = result.new_balance ?? result.new_sender_balance ?? null
     const diamondBonus = Number(result.diamond_bonus ?? 0)
@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
             p_sender_id: user.id,
             p_target_host_id: receiverId,
             p_gift_id: giftId,
-            p_diamond_amount: coinsSpent,
+            p_diamond_amount: diamondsSpent,
             p_stream_id: streamId ?? null,
           })
         }
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
         success: true,
         senderId: user.id,
         transactionId: result.transaction_id,
-        coinsSpent,
+        diamondsSpent,
         hostReceived,
         hostPercent: result.host_percent,
         newBalance,

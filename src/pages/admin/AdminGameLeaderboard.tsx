@@ -315,7 +315,7 @@ export default function AdminGameLeaderboard() {
         }
         const isAgency = category === 'agency_performance';
         const rewardAmount = Math.max(reward.reward_diamonds || 0, reward.reward_diamonds || 0, reward.reward_beans || 0);
-        const rewardType = reward.reward_beans > 0 ? 'beans' : reward.reward_diamonds > 0 ? 'diamonds' : 'coins';
+        const rewardType = reward.reward_beans > 0 ? 'beans' : reward.reward_diamonds > 0 ? 'diamonds' : 'diamonds';
 
         await creditReward(entry, reward, isAgency);
 

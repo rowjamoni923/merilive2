@@ -102,10 +102,10 @@ export function GameBoard({ selectedGame, roomId, isHost = false, onClose, onOpe
     if (user) {
       const { data } = await supabase
         .from('profiles')
-        .select('coins')
+        .select('diamonds')
         .eq('id', user.id)
         .single();
-      if (data) setUserCoins(data.coins);
+      if (data) setUserCoins(data.diamonds);
     }
   };
 

@@ -196,7 +196,7 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
       }));
 
       const earnedBeans = (result as any)?.beans || task.reward_beans;
-      const earnedCoins = (result as any)?.coins || task.reward_diamonds;
+      const earnedCoins = (result as any)?.diamonds || task.reward_diamonds;
       setShowCelebration({ beans: earnedBeans, diamonds: earnedCoins });
       setTimeout(() => setShowCelebration(null), 3000);
       toast.success(`🎉 +${earnedBeans} Beans, +${earnedCoins} 💎`);

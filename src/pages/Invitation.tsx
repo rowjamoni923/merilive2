@@ -134,7 +134,7 @@ const Invitation = () => {
         return;
       }
 
-      const coinsAwarded = Number(result?.coins ?? 0);
+      const coinsAwarded = Number(result?.diamonds ?? 0);
       const beansAwarded = Number(result?.beans ?? 0);
       const parts: string[] = [];
       if (coinsAwarded > 0) parts.push(`+${coinsAwarded.toLocaleString()} 💎 Diamonds`);

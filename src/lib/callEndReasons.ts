@@ -2,7 +2,7 @@
  * Canonical end-reason enum for private calls.
  *
  * Historically the codebase used a fluid mix of strings — 'normal',
- * 'declined', 'missed', 'insufficient_coins', 'insufficient_balance',
+ * 'declined', 'missed', 'insufficient_diamonds', 'insufficient_balance',
  * 'Insufficient balance', 'network', 'user_hangup', 'remote_close',
  * 'force_end', 'busy', 'timeout', 'cancelled' — written from JS, Android,
  * edge functions and DB triggers. CallEndedModal could only render four
@@ -55,7 +55,7 @@ export function normalizeEndReason(raw: unknown): CallEndReason {
   // Insufficient balance — historically three spellings.
   if (s === 'insufficient_balance'
    || s === 'insufficient balance'
-   || s === 'insufficient_coins'
+   || s === 'insufficient_diamonds'
    || s === 'insufficient coins'
    || s === 'low_balance'
    || s === 'force_end'             // server force-ends are almost always low-balance

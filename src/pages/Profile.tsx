@@ -204,9 +204,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }, [profile?.display_name, profile?.username, currentUser?.user_metadata?.username, currentUser?.user_metadata?.full_name, currentUser?.user_metadata?.name]);
 
   const resolvedDiamondBalance = useMemo(() => {
-    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.coins ?? 0)); // DU-3: diamonds canonical; coins fallback until DU-5
+    const profileBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number(profile?.diamonds ?? 0)); // DU-3: diamonds canonical; coins fallback until DU-5
     return balanceInitialized ? cachedBalance : profileBalance;
-  }, [balanceInitialized, cachedBalance, profile?.coins, (profile as any)?.diamonds]);
+  }, [balanceInitialized, cachedBalance, profile?.diamonds, (profile as any)?.diamonds]);
 
   const getPersonalBeans = (profileData: any) => Math.max(0, Number(profileData?.beans || 0));
 
@@ -520,7 +520,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       agencyPromise,
       supabase
         .from("profiles")
-        .select("coins")
+        .select("diamonds")
         .eq("id", currentUser.id)
         .single(),
     ]);
@@ -531,7 +531,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     const nextTraderWallet = Number(helperResult.data?.wallet_balance || 0);
     const nextAgencyBalance = Number(latestAgencyResult.data?.diamond_balance || 0);
-      const personalCoins = Number(profileResult.data?.coins || 0);
+      const personalCoins = Number(profileResult.data?.diamonds || 0);
 
     setIsCoinTrader(Boolean(helperResult.data));
     setTraderWallet(nextTraderWallet);
@@ -812,7 +812,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           supabase.from("followers").select("following_id").eq("follower_id", targetUserId),
           // My followers (for friends calculation)
           supabase.from("followers").select("follower_id").eq("following_id", targetUserId),
-          // Earnings (no longer needed - using profile.coins directly)
+          // Earnings (no longer needed - using profile.diamonds directly)
           { data: null },
           // Spent (for consumption return)
           supabase.from("gift_transactions").select("diamond_amount").eq("sender_id", targetUserId),
@@ -991,8 +991,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               return mergedProfile;
             });
 
-            if (payload?.coins !== undefined) {
-              updateCachedBalance(payload.coins);
+            if (payload?.diamonds !== undefined) {
+              updateCachedBalance(payload.diamonds);
             }
 
             syncBeansFromProfile(mergedProfile);
@@ -2924,7 +2924,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <div className="flex justify-between items-center gap-2 min-w-0 pt-2 border-t border-amber-200">
                       <span className="text-body text-sm shrink-0">My Diamond Balance</span>
                       <span className="text-cyan-600 font-bold text-base tabular-nums truncate text-right min-w-0">
-                        {(profile?.coins || 0).toLocaleString()} 💎
+                        {(profile?.diamonds || 0).toLocaleString()} 💎
                       </span>
                     </div>
                   </div>
@@ -2945,7 +2945,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                           Source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                         <p className="text-emerald-600 break-all tabular-nums">
-                          My Balance after: {((profile?.coins || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
+                          My Balance after: {((profile?.diamonds || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                       </div>
                     )}
@@ -3504,11 +3504,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                refetchBalance();
                const targetId = currentUser?.id;
                if (targetId) {
-                 supabase.from("profiles").select("beans, coins").eq("id", targetId).maybeSingle().then(({ data }) => {
+                 supabase.from("profiles").select("beans, diamonds").eq("id", targetId).maybeSingle().then(({ data }) => {
                    if (data) {
                      setBeans(data.beans || 0);
-                     if (data.coins !== undefined) {
-                       updateCachedBalance(data.coins);
+                     if (data.diamonds !== undefined) {
+                       updateCachedBalance(data.diamonds);
                      }
                    }
                  });

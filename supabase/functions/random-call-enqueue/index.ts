@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
     // Supabase return null data, which falsely blocks paid calls as balance 0.
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("id, gender, coins, diamonds, vip_tier, current_vip_tier_id, username")
+      .select("id, gender, diamonds, diamonds, vip_tier, current_vip_tier_id, username")
       .eq("id", userId)
       .single();
 
@@ -115,13 +115,13 @@ Deno.serve(async (req) => {
 
     const callerRateForHold = settings.host_max_rate_diamonds_per_min;
     const holdAmount = callerRateForHold * settings.preauth_minutes_hold;
-    const callerBalance = Math.max(Number(profile.coins ?? 0), Number(profile.diamonds ?? 0));
+    const callerBalance = Math.max(Number(profile.diamonds ?? 0), Number(profile.diamonds ?? 0));
     const callerIsVip = Number(profile.vip_tier ?? 0) > 0 || !!profile.current_vip_tier_id;
     const callerLevel = 1;
 
     if (callerBalance < holdAmount) {
       return new Response(
-        JSON.stringify({ error: "insufficient_coins", required: holdAmount, balance: callerBalance }),
+        JSON.stringify({ error: "insufficient_diamonds", required: holdAmount, balance: callerBalance }),
         { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

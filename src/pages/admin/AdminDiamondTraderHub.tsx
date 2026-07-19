@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 // Import existing components
-import AdminCoinTraders from "./AdminCoinTraders";
+import AdminDiamondTraders from "./AdminDiamondTraders";
 import AdminTraderOrders from "./AdminTraderOrders";
 import AdminTraderTransactions from "./AdminTraderTransactions";
 import AdminTopupPaymentMethods from "./AdminTopupPaymentMethods";
 import AdminManualTopup from "./AdminManualTopup";
-import AdminCoins from "./AdminCoins";
+import AdminDiamonds from "./AdminDiamonds";
 import AdminTopupSystem from "./AdminTopupSystem";
 import AdminPaymentGateways from "./AdminPaymentGateways";
 import AdminHelperPaymentMethods from "@/components/admin/AdminHelperPaymentMethods";
@@ -172,7 +172,7 @@ export default function AdminDiamondTraderHub() {
             Manual Topup
           </TabsTrigger>
           <TabsTrigger 
-            value="coin-packages" 
+            value="diamond-packages" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white gap-2"
           >
             <Coins className="w-4 h-4" />
@@ -223,7 +223,7 @@ export default function AdminDiamondTraderHub() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <AdminCoinTraders />
+              <AdminDiamondTraders />
             </CardContent>
           </Card>
         </TabsContent>
@@ -296,7 +296,7 @@ export default function AdminDiamondTraderHub() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="coin-packages" className="mt-0">
+        <TabsContent value="diamond-packages" className="mt-0">
           <Card className="bg-white/30 border-slate-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
@@ -308,7 +308,7 @@ export default function AdminDiamondTraderHub() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <AdminCoins />
+              <AdminDiamonds />
             </CardContent>
           </Card>
         </TabsContent>

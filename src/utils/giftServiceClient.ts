@@ -33,7 +33,7 @@ export interface GiftServiceResponse {
   success: boolean;
   senderId?: string;
   transactionId?: string;
-  coinsSpent?: number;
+  diamondsSpent?: number;
   hostReceived?: number;
   hostPercent?: number;
   newBalance?: number | null;
@@ -60,7 +60,7 @@ function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
     success: true,
     senderId: result.sender_id,
     transactionId: result.transaction_id,
-    coinsSpent: Number(result.diamonds_spent ?? result.total_cost ?? 0),
+    diamondsSpent: Number(result.diamonds_spent ?? result.total_cost ?? 0),
     hostReceived: Number(result.beans_earned ?? result.beans_received ?? 0),
     hostPercent: result.host_percent,
     newBalance: result.new_balance ?? result.new_sender_balance ?? null,
@@ -98,7 +98,7 @@ async function confirmGiftByIdempotencyKey(
           success: true,
           senderId: (data as any).sender_id,
           transactionId: (data as any).id,
-          coinsSpent: Number((data as any).total_diamonds ?? (data as any).diamond_amount ?? 0),
+          diamondsSpent: Number((data as any).total_diamonds ?? (data as any).diamond_amount ?? 0),
           hostReceived: Number((data as any).receiver_beans ?? 0),
           newBalance: null,
           diamondBonus: 0,

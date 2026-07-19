@@ -112,11 +112,11 @@ serve(async (req) => {
       .maybeSingle();
 
     const isFirstRecharge = !firstRechargeData;
-    const baseCoins = pkg.diamonds_amount || pkg.coins || 0;
+    const baseDiamonds = pkg.diamonds_amount || pkg.diamonds || 0;
     const bonusDiamonds = isFirstRecharge && (pkg.bonus_diamonds || 0) > 0
       ? pkg.bonus_diamonds
       : 0;
-    const totalDiamonds = baseCoins + bonusDiamonds;
+    const totalDiamonds = baseDiamonds + bonusDiamonds;
 
     const { data: agencyBalance } = await supabaseAdmin.rpc("get_agency_diamond_balance", { owner_user_id: paymentMethod.helper.user_id });
     const combinedHelperBalance = Number(paymentMethod.helper.wallet_balance || 0) + Number(agencyBalance || 0);
@@ -143,7 +143,7 @@ serve(async (req) => {
           txn_id: txnId,
           is_first_recharge: isFirstRecharge,
           bonus_diamonds: bonusDiamonds,
-          base_coins: baseCoins,
+          base_diamonds: baseDiamonds,
           total_diamonds: totalDiamonds,
           payment_method_id: payment_method_id,
           origin_url: returnOrigin,

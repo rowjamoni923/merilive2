@@ -31,8 +31,8 @@ const RESTRICTED_USER_NOTIFICATION_TYPES = new Set([
   "topup_approved", "topup_rejected", "withdrawal_approved", "withdrawal_rejected",
   "level_upgrade_approved", "level_upgrade_rejected", "helper_approved", "helper_rejected",
   "payroll_approved", "payroll_rejected", "host_approved", "host_rejected",
-  "gift_received", "gift", "coins_added", "diamonds_received", "coin_purchase_helper",
-  "coin_purchase_direct", "diamonds_credited", "payment_completed", "beans_exchanged",
+  "gift_received", "gift", "diamonds_added", "diamonds_received", "diamond_purchase_helper",
+  "diamond_purchase_direct", "diamonds_credited", "payment_completed", "beans_exchanged",
   "agency_approved", "agency_verification", "agency_withdrawal_approved", "agency_diamond_received",
   "app_sync",
 ]);

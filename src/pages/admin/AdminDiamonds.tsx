@@ -43,7 +43,7 @@ import { formatAdminError } from "@/utils/formatAdminError";
 interface DiamondPackage {
   id: string;
   coins: number; // DB column - represents diamonds
-  base_coins: number;
+  base_diamonds: number;
   price_usd: number;
   bonus_percentage: number;
   is_popular: boolean;
@@ -61,7 +61,7 @@ interface CurrencyRate {
   is_active: boolean;
 }
 
-export default function AdminCoins() {
+export default function AdminDiamonds() {
   const [packages, setPackages] = useState<DiamondPackage[]>([]);
   const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,7 +86,7 @@ export default function AdminCoins() {
   
   const [packageForm, setPackageForm] = useState({
     coins: 1000,
-    base_coins: 1000,
+    base_diamonds: 1000,
     price_usd: 0.99,
     bonus_percentage: 0,
     is_popular: false,
@@ -136,19 +136,19 @@ export default function AdminCoins() {
   };
 
   const normalizePackage = (pkg: any): DiamondPackage => {
-    const baseCoins = Number(pkg?.base_coins ?? pkg?.diamonds_amount ?? pkg?.coins ?? 0);
+    const baseDiamonds = Number(pkg?.base_diamonds ?? pkg?.diamonds_amount ?? pkg?.diamonds ?? 0);
     const bonusDiamonds = Number(pkg?.bonus_diamonds ?? 0);
-    const totalDiamonds = Number(pkg?.coins ?? (baseCoins + bonusDiamonds));
+    const totalDiamonds = Number(pkg?.diamonds ?? (baseDiamonds + bonusDiamonds));
     const bonusPercentage = Number(
       pkg?.bonus_percentage
       ?? pkg?.discount_percent
-      ?? (bonusDiamonds > 0 && baseCoins > 0 ? Math.round((bonusDiamonds / baseCoins) * 100) : 0)
+      ?? (bonusDiamonds > 0 && baseDiamonds > 0 ? Math.round((bonusDiamonds / baseDiamonds) * 100) : 0)
     );
 
     return {
       id: String(pkg?.id ?? ''),
       coins: Number.isFinite(totalDiamonds) ? totalDiamonds : 0,
-      base_coins: Number.isFinite(baseCoins) ? baseCoins : 0,
+      base_diamonds: Number.isFinite(baseDiamonds) ? baseDiamonds : 0,
       price_usd: Number(pkg?.price_usd ?? 0),
       bonus_percentage: Number.isFinite(bonusPercentage) ? bonusPercentage : 0,
       is_popular: Boolean(pkg?.is_popular),
@@ -182,7 +182,7 @@ export default function AdminCoins() {
         }
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorFetchingData", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorFetchingData", message: formatAdminError(error)});
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -200,7 +200,7 @@ export default function AdminCoins() {
       
       toast.success("Beans to USD rate saved!");
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingRate", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorSavingRate", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save rate");
     } finally {
       setSavingExchangeRate(false);
@@ -224,7 +224,7 @@ export default function AdminCoins() {
         throw new Error(data?.error || "Failed to fetch rates");
       }
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorFetchingLiveRates", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorFetchingLiveRates", message: formatAdminError(error)});
       toast.error(error.message || "Failed to fetch live rates");
     } finally {
       setUpdatingRates(false);
@@ -277,7 +277,7 @@ export default function AdminCoins() {
       fetchData();
       setLiveRates([]); // Clear after saving
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingRates", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorSavingRates", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save rates");
     } finally {
       setUpdatingRates(false);
@@ -322,7 +322,7 @@ export default function AdminCoins() {
       toast.success("All currency rates updated!");
       fetchData();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorUpdatingRates", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorUpdatingRates", message: formatAdminError(error)});
       toast.error(error.message || "Failed to update rates");
     } finally {
       setUpdatingRates(false);
@@ -334,7 +334,7 @@ export default function AdminCoins() {
     setEditingPackage(null);
     setPackageForm({
       coins: 1000,
-      base_coins: 1000,
+      base_diamonds: 1000,
       price_usd: 0.99,
       bonus_percentage: 0,
       is_popular: false,
@@ -348,8 +348,8 @@ export default function AdminCoins() {
   const handleEditPackage = (pkg: DiamondPackage) => {
     setEditingPackage(pkg);
     setPackageForm({
-      coins: pkg.coins,
-      base_coins: pkg.base_coins,
+      coins: pkg.diamonds,
+      base_diamonds: pkg.base_diamonds,
       price_usd: pkg.price_usd,
       bonus_percentage: pkg.bonus_percentage,
       is_popular: pkg.is_popular,
@@ -363,21 +363,21 @@ export default function AdminCoins() {
   const handleSavePackage = async () => {
     setSaving(true);
     try {
-      const baseCoins = Number(packageForm.base_coins || packageForm.coins || 0);
-      const totalDiamonds = Number(packageForm.coins || 0);
-      const bonusDiamonds = Math.max(totalDiamonds - baseCoins, 0);
+      const baseDiamonds = Number(packageForm.base_diamonds || packageForm.diamonds || 0);
+      const totalDiamonds = Number(packageForm.diamonds || 0);
+      const bonusDiamonds = Math.max(totalDiamonds - baseDiamonds, 0);
       // Only send columns that exist in the DB schema
       const packagePayload = {
-        diamonds_amount: baseCoins,
+        diamonds_amount: baseDiamonds,
         bonus_diamonds: bonusDiamonds,
         price_usd: Number(packageForm.price_usd || 0),
         discount_percent: Number(packageForm.bonus_percentage || 0),
         display_order: Number(packageForm.display_order || 0),
         is_popular: packageForm.is_popular,
         is_active: packageForm.is_active,
-        name: `${baseCoins} Diamonds`,
+        name: `${baseDiamonds} Diamonds`,
         description: '',
-        product_id: `diamonds_${baseCoins}`,
+        product_id: `diamonds_${baseDiamonds}`,
       };
 
       if (editingPackage) {
@@ -397,7 +397,7 @@ export default function AdminCoins() {
       setShowPackageDialog(false);
       fetchData();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingPackage", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorSavingPackage", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save package");
     } finally {
       setSaving(false);
@@ -414,7 +414,7 @@ export default function AdminCoins() {
       toast.success("Package deleted");
       fetchData();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorDeletingPackage", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorDeletingPackage", message: formatAdminError(error)});
       toast.error("Failed to delete");
     }
   };
@@ -428,7 +428,7 @@ export default function AdminCoins() {
       if (error) throw error;
       fetchData();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorTogglingPackage", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorTogglingPackage", message: formatAdminError(error)});
     }
   };
 
@@ -477,7 +477,7 @@ export default function AdminCoins() {
       setShowCurrencyDialog(false);
       fetchData();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingCurrency", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorSavingCurrency", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save currency");
     } finally {
       setSaving(false);
@@ -494,7 +494,7 @@ export default function AdminCoins() {
       toast.success("Currency deleted");
       fetchData();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorDeletingCurrency", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamonds.ErrorDeletingCurrency", message: formatAdminError(error)});
       toast.error("Failed to delete");
     }
   };
@@ -817,11 +817,11 @@ export default function AdminCoins() {
                         <Diamond className="w-7 h-7 text-slate-900" />
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">
-                        {formatCoins(pkg.coins)}
+                        {formatCoins(pkg.diamonds)}
                       </h3>
-                      {pkg.coins !== pkg.base_coins && (
+                      {pkg.diamonds !== pkg.base_diamonds && (
                         <p className="text-slate-400 text-sm line-through">
-                          {formatCoins(pkg.base_coins)}
+                          {formatCoins(pkg.base_diamonds)}
                         </p>
                       )}
                     </div>
@@ -1030,12 +1030,12 @@ export default function AdminCoins() {
                 <Label>Base Diamonds</Label>
                 <Input
                   type="number"
-                  value={packageForm.base_coins}
+                  value={packageForm.base_diamonds}
                   onChange={(e) => {
                     const base = parseInt(e.target.value) || 0;
                     const pct = packageForm.bonus_percentage || 0;
                     const bonus = pct > 0 ? Math.round(base * pct / 100) : 0;
-                    setPackageForm({ ...packageForm, base_coins: base, coins: base + bonus });
+                    setPackageForm({ ...packageForm, base_diamonds: base, coins: base + bonus });
                   }}
                 />
               </div>
@@ -1062,7 +1062,7 @@ export default function AdminCoins() {
                     key={p}
                     type="button"
                     onClick={() => {
-                      const base = packageForm.base_coins || 0;
+                      const base = packageForm.base_diamonds || 0;
                       const bonus = p > 0 ? Math.round(base * p / 100) : 0;
                       setPackageForm({ ...packageForm, bonus_percentage: p, coins: base + bonus });
                     }}
@@ -1081,7 +1081,7 @@ export default function AdminCoins() {
                 value={packageForm.bonus_percentage}
                 onChange={(e) => {
                   const pct = parseInt(e.target.value) || 0;
-                  const base = packageForm.base_coins || 0;
+                  const base = packageForm.base_diamonds || 0;
                   const bonus = pct > 0 ? Math.round(base * pct / 100) : 0;
                   setPackageForm({ ...packageForm, bonus_percentage: pct, coins: base + bonus });
                 }}
@@ -1090,7 +1090,7 @@ export default function AdminCoins() {
             </div>
 
             {/* 💎 Premium Live Preview */}
-            {packageForm.base_coins > 0 && (
+            {packageForm.base_diamonds > 0 && (
               <div className="rounded-xl overflow-hidden border border-purple-200 shadow-lg">
                 <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-4 py-2.5">
                   <p className="text-slate-700 text-[10px] font-medium tracking-wider uppercase">Live Preview — User Will See</p>
@@ -1103,11 +1103,11 @@ export default function AdminCoins() {
                       </div>
                       <div>
                         <div className="text-slate-900 font-bold text-xl">
-                          {formatCoins(packageForm.coins)}
+                          {formatCoins(packageForm.diamonds)}
                         </div>
                         {packageForm.bonus_percentage > 0 && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 text-xs line-through">{formatCoins(packageForm.base_coins)}</span>
+                            <span className="text-slate-400 text-xs line-through">{formatCoins(packageForm.base_diamonds)}</span>
                             <span className="text-amber-400 text-xs font-bold bg-amber-500/20 px-1.5 py-0.5 rounded">
                               +{packageForm.bonus_percentage}%
                             </span>
@@ -1121,7 +1121,7 @@ export default function AdminCoins() {
                       </div>
                       {packageForm.bonus_percentage > 0 && (
                         <div className="text-amber-400 text-xs font-semibold">
-                          +{formatCoins(Math.round(packageForm.base_coins * packageForm.bonus_percentage / 100))} FREE
+                          +{formatCoins(Math.round(packageForm.base_diamonds * packageForm.bonus_percentage / 100))} FREE
                         </div>
                       )}
                     </div>

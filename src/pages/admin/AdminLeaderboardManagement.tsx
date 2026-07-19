@@ -250,7 +250,7 @@ const AdminLeaderboardManagement = () => {
       reward_diamonds: 0,
       reward_beans: 0,
       reward_amount: 0,
-      reward_type: 'coins',
+      reward_type: 'diamonds',
       is_active: true,
     });
 
@@ -532,7 +532,7 @@ const AdminLeaderboardManagement = () => {
                     category: selectedCategory, period_type: selectedPeriod,
                     rank_from: t.from, rank_to: t.to, rank_position: t.from,
                     reward_diamonds: 0, reward_diamonds: 0, reward_beans: 0,
-                    reward_amount: 0, reward_type: 'coins', is_active: true,
+                    reward_amount: 0, reward_type: 'diamonds', is_active: true,
                   });
                 }
                 toast.success("Reward tiers created (set values manually)");

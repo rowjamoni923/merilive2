@@ -283,8 +283,8 @@ const AdminPayrollOrders = () => {
         }
 
         if (action === 'complete') {
-          const diamondAmount = Number(result.creditedCoins || order.diamond_amount || 0);
-          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${diamondAmount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
+          const diamondAmount = Number(result.creditedDiamonds || order.diamond_amount || 0);
+          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${diamondAmount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'diamond_purchase_helper')
         }
       }
 

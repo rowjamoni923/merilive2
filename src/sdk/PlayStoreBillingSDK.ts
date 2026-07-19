@@ -75,15 +75,15 @@ export interface PurchaseResult {
 const uniqueIds = (values: Array<string | null | undefined>): string[] =>
   Array.from(new Set(values.map((v) => String(v || '').trim()).filter(Boolean)));
 
-const makeProductConfig = (baseCoins: number, bonusDiamonds: number, productId: string, priceUsd: number): PlayStoreProductConfig => {
-  const totalDiamonds = baseCoins + bonusDiamonds;
+const makeProductConfig = (baseDiamonds: number, bonusDiamonds: number, productId: string, priceUsd: number): PlayStoreProductConfig => {
+  const totalDiamonds = baseDiamonds + bonusDiamonds;
   return {
     productId,
     priceUsd,
     aliases: uniqueIds([
       productId,
-      `diamonds_${baseCoins}`,
-      `coins_${baseCoins}`,
+      `diamonds_${baseDiamonds}`,
+      `coins_${baseDiamonds}`,
       `diamonds_${totalDiamonds}`,
       `coins_${totalDiamonds}`,
     ]),
@@ -117,18 +117,18 @@ export async function loadPlayStoreProducts(): Promise<void> {
 
     const next: Record<number, PlayStoreProductConfig> = {};
     for (const row of data as AdminPlayStoreProductRow[]) {
-      const baseCoins = Number(row.diamonds_amount || 0);
+      const baseDiamonds = Number(row.diamonds_amount || 0);
       const bonusDiamonds = Number(row.bonus_diamonds || 0);
-      const totalDiamonds = baseCoins + bonusDiamonds;
+      const totalDiamonds = baseDiamonds + bonusDiamonds;
       const productId = String(row.product_id || '').trim();
-      if (!baseCoins || !productId || row.price_usd == null) continue;
+      if (!baseDiamonds || !productId || row.price_usd == null) continue;
 
-      const product = makeProductConfig(baseCoins, bonusDiamonds, productId, Number(row.price_usd));
+      const product = makeProductConfig(baseDiamonds, bonusDiamonds, productId, Number(row.price_usd));
 
       // Support both old UI lookups by base diamonds and new UI lookups by
       // total delivered diamonds (base + bonus) without breaking admin edits.
-      next[baseCoins] = product;
-      if (totalDiamonds !== baseCoins) next[totalDiamonds] = product;
+      next[baseDiamonds] = product;
+      if (totalDiamonds !== baseDiamonds) next[totalDiamonds] = product;
     }
     if (Object.keys(next).length === 0) return;
 
@@ -419,7 +419,7 @@ class PlayStoreBillingSDK {
         return { success: false, error: result.error || 'Server verification failed' };
       }
 
-      console.log('[PlayStoreBilling] ✅ Verified! Coins:', result.coins, 'Balance:', result.newBalance);
+      console.log('[PlayStoreBilling] ✅ Verified! Coins:', result.diamonds, 'Balance:', result.newBalance);
 
       if (result.newBalance !== undefined) {
         const { updateCachedBalance } = await import('@/hooks/useUserBalance');

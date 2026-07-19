@@ -31,7 +31,7 @@ export function useFlyingGifts() {
   const comboRef = useRef<Map<string, ComboTrack>>(new Map());
 
   const addGift = useCallback((gift: Omit<FlyingGift, 'id'>) => {
-    const senderKey = `${gift.senderId || gift.senderName}__${gift.giftName}__${gift.coins}`;
+    const senderKey = `${gift.senderId || gift.senderName}__${gift.giftName}__${gift.diamonds}`;
     const now = Date.now();
     const existing = comboRef.current.get(senderKey);
 
@@ -69,7 +69,7 @@ export function useFlyingGifts() {
 
     // Auto-route high-value gifts to the global full-screen animation layer.
     // Every gift-capable surface benefits without page-level wiring.
-    const perUnitCoins = gift.coins || 0;
+    const perUnitCoins = gift.diamonds || 0;
     if (isFullScreenGiftEnabled() && perUnitCoins >= getFullScreenGiftThreshold()) {
       try {
         enqueueFullScreenGift({

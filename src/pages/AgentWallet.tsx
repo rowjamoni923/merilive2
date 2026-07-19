@@ -92,12 +92,12 @@ const AgentWallet = () => {
     const [agencyRes, helperRes, profileRes] = await Promise.all([
       supabase.from("agencies").select("diamond_balance, wallet_balance").eq("owner_id", uid).maybeSingle(),
       supabase.from("topup_helpers").select("wallet_balance").eq("user_id", uid).eq("is_verified", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("profiles").select("coins, beans").eq("id", uid).single(),
+      supabase.from("profiles").select("diamonds, beans").eq("id", uid).single(),
     ]);
 
     const agencyDiamonds = agencyRes.data?.diamond_balance || 0;
     const helperWallet = helperRes.data?.wallet_balance || 0;
-    const userDiamonds = profileRes.data?.coins || 0;
+    const userDiamonds = profileRes.data?.diamonds || 0;
     const userBeans = profileRes.data?.beans || 0;
 
     setWalletCache({

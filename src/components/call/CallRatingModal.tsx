@@ -15,7 +15,7 @@ interface CallRatingModalProps {
   remoteUserName: string;
   remoteUserAvatar: string | null;
   duration: number;
-  coinsSpent: number;
+  diamondsSpent: number;
   isHost: boolean;
 }
 
@@ -32,7 +32,7 @@ export function CallRatingModal({
   remoteUserName,
   remoteUserAvatar,
   duration,
-  coinsSpent,
+  diamondsSpent,
   isHost,
 }: CallRatingModalProps) {
   const { toast } = useToast();
@@ -308,7 +308,7 @@ export function CallRatingModal({
                 </h2>
                 <p className="text-slate-600 text-sm">
                   {formatDuration(duration)} | 
-                  {isHost ? ` Earned: ${formatNumber(earnings.totalBeans)} beans` : ` Spent: ${coinsSpent} diamonds`}
+                  {isHost ? ` Earned: ${formatNumber(earnings.totalBeans)} beans` : ` Spent: ${diamondsSpent} diamonds`}
                 </p>
               </div>
 

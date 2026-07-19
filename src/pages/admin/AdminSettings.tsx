@@ -30,7 +30,7 @@ import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage"
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
-// DiamondPackage interface removed - managed in AdminCoins
+// DiamondPackage interface removed - managed in AdminDiamonds
 
 interface WithdrawalFee {
   id: string;

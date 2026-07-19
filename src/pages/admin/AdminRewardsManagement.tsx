@@ -50,7 +50,7 @@ const AdminRewardsManagement = () => {
 
   // Weekly Login State
   const [weeklyConfig, setWeeklyConfig] = useState<any>(null);
-  const [weeklyDraft, setWeeklyDraft] = useState({ reward_type: "coins", reward_amount: "500", label: "", description: "", is_active: true });
+  const [weeklyDraft, setWeeklyDraft] = useState({ reward_type: "diamonds", reward_amount: "500", label: "", description: "", is_active: true });
 
   // Fetch all data
   const fetchAll = useCallback(async () => {
@@ -73,7 +73,7 @@ const AdminRewardsManagement = () => {
     if (weeklyRes.data) {
       setWeeklyConfig(weeklyRes.data);
       setWeeklyDraft({
-        reward_type: weeklyRes.data.reward_type || "coins",
+        reward_type: weeklyRes.data.reward_type || "diamonds",
         reward_amount: String(weeklyRes.data.reward_amount ?? 500),
         label: weeklyRes.data.label || "",
         description: weeklyRes.data.description || "",
@@ -329,7 +329,7 @@ const AdminRewardsManagement = () => {
                     onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
                     className="w-full h-9 rounded-md border bg-background px-3 text-sm"
                   >
-                    <option value="coins">Diamonds</option>
+                    <option value="diamonds">Diamonds</option>
                     <option value="diamonds">Diamonds</option>
                     <option value="beans">Beans</option>
                   </select>

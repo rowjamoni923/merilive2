@@ -760,8 +760,8 @@ export const useUserRealtime = (
         // Profile updates
         if (table === 'profiles' && payload?.id === userId) {
           if (onProfileUpdate) onProfileUpdate(payload);
-          if (onBalanceUpdate && payload?.coins !== undefined) {
-            onBalanceUpdate(payload.coins);
+          if (onBalanceUpdate && payload?.diamonds !== undefined) {
+            onBalanceUpdate(payload.diamonds);
           }
         }
 

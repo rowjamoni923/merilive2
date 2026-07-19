@@ -1262,7 +1262,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes, helperProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, is_agency_owner, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, diamonds, is_host, is_agency_owner, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("diamond_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -1274,7 +1274,7 @@ const LiveStream = () => {
       // Process user profile
       if (userProfileRes.data && mountedRef.current) {
         const profile = userProfileRes.data;
-        const profileCoins = profile.coins || 0;
+        const profileCoins = profile.diamonds || 0;
         setCurrentUser({
           gender: profile.gender || "male",
           id: cachedUser!.id,
@@ -3634,7 +3634,7 @@ const LiveStream = () => {
   const handleSendGift = async (gift: typeof gifts[0]) => {
     if (!currentUserId || !hostInfo || !id) return;
     
-    if (userDiamonds < gift.coins) {
+    if (userDiamonds < gift.diamonds) {
       hapticFeedback('error');
       toast.error("Not enough diamonds!");
       return;
@@ -3646,7 +3646,7 @@ const LiveStream = () => {
       gift: {
         id: gift.id,
         name: gift.name,
-        coins: gift.coins,
+        coins: gift.diamonds,
         category: 'popular',
         icon_url: (gift as any).icon_url || (gift as any).icon,
         animation_url: (gift as any).animation_url,
@@ -3663,7 +3663,7 @@ const LiveStream = () => {
 
     if (result.success) {
       hapticFeedback('gift');
-      setUserCoins(prev => prev - (result.transaction?.diamonds_spent || gift.coins));
+      setUserCoins(prev => prev - (result.transaction?.diamonds_spent || gift.diamonds));
       setShowGiftPanel(false);
     } else {
       hapticFeedback('error');
@@ -4984,7 +4984,7 @@ const LiveStream = () => {
             return;
           }
           
-          const totalCost = gift.coins * count;
+          const totalCost = gift.diamonds * count;
           const availableCoins = userCoinsRef.current;
           if (availableCoins < totalCost) {
             toast.error("Not enough diamonds!");
@@ -5025,7 +5025,7 @@ const LiveStream = () => {
             soundUrl: gift.sound_url || undefined,
             giftColor: "bg-pink-500/50",
             count: count,
-            coins: gift.coins,
+            coins: gift.diamonds,
             isOwnGift: true,
           });
           
@@ -5056,7 +5056,7 @@ const LiveStream = () => {
           // TWO envelopes with different `env.id` → 400ms dedupe missed them
           // → every other viewer saw the flying-gift animation twice and the
           // bean counter incremented twice. GiftingService publish carries
-          // the real `coinsSpent`/`hostReceived` from the RPC, so receivers
+          // the real `diamondsSpent`/`hostReceived` from the RPC, so receivers
           // also get accurate values (vs optimistic estimates here).
 
 
@@ -5095,12 +5095,12 @@ const LiveStream = () => {
               // Refresh actual balance from server
               const { data: updatedProfile } = await supabase
                 .from("profiles") // guard-ok: owner-only self balance refresh after gift send
-                .select("coins")
+                .select("diamonds")
                 .eq("id", currentUserId)
                 .single();
               
               if (updatedProfile && pendingGiftCostRef.current === 0) {
-                userCoinsRef.current = updatedProfile.coins || 0;
+                userCoinsRef.current = updatedProfile.diamonds || 0;
                 setUserCoins(userCoinsRef.current);
                 // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                 const { updateCachedBalance } = await import("@/hooks/useUserBalance");

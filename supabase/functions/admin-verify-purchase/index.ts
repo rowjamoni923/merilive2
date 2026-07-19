@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     // Verify user exists
     const { data: profile } = await adminSupabase
       .from("profiles")
-      .select("id, display_name, coins, diamonds")
+      .select("id, display_name, diamonds, diamonds")
       .eq("id", userId)
       .maybeSingle();
 
@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
     }
 
     const newBalance = Number(recoveryData.newBalance ?? 0);
-    const creditedCoins = Number(recoveryData.diamondAmount ?? diamondAmount);
+    const creditedDiamonds = Number(recoveryData.diamondAmount ?? diamondAmount);
     const firstRechargeBonusCoins = Number(recoveryData.firstRechargeBonusCoins ?? 0);
     const vipBonusDiamonds = Number(recoveryData.vipBonusDiamonds ?? 0);
 
@@ -167,9 +167,9 @@ Deno.serve(async (req) => {
       target_id: userId,
       target_type: "user",
       details: {
-        diamond_amount: creditedCoins,
-        base_coins: recoveryData.baseCoins,
-        package_bonus_coins: recoveryData.packageBonusCoins,
+        diamond_amount: creditedDiamonds,
+        base_diamonds: recoveryData.baseDiamonds,
+        package_bonus_diamonds: recoveryData.packageBonusDiamonds,
         first_recharge_bonus_coins: firstRechargeBonusCoins,
         vip_bonus_diamonds: vipBonusDiamonds,
         price_usd: recoveryData.priceUsd,
@@ -182,14 +182,14 @@ Deno.serve(async (req) => {
       },
     });
 
-    console.log(`[admin-verify-purchase] ✅ Credited ${creditedCoins} coins to ${profile.display_name} (${userId}). New balance: ${newBalance}`);
+    console.log(`[admin-verify-purchase] ✅ Credited ${creditedDiamonds} coins to ${profile.display_name} (${userId}). New balance: ${newBalance}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        diamondAmount: creditedCoins,
-        baseCoins: recoveryData.baseCoins,
-        packageBonusCoins: recoveryData.packageBonusCoins,
+        diamondAmount: creditedDiamonds,
+        baseDiamonds: recoveryData.baseDiamonds,
+        packageBonusDiamonds: recoveryData.packageBonusDiamonds,
         firstRechargeBonusCoins,
         vipBonusDiamonds,
         newBalance,

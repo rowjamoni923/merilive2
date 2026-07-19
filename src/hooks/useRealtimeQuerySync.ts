@@ -35,7 +35,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   banners: [['banners'], ['home-banners'], ['recharge-banners']],
   gifts: [['gifts'], ['gift-categories']],
   shop_items: [['shop-items'], ['shop-categories']],
-  diamond_packages: [['coin-packages']],
+  diamond_packages: [['diamond-packages']],
   avatar_frames: [['avatar-frames'], ['frames']],
   vip_tiers: [['vip-tiers'], ['vip-packages']],
   daily_login_rewards_config: [['daily-rewards']],

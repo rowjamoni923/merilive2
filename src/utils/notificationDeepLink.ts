@@ -68,17 +68,17 @@ export function getNotificationPath(data: NotificationData | null | undefined): 
   if (
     type === "topup_approved" ||
     type === "topup_rejected" ||
-    type === "coin_purchase_helper" ||
-    type === "coin_purchase_direct" ||
+    type === "diamond_purchase_helper" ||
+    type === "diamond_purchase_direct" ||
     type === "payment_completed" ||
     type === "payment_pending"
   ) {
     return "/recharge-history";
   }
-  if (type === "coins_added" || type === "diamonds_received" || type === "diamonds_credited") {
+  if (type === "diamonds_added" || type === "diamonds_received" || type === "diamonds_credited") {
     return "/profile";
   }
-  if (type === "coin_exchange" || type === "diamond_sent") return "/agency-coin-exchange";
+  if (type === "diamond_exchange" || type === "diamond_sent") return "/agency-diamond-exchange";
 
   // Withdrawal
   if (

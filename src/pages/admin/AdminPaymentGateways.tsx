@@ -466,11 +466,11 @@ const AdminPaymentGateways = () => {
 
         const transaction = transactions.find(t => t.id === transactionId);
         if (transaction && !result.alreadyProcessed) {
-          const diamondAmount = Number(result.creditedCoins || transaction.diamonds_amount || 0);
+          const diamondAmount = Number(result.creditedDiamonds || transaction.diamonds_amount || 0);
           const formattedAmount = diamondAmount >= 100000
             ? `${(diamondAmount / 100000).toFixed(1)}L`
             : diamondAmount.toLocaleString();
-          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct');
+          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'diamond_purchase_direct');
         }
       } else if (newStatus === 'failed') {
         const { data, error } = await supabase.rpc('admin_reject_payment_transaction' as any, {

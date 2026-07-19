@@ -769,7 +769,7 @@ const AdminSupportTickets = () => {
       });
 
       // Send notification to user about compensation
-      await adminSendNotification(selectedTicket.user_id, '🎁 Compensation Received!', `You received ${rewardParts.join(' + ')} from Support`, 'coins_added')
+      await adminSendNotification(selectedTicket.user_id, '🎁 Compensation Received!', `You received ${rewardParts.join(' + ')} from Support`, 'diamonds_added')
 
       toast({ title: "✅ Reward Sent", description: `${rewardParts.join(' + ')}` });
       setCompensationBeans("");
@@ -1051,7 +1051,7 @@ const AdminSupportTickets = () => {
 
       // Send notification to user about ticket resolution + reward
       if (rewardParts.length > 0) {
-        await adminSendNotification(selectedTicket.user_id, '🎁 Support Reward!', `Your ticket was resolved. Reward: ${rewardParts.join(' + ')}`, 'coins_added')
+        await adminSendNotification(selectedTicket.user_id, '🎁 Support Reward!', `Your ticket was resolved. Reward: ${rewardParts.join(' + ')}`, 'diamonds_added')
       }
 
       toast({ 
@@ -1609,11 +1609,11 @@ const AdminSupportTickets = () => {
                           {recoveryPackages.length === 0 ? (
                             <SelectItem value="not_configured" disabled>Not configured by admin</SelectItem>
                           ) : recoveryPackages.map((pkg) => {
-                            const baseCoins = Number(pkg.diamonds_amount || 0);
+                            const baseDiamonds = Number(pkg.diamonds_amount || 0);
                             const packageBonus = Number(pkg.bonus_diamonds || 0);
-                            const totalDiamonds = baseCoins + packageBonus;
+                            const totalDiamonds = baseDiamonds + packageBonus;
                             return (
-                              <SelectItem key={`${pkg.product_id || baseCoins}-${totalDiamonds}`} value={String(totalDiamonds)}>
+                              <SelectItem key={`${pkg.product_id || baseDiamonds}-${totalDiamonds}`} value={String(totalDiamonds)}>
                                 💎 {totalDiamonds.toLocaleString()} (${Number(pkg.price_usd || 0).toFixed(2)}){packageBonus > 0 ? ` · includes +${packageBonus.toLocaleString()}` : ''}
                               </SelectItem>
                             );

@@ -345,7 +345,7 @@ export default function MatchCall() {
         setPhase("prep");
         return;
       }
-      if (errPayload?.error === "insufficient_coins") {
+      if (errPayload?.error === "insufficient_diamonds") {
         if (timerRef.current) window.clearInterval(timerRef.current);
         setPhase("prep");
         navigate("/recharge", { replace: true });
@@ -451,7 +451,7 @@ export default function MatchCall() {
       if (timerRef.current) window.clearInterval(timerRef.current);
       const payload = await extractEdgeFnErrorPayload(e);
       const code = payload?.error;
-      if (code === "insufficient_coins") {
+      if (code === "insufficient_diamonds") {
         setPhase("prep");
         navigate("/recharge", { replace: true });
         return;

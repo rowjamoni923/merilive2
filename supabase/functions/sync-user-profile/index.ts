@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     // Check if profile already exists
     const { data: currentProfile } = await newClient
       .from('profiles')
-      .select('id, display_name, username, user_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url, gender, bio, age, country_code, country_flag, country_name, city, region, is_face_verified, device_id, app_uid')
+      .select('id, display_name, username, user_level, host_level, diamonds, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url, gender, bio, age, country_code, country_flag, country_name, city, region, is_face_verified, device_id, app_uid')
       .eq('id', user.id)
       .maybeSingle()
 

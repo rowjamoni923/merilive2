@@ -66,7 +66,7 @@ export const PremiumFlyingGiftBanner = ({
   giftImageUrl,
   giftAnimationUrl,
   count,
-  coins,
+  diamonds,
   onComplete
 }: FlyingGiftBannerProps) => {
   const [currentCount, setCurrentCount] = useState(0);

@@ -100,7 +100,7 @@ const AdminManualTopup = () => {
       // First try exact app_uid match
       const { data: exactMatch, error: exactError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, diamonds, diamonds, is_host, is_verified')
         .eq('app_uid', trimmedQuery)
         .limit(1);
       
@@ -119,7 +119,7 @@ const AdminManualTopup = () => {
       // Otherwise, try partial match on display_name or app_uid
       const { data: partialMatch, error: partialError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, diamonds, diamonds, is_host, is_verified')
         .or(`display_name.ilike.%${trimmedQuery}%,app_uid.ilike.%${trimmedQuery}%`)
         .order('display_name', { ascending: true })
         .limit(20);
@@ -170,7 +170,7 @@ const AdminManualTopup = () => {
       const { data, error } = await supabase.rpc('admin_adjust_balance', {
         _target_type: 'profile',
         _target_id: selectedUser.id,
-        _field: 'coins',
+        _field: 'diamonds',
         _delta: diamondAmount,
         _reason: note || null
       });

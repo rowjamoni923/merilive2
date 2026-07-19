@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
       _product_id: productId,
     });
 
-    if (productInfoError || !productInfo?.coins) {
+    if (productInfoError || !productInfo?.diamonds) {
       await markAttempt({
         status: 'failed',
         error_code: 'invalid_product_id',
@@ -204,11 +204,11 @@ Deno.serve(async (req) => {
     await markAttempt({
       status: 'validating_with_google',
       amount_usd: productInfo.priceUsd ?? null,
-      diamonds_amount: productInfo.coins ?? null,
+      diamonds_amount: productInfo.diamonds ?? null,
       currency_code: 'USD',
     });
 
-    console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Coins: ${productInfo.coins}`);
+    console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Coins: ${productInfo.diamonds}`);
 
     // 🔐 Verify with Google Play Developer API
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
@@ -304,15 +304,15 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: false, error: processData?.error || 'Failed to credit purchase' }, 500);
     }
 
-    const creditedCoins = Number(processData.coins || productInfo.coins || 0);
+    const creditedDiamonds = Number(processData.diamonds || productInfo.diamonds || 0);
     const newBalance = processData.newBalance;
-    console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${creditedCoins}, New balance: ${newBalance}`);
+    console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${creditedDiamonds}, New balance: ${newBalance}`);
 
     await markAttempt({
       status: processData.alreadyProcessed ? 'already_processed' : 'completed',
       google_order_id: purchaseData.orderId || orderId || null,
       amount_usd: productInfo.priceUsd ?? null,
-      diamonds_amount: creditedCoins,
+      diamonds_amount: creditedDiamonds,
       recharge_transaction_id: processData.transactionId || null,
       completed_at: new Date().toISOString(),
     });
@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ 
       success: true, 
-      coins: creditedCoins,
+      coins: creditedDiamonds,
       newBalance,
       orderId: purchaseData.orderId,
       alreadyProcessed: Boolean(processData.alreadyProcessed),

@@ -120,8 +120,8 @@ const TransferHistory = lazy(lazyRetry(() => import("./pages/TransferHistory")))
 const CreateAgency = lazy(lazyRetry(() => import("./pages/CreateAgency")));
 const SmartLink = lazy(lazyRetry(() => import("./pages/SmartLink")));
 const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
-const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
-const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
+const AgencyDiamondExchange = lazy(lazyRetry(() => import("./pages/AgencyDiamondExchange")));
+const AgencyDiamondTrader = lazy(lazyRetry(() => import("./pages/AgencyDiamondTrader")));
 const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
 const MatchCall = lazy(lazyRetry(() => import("./pages/MatchCall")));
 const FollowingList = lazy(lazyRetry(() => import("./pages/FollowingList")));
@@ -205,7 +205,7 @@ const AdminUserManagement = lazy(lazyRetry(() => import("./pages/admin/AdminUser
 const AdminSuperAdminManagement = lazy(lazyRetry(() => import("./pages/admin/AdminSuperAdminManagement")));
 const SuperAdminApply = lazy(lazyRetry(() => import("./pages/SuperAdminApply")));
 const CountryAdminDashboard = lazy(lazyRetry(() => import("./pages/CountryAdminDashboard")));
-const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTraders")));
+const AdminDiamondTraders = lazy(lazyRetry(() => import("./pages/admin/AdminDiamondTraders")));
 const AdminTopupTraderApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminTopupTraderApprovals")));
 const AdminTraderOrders = lazy(lazyRetry(() => import("./pages/admin/AdminTraderOrders")));
 const AdminTraderTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminTraderTransactions")));
@@ -268,7 +268,7 @@ const AdminLiveBans = lazy(lazyRetry(() => import("./pages/admin/AdminLiveBans")
 const AdminPermanentBan = lazy(lazyRetry(() => import("./pages/admin/AdminPermanentBan")));
 const AdminCountryDistribution = lazy(lazyRetry(() => import("./pages/admin/AdminCountryDistribution")));
 const AdminFaceViolations = lazy(lazyRetry(() => import("./pages/admin/AdminFaceViolations")));
-const AdminCoins = lazy(lazyRetry(() => import("./pages/admin/AdminCoins")));
+const AdminDiamonds = lazy(lazyRetry(() => import("./pages/admin/AdminDiamonds")));
 const AdminPaymentGateways = lazy(lazyRetry(() => import("./pages/admin/AdminPaymentGateways")));
 const AdminTransferScheduler = lazy(lazyRetry(() => import("./pages/admin/AdminTransferScheduler")));
 const AdminAgencyCommissionLog = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyCommissionLog")));
@@ -329,7 +329,7 @@ const AdminGiftAnimationConfig = lazy(lazyRetry(() => import("./pages/admin/Admi
 const AdminFinance = lazy(lazyRetry(() => import("./pages/admin/AdminFinance")));
 const AdminGameManagement = lazy(lazyRetry(() => import("./pages/admin/AdminGameManagement")));
 const AdminPartyManagement = lazy(lazyRetry(() => import("./pages/admin/AdminPartyManagement")));
-const AdminCoinTraderHub = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTraderHub")));
+const AdminDiamondTraderHub = lazy(lazyRetry(() => import("./pages/admin/AdminDiamondTraderHub")));
 const AdminContentManagement = lazy(lazyRetry(() => import("./pages/admin/AdminContentManagement")));
 const AdminAgencyHub = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyHub")));
 const AdminAppSettingsHub = lazy(lazyRetry(() => import("./pages/admin/AdminAppSettingsHub")));
@@ -758,7 +758,7 @@ const App = () => {
     queryClient.prefetchQuery({
       queryKey: ['user-balance', userId],
       queryFn: async () => {
-        const { data } = await supabase.from('profiles').select('coins, beans, diamonds, pending_earnings').eq('id', userId).single();
+        const { data } = await supabase.from('profiles').select('diamonds, beans, diamonds, pending_earnings').eq('id', userId).single();
         return data;
       },
       staleTime: 1000 * 60 * 2,
@@ -1527,8 +1527,8 @@ const App = () => {
                 <Route path="/agency-signup" element={publicPage(<AgencySignup />)} />
                 <Route path="/agency-dashboard" element={<ProtectedRoute session={session}><AgencyDashboard /></ProtectedRoute>} />
                 <Route path="/agency-withdrawal" element={<ProtectedRoute session={session}><AgencyWithdrawal /></ProtectedRoute>} />
-                <Route path="/agency-coin-exchange" element={<ProtectedRoute session={session}><AgencyCoinExchange /></ProtectedRoute>} />
-                <Route path="/agency-coin-trader" element={<ProtectedRoute session={session}><AgencyCoinTrader /></ProtectedRoute>} />
+                <Route path="/agency-diamond-exchange" element={<ProtectedRoute session={session}><AgencyDiamondExchange /></ProtectedRoute>} />
+                <Route path="/agency-diamond-trader" element={<ProtectedRoute session={session}><AgencyDiamondTrader /></ProtectedRoute>} />
                 <Route path="/agency-transfer-history" element={<ProtectedRoute session={session}><AgencyTransferHistory /></ProtectedRoute>} />
                 <Route path="/agency-commission-history" element={<ProtectedRoute session={session}><AgencyCommissionHistory /></ProtectedRoute>} />
                 <Route path="/agency-host-management" element={<ProtectedRoute session={session}><AgencyHostManagement /></ProtectedRoute>} />
@@ -1591,15 +1591,15 @@ const App = () => {
                   <Route path="approvals" element={<AdminRouteGuard routeSegment="agencies"><AdminUnifiedApprovals /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
                   <Route path="super-admin-management" element={<AdminRouteGuard routeSegment="super-admin-management"><AdminSuperAdminManagement /></AdminRouteGuard>} />
-                  <Route path="diamond-traders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminCoinTraders /></AdminRouteGuard>} />
-                  <Route path="diamond-traders/approvals" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
-                  <Route path="diamond-traders/orders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderOrders /></AdminRouteGuard>} />
-                  <Route path="diamond-traders/transactions" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderTransactions /></AdminRouteGuard>} />
+                  <Route path="diamond-traders" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminDiamondTraders /></AdminRouteGuard>} />
+                  <Route path="diamond-traders/approvals" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
+                  <Route path="diamond-traders/orders" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminTraderOrders /></AdminRouteGuard>} />
+                  <Route path="diamond-traders/transactions" element={<AdminRouteGuard routeSegment="diamond-traders"><AdminTraderTransactions /></AdminRouteGuard>} />
                   {/* Legacy coin-* redirects (Zero-Coin Wave B1) */}
-                  <Route path="coin-traders" element={<Navigate to="/admin/diamond-traders" replace />} />
-                  <Route path="coin-traders/approvals" element={<Navigate to="/admin/diamond-traders/approvals" replace />} />
-                  <Route path="coin-traders/orders" element={<Navigate to="/admin/diamond-traders/orders" replace />} />
-                  <Route path="coin-traders/transactions" element={<Navigate to="/admin/diamond-traders/transactions" replace />} />
+                  <Route path="diamond-traders" element={<Navigate to="/admin/diamond-traders" replace />} />
+                  <Route path="diamond-traders/approvals" element={<Navigate to="/admin/diamond-traders/approvals" replace />} />
+                  <Route path="diamond-traders/orders" element={<Navigate to="/admin/diamond-traders/orders" replace />} />
+                  <Route path="diamond-traders/transactions" element={<Navigate to="/admin/diamond-traders/transactions" replace />} />
                   <Route path="animation-store" element={<AdminRouteGuard routeSegment="animation-store"><AdminAnimationStore /></AdminRouteGuard>} />
                   <Route path="manual-topup" element={<AdminRouteGuard routeSegment="manual-topup"><AdminManualTopup /></AdminRouteGuard>} />
                   <Route path="topup-system" element={<AdminRouteGuard routeSegment="topup-system"><AdminTopupSystem /></AdminRouteGuard>} />
@@ -1656,8 +1656,8 @@ const App = () => {
                   <Route path="ai-image-studio" element={<AdminRouteGuard routeSegment="ai-image-studio"><AdminAiImageStudio /></AdminRouteGuard>} />
                   <Route path="reports" element={<AdminRouteGuard routeSegment="reports"><AdminReports /></AdminRouteGuard>} />
                   <Route path="logs" element={<AdminRouteGuard routeSegment="logs"><AdminLogs /></AdminRouteGuard>} />
-                  <Route path="diamonds" element={<AdminRouteGuard routeSegment="coins"><AdminCoins /></AdminRouteGuard>} />
-                  <Route path="coins" element={<Navigate to="/admin/diamonds" replace />} />
+                  <Route path="diamonds" element={<AdminRouteGuard routeSegment="diamonds"><AdminDiamonds /></AdminRouteGuard>} />
+                  <Route path="diamonds" element={<Navigate to="/admin/diamonds" replace />} />
                   <Route path="payment-gateways" element={<AdminRouteGuard routeSegment="payment-gateways"><AdminPaymentGateways /></AdminRouteGuard>} />
                   <Route path="transfer-scheduler" element={<AdminRouteGuard routeSegment="transfer-scheduler"><AdminTransferScheduler /></AdminRouteGuard>} />
                   <Route path="agency-commission-log" element={<AdminRouteGuard routeSegment="agency-commission-log"><AdminAgencyCommissionLog /></AdminRouteGuard>} />
@@ -1716,8 +1716,8 @@ const App = () => {
                   <Route path="finance" element={<AdminRouteGuard routeSegment="finance"><AdminFinance /></AdminRouteGuard>} />
                   <Route path="game-management" element={<AdminRouteGuard routeSegment="game-management"><AdminGameManagement /></AdminRouteGuard>} />
                   <Route path="party-management" element={<AdminRouteGuard routeSegment="party-management"><AdminPartyManagement /></AdminRouteGuard>} />
-                  <Route path="diamond-trader-hub" element={<AdminRouteGuard routeSegment="coin-trader-hub"><AdminCoinTraderHub /></AdminRouteGuard>} />
-                  <Route path="coin-trader-hub" element={<Navigate to="/admin/diamond-trader-hub" replace />} />
+                  <Route path="diamond-trader-hub" element={<AdminRouteGuard routeSegment="diamond-trader-hub"><AdminDiamondTraderHub /></AdminRouteGuard>} />
+                  <Route path="diamond-trader-hub" element={<Navigate to="/admin/diamond-trader-hub" replace />} />
                   <Route path="content-management" element={<AdminRouteGuard routeSegment="content-management"><AdminContentManagement /></AdminRouteGuard>} />
                   <Route path="agency-hub" element={<AdminRouteGuard routeSegment="agency-hub"><AdminAgencyHub /></AdminRouteGuard>} />
                   <Route path="app-settings-hub" element={<AdminRouteGuard routeSegment="app-settings-hub"><AdminAppSettingsHub /></AdminRouteGuard>} />
@@ -1803,7 +1803,7 @@ const App = () => {
         dehydrateOptions: {
           shouldDehydrateQuery: (query: any) => {
             const root = String(query?.queryKey?.[0] ?? '');
-            return ['app-settings', 'global-settings', 'coin-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
+            return ['app-settings', 'global-settings', 'diamond-packages', 'payment-methods', 'user-balance', 'index-hosts-v4', 'host-countries'].includes(root);
           },
         },
       }}

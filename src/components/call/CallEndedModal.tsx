@@ -12,7 +12,7 @@ interface CallEndedModalProps {
   remoteUserAvatar: string | null;
   remoteUserLevel?: number;
   duration: number;
-  coinsSpent: number;
+  diamondsSpent: number;
   hostEarned: number;
   isHost: boolean;
   endedBy: 'self' | 'remote' | 'system';

@@ -73,21 +73,21 @@ export async function resolveGiftAsset(giftId: string): Promise<ResolvedGiftAsse
     try {
       const { data, error } = await supabase
         .from('gifts')
-        .select('id,name,icon_url,animation_url,svga_url,lottie_url,animation_format,animation_type,sound_url,price,cost,coins')
+        .select('id,name,icon_url,animation_url,svga_url,lottie_url,animation_format,animation_type,sound_url,price,cost,diamonds')
         .eq('id', giftId)
         .maybeSingle();
       if (error || !data) { cache.set(giftId, null); return null; }
       const row = data as GiftRow;
       const picked = pickFormat(row);
       if (!picked) { cache.set(giftId, null); return null; }
-      const coins = Number(row.coins ?? row.price ?? row.cost ?? 0) || 0;
+      const coins = Number(row.diamonds ?? row.price ?? row.cost ?? 0) || 0;
       const resolved: ResolvedGiftAsset = {
         id: row.id,
         name: row.name || '',
         url: picked.url,
         type: picked.type,
         soundUrl: normalizeGiftMediaUrl(row.sound_url || '') || undefined,
-        coins,
+        diamonds,
       };
       cache.set(giftId, resolved);
       return resolved;
@@ -108,14 +108,14 @@ export function primeGiftAssetCache(rows: Array<Partial<GiftRow> & { id: string 
     if (cache.has(r.id)) continue;
     const picked = pickFormat(r as GiftRow);
     if (!picked) { cache.set(r.id, null); continue; }
-    const coins = Number((r as any).coins ?? (r as any).price ?? (r as any).cost ?? 0) || 0;
+    const coins = Number((r as any).diamonds ?? (r as any).price ?? (r as any).cost ?? 0) || 0;
     cache.set(r.id, {
       id: r.id,
       name: r.name || '',
       url: picked.url,
       type: picked.type,
       soundUrl: normalizeGiftMediaUrl(r.sound_url || '') || undefined,
-      coins,
+      diamonds,
     });
   }
 }

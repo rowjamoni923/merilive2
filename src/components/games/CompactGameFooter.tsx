@@ -754,8 +754,8 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const fetchUserCoins = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase.from('profiles').select('coins').eq('id', user.id).single();
-      if (data) setUserCoins(data.coins);
+      const { data } = await supabase.from('profiles').select('diamonds').eq('id', user.id).single();
+      if (data) setUserCoins(data.diamonds);
     }
   };
 

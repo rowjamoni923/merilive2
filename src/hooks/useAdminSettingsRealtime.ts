@@ -40,7 +40,7 @@ export interface Gift {
 export interface DiamondPackage {
   id: string;
   coins: number; // DB column name - represents diamonds
-  base_coins: number;
+  base_diamonds: number;
   price_usd: number;
   bonus_percentage: number | null;
   is_popular: boolean;
@@ -306,8 +306,8 @@ const refreshDiamondPackages = async () => {
     .order('display_order', { ascending: true });
 
   globalDiamondPackages = (data || []).map((pkg: any) => {
-    const normalizedCoins = Number(pkg.coins ?? pkg.diamonds_amount ?? 0);
-    const normalizedBaseCoins = Number(pkg.base_coins ?? pkg.coins ?? pkg.diamonds_amount ?? 0);
+    const normalizedCoins = Number(pkg.diamonds ?? pkg.diamonds_amount ?? 0);
+    const normalizedBaseCoins = Number(pkg.base_diamonds ?? pkg.diamonds ?? pkg.diamonds_amount ?? 0);
     const normalizedBonusPercentage = Number(
       pkg.bonus_percentage ?? (
         pkg.bonus_diamonds && normalizedBaseCoins > 0
@@ -319,7 +319,7 @@ const refreshDiamondPackages = async () => {
     return {
       ...pkg,
       coins: normalizedCoins,
-      base_coins: normalizedBaseCoins,
+      base_diamonds: normalizedBaseCoins,
       bonus_percentage: normalizedBonusPercentage,
       price_usd: Number(pkg.price_usd ?? 0),
       is_popular: Boolean(pkg.is_popular),

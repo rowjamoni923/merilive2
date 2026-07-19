@@ -338,7 +338,7 @@ serve(async (req) => {
           const { error: claimErr } = await supabaseAdmin.from("first_recharge_claims").insert({
             user_id: userId,
             bonus_id: bonusRow.id,
-            original_amount: orderDetails.base_coins || (totalDiamonds - (orderDetails.bonus_diamonds || 0)),
+            original_amount: orderDetails.base_diamonds || (totalDiamonds - (orderDetails.bonus_diamonds || 0)),
             bonus_amount: orderDetails.bonus_diamonds || 0,
           });
           if (claimErr) console.error("[IPN] first_recharge_claims insert error:", claimErr);

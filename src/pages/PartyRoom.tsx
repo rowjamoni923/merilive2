@@ -462,7 +462,7 @@ const PartyRoom = () => {
   }, []);
   const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, coins: number) => {
     const now = Date.now();
-    optimisticGiftCountsRef.current.set(key, { beans, coins, expiresAt: now + 15000 });
+    optimisticGiftCountsRef.current.set(key, { beans, diamonds, expiresAt: now + 15000 });
     optimisticGiftCountsRef.current.forEach((value, staleKey) => {
       if (value.expiresAt < now) optimisticGiftCountsRef.current.delete(staleKey);
     });
@@ -917,8 +917,8 @@ const PartyRoom = () => {
         if (userData) {
           setCurrentUser(userData);
           sessionAccessTokenRef.current = userData.access_token || null;
-                userCoinsRef.current = userData.profile?.coins || 0;
-          setUserCoins(userData.profile?.coins || 0);
+                userCoinsRef.current = userData.profile?.diamonds || 0;
+          setUserCoins(userData.profile?.diamonds || 0);
           
           // ✅ LEVEL CHECK: Block joining if user doesn't meet minimum level
           const isHost = roomData.data?.host_id === userData.id;
@@ -2978,7 +2978,7 @@ const PartyRoom = () => {
                 return;
               }
               
-              const totalCost = gift.coins * count;
+              const totalCost = gift.diamonds * count;
               const availableCoins = userCoinsRef.current;
               if (availableCoins < totalCost) {
                 toast.error("Not enough diamonds!");
@@ -3015,7 +3015,7 @@ const PartyRoom = () => {
                 soundUrl: gift.sound_url || undefined,
                 giftColor: 'from-pink-500 to-purple-500',
                 count: count,
-                coins: gift.coins,
+                coins: gift.diamonds,
                 isOwnGift: true,
               };
               
@@ -3031,7 +3031,7 @@ const PartyRoom = () => {
               // TWO envelopes with different `env.id` → 400ms dedupe missed them
               // → every other participant saw the flying-gift twice and the
               // room/sender bean counters incremented twice. GiftingService
-              // publish carries real `coinsSpent`/`hostReceived` from the RPC.
+              // publish carries real `diamondsSpent`/`hostReceived` from the RPC.
 
               markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
               setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
@@ -3084,14 +3084,14 @@ const PartyRoom = () => {
                   // Refresh actual balance from server (in case of discrepancy)
                   const { data: updatedProfile } = await supabase
                     .from("profiles") // guard-ok: owner-only self balance refresh after gift send
-                    .select("coins")
+                    .select("diamonds")
                     .eq("id", sendingUserId)
                     .single();
 
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   
                   if (updatedProfile && pendingGiftCostRef.current === 0) {
-                    userCoinsRef.current = updatedProfile.coins || 0;
+                    userCoinsRef.current = updatedProfile.diamonds || 0;
                     setUserCoins(userCoinsRef.current);
                     // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                     const { updateCachedBalance } = await import("@/hooks/useUserBalance");

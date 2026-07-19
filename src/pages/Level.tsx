@@ -314,7 +314,7 @@ const Level = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, coins, user_level, host_level, max_user_level, weekly_earnings')
+        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, diamonds, user_level, host_level, max_user_level, weekly_earnings')
         .eq('id', user.id)
         .single();
 

@@ -19,7 +19,7 @@ const PaymentSuccess = () => {
   const [result, setResult] = useState<{
     success: boolean;
     total_diamonds?: number;
-    base_coins?: number;
+    base_diamonds?: number;
     bonus_diamonds?: number;
     already_processed?: boolean;
     error?: string;
@@ -66,8 +66,8 @@ const PaymentSuccess = () => {
           }
 
           const { data: profile } = await supabase
-            .from("profiles").select("coins").eq("id", session.user.id).single();
-          if (profile) updateCachedBalance(profile.coins || 0);
+            .from("profiles").select("diamonds").eq("id", session.user.id).single();
+          if (profile) updateCachedBalance(profile.diamonds || 0);
           window.dispatchEvent(new CustomEvent('balance-refresh'));
           return;
         }

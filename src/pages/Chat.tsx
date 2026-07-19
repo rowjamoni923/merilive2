@@ -976,7 +976,7 @@ const Chat = () => {
       return;
     }
     
-    const totalCost = gift.coins * count;
+    const totalCost = gift.diamonds * count;
     
     // Check coins immediately (use cached value)
     if (userDiamonds < totalCost) {
@@ -1029,7 +1029,7 @@ const Chat = () => {
       soundUrl: giftSoundUrl || undefined,
       giftColor: 'bg-pink-500/50',
       count,
-      coins: gift.coins,
+      coins: gift.diamonds,
       isOwnGift: true,
       beansEarned: estimatedBeansEarned,
     });
@@ -1130,15 +1130,15 @@ const Chat = () => {
         // Sync actual balance
         const { data: updatedProfile } = await supabase
           .from('profiles')
-          .select('coins')
+          .select('diamonds')
           .eq('id', currentUserId)
           .single();
         
         if (updatedProfile) {
-          setUserCoins(updatedProfile.coins || 0);
+          setUserCoins(updatedProfile.diamonds || 0);
           // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
           const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-          updateCachedBalance(updatedProfile.coins || 0);
+          updateCachedBalance(updatedProfile.diamonds || 0);
         }
       } catch (error) {
         const msg = error instanceof Error
@@ -1501,14 +1501,14 @@ const Chat = () => {
       
       // Parallel fetch - coins + conversations + groups at once
       const [profileResult, helperResult] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_agency_owner').eq('id', user.id).single(),
+        supabase.from('profiles').select('diamonds, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, is_agency_owner').eq('id', user.id).single(),
         supabase.from('topup_helpers').select('id').eq('user_id', user.id).eq('is_active', true).eq('is_verified', true).maybeSingle(),
         fetchConversations(user.id),
         fetchGroups(user.id)
       ]);
       
       if (profileResult.data) {
-        setUserCoins(profileResult.data.coins || 0);
+        setUserCoins(profileResult.data.diamonds || 0);
         setMyProfile({
           display_name: profileResult.data.display_name,
           avatar_url: profileResult.data.avatar_url,

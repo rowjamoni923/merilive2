@@ -197,7 +197,7 @@ export const useDailyLoginReward = () => {
       localStorage.setItem('daily_login_popup_dismissed', getTaskDate());
       toast({
         title: `🎁 Day ${result.day} Reward Claimed!`,
-        description: `+${result.coins} Diamonds${result.diamonds > 0 ? ` + ${result.diamonds} Bonus` : ''}`,
+        description: `+${result.diamonds} Diamonds${result.diamonds > 0 ? ` + ${result.diamonds} Bonus` : ''}`,
       });
 
       await fetchData();

@@ -360,7 +360,7 @@ const providerHandlers: Record<string, {
         merchant_id: config.merchant_id,
         user_id: userId,
         balance: balance,
-        currency: 'COINS',
+        currency: 'DIAMONDS',
         game: gameCode,
         timestamp: Date.now()
       };
@@ -510,11 +510,11 @@ serve(async (req) => {
           
           const { data: profile } = await supabase
             .from('profiles')
-            .select('coins')
+            .select('diamonds')
             .eq('id', user_id)
             .single();
           
-          const balance = profile?.coins || 0;
+          const balance = profile?.diamonds || 0;
           const launchResult = await handler.launchGame(config, game_code, user_id, balance);
           result = launchResult;
           break;
@@ -526,11 +526,11 @@ serve(async (req) => {
           }
           const { data: profile } = await supabase
             .from('profiles')
-            .select('coins')
+            .select('diamonds')
             .eq('id', user_id)
             .single();
           
-          result = { balance: profile?.coins || 0 };
+          result = { balance: profile?.diamonds || 0 };
           break;
         }
 

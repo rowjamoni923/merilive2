@@ -192,7 +192,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
   if (liveKitScope && liveKitId) {
     try {
       const cachedGift = requestGift || await getGiftById(giftId); // caller metadata = zero network wait
-      const unitCoins = cachedGift?.coins || 0;
+      const unitCoins = cachedGift?.diamonds || 0;
       const hintedFormat = getProfessionalGiftFormat(cachedGift);
       const optimisticPayload = {
         senderId,
@@ -272,7 +272,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
 
     console.log('[GiftingService] ✅ Gift sent successfully:', {
       transaction_id: result.transactionId,
-      diamonds_spent: result.coinsSpent,
+      diamonds_spent: result.diamondsSpent,
       beans_earned: result.hostReceived,
       host_percent: result.hostPercent,
       diamond_bonus: result.diamondBonus,
@@ -285,9 +285,9 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       try {
         updateCachedBalance(Math.max(0, result.newBalance));
       } catch {}
-    } else if (result.coinsSpent && result.coinsSpent > 0) {
+    } else if (result.diamondsSpent && result.diamondsSpent > 0) {
       try {
-        const net = getCachedBalance() - result.coinsSpent + (result.diamondBonus || 0);
+        const net = getCachedBalance() - result.diamondsSpent + (result.diamondBonus || 0);
         updateCachedBalance(Math.max(0, net));
       } catch {}
     }
@@ -297,7 +297,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     //   bonus diamonds immediately after sending a lucky gift.
     // See plan.md → "Lucky Gift Lottery — Chamet-Style Mega Jackpot".
     if (result.isLucky && (result.diamondBonus || 0) > 0) {
-      const spent = result.coinsSpent || 0;
+      const spent = result.diamondsSpent || 0;
       const bonus = result.diamondBonus || 0;
       try {
         // Resolve gift meta for the celebration card icon.
@@ -350,8 +350,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftAnimationConfigUrl: gift?.animation_config_url || undefined,
             giftSoundUrl: gift?.sound_url || undefined,
             count: quantity,
-            giftCoins: gift?.coins || 0,
-            totalDiamonds: result.coinsSpent || 0,
+            giftCoins: gift?.diamonds || 0,
+            totalDiamonds: result.diamondsSpent || 0,
             receiverBeans: result.hostReceived || 0,
             luckyBonus: result.diamondBonus || 0,
             timestamp: Date.now(),
@@ -367,7 +367,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       success: true,
       transaction: {
         id: result.transactionId || 'unknown',
-        diamonds_spent: result.coinsSpent || 0,
+        diamonds_spent: result.diamondsSpent || 0,
         beans_earned: result.hostReceived || 0,
         diamond_bonus: result.diamondBonus || 0,
         is_lucky: !!result.isLucky,
@@ -375,7 +375,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       gift: {
         id: giftId,
         name: 'Gift',
-        coins: result.coinsSpent || 0,
+        coins: result.diamondsSpent || 0,
         category: 'popular',
       },
     };

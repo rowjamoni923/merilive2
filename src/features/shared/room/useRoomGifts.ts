@@ -99,7 +99,7 @@ export function useLocalGiftTrigger(onGiftReceived: (gift: FlyingGiftData) => vo
       animationConfigUrl: (params.gift as any).animation_config_url || undefined,
       giftColor: 'from-pink-500 to-purple-500',
       count: params.count,
-      coins: params.coins,
+      coins: params.diamonds,
     });
   }, [onGiftReceived]);
 

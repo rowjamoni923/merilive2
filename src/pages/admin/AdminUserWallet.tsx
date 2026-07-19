@@ -10,7 +10,7 @@ import { toast } from "sonner";
 type LedgerRow = {
   id: number;
   user_id: string;
-  currency: "beans" | "diamonds" | "coins";
+  currency: "beans" | "diamonds" | "diamonds";
   delta: number;
   balance_before: number | null;
   balance_after: number | null;
@@ -52,13 +52,13 @@ export default function AdminUserWallet() {
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [recon, setRecon] = useState<ReconRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currencyFilter, setCurrencyFilter] = useState<"all" | "beans" | "diamonds" | "coins">("all");
+  const [currencyFilter, setCurrencyFilter] = useState<"all" | "beans" | "diamonds" | "diamonds">("all");
 
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     const [pRes, lRes, rRes] = await Promise.all([
-      supabase.from("profiles").select("id,username,avatar_url,beans,diamonds,coins,created_at").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("id,username,avatar_url,beans,diamonds,diamonds,created_at").eq("id", userId).maybeSingle(),
       supabase.from("wallet_ledger_audit" as any).select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1000),
       supabase.from("admin_wallet_reconciliation" as any).select("*").eq("user_id", userId),
     ]);
@@ -111,7 +111,7 @@ export default function AdminUserWallet() {
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <Metric label="Beans (profile)" value={profile.beans ?? 0} />
             <Metric label="Diamonds (profile)" value={profile.diamonds ?? 0} />
-            <Metric label="Diamonds (alias)" value={profile.coins ?? 0} />
+            <Metric label="Diamonds (alias)" value={profile.diamonds ?? 0} />
             <Metric label="Ledger entries" value={rows.length} />
           </CardContent>
         </Card>
@@ -152,7 +152,7 @@ export default function AdminUserWallet() {
           <CardTitle className="text-slate-900">Totals (currently loaded)</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          {(["beans", "diamonds", "coins"] as const).map(c => (
+          {(["beans", "diamonds", "diamonds"] as const).map(c => (
             <div key={c} className="rounded-lg border border-slate-200 p-3">
               <div className="text-xs uppercase text-slate-500">{c}</div>
               <div className="mt-1 text-emerald-700">+ {(totals[c]?.credit ?? 0).toLocaleString()}</div>
@@ -167,7 +167,7 @@ export default function AdminUserWallet() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-slate-900">Lifetime Timeline ({filtered.length})</CardTitle>
           <div className="flex gap-1">
-            {(["all", "beans", "diamonds", "coins"] as const).map(c => (
+            {(["all", "beans", "diamonds", "diamonds"] as const).map(c => (
               <Button key={c} size="sm" variant={currencyFilter === c ? "default" : "outline"} onClick={() => setCurrencyFilter(c)}>{c}</Button>
             ))}
           </div>

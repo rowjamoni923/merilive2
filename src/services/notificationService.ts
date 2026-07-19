@@ -9,9 +9,9 @@ export type NotificationType =
   | 'gift'
   | 'gift_received'
   | 'gift_sent'
-  | 'coin_purchase_helper'
-  | 'coin_purchase_direct'
-  | 'coins_added'
+  | 'diamond_purchase_helper'
+  | 'diamond_purchase_direct'
+  | 'diamonds_added'
   | 'diamonds_received'
   | 'withdrawal'
   | 'withdrawal_approved'
@@ -51,7 +51,7 @@ export type NotificationType =
   | 'topup_approved'
   | 'topup_rejected'
   | 'helper_notification'
-  | 'coin_exchange'
+  | 'diamond_exchange'
   | 'diamond_sent';
 
 export interface SendNotificationParams {
@@ -175,15 +175,15 @@ export const sendCoinsAddedNotification = async (
   helperAvatar?: string
 ) => {
   const typeMap: Record<string, NotificationType> = {
-    topup: 'coin_purchase_direct',
-    gift: 'coins_added',
+    topup: 'diamond_purchase_direct',
+    gift: 'diamonds_added',
     reward: 'reward',
-    admin: 'coins_added'
+    admin: 'diamonds_added'
   };
 
   return sendNotification({
     userId,
-    type: helperName ? 'coin_purchase_helper' : typeMap[source],
+    type: helperName ? 'diamond_purchase_helper' : typeMap[source],
     title: helperName ? `💎 ${helperName} added Diamonds!` : `💎 Diamonds added!`,
     message: `${amount.toLocaleString()} Diamonds have been added to your account`,
     data: {

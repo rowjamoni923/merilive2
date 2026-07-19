@@ -130,8 +130,8 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
 // Compute total diamonds including bonus_percentage
 const getBonusInclusiveCoins = (p: { coins: number; bonus_percentage?: number }) => {
   const bonusPct = Number(p.bonus_percentage ?? 0);
-  const bonus = bonusPct > 0 ? Math.floor((p.coins * bonusPct) / 100) : 0;
-  return { total: Math.floor(p.coins + bonus), bonus, bonusPct };
+  const bonus = bonusPct > 0 ? Math.floor((p.diamonds * bonusPct) / 100) : 0;
+  return { total: Math.floor(p.diamonds + bonus), bonus, bonusPct };
 };
 
 export default function SwiftPayDepositModal({
@@ -227,10 +227,10 @@ export default function SwiftPayDepositModal({
         if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
           requestBody.target = "helper_wallet";
           requestBody.helper_id = helperId;
-          requestBody.custom_coins = helperCustomCoins;
+          requestBody.custom_diamonds = helperCustomCoins;
           requestBody.custom_price_usd = helperCustomPriceUsd;
         } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-          requestBody.custom_coins = userCustomCoins;
+          requestBody.custom_diamonds = userCustomCoins;
           requestBody.custom_price_usd = userCustomPriceUsd;
           requestBody.purpose = userCustomPurpose;
           if (userCustomPurpose === "campaign" && campaignId) {
@@ -383,7 +383,7 @@ export default function SwiftPayDepositModal({
                     <p className="text-[10px] text-amber-100/60 uppercase">diamonds</p>
                     {bonus > 0 && (
                       <p className="text-[10px] font-semibold text-emerald-300 mt-0.5">
-                        {fmt(p.coins)} + {fmt(bonus)} bonus
+                        {fmt(p.diamonds)} + {fmt(bonus)} bonus
                       </p>
                     )}
                     <p className="text-sm font-bold text-amber-100 mt-1">${p.price_usd.toFixed(2)}</p>
@@ -409,7 +409,7 @@ export default function SwiftPayDepositModal({
                     <p className="text-2xl font-black text-amber-200">{fmt(total)} <span className="text-xs">diamonds</span></p>
                     {bonus > 0 && (
                       <p className="text-[11px] font-semibold text-emerald-300 mt-0.5">
-                        {fmt(pkg.coins)} + {fmt(bonus)} bonus <span className="opacity-70">(+{bonusPct}%)</span>
+                        {fmt(pkg.diamonds)} + {fmt(bonus)} bonus <span className="opacity-70">(+{bonusPct}%)</span>
                       </p>
                     )}
                     <p className="text-sm text-amber-100/80 mt-0.5">${pkg.price_usd.toFixed(2)} USD</p>

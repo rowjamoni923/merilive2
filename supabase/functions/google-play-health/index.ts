@@ -187,8 +187,8 @@ serve(async (req) => {
       productChecks.push({
         productId: p.product_id,
         priceUsd: p.price_usd,
-        resolved: !!info?.coins,
-        coins: info?.coins,
+        resolved: !!info?.diamonds,
+        coins: info?.diamonds,
         error: infoErr?.message,
       });
     }

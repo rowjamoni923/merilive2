@@ -1297,7 +1297,7 @@ const Settings = () => {
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• Your account will be scheduled for deletion</li>
                     <li>• After 30 days, it will be permanently removed</li>
-                    <li>• All your data, coins, and earnings will be lost</li>
+                    <li>• All your data, diamonds, and earnings will be lost</li>
                     <li>• You can cancel deletion within 30 days</li>
                   </ul>
                 </div>

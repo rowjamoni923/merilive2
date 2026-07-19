@@ -1932,7 +1932,7 @@ const Level5HelperDashboard = () => {
                                // Send notification
                                await supabase.rpc('send_notification', {
                                  p_user_id: order.user_id,
-                                 p_type: 'coin_purchase_helper',
+                                 p_type: 'diamond_purchase_helper',
                                  p_title: '💎 Diamonds Added!',
                                  p_message: `${order.diamond_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
                                  p_data: { amount: order.diamond_amount, amount_usd: order.amount_usd, source: 'helper' }

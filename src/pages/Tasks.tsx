@@ -412,7 +412,7 @@ const Tasks = () => {
       }
 
       const earnedBeans = Number((result as any)?.beans ?? task.reward_beans ?? 0);
-      const earnedCoins = Number((result as any)?.coins ?? task.reward_diamonds ?? 0);
+      const earnedCoins = Number((result as any)?.diamonds ?? task.reward_diamonds ?? 0);
 
       // Force balance refresh on next balance check
       updateCachedBalance(0);

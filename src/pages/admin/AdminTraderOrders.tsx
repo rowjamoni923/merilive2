@@ -139,13 +139,13 @@ const AdminTraderOrders = () => {
           .maybeSingle();
 
         // Send notification to user
-        const diamondAmount = Number(result.creditedCoins || order.diamond_amount);
+        const diamondAmount = Number(result.creditedDiamonds || order.diamond_amount);
         const formattedAmount = diamondAmount >= 100000 
           ? `${(diamondAmount / 100000).toFixed(1)}L` 
         : diamondAmount.toLocaleString();
         
         const helperUser = helperData?.user as any;
-        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${formattedAmount} diamonds from ${helperUser?.display_name || 'Diamond Trader'}!`, 'coin_purchase_helper')
+        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${formattedAmount} diamonds from ${helperUser?.display_name || 'Diamond Trader'}!`, 'diamond_purchase_helper')
       }
 
       toast({ 

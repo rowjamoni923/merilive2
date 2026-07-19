@@ -428,7 +428,7 @@ export default function AdminUsers() {
                       <td className="p-4 hidden lg:table-cell">
                         <div className="flex items-center gap-1 text-amber-600 font-medium">
                           <Coins className="w-4 h-4" />
-                          <span>{user.coins?.toLocaleString() || 0}</span>
+                          <span>{user.diamonds?.toLocaleString() || 0}</span>
                         </div>
                       </td>
                       <td className="p-4 hidden lg:table-cell">
@@ -615,7 +615,7 @@ export default function AdminUsers() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/5 rounded-lg p-3">
                   <p className="text-slate-500 text-sm">Diamonds</p>
-                  <p className="text-yellow-400 font-bold">{selectedUser.coins?.toLocaleString() || 0}</p>
+                  <p className="text-yellow-400 font-bold">{selectedUser.diamonds?.toLocaleString() || 0}</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
                   <p className="text-slate-500 text-sm">Level</p>

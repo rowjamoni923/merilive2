@@ -847,7 +847,7 @@ const Auth = () => {
     // gender rewrites are blocked once the trigger has stored an initial value.
     const PROTECTED_PROFILE_FIELDS = new Set([
       'is_verified', 'is_host', 'is_face_verified', 'host_status', 'host_level',
-      'coins', 'beans', 'diamonds', 'beans_balance', 'total_earnings', 'pending_earnings',
+      'diamonds', 'beans', 'diamonds', 'beans_balance', 'total_earnings', 'pending_earnings',
       'weekly_earnings', 'total_recharged', 'registration_ip', 'last_login_ip',
       'device_id', 'is_banned', 'is_blocked', 'is_deleted', 'blocked_reason',
       'agency_id', 'call_rate_per_minute', 'gender',

@@ -244,12 +244,12 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       setCurrentUserId(user.id);
       const { data } = await supabase
         .from('profiles') // guard-ok: own-row read (id=eq.user.id), not cross-user
-        .select('coins, username, user_level, host_level, max_user_level, gender, is_host')
+        .select('diamonds, username, user_level, host_level, max_user_level, gender, is_host')
         .eq('id', user.id)
         .single();
 
       if (data) {
-        setUserCoins(data.coins);
+        setUserCoins(data.diamonds);
         setCurrentUserProfile({
           username: data.username || 'Player',
           level: getRequiredDisplayLevel(data)

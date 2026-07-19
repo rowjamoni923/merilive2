@@ -18,7 +18,7 @@ export { default as AdminEntryEffects } from '@/pages/admin/AdminEntryEffects';
 export { default as AdminFinance } from '@/pages/admin/AdminFinance';
 export { default as AdminGameManagement } from '@/pages/admin/AdminGameManagement';
 export { default as AdminPartyManagement } from '@/pages/admin/AdminPartyManagement';
-export { default as AdminCoinTraderHub } from '@/pages/admin/AdminCoinTraderHub';
+export { default as AdminDiamondTraderHub } from '@/pages/admin/AdminDiamondTraderHub';
 export { default as AdminContentManagement } from '@/pages/admin/AdminContentManagement';
 export { default as AdminAgencyHub } from '@/pages/admin/AdminAgencyHub';
 export { default as AdminAppSettingsHub } from '@/pages/admin/AdminAppSettingsHub';
@@ -48,7 +48,7 @@ export { default as AdminStreams } from '@/pages/admin/AdminStreams';
 // Shop & Gifts
 export { default as AdminShop } from '@/pages/admin/AdminShop';
 export { default as AdminGifts } from '@/pages/admin/AdminGifts';
-export { default as AdminCoins } from '@/pages/admin/AdminCoins';
+export { default as AdminDiamonds } from '@/pages/admin/AdminDiamonds';
 
 // Animations & Effects
 export { default as AdminAnimationStore } from '@/pages/admin/AdminAnimationStore';
@@ -85,7 +85,7 @@ export { default as AdminHelperApplications } from '@/pages/admin/AdminHelperApp
 export { default as AdminHelperRequests } from '@/pages/admin/AdminHelperRequests';
 export { default as AdminHelperDiamondPricing } from '@/pages/admin/AdminHelperDiamondPricing';
 export { default as AdminLevel5Helpers } from '@/pages/admin/AdminLevel5Helpers';
-export { default as AdminCoinTraders } from '@/pages/admin/AdminCoinTraders';
+export { default as AdminDiamondTraders } from '@/pages/admin/AdminDiamondTraders';
 export { default as AdminTraderOrders } from '@/pages/admin/AdminTraderOrders';
 export { default as AdminTraderTransactions } from '@/pages/admin/AdminTraderTransactions';
 

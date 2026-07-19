@@ -80,11 +80,11 @@ export function BackgroundPickerPanel({
     if (!user) return;
     const { data } = await supabase
       .from("profiles")
-      .select("coins, user_level")
+      .select("diamonds, user_level")
       .eq("id", user.id)
       .single();
     if (data) {
-      setUserDiamonds((data as any).coins || 0);
+      setUserDiamonds((data as any).diamonds || 0);
       setUserLevel((data as any).user_level || 0);
     }
     const { data: purchasedData } = await (supabase

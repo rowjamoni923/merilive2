@@ -36,7 +36,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 import { UserAvatarImage } from "@/components/admin/UserAvatarImage";
-const AdminCoinTraders = () => {
+const AdminDiamondTraders = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("helpers");
@@ -93,7 +93,7 @@ const AdminCoinTraders = () => {
         totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
         visibleTraders: (data || []).filter((h: any) => h.is_active && h.is_verified && h.trader_level !== 5 && (h.wallet_balance || 0) >= 100000).length,
       }));
-    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error) }); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminDiamondTraders", message: formatAdminError(error) }); }
     finally { setLoading(false); }
   };
 
@@ -106,7 +106,7 @@ const AdminCoinTraders = () => {
       const rows = (data || []).map((t: any) => ({ ...t, diamond_amount: t.diamond_amount ?? t.amount ?? 0, status: t.status ?? 'completed' }));
       setTransactions(rows);
       setStats(prev => ({ ...prev, pendingTransactions: rows.filter((t: any) => t.status === 'pending').length }));
-    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error) }); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminDiamondTraders", message: formatAdminError(error) }); }
   };
 
   const searchUsers = async (query: string) => {
@@ -153,7 +153,7 @@ const AdminCoinTraders = () => {
     });
 
     if (updateError) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
@@ -206,7 +206,7 @@ const AdminCoinTraders = () => {
       fetchTransactions();
 
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.TransferError", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminDiamondTraders.TransferError", message: formatAdminError(error)});
       toast({
         title: "Failed",
         description: error.message || "Transfer failed",
@@ -928,4 +928,4 @@ const AdminCoinTraders = () => {
   );
 };
 
-export default AdminCoinTraders;
+export default AdminDiamondTraders;

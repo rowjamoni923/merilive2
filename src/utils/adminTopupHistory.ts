@@ -250,7 +250,7 @@ export function formatTopupFieldLabel(field: string): string {
   switch (field) {
     case "diamonds":
       return "💎";
-    case "coins":
+    case "diamonds":
       return "🪙";
     case "beans":
       return "🫘";

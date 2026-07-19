@@ -746,8 +746,8 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const fetchUserCoins = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase.from('profiles').select('coins').eq('id', user.id).single();
-      if (data) setUserCoins(data.coins);
+      const { data } = await supabase.from('profiles').select('diamonds').eq('id', user.id).single();
+      if (data) setUserCoins(data.diamonds);
     }
   };
 
@@ -769,11 +769,11 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     // Deduct coins immediately
     const { data: profile } = await supabase
       .from('profiles')
-      .select('coins')
+      .select('diamonds')
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.coins < betAmount) {
+    if (!profile || profile.diamonds < betAmount) {
       toast.error('Not enough diamonds!');
       return { success: false, error: 'Not enough diamonds' };
     }
