@@ -16,14 +16,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.merilive.app.databinding.FragmentAgencyDiamondTraderBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -74,7 +71,6 @@ class AgencyDiamondTraderFragment : Fragment() {
 
 @HiltViewModel
 class AgencyDiamondTraderViewModel @Inject constructor(
-    private val auth: Auth,
     private val postgrest: Postgrest,
 ) : ViewModel() {
 
