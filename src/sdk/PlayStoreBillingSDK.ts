@@ -83,9 +83,7 @@ const makeProductConfig = (baseDiamonds: number, bonusDiamonds: number, productI
     aliases: uniqueIds([
       productId,
       `diamonds_${baseDiamonds}`,
-      `coins_${baseDiamonds}`,
       `diamonds_${totalDiamonds}`,
-      `coins_${totalDiamonds}`,
     ]),
   };
 };
