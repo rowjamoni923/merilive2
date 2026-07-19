@@ -27,19 +27,19 @@ const AUDIT_TARGETS: AuditTarget[] = [
     id: "VT-NO-DATA",
     label: "No Verified Trader data",
     description: "topup_helpers table empty or all rows hidden",
-    path: "/admin/coin-traders?audit=VT-NO-DATA#audit-no-data",
+    path: "/admin/diamond-traders?audit=VT-NO-DATA#audit-no-data",
   },
   {
     id: "VT-COUNTRY-MISMATCH",
     label: "Country mismatch",
     description: "No traders match the user's country code",
-    path: "/admin/coin-traders?audit=VT-COUNTRY-MISMATCH#audit-country",
+    path: "/admin/diamond-traders?audit=VT-COUNTRY-MISMATCH#audit-country",
   },
   {
     id: "VT-INACTIVE-UNVERIFIED",
     label: "Inactive / unverified",
     description: "Traders exist but is_active/is_verified are false",
-    path: "/admin/coin-traders?audit=VT-INACTIVE-UNVERIFIED#audit-status",
+    path: "/admin/diamond-traders?audit=VT-INACTIVE-UNVERIFIED#audit-status",
   },
   {
     id: "VT-WALLET-THRESHOLD",
@@ -51,7 +51,7 @@ const AUDIT_TARGETS: AuditTarget[] = [
     id: "VT-FILTER-SUMMARY",
     label: "Combined filter summary",
     description: "Overview of every applied filter for the user",
-    path: "/admin/coin-traders?audit=VT-FILTER-SUMMARY#audit-summary",
+    path: "/admin/diamond-traders?audit=VT-FILTER-SUMMARY#audit-summary",
   },
 ];
 
