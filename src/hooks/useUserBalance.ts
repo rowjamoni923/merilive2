@@ -80,7 +80,7 @@ async function fetchBalance(userIdOverride?: string | null, forceRefresh = false
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('diamonds, coins') // DU-3: diamonds is canonical spend wallet; coins kept as soak fallback until DU-5 drops the column
+        .select('diamonds') // ZERO-COIN: Diamond is the single spend wallet. No coins fallback.
         .eq('id', userId)
         .single();
 
@@ -90,8 +90,7 @@ async function fetchBalance(userIdOverride?: string | null, forceRefresh = false
         return balanceCache.balance;
       }
 
-      // DU-3: prefer diamonds; keep max() fallback until DU-2 batches 3-4 land and soak is fully green.
-      const newBalance = Math.max(Number((profile as any)?.diamonds ?? 0), Number((profile as any)?.coins ?? 0));
+      const newBalance = Number((profile as any)?.diamonds ?? 0);
       if (requestSeq === balanceRequestSeq) {
         balanceCache.balance = newBalance;
         balanceCache.userId = userId;
