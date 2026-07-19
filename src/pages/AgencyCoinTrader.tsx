@@ -166,7 +166,7 @@ const AgencyCoinTrader = () => {
 
       // Fetch trade history
       const { data: historyData } = await supabase
-        .from('coin_transfers')
+        .from('diamond_transfers')
         .select('*')
         .eq('sender_id', agencyData.id)
         .order('created_at', { ascending: false })
@@ -285,7 +285,7 @@ const AgencyCoinTrader = () => {
         // Agency buys coins from user - ATOMIC operations
         // 1. ATOMIC: Deduct from user's coins with FOR UPDATE locking
         const { data: deductResult, error: deductError } = await supabase
-          .rpc('deduct_coins_from_user', {
+          .rpc('deduct_diamonds_from_user', {
             p_user_id: selectedUser.id,
             p_amount: Math.floor(amount)
           });
@@ -311,7 +311,7 @@ const AgencyCoinTrader = () => {
 
         // 3. Record transaction
         await supabase
-          .from('coin_transfers')
+          .from('diamond_transfers')
           .insert({
             sender_id: agency.id,
             receiver_id: selectedUser.id,
@@ -331,7 +331,7 @@ const AgencyCoinTrader = () => {
         // This deducts agency/helper/user balance and credits the receiver atomically.
         const senderType = (agency?.diamond_balance ?? 0) >= amount ? 'agency_to_user' : 'trader_to_user';
         const { data: transferResult, error: transferError } = await supabase
-          .rpc('helper_transfer_coins_to_user', {
+          .rpc('helper_transfer_diamonds_to_user', {
             _sender_id: currentUserId,
             _receiver_id: selectedUser.id,
             _amount: Math.floor(amount),
@@ -346,7 +346,7 @@ const AgencyCoinTrader = () => {
 
         // 3. Record transaction
         await supabase
-          .from('coin_transfers')
+          .from('diamond_transfers')
           .insert({
             sender_id: agency.id,
             receiver_id: selectedUser.id,
@@ -403,7 +403,7 @@ const AgencyCoinTrader = () => {
         .insert({
           user_id: agency.id, // Agency as user for this context
           helper_id: agency.id, // Will be reassigned by admin
-          coin_amount: amount,
+          diamond_amount: amount,
           amount_usd: dollarAmount,
           amount_local: dollarAmount,
           currency_code: 'USD',

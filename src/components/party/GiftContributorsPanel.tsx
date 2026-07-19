@@ -83,7 +83,7 @@ export function GiftContributorsPanel({
           .from('gift_transactions')
           .select(`
             sender_id,
-            coin_amount,
+            diamond_amount,
             profiles:sender_id (
               id,
               display_name,
@@ -115,7 +115,7 @@ export function GiftContributorsPanel({
           if (!senderId || !profile) return;
           
           // Calculate host beans (commission applied)
-          const hostBeans = Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100);
+          const hostBeans = Math.floor((tx.diamond_amount || 0) * hostCommissionPercent / 100);
           
           const existing = contributorMap.get(senderId);
           if (existing) {
@@ -149,13 +149,13 @@ export function GiftContributorsPanel({
 
     // Pkg183 LiveKit-Purist: pure optimistic in-memory delta on Pkg76
     // `livekit-gift-sent` DataPacket — NO refetch. Sender packs all metadata
-    // (senderId/name/avatar/level/totalCoins) so we apply commission and
+    // (senderId/name/avatar/level/totalDiamonds) so we apply commission and
     // increment locally → 0ms leaderboard update for all viewers.
     const onLiveKitGift = (e: Event) => {
       const d = (e as CustomEvent<any>).detail;
       if (!d || d.scope !== 'party' || d.id !== roomId) return;
       const senderId = d.senderId;
-      const coins = Number(d.totalCoins ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
+      const coins = Number(d.totalDiamonds ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
       if (!senderId || coins <= 0) return;
       const hostBeans = Math.floor(coins * hostCommissionPercent / 100);
       setContributors((prev) => {

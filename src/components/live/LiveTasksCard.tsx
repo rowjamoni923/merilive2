@@ -15,7 +15,7 @@ interface LiveTask {
   requirement_type: string;
   requirement_value: number;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
   icon_name: string;
   icon_color: string;
 }
@@ -196,7 +196,7 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
       }));
 
       const earnedBeans = (result as any)?.beans || task.reward_beans;
-      const earnedCoins = (result as any)?.coins || task.reward_coins;
+      const earnedCoins = (result as any)?.coins || task.reward_diamonds;
       setShowCelebration({ beans: earnedBeans, diamonds: earnedCoins });
       setTimeout(() => setShowCelebration(null), 3000);
       toast.success(`🎉 +${earnedBeans} Beans, +${earnedCoins} 💎`);
@@ -551,8 +551,8 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                     <BeansIcon size={10} /> +{currentTask.reward_beans}
                   </span>
                 )}
-                {currentTask.reward_coins > 0 && (
-                  <span className="text-[10px] text-cyan-400/90 font-bold bg-cyan-400/8 rounded-md px-1.5 py-0.5">+{currentTask.reward_coins} 💎</span>
+                {currentTask.reward_diamonds > 0 && (
+                  <span className="text-[10px] text-cyan-400/90 font-bold bg-cyan-400/8 rounded-md px-1.5 py-0.5">+{currentTask.reward_diamonds} 💎</span>
                 )}
               </div>
             </div>

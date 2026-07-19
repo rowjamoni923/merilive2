@@ -22,7 +22,7 @@ interface InvitationTier {
   min_invites: number;
   max_invites: number | null;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
   bonus_percentage: number;
   badge_color: string;
   display_order: number;
@@ -44,7 +44,7 @@ const AdminInvitationSettings = () => {
     min_invites: 1,
     max_invites: null,
     reward_beans: 100,
-    reward_coins: 20,
+    reward_diamonds: 20,
     bonus_percentage: 0,
     badge_color: '#FFD700',
     display_order: 0,
@@ -158,7 +158,7 @@ const AdminInvitationSettings = () => {
           min_invites: formData.min_invites ?? 1,
           max_invites: formData.max_invites || null,
           reward_beans: formData.reward_beans ?? 0,
-          reward_coins: formData.reward_coins ?? 0,
+          reward_diamonds: formData.reward_diamonds ?? 0,
           bonus_percentage: formData.bonus_percentage ?? 0,
           badge_color: formData.badge_color || '#FFD700',
           display_order: formData.display_order ?? 0,
@@ -212,7 +212,7 @@ const AdminInvitationSettings = () => {
       min_invites: 1,
       max_invites: null,
       reward_beans: 100,
-      reward_coins: 20,
+      reward_diamonds: 20,
       bonus_percentage: 0,
       badge_color: '#FFD700',
       display_order: tiers.length,
@@ -293,7 +293,7 @@ const AdminInvitationSettings = () => {
                 </div>
                 <div>
                   <Label>Diamonds Reward</Label>
-                  <Input type="number" value={formData.reward_coins ?? ''} onChange={(e) => setFormData({ ...formData, reward_coins: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
+                  <Input type="number" value={formData.reward_diamonds ?? ''} onChange={(e) => setFormData({ ...formData, reward_diamonds: e.target.value === '' ? undefined : parseInt(e.target.value) })} />
                 </div>
               </div>
 
@@ -421,7 +421,7 @@ const AdminInvitationSettings = () => {
                       +{tier.reward_beans} Beans
                     </span>
                     <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded">
-                      +{tier.reward_coins} Coins
+                      +{tier.reward_diamonds} Coins
                     </span>
                     {tier.bonus_percentage > 0 && (
                       <span className="text-xs bg-green-500/20 text-green-300 border border-green-500/30 px-2 py-0.5 rounded">

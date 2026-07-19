@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const callerRateForHold = settings.host_max_rate_coins_per_min;
+    const callerRateForHold = settings.host_max_rate_diamonds_per_min;
     const holdAmount = callerRateForHold * settings.preauth_minutes_hold;
     const callerBalance = Math.max(Number(profile.coins ?? 0), Number(profile.diamonds ?? 0));
     const callerIsVip = Number(profile.vip_tier ?? 0) > 0 || !!profile.current_vip_tier_id;
@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
           free_trial_seconds: freeTrial,
           min_billable_seconds: settings.min_billable_seconds,
           host_split_pct: settings.host_split_pct,
-          default_host_rate: settings.default_host_rate_coins_per_min,
+          default_host_rate: settings.default_host_rate_diamonds_per_min,
           expires_at: expiresAt,
         })
         .select("*")
@@ -302,11 +302,11 @@ Deno.serve(async (req) => {
     // Fetch host's rate
     const { data: hpref } = await supabase
       .from("host_match_preferences")
-      .select("coin_rate_per_min")
+      .select("diamond_rate_per_min")
       .eq("host_id", hostUserId)
       .maybeSingle();
 
-    const hostRate = hpref?.coin_rate_per_min ?? settings.default_host_rate_coins_per_min;
+    const hostRate = hpref?.diamond_rate_per_min ?? settings.default_host_rate_diamonds_per_min;
 
     const livekitRoom = `match-${crypto.randomUUID()}`;
     const freeTrial = settings.free_trial_seconds + (callerIsVip ? settings.vip_free_trial_bonus_seconds : 0);
@@ -317,7 +317,7 @@ Deno.serve(async (req) => {
         livekit_room: livekitRoom,
         caller_id: userId,
         host_id: hostUserId,
-        coin_rate_per_min: hostRate,
+        diamond_rate_per_min: hostRate,
         free_trial_seconds: freeTrial,
         min_billable_seconds: settings.min_billable_seconds,
         host_split_pct: settings.host_split_pct,
@@ -354,7 +354,7 @@ Deno.serve(async (req) => {
         session_id: session.id,
         room: livekitRoom,
         host_id: hostUserId,
-        coin_rate_per_min: hostRate,
+        diamond_rate_per_min: hostRate,
         free_trial_seconds: freeTrial,
         min_billable_seconds: settings.min_billable_seconds,
         ring_timeout_seconds: settings.ring_timeout_seconds,

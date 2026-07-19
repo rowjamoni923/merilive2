@@ -5,7 +5,7 @@ import { getTaskDate, getDayBoundaries } from "@/utils/taskDateUtils";
 
 interface LoginRewardDay {
   day_number: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_diamonds: number;
   bonus_label: string | null;
   is_claimed: boolean;
@@ -114,7 +114,7 @@ export const useDailyLoginReward = () => {
 
       const days: LoginRewardDay[] = config.map((c: any) => ({
         day_number: c.day_number,
-        reward_coins: c.reward_coins,
+        reward_diamonds: c.reward_diamonds,
         reward_diamonds: c.reward_diamonds,
         bonus_label: c.bonus_label,
         is_claimed: claimedDays.has(c.day_number) && c.day_number <= currentStreak,

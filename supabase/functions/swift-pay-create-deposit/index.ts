@@ -71,12 +71,12 @@ function getHelperPackageLevel(pkg: { display_order?: number | null; description
 
 async function resolveBestDiamondsPerUsd(admin: ReturnType<typeof createClient>): Promise<number | null> {
   const { data } = await admin
-    .from("coin_packages")
-    .select("coins_amount, bonus_coins, price_usd")
+    .from("diamond_packages")
+    .select("diamonds_amount, bonus_diamonds, price_usd")
     .eq("is_active", true);
   const best = Math.max(
-    ...((data ?? []) as Array<{ coins_amount?: number; bonus_coins?: number; price_usd?: number }>).map((p) =>
-      (Number(p.coins_amount ?? 0) + Number(p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd ?? 0), 0.01),
+    ...((data ?? []) as Array<{ diamonds_amount?: number; bonus_diamonds?: number; price_usd?: number }>).map((p) =>
+      (Number(p.diamonds_amount ?? 0) + Number(p.bonus_diamonds ?? 0)) / Math.max(Number(p.price_usd ?? 0), 0.01),
     ),
   );
   return Number.isFinite(best) && best > 0 ? Math.floor(best) : null;
@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
     const target = body.target === "helper_wallet" ? "helper_wallet" : "user_diamond";
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    let totalCoins = 0;
+    let totalDiamonds = 0;
     let priceUsd = 0;
     let packageId: string | null = null;
     let targetHelperId: string | null = null;
@@ -192,8 +192,8 @@ Deno.serve(async (req) => {
       if (helper.user_id !== user.id) return json({ error: "forbidden" }, 403);
       if (helper.is_active === false) return json({ error: "helper_inactive" }, 400);
 
-      totalCoins = Math.floor(Number(body.custom_coins));
-      if (!Number.isFinite(totalCoins) || totalCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
+      totalDiamonds = Math.floor(Number(body.custom_coins));
+      if (!Number.isFinite(totalDiamonds) || totalDiamonds <= 0) return json({ error: "invalid_custom_coins" }, 400);
       const { data: pricingRows, error: pricingErr } = await admin
         .from("helper_diamond_packages")
         .select("diamond_amount, price_usd, display_order, description, is_active")
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
       if (!Number.isFinite(diamondUnit) || diamondUnit <= 0 || !Number.isFinite(usdUnit) || usdUnit <= 0) {
         return json({ error: "invalid_helper_pricing" }, 500);
       }
-      priceUsd = roundUsd((totalCoins / diamondUnit) * usdUnit);
+      priceUsd = roundUsd((totalDiamonds / diamondUnit) * usdUnit);
       targetHelperId = helper.id;
       // Isolated Swift Pay sub-account per helper
       externalUserId = `merilive_helper_${helper.id}`;
@@ -215,20 +215,20 @@ Deno.serve(async (req) => {
       // user_diamond — either a package OR a custom amount (e.g. helper-application fee)
       if (body.package_id) {
         const { data: pkg, error: pkgErr } = await admin
-          .from("coin_packages")
-          .select("id, coins_amount, bonus_coins, price_usd, is_active")
+          .from("diamond_packages")
+          .select("id, diamonds_amount, bonus_diamonds, price_usd, is_active")
           .eq("id", body.package_id)
           .maybeSingle();
         if (pkgErr || !pkg || !pkg.is_active) {
           return json({ error: "package_not_found" }, 404);
         }
-        const baseCoins = Number(pkg.coins_amount ?? 0);
-        const packageBonus = Number(pkg.bonus_coins ?? 0);
+        const baseCoins = Number(pkg.diamonds_amount ?? 0);
+        const packageBonus = Number(pkg.bonus_diamonds ?? 0);
 
         // Package bonus belongs to every deposit package. First-recharge is a
         // separate one-time bonus applied at credit time by safe_credit_diamonds
         // through _apply_recharge_bonuses_internal.
-        totalCoins = baseCoins + packageBonus;
+        totalDiamonds = baseCoins + packageBonus;
         priceUsd = Number(pkg.price_usd);
         if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
           return json({ error: "invalid_package_price" }, 500);
@@ -290,16 +290,16 @@ Deno.serve(async (req) => {
             return json({ error: "campaign_not_eligible", reason: v?.reason ?? "unknown" }, 400);
           }
 
-          totalCoins = requestedCoins;
+          totalDiamonds = requestedCoins;
           priceUsd = roundUsd(Number((match as any).offer_price_usd ?? (match as any).original_price_usd));
           campaignId = (match as any).id;
         } else {
           const minUsd = await resolveSwiftPayMinUsd(admin);
           const rate = await resolveBestDiamondsPerUsd(admin);
           if (!rate) return json({ error: "diamond_rate_not_configured" }, 500);
-          totalCoins = Math.floor(requestedUsd * rate);
+          totalDiamonds = Math.floor(requestedUsd * rate);
           priceUsd = roundUsd(requestedUsd);
-          if (requestedCoins !== totalCoins) return json({ error: "invalid_custom_coin_amount" }, 400);
+          if (requestedCoins !== totalDiamonds) return json({ error: "invalid_custom_coin_amount" }, 400);
           if (priceUsd < minUsd) {
             return json({
               error: "below_minimum",
@@ -408,7 +408,7 @@ Deno.serve(async (req) => {
       .insert({
         user_id: user.id,
         package_id: packageId,
-        coins_amount: totalCoins,
+        diamonds_amount: totalDiamonds,
         price_usd: priceUsd,
         pay_currency: payCurrency,
         pay_network: depositBody?.network ?? null,
@@ -441,7 +441,7 @@ Deno.serve(async (req) => {
       pay_currency: row.pay_currency,
       network: row.pay_network,
       expires_at: row.expires_at,
-      coins_amount: totalCoins,
+      diamonds_amount: totalDiamonds,
       price_usd: priceUsd,
       status: row.status,
     });

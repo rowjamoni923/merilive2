@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
               session_id: result.session_id,
               room: result.room,
               host_id: hostId,
-              coin_rate_per_min: result.coin_rate_per_min,
+              diamond_rate_per_min: result.diamond_rate_per_min,
               free_trial_seconds: result.free_trial_seconds,
               min_billable_seconds: result.min_billable_seconds,
             }),

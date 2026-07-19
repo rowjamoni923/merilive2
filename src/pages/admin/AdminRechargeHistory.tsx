@@ -34,7 +34,7 @@ import { CopyableUid } from "@/components/admin/CopyableUid";
 interface RechargeRecord {
   id: string;
   user_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   amount_usd: number;
   amount_local: number;
   currency_code: string;
@@ -88,7 +88,7 @@ const AdminRechargeHistory = () => {
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedRecord, setSelectedRecord] = useState<RechargeRecord | null>(null);
-  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0, playStoreCount: 0, playStoreUsd: 0 });
+  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalDiamonds: 0, totalUsd: 0, playStoreCount: 0, playStoreUsd: 0 });
   const [rtdnEvents, setRtdnEvents] = useState<RtdnEventRow[]>([]);
   const [rtdnStats, setRtdnStats] = useState({ total: 0, processed: 0, failed: 0, purchase: 0, renewed: 0, cancelled: 0, refunded: 0 });
   const [selectedRtdn, setSelectedRtdn] = useState<RtdnEventRow | null>(null);
@@ -184,9 +184,9 @@ const AdminRechargeHistory = () => {
         traderQ = traderQ.eq('status', statusFilter);
       }
 
-      // 6. Fetch coin_transfers (Diamond transfers)
+      // 6. Fetch diamond_transfers (Diamond transfers)
       let diamondQ = supabase
-        .from('coin_transfers')
+        .from('diamond_transfers')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);
@@ -226,7 +226,7 @@ const AdminRechargeHistory = () => {
       const helperRecords: RechargeRecord[] = (helperRes.data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        coin_amount: r.coin_amount || 0,
+        diamond_amount: r.diamond_amount || 0,
         amount_usd: r.amount_usd || 0,
         amount_local: r.amount_local || 0,
         currency_code: r.currency_code || 'USD',
@@ -259,7 +259,7 @@ const AdminRechargeHistory = () => {
         return {
           id: r.id,
           user_id: r.user_id,
-          coin_amount: r.coins_received || 0,
+          diamond_amount: r.diamonds_received || 0,
           amount_usd: r.amount || 0,
           amount_local: r.local_currency_amount || 0,
           currency_code: r.currency_code || 'USD',
@@ -294,7 +294,7 @@ const AdminRechargeHistory = () => {
         .map((r: any) => ({
           id: r.id,
           user_id: r.user_id,
-          coin_amount: r.coins_amount || 0,
+          diamond_amount: r.diamonds_amount || 0,
           amount_usd: r.amount_usd || 0,
           amount_local: 0,
           currency_code: r.currency_code || 'USD',
@@ -323,7 +323,7 @@ const AdminRechargeHistory = () => {
       const gatewayRecords: RechargeRecord[] = (gatewayRes.data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        coin_amount: r.coins_to_receive || 0,
+        diamond_amount: r.coins_to_receive || 0,
         amount_usd: r.amount_usd || 0,
         amount_local: r.amount_local || 0,
         currency_code: r.currency_code || 'USD',
@@ -344,7 +344,7 @@ const AdminRechargeHistory = () => {
       const traderRecords: RechargeRecord[] = (traderRes.data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        coin_amount: r.coin_amount || 0,
+        diamond_amount: r.diamond_amount || 0,
         amount_usd: r.usd_amount || 0,
         amount_local: r.local_amount || 0,
         currency_code: r.currency_code || 'USD',
@@ -365,7 +365,7 @@ const AdminRechargeHistory = () => {
         google_order_id: null,
       }));
 
-      // Transform coin_transfers (Diamond Transfer)
+      // Transform diamond_transfers (Diamond Transfer)
       const diamondRecords: RechargeRecord[] = (diamondRes.data || []).map((r: any) => {
         const senderType = r.sender_type || 'unknown';
         let methodLabel = 'Diamond Transfer';
@@ -377,7 +377,7 @@ const AdminRechargeHistory = () => {
         return {
           id: r.id,
           user_id: r.receiver_id,
-          coin_amount: r.amount || 0,
+          diamond_amount: r.amount || 0,
           amount_usd: 0,
           amount_local: 0,
           currency_code: 'USD',
@@ -410,7 +410,7 @@ const AdminRechargeHistory = () => {
         return {
           id: r.id,
           user_id: r.user_id,
-          coin_amount: r.coins_amount || 0,
+          diamond_amount: r.diamonds_amount || 0,
           amount_usd: Number(r.price_usd || 0),
           amount_local: Number(r.pay_amount || 0),
           currency_code: r.pay_currency || 'USD',
@@ -467,7 +467,7 @@ const AdminRechargeHistory = () => {
         completed: completedRecords.length,
         cancelled: allRecords.filter(r => r.status === 'cancelled' || r.status === 'rejected').length,
         pending: allRecords.filter(r => r.status === 'pending').length,
-        totalCoins: completedRecords.reduce((sum, r) => sum + (r.coin_amount || 0), 0),
+        totalDiamonds: completedRecords.reduce((sum, r) => sum + (r.diamond_amount || 0), 0),
         totalUsd: completedRecords.reduce((sum, r) => sum + (r.amount_usd || 0), 0),
         playStoreCount: playStoreCompleted.length,
         playStoreUsd: playStoreCompleted.reduce((sum, r) => sum + (r.amount_usd || 0), 0),
@@ -585,7 +585,7 @@ const AdminRechargeHistory = () => {
     fetchRecords();
   }, [fetchRecords]);
 
-  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers', 'swift_pay_topups', 'google_play_purchase_attempts'], fetchRecords);
+  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'diamond_transfers', 'swift_pay_topups', 'google_play_purchase_attempts'], fetchRecords);
 
   const fetchRtdnEvents = useCallback(async () => {
     try {
@@ -718,7 +718,7 @@ const AdminRechargeHistory = () => {
               { key: "created_at", label: "Date", weight: 1.2, format: (v) => v ? new Date(String(v)).toLocaleString() : "—" },
               { key: "user_name", label: "User", weight: 1.3, format: (_, r: any) => r.user_name || r.user?.display_name || r.user_id || "—" },
               { key: "source", label: "Source", weight: 1 },
-              { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+              { key: "diamond_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
               { key: "usd_amount", label: "USD", weight: 0.9, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
               { key: "status", label: "Status", weight: 0.9 },
               { key: "method", label: "Method", weight: 1 },
@@ -769,7 +769,7 @@ const AdminRechargeHistory = () => {
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">💎 {stats.totalCoins.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-foreground">💎 {stats.totalDiamonds.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">Total Diamonds Sold</p>
           </CardContent>
         </Card>
@@ -977,7 +977,7 @@ const AdminRechargeHistory = () => {
                   </td>
                   <td className="p-3">{getSourceBadge(r)}</td>
                   <td className="p-3">
-                    <span className="font-semibold text-foreground">💎 {r.coin_amount?.toLocaleString()}</span>
+                    <span className="font-semibold text-foreground">💎 {r.diamond_amount?.toLocaleString()}</span>
                   </td>
                   <td className="p-3">
                     <div>
@@ -1059,7 +1059,7 @@ const AdminRechargeHistory = () => {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Diamonds</p>
-                  <p className="font-bold text-lg">💎 {selectedRecord.coin_amount?.toLocaleString()}</p>
+                  <p className="font-bold text-lg">💎 {selectedRecord.diamond_amount?.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Amount</p>

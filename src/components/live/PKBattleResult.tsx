@@ -16,7 +16,7 @@ interface PKBattleResultProps {
   mvpAvatar?: string | null;
   mvpCoins?: number | null;
   /** P4: Bigo-parity reward badge — coins the local user earned from the 70/30 loser-score split. Winner-only. */
-  rewardCoins?: number | null;
+  rewardDiamonds?: number | null;
   onClose: () => void;
 }
 
@@ -32,7 +32,7 @@ export const PKBattleResult = ({
   mvpName,
   mvpAvatar,
   mvpCoins,
-  rewardCoins,
+  rewardDiamonds,
   onClose,
 }: PKBattleResultProps) => {
   return (
@@ -366,7 +366,7 @@ export const PKBattleResult = ({
               </motion.div>
             </div>
 
-            {isWinner && !isDraw && typeof rewardCoins === "number" && rewardCoins > 0 && (
+            {isWinner && !isDraw && typeof rewardDiamonds === "number" && rewardDiamonds > 0 && (
               <motion.div
                 className="mt-5 relative rounded-2xl overflow-hidden flex items-center justify-center gap-2 px-4 py-2.5"
                 initial={{ y: 14, opacity: 0, scale: 0.95 }}
@@ -395,7 +395,7 @@ export const PKBattleResult = ({
                     filter: "drop-shadow(0 0 8px rgba(34,197,94,0.5))",
                   }}
                 >
-                  +{rewardCoins}
+                  +{rewardDiamonds}
                 </span>
               </motion.div>
             )}

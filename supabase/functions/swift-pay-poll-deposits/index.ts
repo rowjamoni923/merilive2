@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
   const recoveryCutoffIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   let query = admin
     .from("swift_pay_topups")
-    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, campaign_id, created_at, last_polled_at, raw_payload")
+    .select("id, user_id, external_user_id, diamonds_amount, price_usd, payment_id, status, target_type, target_helper_id, helper_application_intent, campaign_id, created_at, last_polled_at, raw_payload")
     .in("status", ["pending", "paid", "expired"])
     .gte("created_at", recoveryCutoffIso)
     .order("created_at", { ascending: true })
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       // Bug #2: credit-time campaign re-validation. Industry anchor = payment-confirm time, not init time.
       // If the campaign expired/became ineligible between init and credit, credit only the BASE coins
       // (skip bonus_diamonds) so the user still receives their paid value without an unearned bonus.
-      let creditCoins = row.coins_amount;
+      let creditCoins = row.diamonds_amount;
       let campaignReeval: any = null;
       if ((row as any).campaign_id && targetType === "user_diamond") {
         const { data: vRes } = await admin.rpc("validate_campaign_for_user", {
@@ -189,9 +189,9 @@ Deno.serve(async (req) => {
         const v = vRes as any;
         // "already_redeemed" is OK here — it's THIS topup's own row written by the trigger on a prior retry.
         if (v && v.ok === false && v.reason !== "campaign_already_redeemed") {
-          const baseCoins = Number(v.base_coins ?? row.coins_amount);
+          const baseCoins = Number(v.base_coins ?? row.diamonds_amount);
           creditCoins = Math.max(0, baseCoins);
-          campaignReeval = { stripped_bonus: true, reason: v.reason, base_coins: creditCoins, original_coins: row.coins_amount };
+          campaignReeval = { stripped_bonus: true, reason: v.reason, base_coins: creditCoins, original_coins: row.diamonds_amount };
           console.warn("[swift-pay-poll-deposits] campaign no longer eligible at credit time", row.id, v.reason);
           // Detach campaign_id so the post-credit trigger does not mark it redeemed.
           await admin.from("swift_pay_topups").update({ campaign_id: null }).eq("id", row.id);

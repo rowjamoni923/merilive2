@@ -349,7 +349,7 @@ export function CallProvider({ children }: CallProviderProps) {
         try {
           const { data: finalCallData } = await supabase
             .from('private_calls')
-            .select('total_coins_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
+            .select('total_diamonds_deducted, host_earned, duration_seconds, started_at, ended_at, end_reason, final_status')
             .eq('id', callState.callId)
             .single();
 
@@ -361,7 +361,7 @@ export function CallProvider({ children }: CallProviderProps) {
             } else if (finalCallData.duration_seconds) {
               finalDuration = finalCallData.duration_seconds;
             }
-            coinsSpent = finalCallData.total_coins_deducted || coinsSpent;
+            coinsSpent = finalCallData.total_diamonds_deducted || coinsSpent;
             hostEarnedAmount = finalCallData.host_earned || hostEarnedAmount;
             dbEndReasonRaw = (finalCallData as { end_reason?: string; final_status?: string }).end_reason
               ?? (finalCallData as { end_reason?: string; final_status?: string }).final_status

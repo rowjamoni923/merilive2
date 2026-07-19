@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
       }
     };
 
-    // Validate product from admin-managed coin_packages table.
+    // Validate product from admin-managed diamond_packages table.
     const { data: productInfo, error: productInfoError } = await adminSupabase.rpc('get_google_play_product_info', {
       _product_id: productId,
     });
@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
     await markAttempt({
       status: 'validating_with_google',
       amount_usd: productInfo.priceUsd ?? null,
-      coins_amount: productInfo.coins ?? null,
+      diamonds_amount: productInfo.coins ?? null,
       currency_code: 'USD',
     });
 
@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
       status: processData.alreadyProcessed ? 'already_processed' : 'completed',
       google_order_id: purchaseData.orderId || orderId || null,
       amount_usd: productInfo.priceUsd ?? null,
-      coins_amount: creditedCoins,
+      diamonds_amount: creditedCoins,
       recharge_transaction_id: processData.transactionId || null,
       completed_at: new Date().toISOString(),
     });

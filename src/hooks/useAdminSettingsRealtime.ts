@@ -28,7 +28,7 @@ export interface Banner {
 export interface Gift {
   id: string;
   name: string;
-  coin_value: number;
+  diamond_value: number;
   icon_url: string | null;
   animation_url: string | null;
   animation_type: string | null;
@@ -210,7 +210,7 @@ const initializeRealtimeSubscription = () => {
       const refreshMap: Record<string, (() => Promise<void> | void)> = {
         banners: refreshBanners,
         gifts: refreshGifts,
-        coin_packages: refreshDiamondPackages,
+        diamond_packages: refreshDiamondPackages,
         currency_rates: refreshCurrencyRates,
         branding_settings: refreshBranding,
         game_settings: refreshGameSettings,
@@ -248,7 +248,7 @@ const initializeRealtimeSubscription = () => {
     const refreshMap: Record<string, (() => Promise<void> | void)> = {
       banners: refreshBanners,
       gifts: refreshGifts,
-      coin_packages: refreshDiamondPackages,
+      diamond_packages: refreshDiamondPackages,
       currency_rates: refreshCurrencyRates,
       branding_settings: refreshBranding,
       game_settings: refreshGameSettings,
@@ -300,18 +300,18 @@ const refreshGifts = async () => {
 
 const refreshDiamondPackages = async () => {
   const { data } = await getSettingsClient()
-    .from('coin_packages')
+    .from('diamond_packages')
     .select('*')
     .eq('is_active', true)
     .order('display_order', { ascending: true });
 
   globalDiamondPackages = (data || []).map((pkg: any) => {
-    const normalizedCoins = Number(pkg.coins ?? pkg.coins_amount ?? 0);
-    const normalizedBaseCoins = Number(pkg.base_coins ?? pkg.coins ?? pkg.coins_amount ?? 0);
+    const normalizedCoins = Number(pkg.coins ?? pkg.diamonds_amount ?? 0);
+    const normalizedBaseCoins = Number(pkg.base_coins ?? pkg.coins ?? pkg.diamonds_amount ?? 0);
     const normalizedBonusPercentage = Number(
       pkg.bonus_percentage ?? (
-        pkg.bonus_coins && normalizedBaseCoins > 0
-          ? Math.round((Number(pkg.bonus_coins) / normalizedBaseCoins) * 100)
+        pkg.bonus_diamonds && normalizedBaseCoins > 0
+          ? Math.round((Number(pkg.bonus_diamonds) / normalizedBaseCoins) * 100)
           : 0
       )
     );

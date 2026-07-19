@@ -197,7 +197,7 @@ export function useNativeCallBillingSync({
       try {
         const { data: callRow } = await supabase
           .from('private_calls')
-          .select('caller_id, viewer_rate_per_min, coins_per_minute')
+          .select('caller_id, viewer_rate_per_min, diamonds_per_minute')
           .eq('id', callId)
           .maybeSingle();
         if (cancelled) return;
@@ -214,7 +214,7 @@ export function useNativeCallBillingSync({
         if (cancelled) return;
         balance = Number(profile?.coins ?? 0);
         rate = Number(
-          callRow.viewer_rate_per_min ?? (callRow as { coins_per_minute?: number }).coins_per_minute ?? 0,
+          callRow.viewer_rate_per_min ?? (callRow as { diamonds_per_minute?: number }).diamonds_per_minute ?? 0,
         );
         maybePush();
         if (cancelled) return;
@@ -245,9 +245,9 @@ export function useNativeCallBillingSync({
             (payload) => {
               const row = payload.new as {
                 viewer_rate_per_min?: number;
-                coins_per_minute?: number;
+                diamonds_per_minute?: number;
               } | null;
-              const nextRate = Number(row?.viewer_rate_per_min ?? row?.coins_per_minute ?? rate);
+              const nextRate = Number(row?.viewer_rate_per_min ?? row?.diamonds_per_minute ?? rate);
               if (Number.isFinite(nextRate) && nextRate > 0 && nextRate !== rate) {
                 rate = nextRate;
               }

@@ -15,7 +15,7 @@ interface LiveFerrisWheelGameProps {
   game: any;
   betAmount: number;
   setBetAmount: (amount: number) => void;
-  userCoins: number;
+  userDiamonds: number;
   phase: string;
   timeLeft: number;
   currentRound: any;
@@ -49,7 +49,7 @@ export function LiveFerrisWheelGame({
   game,
   betAmount,
   setBetAmount,
-  userCoins,
+  userDiamonds,
   phase: externalPhase,
   timeLeft: externalTimeLeft,
   currentRound,
@@ -281,7 +281,7 @@ export function LiveFerrisWheelGame({
   // Allow multiple concurrent bets on different foods - INSTANT, non-blocking
   const handleSelectFood = (index: number) => {
     if (autoPlayPhase !== 'betting') return;
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
 
     const stake = betAmount;
     // Instant UI update BEFORE API call

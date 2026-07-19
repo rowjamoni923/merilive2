@@ -15,7 +15,7 @@ type Topup = {
   id: string;
   user_id: string;
   status: string;
-  coins_amount: number;
+  diamonds_amount: number;
   price_usd: number;
   pay_currency: string;
   pay_network: string | null;
@@ -113,7 +113,7 @@ const AdminCryptoRecovery = () => {
       const json = await resp.json();
       const result = json?.results?.[0];
       if (json?.credited && json.credited > 0) {
-        toast.success(`✅ Credited ${row.coins_amount.toLocaleString()} diamonds`);
+        toast.success(`✅ Credited ${row.diamonds_amount.toLocaleString()} diamonds`);
       } else if (result?.waiting) {
         toast.message("Still waiting", {
           description: `SwiftPay balance: $${result.balance?.toFixed?.(2) ?? 0} / needed $${result.needed?.toFixed?.(2) ?? row.price_usd}. Row reopened — will auto-credit when gateway detects the deposit.`,
@@ -235,7 +235,7 @@ const AdminCryptoRecovery = () => {
                         </Badge>
                         <span className="text-sm font-semibold flex items-center gap-1">
                           <Coins className="w-3.5 h-3.5 text-amber-300" />
-                          {row.coins_amount.toLocaleString()}
+                          {row.diamonds_amount.toLocaleString()}
                         </span>
                         <span className="text-sm font-semibold flex items-center gap-1">
                           <DollarSign className="w-3.5 h-3.5 text-emerald-300" />

@@ -453,7 +453,7 @@ export default function AdminPricingHub() {
                       <div>• Charged to caller: <strong>{Number(callRates.default_rate) * 5} diamonds</strong></div>
                       <div>• Host earns: <strong>{Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} beans</strong> ({callRates.host_commission_percent}%)</div>
                       <div>• Company keeps: <strong>{Math.max(0, 100 - Number(callRates.host_commission_percent))}%</strong> = {Number(callRates.default_rate) * 5 - Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} diamonds</div>
-                      <div className="text-muted-foreground">If call &lt; {callRates.first_minute_grace_seconds || 21}s → host earns 0, company keeps full coins_per_minute.</div>
+                      <div className="text-muted-foreground">If call &lt; {callRates.first_minute_grace_seconds || 21}s → host earns 0, company keeps full diamonds_per_minute.</div>
                     </div>
                   )}
 

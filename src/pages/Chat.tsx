@@ -479,7 +479,7 @@ const Chat = () => {
     messageIds: activeMessageIds,
   });
   const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number | null; host_level: number | null; max_user_level: number | null; gender: string | null; is_host: boolean; is_agency_owner?: boolean | null; is_topup_helper?: boolean | null } | null>(null);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -979,7 +979,7 @@ const Chat = () => {
     const totalCost = gift.coins * count;
     
     // Check coins immediately (use cached value)
-    if (userCoins < totalCost) {
+    if (userDiamonds < totalCost) {
       toast.error("Not enough diamonds!");
       return;
     }
@@ -1756,8 +1756,8 @@ const Chat = () => {
     const diamondMatch = content.match(/-(\d+)\s*diamonds/i);
     const giftName = nameMatch?.[1]?.trim() || 'Gift';
     const count = nameMatch?.[2] ? parseInt(nameMatch[2], 10) || 1 : 1;
-    const totalCoins = diamondMatch?.[1] ? parseInt(diamondMatch[1], 10) || 0 : 0;
-    const perGiftCoins = count > 0 ? Math.floor(totalCoins / count) : totalCoins;
+    const totalDiamonds = diamondMatch?.[1] ? parseInt(diamondMatch[1], 10) || 0 : 0;
+    const perGiftCoins = count > 0 ? Math.floor(totalDiamonds / count) : totalDiamonds;
     const isSelf = !!senderId && senderId === currentUserId;
     const peer = selectedConversationRef.current?.other_user;
     addFlyingGift({
@@ -2875,7 +2875,7 @@ const Chat = () => {
                           const nameMatch = content.match(/\[Gift:\s*(?:[^|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
                           const giftName = nameMatch?.[1]?.trim() || 'Gift';
                           const giftCount = nameMatch?.[2] ? parseInt(nameMatch[2], 10) || 1 : 1;
-                          const totalCoins = diamondsMatch?.[1] ? parseInt(diamondsMatch[1], 10) || 0 : 0;
+                          const totalDiamonds = diamondsMatch?.[1] ? parseInt(diamondsMatch[1], 10) || 0 : 0;
                           const cachedGift = giftName
                             ? getCachedGifts().find(g => (g.name || '').trim().toLowerCase() === giftName.trim().toLowerCase())
                             : null;
@@ -2891,7 +2891,7 @@ const Chat = () => {
                                 giftIconUrl={inlineIconUrl || undefined}
                                 giftEmoji={emoji}
                                 count={giftCount}
-                                coins={totalCoins}
+                                coins={totalDiamonds}
                                 isSelf={isMine}
                                 surface="chat"
                                 compact
@@ -3816,7 +3816,7 @@ const Chat = () => {
                 isOpen={showGiftPanel}
                 onClose={() => setShowGiftPanel(false)}
                 onSendGift={handleSendGift}
-                userCoins={userCoins}
+                userDiamonds={userDiamonds}
               />
             </Suspense>
           )}

@@ -1,6 +1,6 @@
 // Google Play Billing health diagnostic.
 // Validates: (1) service account JSON parses, (2) OAuth2 token mints,
-// (3) Google Play Developer API is reachable, (4) coin_packages products
+// (3) Google Play Developer API is reachable, (4) diamond_packages products
 // resolve correctly via get_google_play_product_info.
 // Admin-only (caller must be is_admin()).
 
@@ -172,10 +172,10 @@ serve(async (req) => {
       bodyPreview: probeBody.slice(0, 400),
     };
 
-    // 4. coin_packages products resolve via lookup RPC
+    // 4. diamond_packages products resolve via lookup RPC
     const { data: pkgs } = await admin
-      .from("coin_packages")
-      .select("product_id, coins_amount, bonus_coins, price_usd, is_active")
+      .from("diamond_packages")
+      .select("product_id, diamonds_amount, bonus_diamonds, price_usd, is_active")
       .eq("is_active", true)
       .order("price_usd");
     const productChecks: any[] = [];
@@ -206,7 +206,7 @@ serve(async (req) => {
     const { data: lastFive } = await admin
       .from("recharge_transactions")
       .select(
-        "id, user_id, google_product_id, coins_received, status, created_at",
+        "id, user_id, google_product_id, diamonds_received, status, created_at",
       )
       .eq("payment_method", "google_play")
       .order("created_at", { ascending: false })

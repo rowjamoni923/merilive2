@@ -1417,11 +1417,11 @@ export default function AdminUserManagement() {
       const [followersRes, followingRes, giftsRes, callsRes] = await Promise.all([
         supabase.from('followers').select('id', { count: 'exact', head: true }).eq('following_id', userId),
         supabase.from('followers').select('id', { count: 'exact', head: true }).eq('follower_id', userId),
-        supabase.from('gift_transactions').select('coin_value').eq('receiver_id', userId),
+        supabase.from('gift_transactions').select('diamond_value').eq('receiver_id', userId),
         supabase.from('private_calls').select('id', { count: 'exact', head: true }).or(`caller_id.eq.${userId},receiver_id.eq.${userId}`),
       ]);
 
-      const totalGiftsReceived = giftsRes.data?.reduce((sum: number, g: any) => sum + (g.coin_value || 0), 0) || 0;
+      const totalGiftsReceived = giftsRes.data?.reduce((sum: number, g: any) => sum + (g.diamond_value || 0), 0) || 0;
 
       const result = {
         id: profile.id,

@@ -35,7 +35,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   banners: [['banners'], ['home-banners'], ['recharge-banners']],
   gifts: [['gifts'], ['gift-categories']],
   shop_items: [['shop-items'], ['shop-categories']],
-  coin_packages: [['coin-packages']],
+  diamond_packages: [['coin-packages']],
   avatar_frames: [['avatar-frames'], ['frames']],
   vip_tiers: [['vip-tiers'], ['vip-packages']],
   daily_login_rewards_config: [['daily-rewards']],
@@ -94,7 +94,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   landing_page_sections: [['landing-page']],
   app_content: [['app-content']],
   // Financial
-  coin_transactions: [['coin-transactions'], ['user-profile']],
+  diamond_transactions: [['coin-transactions'], ['user-profile']],
   payment_gateways: [['payment-gateways']],
   first_recharge_bonus: [['first-recharge']],
   limited_time_offers: [['limited-offers']],
@@ -206,7 +206,7 @@ const ENTRY_ASSET_CACHE_TABLES = new Set(['entry_banners', 'entry_name_bars', 's
 const FRAME_CACHE_TABLES = new Set(['avatar_frames', 'role_frames', 'user_role_frames', 'shop_items', 'profiles']);
 const REST_CACHE_AFFECTED_TABLES = new Set([
   'app_settings', 'banners', 'popup_event_banners', 'rating_banners', 'gifts', 'gift_categories',
-  'coin_packages', 'payment_methods', 'payment_gateways', 'topup_payment_methods', 'vip_tiers',
+  'diamond_packages', 'payment_methods', 'payment_gateways', 'topup_payment_methods', 'vip_tiers',
   'avatar_frames', 'role_frames', 'entry_banners', 'entry_name_bars', 'vehicle_entrances',
 ]);
 

@@ -21,13 +21,13 @@ interface CallRecord {
   host_id: string;
   status: string;
   duration_seconds: number | null;
-  coins_spent: number | null;
-  total_coins_deducted: number | null;
+  diamonds_spent: number | null;
+  total_diamonds_deducted: number | null;
   host_earned: number | null;
   host_earnings_amount: number | null;
   host_earnings_credited: boolean | null;
   host_earnings_credited_at: string | null;
-  coins_per_minute: number | null;
+  diamonds_per_minute: number | null;
   created_at: string;
   connected_at: string | null;
   ended_at: string | null;
@@ -66,7 +66,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const getSpentAmount = (call: CallRecord) => Number(call.total_coins_deducted ?? call.coins_spent ?? 0);
+const getSpentAmount = (call: CallRecord) => Number(call.total_diamonds_deducted ?? call.diamonds_spent ?? 0);
 const getEarnedAmount = (call: CallRecord) => Number(call.host_earnings_amount ?? call.host_earned ?? 0);
 const isSettledCall = (call: CallRecord) => call.status === "ended" || call.status === "completed";
 
@@ -85,9 +85,9 @@ export default function AdminTodayCalls() {
       const { data, error } = await supabase
         .from("private_calls")
         .select(`
-          id, caller_id, host_id, status, duration_seconds, coins_spent,
-          total_coins_deducted, host_earned, host_earnings_amount, host_earnings_credited,
-          host_earnings_credited_at, coins_per_minute, created_at,
+          id, caller_id, host_id, status, duration_seconds, diamonds_spent,
+          total_diamonds_deducted, host_earned, host_earnings_amount, host_earnings_credited,
+          host_earnings_credited_at, diamonds_per_minute, created_at,
           connected_at, ended_at, end_reason, e2ee_key
         `)
         .gte("created_at", todayStart.toISOString())
@@ -330,7 +330,7 @@ export default function AdminTodayCalls() {
                     {call.connected_at && <span>Connected: {new Date(call.connected_at).toLocaleTimeString()}</span>}
                     {call.ended_at && <span>Ended: {new Date(call.ended_at).toLocaleTimeString()}</span>}
                     {call.end_reason && <span>Reason: {call.end_reason}</span>}
-                    {call.coins_per_minute && <span>Rate: {call.coins_per_minute}/min</span>}
+                    {call.diamonds_per_minute && <span>Rate: {call.diamonds_per_minute}/min</span>}
                   </div>
                 </motion.div>
               ))}

@@ -45,7 +45,7 @@ interface PKRewardTier {
   rank_to: number;
   reward_diamonds: number;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_badge: string | null;
   is_active: boolean;
 }
@@ -53,7 +53,7 @@ interface PKRewardTier {
 const COMPETITION_TYPES = [
   { value: "gift_sending", label: "🎁 Gift Sending (Diamonds Spent)" },
   { value: "gift_receiving", label: "💝 Gift Receiving (Beans Earned)" },
-  { value: "coins_spent", label: "💰 Total Diamonds Spent" },
+  { value: "diamonds_spent", label: "💰 Total Diamonds Spent" },
   { value: "beans_earned", label: "Total Beans Earned" },
   { value: "custom", label: "⚡ Custom (Manual Score)" },
 ];
@@ -163,7 +163,7 @@ const PKCompetitionManager = () => {
           rank_to: t.to,
           reward_diamonds: 0,
           reward_beans: 0,
-          reward_coins: 0,
+          reward_diamonds: 0,
           is_active: true,
         }))
       );
@@ -196,7 +196,7 @@ const PKCompetitionManager = () => {
     const { error } = await supabase.from("pk_competition_rewards").insert({
       competition_id: selectedComp.id,
       rank_from: newFrom, rank_to: Math.min(newFrom + 4, 50),
-      reward_diamonds: 0, reward_beans: 0, reward_coins: 0, is_active: true,
+      reward_diamonds: 0, reward_beans: 0, reward_diamonds: 0, is_active: true,
     });
     if (error) {
       toast.error(error.message || "Failed to add reward tier");
@@ -466,7 +466,7 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
     rank_to: String(reward.rank_to ?? 1),
     reward_beans: String(reward.reward_beans ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
-    reward_coins: String(reward.reward_coins ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
   });
 
   useEffect(() => {
@@ -475,9 +475,9 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
       rank_to: String(reward.rank_to ?? 1),
       reward_beans: String(reward.reward_beans ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
-      reward_coins: String(reward.reward_coins ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
     });
-  }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_coins]);
+  }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_diamonds]);
 
   const commit = (field: keyof typeof draft, min = 0) => {
     const raw = draft[field];
@@ -521,7 +521,7 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
       </div>
       <div>
         <Label className="text-white/50 text-[10px]">Diamonds (legacy)</Label>
-        {numInput("reward_coins")}
+        {numInput("reward_diamonds")}
       </div>
       <div className="col-span-1 flex items-end justify-end">
         <Button variant="destructive" size="sm" onClick={onDelete}>

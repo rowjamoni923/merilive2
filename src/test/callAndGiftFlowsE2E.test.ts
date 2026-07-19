@@ -26,7 +26,7 @@ interface PrivateCall {
   ended_at?: number;
   last_billing_at?: number;
   duration_seconds?: number;
-  coins_per_minute: number;
+  diamonds_per_minute: number;
   total_charge?: number;
   host_earning?: number;
 }
@@ -83,7 +83,7 @@ class FakeSupabase {
       host_id: hostId,
       status: 'ringing',
       started_at: Date.now(),
-      coins_per_minute: coinsPerMinute,
+      diamonds_per_minute: coinsPerMinute,
     };
     this.calls.set(call.id, call);
     this.broadcast(`call:${hostId}`, 'incoming', call);
@@ -102,8 +102,8 @@ class FakeSupabase {
     return { ok: true };
   }
 
-  /* ── RPC: deduct_call_coins_per_minute (server anti-double-charge gate) ── */
-  async deduct_call_coins_per_minute(callId: string, nowMs = Date.now()) {
+  /* ── RPC: deduct_call_diamonds_per_minute (server anti-double-charge gate) ── */
+  async deduct_call_diamonds_per_minute(callId: string, nowMs = Date.now()) {
     const c = this.calls.get(callId);
     if (!c) return { ok: false, reason: 'not_found' };
     if (c.status !== 'accepted') return { ok: false, reason: 'not_connected' };
@@ -113,17 +113,17 @@ class FakeSupabase {
 
     const caller = this.profiles.get(c.caller_id)!;
     const host = this.profiles.get(c.host_id)!;
-    if (caller.coins < c.coins_per_minute) return { ok: false, reason: 'insufficient_balance' };
+    if (caller.coins < c.diamonds_per_minute) return { ok: false, reason: 'insufficient_balance' };
 
     const hostPct = host.host_percent ?? this.appSettings.host_percent_default;
-    const hostEarn = Math.floor(c.coins_per_minute * hostPct / 100);
-    caller.coins -= c.coins_per_minute;
+    const hostEarn = Math.floor(c.diamonds_per_minute * hostPct / 100);
+    caller.coins -= c.diamonds_per_minute;
     host.beans += hostEarn;
     c.last_billing_at = nowMs;
     c.duration_seconds = (c.duration_seconds || 0) + 60;
-    c.total_charge = (c.total_charge || 0) + c.coins_per_minute;
+    c.total_charge = (c.total_charge || 0) + c.diamonds_per_minute;
     c.host_earning = (c.host_earning || 0) + hostEarn;
-    return { ok: true, coinsDeducted: c.coins_per_minute, hostEarn };
+    return { ok: true, coinsDeducted: c.diamonds_per_minute, hostEarn };
   }
 
   /* ── RPC: settle_private_call (Pkg23 21-second rule) ─────────────── */
@@ -138,11 +138,11 @@ class FakeSupabase {
     let charge = 0, hostEarn = 0;
     if (durationSec < 21) {
       // < 21s → full minute to company, host earns 0.
-      charge = c.coins_per_minute;
+      charge = c.diamonds_per_minute;
       hostEarn = 0;
     } else {
       const minutes = Math.ceil(durationSec / 60);
-      charge = minutes * c.coins_per_minute;
+      charge = minutes * c.diamonds_per_minute;
       hostEarn = Math.floor(charge * hostPct / 100);
     }
     if (caller.coins < charge) charge = caller.coins; // cap at balance
@@ -330,8 +330,8 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
 
-      const first = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
-      const duplicate = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_500);
+      const first = await sb.deduct_call_diamonds_per_minute(start.callId!, 1_000_000);
+      const duplicate = await sb.deduct_call_diamonds_per_minute(start.callId!, 1_000_500);
       expect(first).toMatchObject({ ok: true, coinsDeducted: 100, hostEarn: 60 });
       expect(duplicate).toMatchObject({ ok: true, duplicateIgnored: true, coinsDeducted: 0, hostEarn: 0 });
       expect(sb.profiles.get(caller.id)!.coins).toBe(4_900);
@@ -346,8 +346,8 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       const modal = new IncomingCallModal(sb, host.id);
       await modal.accept();
 
-      await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
-      await sb.deduct_call_coins_per_minute(start.callId!, 1_060_000);
+      await sb.deduct_call_diamonds_per_minute(start.callId!, 1_000_000);
+      await sb.deduct_call_diamonds_per_minute(start.callId!, 1_060_000);
       expect(sb.profiles.get(caller.id)!.coins).toBe(4_600);
       expect(sb.profiles.get(host.id)!.beans).toBe(180);
     });

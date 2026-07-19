@@ -317,7 +317,7 @@ export default function AdminDashboard() {
       'face_verification_submissions',
       'recharge_transactions',
       'payment_transactions',
-      'coin_transactions',
+      'diamond_transactions',
       'vip_daily_rewards_log',
     ],
     () => { loadData(); }

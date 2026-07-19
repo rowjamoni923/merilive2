@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface CompactBetControlsProps {
-  userCoins: number;
+  userDiamonds: number;
   betAmount: number;
   setBetAmount: (amount: number) => void;
   phase: string;
@@ -33,7 +33,7 @@ export const formatBetAmount = (amount: number): string => {
 };
 
 // Compact Diamond Balance Header
-export function DiamondBalanceHeader({ userCoins, rightElement }: { userCoins: number; rightElement?: React.ReactNode }) {
+export function DiamondBalanceHeader({ userDiamonds, rightElement }: { userDiamonds: number; rightElement?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-1 mb-1">
       <div
@@ -45,7 +45,7 @@ export function DiamondBalanceHeader({ userCoins, rightElement }: { userCoins: n
         }}
       >
         <Diamond className="w-2.5 h-2.5 text-cyan-300 drop-shadow-[0_1px_2px_rgba(34,211,238,0.5)]" />
-        <span className="text-cyan-200 font-bold text-[10px] tracking-wide">{userCoins.toLocaleString()}</span>
+        <span className="text-cyan-200 font-bold text-[10px] tracking-wide">{userDiamonds.toLocaleString()}</span>
       </div>
       {rightElement}
     </div>
@@ -54,7 +54,7 @@ export function DiamondBalanceHeader({ userCoins, rightElement }: { userCoins: n
 
 // Compact Preset Bet Buttons
 export function CompactPresetBets({ 
-  userCoins, 
+  userDiamonds, 
   betAmount, 
   setBetAmount, 
   phase,
@@ -66,7 +66,7 @@ export function CompactPresetBets({
     <div className="flex justify-center gap-1 py-0.5">
       {presetBets.map((amount) => {
         const active = betAmount === amount;
-        const disabled = amount > userCoins;
+        const disabled = amount > userDiamonds;
         return (
           <motion.button
             key={amount}
@@ -230,7 +230,7 @@ export function GameStatusMessage({
 
 // Full Compact Bet Controls (combines all above)
 export function FullCompactBetControls({
-  userCoins,
+  userDiamonds,
   betAmount,
   setBetAmount,
   phase,
@@ -248,7 +248,7 @@ export function FullCompactBetControls({
     <div className="space-y-1.5">
       {/* Preset bets */}
       <CompactPresetBets 
-        userCoins={userCoins}
+        userDiamonds={userDiamonds}
         betAmount={betAmount}
         setBetAmount={setBetAmount}
         phase={phase}
@@ -262,7 +262,7 @@ export function FullCompactBetControls({
       {onPlaceBet && (
         <CompactBetButton
           onClick={onPlaceBet}
-          disabled={disabled || betAmount > userCoins}
+          disabled={disabled || betAmount > userDiamonds}
           isLoading={isPlacingBet}
           label={buttonLabel}
           icon={buttonIcon}

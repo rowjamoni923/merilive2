@@ -85,26 +85,26 @@ async function callFn(body: unknown, headers: Record<string, string> = {}) {
 }
 
 Deno.test({ name: "admin-verify-purchase: rejects request with no auth headers", ignore: !CAN_RUN }, async () => {
-  const { status, json } = await callFn({ userId: "x", coinAmount: 1 });
+  const { status, json } = await callFn({ userId: "x", diamondAmount: 1 });
   assertEquals(status, 401);
   assertEquals(json?.success, false);
 });
 
 Deno.test({ name: "admin-verify-purchase: rejects invalid admin token", ignore: !CAN_RUN }, async () => {
   const { status, json } = await callFn(
-    { userId: "x", coinAmount: 1 },
+    { userId: "x", diamondAmount: 1 },
     { "x-admin-token": "totally-fake-token" },
   );
   assertEquals(status, 403);
   assertEquals(json?.success, false);
 });
 
-Deno.test({ name: "admin-verify-purchase: rejects missing/invalid coinAmount", ignore: !CAN_RUN }, async () => {
+Deno.test({ name: "admin-verify-purchase: rejects missing/invalid diamondAmount", ignore: !CAN_RUN }, async () => {
   const token = await provisionAdmin();
   try {
     const userId = await pickUser();
     const { status, json } = await callFn(
-      { userId, coinAmount: 0 },
+      { userId, diamondAmount: 0 },
       { "x-admin-token": token },
     );
     assertEquals(status, 400);
@@ -118,7 +118,7 @@ Deno.test({ name: "admin-verify-purchase: rejects unknown userId", ignore: !CAN_
   const token = await provisionAdmin();
   try {
     const { status, json } = await callFn(
-      { userId: "00000000-0000-0000-0000-000000000000", coinAmount: 100 },
+      { userId: "00000000-0000-0000-0000-000000000000", diamondAmount: 100 },
       { "x-admin-token": token },
     );
     assertEquals(status, 404);
@@ -134,12 +134,12 @@ Deno.test({ name: "admin-verify-purchase: success credits coins + records transa
   try {
     const userId = await pickUser();
     const { status, json } = await callFn(
-      { userId, coinAmount: 1, reason: "E2E success test", googleOrderId: orderId },
+      { userId, diamondAmount: 1, reason: "E2E success test", googleOrderId: orderId },
       { "x-admin-token": token },
     );
     assertEquals(status, 200, `expected 200, got ${status}: ${JSON.stringify(json)}`);
     assertEquals(json?.success, true);
-    assertEquals(json?.coinAmount, 1);
+    assertEquals(json?.diamondAmount, 1);
     assert(typeof json?.newBalance === "number" || json?.newBalance === undefined,
       "newBalance should be numeric or undefined");
 
@@ -163,13 +163,13 @@ Deno.test({ name: "admin-verify-purchase: blocks duplicate googleOrderId", ignor
   try {
     const userId = await pickUser();
     const first = await callFn(
-      { userId, coinAmount: 1, reason: "first credit", googleOrderId: orderId },
+      { userId, diamondAmount: 1, reason: "first credit", googleOrderId: orderId },
       { "x-admin-token": token },
     );
     assertEquals(first.status, 200);
 
     const dup = await callFn(
-      { userId, coinAmount: 1, reason: "duplicate attempt", googleOrderId: orderId },
+      { userId, diamondAmount: 1, reason: "duplicate attempt", googleOrderId: orderId },
       { "x-admin-token": token },
     );
     assertEquals(dup.status, 409);

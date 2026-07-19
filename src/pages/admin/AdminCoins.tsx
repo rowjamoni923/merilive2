@@ -136,18 +136,18 @@ export default function AdminCoins() {
   };
 
   const normalizePackage = (pkg: any): DiamondPackage => {
-    const baseCoins = Number(pkg?.base_coins ?? pkg?.coins_amount ?? pkg?.coins ?? 0);
-    const bonusCoins = Number(pkg?.bonus_coins ?? 0);
-    const totalCoins = Number(pkg?.coins ?? (baseCoins + bonusCoins));
+    const baseCoins = Number(pkg?.base_coins ?? pkg?.diamonds_amount ?? pkg?.coins ?? 0);
+    const bonusDiamonds = Number(pkg?.bonus_diamonds ?? 0);
+    const totalDiamonds = Number(pkg?.coins ?? (baseCoins + bonusDiamonds));
     const bonusPercentage = Number(
       pkg?.bonus_percentage
       ?? pkg?.discount_percent
-      ?? (bonusCoins > 0 && baseCoins > 0 ? Math.round((bonusCoins / baseCoins) * 100) : 0)
+      ?? (bonusDiamonds > 0 && baseCoins > 0 ? Math.round((bonusDiamonds / baseCoins) * 100) : 0)
     );
 
     return {
       id: String(pkg?.id ?? ''),
-      coins: Number.isFinite(totalCoins) ? totalCoins : 0,
+      coins: Number.isFinite(totalDiamonds) ? totalDiamonds : 0,
       base_coins: Number.isFinite(baseCoins) ? baseCoins : 0,
       price_usd: Number(pkg?.price_usd ?? 0),
       bonus_percentage: Number.isFinite(bonusPercentage) ? bonusPercentage : 0,
@@ -158,13 +158,13 @@ export default function AdminCoins() {
     };
   };
 
-  useAdminRealtime(['coin_packages', 'currency_rates', 'app_settings'], () => fetchData());
+  useAdminRealtime(['diamond_packages', 'currency_rates', 'app_settings'], () => fetchData());
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [packagesRes, currenciesRes, settingsValue] = await Promise.all([
-        supabase.from("coin_packages").select("*").order("display_order"),
+        supabase.from("diamond_packages").select("*").order("display_order"),
         supabase.from("currency_rates").select("*").order("country_code"),
         loadAppSetting<{ rate?: number }>("beans_to_usd_rate")
       ]);
@@ -364,12 +364,12 @@ export default function AdminCoins() {
     setSaving(true);
     try {
       const baseCoins = Number(packageForm.base_coins || packageForm.coins || 0);
-      const totalCoins = Number(packageForm.coins || 0);
-      const bonusCoins = Math.max(totalCoins - baseCoins, 0);
+      const totalDiamonds = Number(packageForm.coins || 0);
+      const bonusDiamonds = Math.max(totalDiamonds - baseCoins, 0);
       // Only send columns that exist in the DB schema
       const packagePayload = {
-        coins_amount: baseCoins,
-        bonus_coins: bonusCoins,
+        diamonds_amount: baseCoins,
+        bonus_diamonds: bonusDiamonds,
         price_usd: Number(packageForm.price_usd || 0),
         discount_percent: Number(packageForm.bonus_percentage || 0),
         display_order: Number(packageForm.display_order || 0),
@@ -382,14 +382,14 @@ export default function AdminCoins() {
 
       if (editingPackage) {
         const { error } = await supabase
-          .from("coin_packages")
+          .from("diamond_packages")
           .update(packagePayload)
           .eq("id", editingPackage.id);
         if (error) throw error;
         toast.success("Package updated");
       } else {
         const { error } = await supabase
-          .from("coin_packages")
+          .from("diamond_packages")
           .insert(packagePayload);
         if (error) throw error;
         toast.success("New package created");
@@ -407,7 +407,7 @@ export default function AdminCoins() {
   const handleDeletePackage = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("coin_packages")
+        .from("diamond_packages")
         .delete()
         .eq("id", id);
       if (error) throw error;
@@ -422,7 +422,7 @@ export default function AdminCoins() {
   const handleTogglePackageActive = async (pkg: DiamondPackage) => {
     try {
       const { error } = await supabase
-        .from("coin_packages")
+        .from("diamond_packages")
         .update({ is_active: !pkg.is_active })
         .eq("id", pkg.id);
       if (error) throw error;

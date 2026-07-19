@@ -35,7 +35,7 @@ interface RewardConfig {
   period_type: string;
   rank_from: number;
   rank_to: number;
-  reward_coins: number;
+  reward_diamonds: number;
   reward_diamonds: number;
   reward_beans: number;
   reward_badge: string | null;
@@ -253,7 +253,7 @@ export default function AdminGameLeaderboard() {
     const parts: string[] = [];
     if (reward.reward_beans > 0) parts.push(`${reward.reward_beans} Beans`);
     if (reward.reward_diamonds > 0) parts.push(`${reward.reward_diamonds} 💎`);
-    if (reward.reward_coins > 0) parts.push(`${reward.reward_coins} 💎`);
+    if (reward.reward_diamonds > 0) parts.push(`${reward.reward_diamonds} 💎`);
     return parts.join(' + ') || 'No reward';
   };
 
@@ -287,7 +287,7 @@ export default function AdminGameLeaderboard() {
     const rewardCalls = [];
     if (reward.reward_beans > 0) rewardCalls.push(supabase.rpc('add_beans_to_user', { _user_id: entry.id, _amount: reward.reward_beans }));
     if (reward.reward_diamonds > 0) rewardCalls.push(supabase.rpc('add_diamonds_to_user', { _user_id: entry.id, _amount: reward.reward_diamonds }));
-    if (reward.reward_coins > 0) rewardCalls.push(supabase.rpc('add_coins_to_user', { _user_id: entry.id, _amount: reward.reward_coins }));
+    if (reward.reward_diamonds > 0) rewardCalls.push(supabase.rpc('add_diamonds_to_user', { _user_id: entry.id, _amount: reward.reward_diamonds }));
     const results = await Promise.all(rewardCalls);
     const failed = results.find((result) => result.error);
     if (failed?.error) throw failed.error;
@@ -314,7 +314,7 @@ export default function AdminGameLeaderboard() {
           continue;
         }
         const isAgency = category === 'agency_performance';
-        const rewardAmount = Math.max(reward.reward_coins || 0, reward.reward_diamonds || 0, reward.reward_beans || 0);
+        const rewardAmount = Math.max(reward.reward_diamonds || 0, reward.reward_diamonds || 0, reward.reward_beans || 0);
         const rewardType = reward.reward_beans > 0 ? 'beans' : reward.reward_diamonds > 0 ? 'diamonds' : 'coins';
 
         await creditReward(entry, reward, isAgency);
@@ -333,7 +333,7 @@ export default function AdminGameLeaderboard() {
           period_start: start,
           period_end: end,
           stat_value: Math.floor(entry.stat_value),
-          reward_coins: reward.reward_coins,
+          reward_diamonds: reward.reward_diamonds,
           reward_diamonds: reward.reward_diamonds,
           reward_beans: reward.reward_beans,
         });
@@ -342,7 +342,7 @@ export default function AdminGameLeaderboard() {
         // Send notification to user/agency owner about leaderboard reward
         if (!isAgency) {
           const rewardParts = [];
-          if (reward.reward_coins > 0) rewardParts.push(`${reward.reward_coins.toLocaleString()} Diamonds`);
+          if (reward.reward_diamonds > 0) rewardParts.push(`${reward.reward_diamonds.toLocaleString()} Diamonds`);
           if (reward.reward_diamonds > 0) rewardParts.push(`${reward.reward_diamonds.toLocaleString()} Diamonds`);
           if (reward.reward_beans > 0) rewardParts.push(`${reward.reward_beans.toLocaleString()} Beans`);
           await adminSendNotification(entry.id, `🏆 Leaderboard Reward - Rank #${rank}!`, `Congratulations! You earned ${rewardParts.join(' + ')} from ${category} leaderboard`, 'reward')
@@ -552,7 +552,7 @@ export default function AdminGameLeaderboard() {
 
 const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig; onCommit: (field: string, value: number) => void }) => {
   const [draft, setDraft] = useState({
-    reward_coins: String(reward.reward_coins ?? 0),
+    reward_diamonds: String(reward.reward_diamonds ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
     reward_beans: String(reward.reward_beans ?? 0),
     min_target: String(reward.min_target ?? 0),
@@ -560,12 +560,12 @@ const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig
 
   useEffect(() => {
     setDraft({
-      reward_coins: String(reward.reward_coins ?? 0),
+      reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_beans: String(reward.reward_beans ?? 0),
       min_target: String(reward.min_target ?? 0),
     });
-  }, [reward.id, reward.reward_coins, reward.reward_diamonds, reward.reward_beans, reward.min_target]);
+  }, [reward.id, reward.reward_diamonds, reward.reward_diamonds, reward.reward_beans, reward.min_target]);
 
   const commit = (field: keyof typeof draft) => {
     const next = draft[field] === '' ? 0 : Math.max(0, Math.trunc(Number(draft[field])));
@@ -596,7 +596,7 @@ const LeaderboardRewardConfigRow = ({ reward, onCommit }: { reward: RewardConfig
       <div className="flex-1 grid grid-cols-4 gap-2">
         <div>
           <label className="text-[10px] text-slate-400">Diamonds (legacy)</label>
-          {input('reward_coins', 'h-8 bg-white border-slate-200 text-slate-900 text-sm')}
+          {input('reward_diamonds', 'h-8 bg-white border-slate-200 text-slate-900 text-sm')}
         </div>
         <div>
           <label className="text-[10px] text-slate-400">💎 Diamonds</label>

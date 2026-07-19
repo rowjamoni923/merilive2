@@ -21,7 +21,7 @@ export interface FullScreenGiftJob {
     icon_url?: string;
     animation_url?: string;
     sound_url?: string;
-    coin_value: number;
+    diamond_value: number;
   };
   senderName: string;
   senderAvatar?: string;

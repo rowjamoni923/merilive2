@@ -366,7 +366,7 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
 
     // Server is the source of truth — do NOT pre-block with stale cached balance.
     // Atomically deduct diamonds; server validates amount and balance under row lock.
-    const { data: deductResult, error: deductError } = await supabase.rpc('deduct_coins_atomic', {
+    const { data: deductResult, error: deductError } = await supabase.rpc('deduct_diamonds_atomic', {
       p_user_id: userId,
       p_amount: selectedChip
     });

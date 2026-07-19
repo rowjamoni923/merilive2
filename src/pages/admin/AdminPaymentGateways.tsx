@@ -466,10 +466,10 @@ const AdminPaymentGateways = () => {
 
         const transaction = transactions.find(t => t.id === transactionId);
         if (transaction && !result.alreadyProcessed) {
-          const coinAmount = Number(result.creditedCoins || transaction.diamonds_amount || 0);
-          const formattedAmount = coinAmount >= 100000
-            ? `${(coinAmount / 100000).toFixed(1)}L`
-            : coinAmount.toLocaleString();
+          const diamondAmount = Number(result.creditedCoins || transaction.diamonds_amount || 0);
+          const formattedAmount = diamondAmount >= 100000
+            ? `${(diamondAmount / 100000).toFixed(1)}L`
+            : diamondAmount.toLocaleString();
           await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct');
         }
       } else if (newStatus === 'failed') {

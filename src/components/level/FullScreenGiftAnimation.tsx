@@ -18,7 +18,7 @@ interface GiftData {
   icon_url?: string;
   animation_url?: string;
   sound_url?: string;
-  coin_value: number;
+  diamond_value: number;
 }
 
 interface FullScreenGiftAnimationProps {
@@ -66,7 +66,7 @@ const getGiftAudioCtx = (): { ctx: AudioContext; out: AudioNode } | null => {
   }
 };
 
-const playSyntheticChime = (coinValue: number) => {
+const playSyntheticChime = (diamondValue: number) => {
   const handle = getGiftAudioCtx();
   if (!handle) return;
   const { ctx, out } = handle;
@@ -81,15 +81,15 @@ const playSyntheticChime = (coinValue: number) => {
   const gain = ctx.createGain();
   gain.connect(lowpass);
 
-  const peak = coinValue >= 10000 ? 0.12 : coinValue >= 1000 ? 0.09 : 0.07;
-  const duration = coinValue >= 10000 ? 0.7 : coinValue >= 1000 ? 0.45 : 0.25;
+  const peak = diamondValue >= 10000 ? 0.12 : diamondValue >= 1000 ? 0.09 : 0.07;
+  const duration = diamondValue >= 10000 ? 0.7 : diamondValue >= 1000 ? 0.45 : 0.25;
   gain.gain.setValueAtTime(0.0001, now);
   gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
   const osc = ctx.createOscillator();
   osc.type = 'sine';
-  const baseFreq = coinValue >= 10000 ? 880 : coinValue >= 1000 ? 660 : 523;
+  const baseFreq = diamondValue >= 10000 ? 880 : diamondValue >= 1000 ? 660 : 523;
   osc.frequency.setValueAtTime(baseFreq, now);
   osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + duration * 0.6);
   osc.connect(gain);
@@ -105,7 +105,7 @@ const playSyntheticChime = (coinValue: number) => {
 };
 
 // Sound player for gift animation — bulletproof: throttled, limiter-protected, fallback-safe
-const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
+const playGiftSound = async (diamondValue: number, customSoundUrl?: string) => {
   // Throttle: ignore retriggers within 80ms (prevents combo-stack crackle)
   const nowMs = Date.now();
   if (nowMs - _lastGiftSoundAt < 80) return;
@@ -121,7 +121,7 @@ const playGiftSound = async (coinValue: number, customSoundUrl?: string) => {
 
 
   try {
-    playSyntheticChime(coinValue);
+    playSyntheticChime(diamondValue);
   } catch (error) {
     console.log('[GiftSound] Synth error:', error);
   }
@@ -190,9 +190,9 @@ const FullScreenGiftAnimation = ({
   };
 
   const animationType = getAnimationType(gift.animation_url);
-  const isPremium = gift.coin_value >= 1000;
-  const isLegendary = gift.coin_value >= 10000;
-  const isMythic = gift.coin_value >= 50000;
+  const isPremium = gift.diamond_value >= 1000;
+  const isLegendary = gift.diamond_value >= 10000;
+  const isMythic = gift.diamond_value >= 50000;
 
   // =====================================================
   // GIFT DISPLAY POLICY:
@@ -250,12 +250,12 @@ const FullScreenGiftAnimation = ({
       soundPlayedRef.current = true;
       if (gift.sound_url) {
         // Use the dedicated sound_url from database
-        playGiftSound(gift.coin_value * quantity, gift.sound_url);
+        playGiftSound(gift.diamond_value * quantity, gift.sound_url);
       } else if (animationType !== 'svga') {
-        playGiftSound(gift.coin_value * quantity);
+        playGiftSound(gift.diamond_value * quantity);
       }
     }
-  }, [gift.coin_value, gift.sound_url, quantity, svgaHasAudio, animationType]);
+  }, [gift.diamond_value, gift.sound_url, quantity, svgaHasAudio, animationType]);
 
   // Handle SVGA audio extraction - if SVGA has no audio, use sound_url or synthesized
   const handleSvgaAudioExtracted = useCallback((audioUrl: string | null) => {
@@ -264,9 +264,9 @@ const FullScreenGiftAnimation = ({
     } else if (!soundPlayedRef.current) {
       soundPlayedRef.current = true;
       // Fallback: use sound_url from DB or synthesized sound
-      playGiftSound(gift.coin_value * quantity, gift.sound_url);
+      playGiftSound(gift.diamond_value * quantity, gift.sound_url);
     }
-  }, [gift.coin_value, gift.sound_url, quantity]);
+  }, [gift.diamond_value, gift.sound_url, quantity]);
 
   // Handle animation complete - dismiss overlay when SVGA finishes - ONLY ONCE
   const handleAnimationEnd = useCallback(() => {
@@ -665,7 +665,7 @@ const FullScreenGiftAnimation = ({
               transition={{ duration: 1, repeat: Infinity }}
             >
               <span>💰</span>
-              <span>{(gift.coin_value * quantity).toLocaleString()} coins</span>
+              <span>{(gift.diamond_value * quantity).toLocaleString()} coins</span>
             </motion.p>
           </motion.div>
 

@@ -72,8 +72,8 @@ interface SupportMessage {
 
 interface RecoveryPackage {
   product_id: string | null;
-  coins_amount: number;
-  bonus_coins: number | null;
+  diamonds_amount: number;
+  bonus_diamonds: number | null;
   price_usd: number | string | null;
 }
 
@@ -274,8 +274,8 @@ const AdminSupportTickets = () => {
 
   useEffect(() => {
     supabase
-      .from('coin_packages')
-      .select('product_id, coins_amount, bonus_coins, price_usd')
+      .from('diamond_packages')
+      .select('product_id, diamonds_amount, bonus_diamonds, price_usd')
       .eq('is_active', true)
       .order('price_usd', { ascending: true })
       .then(({ data, error }) => {
@@ -1609,12 +1609,12 @@ const AdminSupportTickets = () => {
                           {recoveryPackages.length === 0 ? (
                             <SelectItem value="not_configured" disabled>Not configured by admin</SelectItem>
                           ) : recoveryPackages.map((pkg) => {
-                            const baseCoins = Number(pkg.coins_amount || 0);
-                            const packageBonus = Number(pkg.bonus_coins || 0);
-                            const totalCoins = baseCoins + packageBonus;
+                            const baseCoins = Number(pkg.diamonds_amount || 0);
+                            const packageBonus = Number(pkg.bonus_diamonds || 0);
+                            const totalDiamonds = baseCoins + packageBonus;
                             return (
-                              <SelectItem key={`${pkg.product_id || baseCoins}-${totalCoins}`} value={String(totalCoins)}>
-                                💎 {totalCoins.toLocaleString()} (${Number(pkg.price_usd || 0).toFixed(2)}){packageBonus > 0 ? ` · includes +${packageBonus.toLocaleString()}` : ''}
+                              <SelectItem key={`${pkg.product_id || baseCoins}-${totalDiamonds}`} value={String(totalDiamonds)}>
+                                💎 {totalDiamonds.toLocaleString()} (${Number(pkg.price_usd || 0).toFixed(2)}){packageBonus > 0 ? ` · includes +${packageBonus.toLocaleString()}` : ''}
                               </SelectItem>
                             );
                           })}
@@ -1648,13 +1648,13 @@ const AdminSupportTickets = () => {
                         setSendingRecovery(true);
                         try {
                           const selectedRecoveryPackage = recoveryPackages.find((pkg) => {
-                            const totalCoins = Number(pkg.coins_amount || 0) + Number(pkg.bonus_coins || 0);
-                            return totalCoins === parseInt(recoveryCoins);
+                            const totalDiamonds = Number(pkg.diamonds_amount || 0) + Number(pkg.bonus_diamonds || 0);
+                            return totalDiamonds === parseInt(recoveryCoins);
                           });
                           const { data, error } = await supabase.functions.invoke('admin-verify-purchase', {
                             body: {
                               userId: selectedTicket.user_id,
-                              coinAmount: parseInt(recoveryCoins),
+                              diamondAmount: parseInt(recoveryCoins),
                               reason: recoveryReason,
                               googleOrderId: recoveryOrderId || undefined,
                               productId: selectedRecoveryPackage?.product_id || undefined,
@@ -1668,7 +1668,7 @@ const AdminSupportTickets = () => {
                             ].filter(Boolean).join(', ');
                             toast({
                               title: "✅ Purchase Recovered!",
-                              description: `${Number(data.coinAmount || recoveryCoins).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}${bonusParts ? ` (${bonusParts})` : ''}`,
+                              description: `${Number(data.diamondAmount || recoveryCoins).toLocaleString()} diamonds credited to ${data.userName}. New balance: ${data.newBalance?.toLocaleString()}${bonusParts ? ` (${bonusParts})` : ''}`,
                             });
                             setShowPurchaseRecovery(false);
                             setRecoveryCoins("");

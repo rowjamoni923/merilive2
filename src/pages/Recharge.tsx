@@ -1021,7 +1021,7 @@ const Recharge = () => {
       console.log('[Recharge] Android detected, initializing PlayStoreBilling via registerPlugin...');
 
       // Refresh package map from DB before initializing — keeps Play Store
-      // product IDs/prices in sync with the admin-edited coin_packages table.
+      // product IDs/prices in sync with the admin-edited diamond_packages table.
       loadPlayStoreProducts().finally(() => {
       playStoreBilling.initialize().then(async (available) => {
         console.log('[Recharge] Play Store Billing initialize result:', available);
@@ -1418,7 +1418,7 @@ const Recharge = () => {
   // Keep helper cards static; do not auto-rotate pages
 
   // Pkg83-ext: removed static `helpers-online-status-realtime` channel
-  // (profiles/topup_helpers/coin_transfers/helper_accepted_payment_methods not
+  // (profiles/topup_helpers/diamond_transfers/helper_accepted_payment_methods not
   // in publication — was silent no-op). Visibility refetch on tab return.
   // No-auto-refresh: helper list refreshes on tab switch only.
 
@@ -1898,7 +1898,7 @@ const Recharge = () => {
         const normalizedTxnId = transactionId.trim();
 
         // CRITICAL: insert the order as PENDING first. We only flip to COMPLETED
-        // after both deduct_helper_wallet and helper_add_coins_to_user actually
+        // after both deduct_helper_wallet and helper_add_diamonds_to_user actually
         // succeed. Previously we wrote 'completed' up front, so any downstream
         // failure left the row falsely marked completed even though the helper
         // was never debited or the user was never credited.
@@ -1908,7 +1908,7 @@ const Recharge = () => {
             helper_id: helper.id,
             user_id: userId,
             package_id: selectedPackage.id,
-            coin_amount: selectedPackage.coins,
+            diamond_amount: selectedPackage.coins,
             amount_usd: selectedPackage.price_usd,
             amount_local: localAmount,
             currency_code: currencyRate?.currency_code || 'USD',
@@ -1937,14 +1937,14 @@ const Recharge = () => {
 
         // ATOMIC: single SECURITY DEFINER RPC does deduct(helper+agency fallback)
         // + credit(buyer) + promote(order→completed) under one DB transaction.
-        // Replaces the broken pair-of-RPCs flow: helper_add_coins_to_user
+        // Replaces the broken pair-of-RPCs flow: helper_add_diamonds_to_user
         // required an admin/helper JWT and was always returning "Not authorized"
         // for the END USER, leaving every order stuck. The new RPC checks
         // user_id = auth.uid() and only finalizes 'pending' orders.
         const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
           ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
           : 0;
-        let bonusCoins = 0;
+        let bonusDiamonds = 0;
         let totalCoinsToAdd = selectedPackage.coins;
 
         const { data: finalizeResult, error: finalizeError } = await supabase
@@ -1978,8 +1978,8 @@ const Recharge = () => {
           });
           const bonusData = bonusResult as any;
           if (!bonusError && bonusData?.success && !bonusData?.already_claimed) {
-            bonusCoins = Number(bonusData.bonus_amount || candidateBonusCoins);
-            totalCoinsToAdd += bonusCoins;
+            bonusDiamonds = Number(bonusData.bonus_amount || candidateBonusCoins);
+            totalCoinsToAdd += bonusDiamonds;
           } else if (bonusError) {
             console.warn('[Recharge] First recharge bonus credit skipped:', bonusError.message);
           }
@@ -1991,7 +1991,7 @@ const Recharge = () => {
           user_id: userId,
           type: 'payment_completed',
           title: '🎉 Diamonds Added!',
-          message: `${formatNumber(totalCoinsToAdd)} diamonds have been added to your account instantly!${bonusCoins > 0 ? ` (includes +${bonusCoins} first recharge bonus!)` : ''}`,
+          message: `${formatNumber(totalCoinsToAdd)} diamonds have been added to your account instantly!${bonusDiamonds > 0 ? ` (includes +${bonusDiamonds} first recharge bonus!)` : ''}`,
           data: {
             order_id: helperOrder.id,
             diamonds: totalCoinsToAdd
@@ -2002,7 +2002,7 @@ const Recharge = () => {
 
         toast({
           title: "🎉 Instant Success!",
-          description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusCoins > 0 ? ` (+${formatNumber(bonusCoins)} bonus!)` : ''}`,
+          description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusDiamonds > 0 ? ` (+${formatNumber(bonusDiamonds)} bonus!)` : ''}`,
         });
 
         // Mark campaign as purchased if navigated from campaign
@@ -2061,7 +2061,7 @@ const Recharge = () => {
             package_coins: selectedPackage.coins,
             bonus_percentage: selectedPackage.bonus_percentage,
             is_first_recharge: isFirstRecharge,
-            bonus_coins: standardGatewayBonusCoins,
+            bonus_diamonds: standardGatewayBonusCoins,
             sender_number: senderNumber,
             payment_proof_url: paymentProof,
             user_transaction_id: transactionId
@@ -2197,7 +2197,7 @@ const Recharge = () => {
           .insert({
             helper_id: selectedHelperMethod.helper_id,
             user_id: userId,
-            coin_amount: selectedPackage.coins,
+            diamond_amount: selectedPackage.coins,
             amount_usd: selectedPackage.price_usd,
             amount_local: localAmount,
             currency_code: currencyRate?.currency_code || 'USD',

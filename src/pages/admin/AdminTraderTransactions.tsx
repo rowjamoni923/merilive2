@@ -29,7 +29,7 @@ interface Transaction {
   helper_id: string;
   user_id: string | null;
   transaction_type: string;
-  coin_amount: number;
+  diamond_amount: number;
   usd_amount: number;
   status: string;
   notes: string | null;
@@ -78,9 +78,9 @@ const AdminTraderTransactions = () => {
       // Calculate stats
       const completedTxns = (data || []).filter(t => t.status === 'completed');
       setStats({
-        totalBought: completedTxns.filter(t => t.transaction_type === 'buy_from_platform').reduce((s, t) => s + t.coin_amount, 0),
-        totalSold: completedTxns.filter(t => t.transaction_type === 'sell_to_user').reduce((s, t) => s + t.coin_amount, 0),
-        totalTransferred: completedTxns.filter(t => t.transaction_type === 'transfer_to_user').reduce((s, t) => s + t.coin_amount, 0),
+        totalBought: completedTxns.filter(t => t.transaction_type === 'buy_from_platform').reduce((s, t) => s + t.diamond_amount, 0),
+        totalSold: completedTxns.filter(t => t.transaction_type === 'sell_to_user').reduce((s, t) => s + t.diamond_amount, 0),
+        totalTransferred: completedTxns.filter(t => t.transaction_type === 'transfer_to_user').reduce((s, t) => s + t.diamond_amount, 0),
         pendingValue: (data || []).filter(t => t.status === 'pending').reduce((s, t) => s + t.usd_amount, 0)
       });
     } catch (error) {
@@ -138,7 +138,7 @@ const AdminTraderTransactions = () => {
                 { key: "transaction_type", label: "Type", weight: 1.1 },
                 { key: "user_id", label: "User", weight: 1.2, format: (_, r: any) => r.user?.display_name || r.user_id || "—" },
                 { key: "helper_id", label: "Helper", weight: 1.2, format: (_, r: any) => (r.helper as any)?.user?.display_name || r.helper_id || "—" },
-                { key: "coin_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
+                { key: "diamond_amount", label: "Diamonds", weight: 1, format: (v) => v != null ? Number(v).toLocaleString() : "—" },
                 { key: "usd_amount", label: "USD", weight: 0.9, format: (v) => v != null ? `$${Number(v).toFixed(2)}` : "—" },
                 { key: "status", label: "Status", weight: 0.9 },
               ]}
@@ -264,7 +264,7 @@ const AdminTraderTransactions = () => {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-bold text-emerald-600">{txn.coin_amount.toLocaleString()} 💎</p>
+                            <p className="font-bold text-emerald-600">{txn.diamond_amount.toLocaleString()} 💎</p>
                             <p className="text-xs text-slate-500">${txn.usd_amount.toFixed(2)}</p>
                           </div>
                         </TableCell>

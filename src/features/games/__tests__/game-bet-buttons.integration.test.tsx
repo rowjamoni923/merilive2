@@ -101,7 +101,7 @@ function installDefaultSupabaseMocks() {
       mockBalance += amt;
       return { data: { success: true, new_balance: mockBalance, added: amt }, error: null };
     }
-    if (fn === "deduct_coins_atomic") {
+    if (fn === "deduct_diamonds_atomic") {
       const amt = Math.floor(params.p_amount);
       if (mockBalance < amt) {
         return { data: { success: false, error: "Insufficient balance", balance: mockBalance }, error: null };
@@ -205,13 +205,13 @@ describe("Roulette — clicking a betting cell invokes the bet handler", () => {
     expect(onPlaceBet).toHaveBeenCalledWith("1-12", 3);
   });
 
-  it("calls deduct_coins_atomic RPC when wired to the real bet handler", async () => {
+  it("calls deduct_diamonds_atomic RPC when wired to the real bet handler", async () => {
     const { BettingGrid } = await import("../roulette/BettingGrid");
     const { supabase } = await import("@/integrations/supabase/client");
 
     // Replicate RouletteGame.placeBet's RPC call path
     const placeBet = async (betType: string, _mult: number) => {
-      await supabase.rpc("deduct_coins_atomic", {
+      await supabase.rpc("deduct_diamonds_atomic", {
         p_user_id: USER_ID,
         p_amount: 1_000,
       });
@@ -221,7 +221,7 @@ describe("Roulette — clicking a betting cell invokes the bet handler", () => {
     fireEvent.click(screen.getByText("Red"));
 
     await waitFor(() => {
-      const call = rpcMock.mock.calls.find((c) => c[0] === "deduct_coins_atomic");
+      const call = rpcMock.mock.calls.find((c) => c[0] === "deduct_diamonds_atomic");
       expect(call).toBeTruthy();
       expect(call![1]).toEqual({ p_user_id: USER_ID, p_amount: 1_000 });
     });

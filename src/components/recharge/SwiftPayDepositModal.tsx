@@ -325,10 +325,10 @@ export default function SwiftPayDepositModal({
         toast({
           title: mode === "helper" ? "✅ Trader Wallet topped up!" : "✅ Diamonds credited!",
           description: mode === "helper"
-            ? `${fmt(deposit.coins_amount)} diamonds added to your Trader Wallet.`
-            : `${fmt(deposit.coins_amount)} diamonds added to your balance.`,
+            ? `${fmt(deposit.diamonds_amount)} diamonds added to your Trader Wallet.`
+            : `${fmt(deposit.diamonds_amount)} diamonds added to your balance.`,
         });
-        onCredited?.(deposit.coins_amount, deposit.topup_id);
+        onCredited?.(deposit.diamonds_amount, deposit.topup_id);
       } else if (data?.status === "pending" || data?.status === "paid" || data?.status === "expired") {
         supabase.functions.invoke("swift-pay-poll-deposits", {
           body: { topup_id: deposit.topup_id },
@@ -480,7 +480,7 @@ export default function SwiftPayDepositModal({
             <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
             <p className="text-lg font-bold text-emerald-300">Payment received!</p>
             <p className="text-sm text-amber-100/80">
-              {fmt(deposit.coins_amount)} diamonds added to your {mode === "helper" ? "Trader Wallet" : "balance"}.
+              {fmt(deposit.diamonds_amount)} diamonds added to your {mode === "helper" ? "Trader Wallet" : "balance"}.
             </p>
             <Button onClick={() => onOpenChange(false)} className="w-full">Done</Button>
           </div>

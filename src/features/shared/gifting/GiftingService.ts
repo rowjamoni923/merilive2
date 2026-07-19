@@ -53,7 +53,7 @@ export interface GiftSendResult {
   error?: string;
   transaction?: {
     id: string;
-    coins_spent: number;
+    diamonds_spent: number;
     beans_earned: number;
     /** Lucky-gift diamond bonus paid to sender (0 when no win). */
     diamond_bonus?: number;
@@ -113,7 +113,7 @@ export async function fetchGifts(): Promise<GiftItem[]> {
     .from('gifts')
     .select('*')
     .eq('is_active', true)
-    .order('coin_value', { ascending: true });
+    .order('diamond_value', { ascending: true });
 
   if (error) {
     console.error('[GiftingService] Failed to fetch gifts:', error);
@@ -123,7 +123,7 @@ export async function fetchGifts(): Promise<GiftItem[]> {
   giftsCache = (data || []).map(g => ({
     id: g.id,
     name: g.name,
-    coins: g.coin_value, // Use coin_value from DB
+    coins: g.diamond_value, // Use diamond_value from DB
     category: g.category || 'popular',
     icon_url: normalizeGiftIconUrl(g.icon_url, g.animation_url),
     animation_url: normalizeGiftAssetUrl(g.animation_url),
@@ -146,7 +146,7 @@ export async function getGiftById(giftId: string): Promise<GiftItem | null> {
     return {
       id: prefetched.id,
       name: prefetched.name,
-      coins: prefetched.coin_value,
+      coins: prefetched.diamond_value,
       category: prefetched.category || 'popular',
       icon_url: normalizeGiftIconUrl(prefetched.icon_url, prefetched.animation_url),
       animation_url: normalizeGiftAssetUrl(prefetched.animation_url),
@@ -207,7 +207,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
         giftSoundUrl: cachedGift?.sound_url || undefined,
         count: quantity,
         giftCoins: unitCoins,
-        totalCoins: unitCoins * quantity,
+        totalDiamonds: unitCoins * quantity,
         receiverBeans: 0, // unknown until RPC settles — receiver beans counter reconciles via own-beans-updated
         timestamp: Date.now(),
       };
@@ -272,7 +272,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
 
     console.log('[GiftingService] ✅ Gift sent successfully:', {
       transaction_id: result.transactionId,
-      coins_spent: result.coinsSpent,
+      diamonds_spent: result.coinsSpent,
       beans_earned: result.hostReceived,
       host_percent: result.hostPercent,
       diamond_bonus: result.diamondBonus,
@@ -351,7 +351,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             giftSoundUrl: gift?.sound_url || undefined,
             count: quantity,
             giftCoins: gift?.coins || 0,
-            totalCoins: result.coinsSpent || 0,
+            totalDiamonds: result.coinsSpent || 0,
             receiverBeans: result.hostReceived || 0,
             luckyBonus: result.diamondBonus || 0,
             timestamp: Date.now(),
@@ -367,7 +367,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       success: true,
       transaction: {
         id: result.transactionId || 'unknown',
-        coins_spent: result.coinsSpent || 0,
+        diamonds_spent: result.coinsSpent || 0,
         beans_earned: result.hostReceived || 0,
         diamond_bonus: result.diamondBonus || 0,
         is_lucky: !!result.isLucky,

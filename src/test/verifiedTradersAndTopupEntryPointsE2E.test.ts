@@ -5,9 +5,9 @@
  *
  * Coverage:
  *   1. Verified Traders feed visibility   (Recharge.tsx tier filter)
- *   2. Entry point #1 — coin_trader_self_recharge        (My Recharge → self deposit)
- *   3. Entry point #2 — coin_trader_transfer_to_user     (UID top-up)
- *   4. Entry point #3 — coin_trader_transfer_to_agency   (Agency deposit)
+ *   2. Entry point #1 — diamond_trader_self_recharge        (My Recharge → self deposit)
+ *   3. Entry point #2 — diamond_trader_transfer_to_user     (UID top-up)
+ *   4. Entry point #3 — diamond_trader_transfer_to_agency   (Agency deposit)
  *   5. Entry point #4 — swift-pay-create-deposit         (user_diamond crypto, $100 floor)
  *
  * Each entry point is exercised against:
@@ -105,9 +105,9 @@ class FakeBackend {
 
 const db = new FakeBackend();
 const RPCS: Array<[string, (uid: string) => RpcResult]> = [
-  ['coin_trader_self_recharge',     ()       => db.selfRecharge(10_000)],
-  ['coin_trader_transfer_to_user',  ()       => db.transferToUser('other', 10_000)],
-  ['coin_trader_transfer_to_agency',()       => db.transferToAgency('ag-1', 10_000)],
+  ['diamond_trader_self_recharge',     ()       => db.selfRecharge(10_000)],
+  ['diamond_trader_transfer_to_user',  ()       => db.transferToUser('other', 10_000)],
+  ['diamond_trader_transfer_to_agency',()       => db.transferToAgency('ag-1', 10_000)],
 ];
 
 /* ──────────────────────────────── Tests ──────────────────────────────── */

@@ -100,7 +100,7 @@ const getNotificationIcon = (type: string, priority?: string) => {
     'coin_purchase_helper': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-500 to-purple-600' },
     'coin_purchase_direct': { icon: Coins, color: 'bg-gradient-to-br from-amber-500 to-orange-500' },
     'coins_added': { icon: Coins, color: 'bg-yellow-500' },
-    'coins_received': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-400 to-blue-500' },
+    'diamonds_received': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-400 to-blue-500' },
     'payment_completed': { icon: Diamond, color: 'bg-gradient-to-br from-green-500 to-emerald-600' },
     'payment_pending': { icon: Diamond, color: 'bg-gradient-to-br from-amber-500 to-yellow-500' },
     
@@ -202,7 +202,7 @@ const getNotificationLink = (notification: Notification): string | null => {
     'coin_purchase_helper': '/recharge-history',
     'coin_purchase_direct': '/recharge-history',
     'coins_added': '/profile',
-    'coins_received': '/profile',
+    'diamonds_received': '/profile',
     'payment_completed': '/recharge-history',
     'payment_pending': '/recharge-history',
     
@@ -546,7 +546,7 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
   const isTopupApproved = notification.type === 'topup_approved';
   const isWithdrawalApproved = notification.type === 'withdrawal_approved';
   const isCoinExchange = notification.type === 'coin_exchange';
-  const isCoinsReceived = notification.type === 'coins_received';
+  const isCoinsReceived = notification.type === 'diamonds_received';
   const isLevelUpgradeApproved = notification.type === 'level_upgrade_approved';
   const isCoinNotification = isHelperPurchase || isDirectPurchase || isTopupApproved || isCoinsReceived || isCoinExchange;
   const isLevelUp = notification.type === 'level_up' || isLevelUpgradeApproved;

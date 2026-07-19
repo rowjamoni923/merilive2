@@ -79,7 +79,7 @@ export function useFlyingGifts() {
             icon_url: gift.giftImageUrl || gift.giftIcon,
             animation_url: gift.animationUrl,
             sound_url: gift.soundUrl,
-            coin_value: perUnitCoins,
+            diamond_value: perUnitCoins,
           },
           senderName: gift.senderName,
           senderAvatar: gift.senderAvatar,

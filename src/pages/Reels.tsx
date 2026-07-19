@@ -136,7 +136,7 @@ const Reels = () => {
   const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<Comment['user'] | null>(null);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [isHost, setIsHost] = useState(false);
   const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -184,8 +184,8 @@ const Reels = () => {
   });
   
   useEffect(() => {
-    userCoinsRef.current = userCoins;
-  }, [userCoins]);
+    userCoinsRef.current = userDiamonds;
+  }, [userDiamonds]);
   useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
@@ -1238,7 +1238,7 @@ const Reels = () => {
             isOpen={showGiftPanel}
             onClose={() => setShowGiftPanel(false)}
             onSendGift={handleSendGift}
-            userCoins={userCoins}
+            userDiamonds={userDiamonds}
           />
         </Suspense>
       )}

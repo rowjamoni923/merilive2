@@ -57,7 +57,7 @@ interface TopupRequest {
   id: string;
   user_id: string;
   helper_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   amount_usd: number;
   payment_method: string;
   transaction_id: string | null;
@@ -477,7 +477,7 @@ const AdminHelperRequests = () => {
                             {getStatusBadge(req.status)}
                           </div>
                           <p className="text-sm text-slate-500">
-                            💎 {req.coin_amount?.toLocaleString()} coins • ${req.amount_usd}
+                            💎 {req.diamond_amount?.toLocaleString()} coins • ${req.amount_usd}
                           </p>
                           <p className="text-xs text-slate-400">
                             {format(new Date(req.created_at), 'dd/MM/yy HH:mm')} • {req.payment_method}
@@ -539,7 +539,7 @@ const AdminHelperRequests = () => {
                   <>
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <p className="text-xs text-blue-600">Diamonds</p>
-                      <p className="font-bold text-lg">💎 {(selectedRequest as TopupRequest).coin_amount?.toLocaleString()}</p>
+                      <p className="font-bold text-lg">💎 {(selectedRequest as TopupRequest).diamond_amount?.toLocaleString()}</p>
                     </div>
                     <div className="p-3 bg-green-50 rounded-lg">
                       <p className="text-xs text-green-600">Amount USD</p>

@@ -60,7 +60,7 @@ function normalizeRpcGiftResponse(result: any): GiftServiceResponse {
     success: true,
     senderId: result.sender_id,
     transactionId: result.transaction_id,
-    coinsSpent: Number(result.coins_spent ?? result.total_cost ?? 0),
+    coinsSpent: Number(result.diamonds_spent ?? result.total_cost ?? 0),
     hostReceived: Number(result.beans_earned ?? result.beans_received ?? 0),
     hostPercent: result.host_percent,
     newBalance: result.new_balance ?? result.new_sender_balance ?? null,
@@ -90,7 +90,7 @@ async function confirmGiftByIdempotencyKey(
     try {
       const { data, error } = await supabase
         .from('gift_transactions')
-        .select('id, sender_id, coin_amount, receiver_beans, total_coins')
+        .select('id, sender_id, diamond_amount, receiver_beans, total_diamonds')
         .eq('idempotency_key', key)
         .maybeSingle();
       if (!error && data) {
@@ -98,7 +98,7 @@ async function confirmGiftByIdempotencyKey(
           success: true,
           senderId: (data as any).sender_id,
           transactionId: (data as any).id,
-          coinsSpent: Number((data as any).total_coins ?? (data as any).coin_amount ?? 0),
+          coinsSpent: Number((data as any).total_diamonds ?? (data as any).diamond_amount ?? 0),
           hostReceived: Number((data as any).receiver_beans ?? 0),
           newBalance: null,
           diamondBonus: 0,

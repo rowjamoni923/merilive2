@@ -306,20 +306,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       const [transfersRes, giftsSentRes, giftsRecvRes, helperLedgerRes, traderLedgerRes, agencyLedgerRes] = await Promise.all([
         supabase
-          .from('coin_transfers')
+          .from('diamond_transfers')
           .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
           .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
           .order('created_at', { ascending: false })
           .limit(50),
         supabase
           .from('gift_transactions')
-          .select('id, sender_id, receiver_id, coin_amount, created_at, gifts(name)')
+          .select('id, sender_id, receiver_id, diamond_amount, created_at, gifts(name)')
           .eq('sender_id', authUser.id)
           .order('created_at', { ascending: false })
           .limit(50),
         supabase
           .from('gift_transactions')
-          .select('id, sender_id, receiver_id, receiver_beans, coin_amount, created_at, gifts(name)')
+          .select('id, sender_id, receiver_id, receiver_beans, diamond_amount, created_at, gifts(name)')
           .eq('receiver_id', authUser.id)
           .order('created_at', { ascending: false })
           .limit(50),
@@ -330,7 +330,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           .order('created_at', { ascending: false })
           .limit(50),
         supabase
-          .from('coin_trader_transfers')
+          .from('diamond_trader_transfers')
           .select('id, user_id, counterparty_user_id, counterparty_agency_id, amount, transfer_type, status, created_at')
           .eq('user_id', authUser.id)
           .order('created_at', { ascending: false })
@@ -363,7 +363,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         id: `gs-${g.id}`,
         sender_id: g.sender_id,
         receiver_id: g.receiver_id,
-        amount: Number(g.coin_amount || 0),
+        amount: Number(g.diamond_amount || 0),
         transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
         status: 'completed',
         notes: null,
@@ -379,7 +379,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           id: `gr-${g.id}`,
           sender_id: g.sender_id,
           receiver_id: g.receiver_id,
-          amount: beans > 0 ? beans : Number(g.coin_amount || 0),
+          amount: beans > 0 ? beans : Number(g.diamond_amount || 0),
           transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
           status: 'completed',
           notes: null,
@@ -815,7 +815,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // Earnings (no longer needed - using profile.coins directly)
           { data: null },
           // Spent (for consumption return)
-          supabase.from("gift_transactions").select("coin_amount").eq("sender_id", targetUserId),
+          supabase.from("gift_transactions").select("diamond_amount").eq("sender_id", targetUserId),
           // Call rate settings (for hosts)
           profileData?.is_host && profileData?.gender === 'female' ? supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle() : { data: null },
           // Follow status (for other profiles)
@@ -874,7 +874,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         }
 
         // Set consumption return
-        const totalSpent = spentResult?.data?.reduce((sum, e) => sum + e.coin_amount, 0) || 0;
+        const totalSpent = spentResult?.data?.reduce((sum, e) => sum + e.diamond_amount, 0) || 0;
         setConsumptionReturn(Math.floor(totalSpent * 0.1));
 
         // Set following status
@@ -981,7 +981,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Use universal realtime system instead of manual channel
       unsubscribeRealtime = subscribeToTables(
         `profile-${activeProfileId}`,
-        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions', 'helper_transactions', 'coin_transfers', 'coin_trader_transfers', 'agency_diamond_transactions'],
+        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions', 'helper_transactions', 'diamond_transfers', 'diamond_trader_transfers', 'agency_diamond_transactions'],
         (table, event, payload) => {
           // Profile updates — including admin approval of verification/host
           if (table === 'profiles' && payload?.id === activeProfileId) {
@@ -1094,8 +1094,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // Pkg425: trader-history table pushes → refresh wallet balance + history.
           if (
             table === 'helper_transactions'
-            || table === 'coin_transfers'
-            || table === 'coin_trader_transfers'
+            || table === 'diamond_transfers'
+            || table === 'diamond_trader_transfers'
             || table === 'agency_diamond_transactions'
           ) {
             const touchesUser =
@@ -1494,7 +1494,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         : 'agency_to_user'; // fallback to agency_to_user which tries all tiers in RPC
 
       console.log('[UserTransfer] DEBUG: senderType =', senderType, 'receiverId =', searchedUser.id, 'amount =', amount);
-      const { data, error } = await supabase.rpc('helper_transfer_coins_to_user', {
+      const { data, error } = await supabase.rpc('helper_transfer_diamonds_to_user', {
         _sender_id: currentUser.id,
         _receiver_id: searchedUser.id,
         _amount: amount,

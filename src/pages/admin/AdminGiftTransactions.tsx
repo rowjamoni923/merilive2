@@ -23,7 +23,7 @@ interface GiftTransaction {
   sender_id: string;
   receiver_id: string;
   gift_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   created_at: string;
   stream_id: string | null;
   party_room_id: string | null;
@@ -119,7 +119,7 @@ export default function AdminGiftTransactions() {
     transactions.forEach(t => {
       const existing = map.get(t.receiver_id);
       if (existing) {
-        existing.total_beans += t.coin_amount || 0;
+        existing.total_beans += t.diamond_amount || 0;
         existing.gift_count += 1;
       } else {
         map.set(t.receiver_id, {
@@ -127,7 +127,7 @@ export default function AdminGiftTransactions() {
           display_name: t.receiver?.display_name || 'Unknown',
           avatar_url: t.receiver?.avatar_url || '',
           app_uid: t.receiver?.app_uid || '',
-          total_beans: t.coin_amount || 0,
+          total_beans: t.diamond_amount || 0,
           gift_count: 1,
         });
       }
@@ -338,7 +338,7 @@ export default function AdminGiftTransactions() {
                       </div>
                       
                       <Badge className="bg-emerald-500/20 text-emerald-400 text-xs font-bold">
-                        {t.coin_amount?.toLocaleString()} Beans
+                        {t.diamond_amount?.toLocaleString()} Beans
                       </Badge>
                     </div>
                   </CardContent>

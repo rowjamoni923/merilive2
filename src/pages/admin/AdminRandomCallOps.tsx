@@ -80,10 +80,10 @@ export default function AdminRandomCallOps() {
       (supabase as any).from("random_call_skip_counters")
         .select("*").order("skip_count", { ascending: false }).limit(20),
       (supabase as any).from("random_call_sessions")
-        .select("id, status, billable_seconds, coins_charged, beans_awarded")
+        .select("id, status, billable_seconds, diamonds_charged, beans_awarded")
         .gte("started_at", startToday.toISOString()).limit(5000),
       (supabase as any).from("random_call_sessions")
-        .select("id, coins_charged, beans_awarded")
+        .select("id, diamonds_charged, beans_awarded")
         .gte("started_at", start7d.toISOString()).limit(20000),
       (supabase as any).from("random_call_queue").select("id", { count: "exact", head: true }).eq("status", "waiting"),
       (supabase as any).from("random_call_sessions").select("id", { count: "exact", head: true }).in("status", ["ringing", "active"]),
@@ -108,10 +108,10 @@ export default function AdminRandomCallOps() {
       callsToday: today.length,
       completedToday: completed.length,
       shortToday: short.length,
-      coinsToday: today.reduce((s: number, r: any) => s + (r.coins_charged || 0), 0),
+      coinsToday: today.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
       beansToday: today.reduce((s: number, r: any) => s + (r.beans_awarded || 0), 0),
       callsWeek: week.length,
-      coinsWeek: week.reduce((s: number, r: any) => s + (r.coins_charged || 0), 0),
+      coinsWeek: week.reduce((s: number, r: any) => s + (r.diamonds_charged || 0), 0),
       beansWeek: week.reduce((s: number, r: any) => s + (r.beans_awarded || 0), 0),
       suspendedHosts: suspCount || 0,
     });
@@ -286,7 +286,7 @@ export default function AdminRandomCallOps() {
                         <TableCell className="font-mono text-xs">{pName(r.host_id)}</TableCell>
                         <TableCell className="text-xs">{fmtTime(r.started_at)}</TableCell>
                         <TableCell className="text-xs">{fmtDur(dur)}</TableCell>
-                        <TableCell className="text-xs">{r.coin_rate_per_min}/min</TableCell>
+                        <TableCell className="text-xs">{r.diamond_rate_per_min}/min</TableCell>
                         <TableCell>
                           <Button size="sm" variant="destructive" onClick={() => forceEndSession(r.id)}>Force end</Button>
                         </TableCell>
@@ -328,7 +328,7 @@ export default function AdminRandomCallOps() {
                       <TableCell className="text-xs">{pName(r.user_id)}</TableCell>
                       <TableCell>{r.is_vip ? <Badge>VIP</Badge> : "—"}</TableCell>
                       <TableCell className="font-mono">{r.score}</TableCell>
-                      <TableCell className="text-xs">{r.coin_rate_per_min || "—"}</TableCell>
+                      <TableCell className="text-xs">{r.diamond_rate_per_min || "—"}</TableCell>
                       <TableCell className="text-xs">{fmtTime(r.entered_at)}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => clearQueueEntry(r.id)}>Remove</Button>

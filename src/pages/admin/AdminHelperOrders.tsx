@@ -47,7 +47,7 @@ interface HelperOrder {
   id: string;
   helper_id: string;
   user_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   amount_usd: number;
   amount_local: number;
   currency_code: string;
@@ -366,7 +366,7 @@ const AdminHelperOrders = () => {
                   {/* Order Details */}
                   <div className="grid grid-cols-3 gap-2 text-center bg-muted/30 rounded-lg p-2">
                     <div>
-                      <p className="text-lg font-bold text-primary">{(order.coin_amount ?? 0).toLocaleString()}</p>
+                      <p className="text-lg font-bold text-primary">{(order.diamond_amount ?? 0).toLocaleString()}</p>
                       <p className="text-[10px] text-muted-foreground">Diamonds</p>
                     </div>
                     <div>
@@ -413,7 +413,7 @@ const AdminHelperOrders = () => {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Diamonds</p>
-                  <p className="font-bold">{(selectedOrder.coin_amount ?? 0).toLocaleString()}</p>
+                  <p className="font-bold">{(selectedOrder.diamond_amount ?? 0).toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Amount</p>

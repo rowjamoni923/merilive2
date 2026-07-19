@@ -74,7 +74,7 @@ interface HelperOrder {
   id: string;
   helper_id: string;
   user_id: string;
-  coin_amount: number;
+  diamond_amount: number;
   amount_usd: number;
   amount_local: number;
   currency_code: string;
@@ -89,7 +89,7 @@ interface Transaction {
   id: string;
   helper_id: string;
   transaction_type: string;
-  coin_amount: number;
+  diamond_amount: number;
   usd_amount: number;
   status: string;
   notes: string | null;
@@ -256,7 +256,7 @@ const AdminTopupSystem = () => {
   // 🔇 Silent realtime refresh — no spinner flicker, no profiles flood, debounced 1.5s
   // ❌ Removed 'profiles' (high-traffic, irrelevant) → was causing per-second refresh
   useAdminRealtime(
-    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions'],
+    ['helper_topup_requests', 'recharge_transactions', 'diamond_transactions'],
     () => loadAllData(false),
     'admin-topup-rt',
     { debounceMs: 1500 }
@@ -609,7 +609,7 @@ const AdminTopupSystem = () => {
       }
 
       if (action === 'approve' && !result.alreadyProcessed) {
-        const creditedCoins = Number(result.creditedCoins || order.coin_amount);
+        const creditedCoins = Number(result.creditedCoins || order.diamond_amount);
         await adminSendNotification(order.user_id, '💎 Diamonds Added!', `${creditedCoins.toLocaleString()} diamonds added to your account!`, 'coin_purchase_helper')
       }
        
@@ -1106,7 +1106,7 @@ const AdminTopupSystem = () => {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{order.coin_amount?.toLocaleString()} 💎</p>
+                              <p className="font-medium">{order.diamond_amount?.toLocaleString()} 💎</p>
                               <p className="text-xs text-slate-500">${order.amount_usd?.toFixed(2)}</p>
                             </div>
                           </TableCell>
@@ -1204,7 +1204,7 @@ const AdminTopupSystem = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <p className="font-medium">{txn.coin_amount?.toLocaleString()} 💎</p>
+                            <p className="font-medium">{txn.diamond_amount?.toLocaleString()} 💎</p>
                           </TableCell>
                           <TableCell>
                             <Badge className={cn(

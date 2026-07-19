@@ -25,7 +25,7 @@ const AdminFinance = () => {
     pendingEpay: 0
   });
 
-  useAdminRealtime(['agency_withdrawals', 'coin_transfers', 'payroll_requests'], () => fetchStats());
+  useAdminRealtime(['agency_withdrawals', 'diamond_transfers', 'payroll_requests'], () => fetchStats());
 
   const fetchStats = async () => {
     try {

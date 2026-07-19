@@ -26,12 +26,12 @@ function asMoney(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function assertSamePayment(order: any, bodyFields: { userId?: string; totalCoins?: number; paymentMethodId?: string; txnId?: string; amount?: unknown; currency?: string }) {
+function assertSamePayment(order: any, bodyFields: { userId?: string; totalDiamonds?: number; paymentMethodId?: string; txnId?: string; amount?: unknown; currency?: string }) {
   const details = (order.payment_details || {}) as Record<string, unknown>;
   if (bodyFields.userId && bodyFields.userId !== order.user_id) throw new Error("IPN user mismatch");
   if (bodyFields.paymentMethodId && bodyFields.paymentMethodId !== details.payment_method_id) throw new Error("IPN payment method mismatch");
   if (bodyFields.txnId && details.txn_id && bodyFields.txnId !== details.txn_id) throw new Error("IPN transaction mismatch");
-  if (bodyFields.totalCoins && Number(order.coin_amount || 0) !== bodyFields.totalCoins) throw new Error("IPN coin amount mismatch");
+  if (bodyFields.totalDiamonds && Number(order.diamond_amount || 0) !== bodyFields.totalDiamonds) throw new Error("IPN coin amount mismatch");
 
   const paidAmount = asMoney(bodyFields.amount);
   if (paidAmount !== null && Math.abs(paidAmount - Number(order.amount_local || 0)) > 0.01) throw new Error("IPN amount mismatch");
@@ -67,7 +67,7 @@ serve(async (req) => {
 
     let orderId: string;
     let userId: string;
-    let totalCoins: number;
+    let totalDiamonds: number;
     let paymentMethodId: string;
     let txnId: string;
     let status: string;
@@ -79,7 +79,7 @@ serve(async (req) => {
       gatewayType = "sslcommerz";
       orderId = body.value_a;
       userId = body.value_b;
-      totalCoins = parseInt(body.value_c) || 0;
+      totalDiamonds = parseInt(body.value_c) || 0;
       paymentMethodId = body.value_d;
       txnId = body.tran_id;
       status = body.status;
@@ -126,7 +126,7 @@ serve(async (req) => {
               user_id: userId,
               order_id: orderId,
               transaction_id: txnId,
-              amount_coins: totalCoins,
+              amount_coins: totalDiamonds,
               metadata: { reason: "SSLCommerz API validation failed", val_response: valData },
             });
           }
@@ -140,7 +140,7 @@ serve(async (req) => {
             user_id: userId,
             order_id: orderId,
             transaction_id: txnId,
-            amount_coins: totalCoins,
+            amount_coins: totalDiamonds,
             metadata: { reason: "Gateway credentials not found for verification" },
           });
         }
@@ -151,7 +151,7 @@ serve(async (req) => {
       gatewayType = "aamarpay";
       orderId = body.opt_a;
       userId = body.opt_b;
-      totalCoins = parseInt(body.opt_c) || 0;
+      totalDiamonds = parseInt(body.opt_c) || 0;
       paymentMethodId = body.opt_d;
       txnId = body.mer_txnid || body.pg_txnid;
 
@@ -200,7 +200,7 @@ serve(async (req) => {
               user_id: userId,
               order_id: orderId,
               transaction_id: txnId,
-              amount_coins: totalCoins,
+              amount_coins: totalDiamonds,
               metadata: { reason: "AamarPay API validation failed", check_response: checkData },
             });
           } else {
@@ -215,7 +215,7 @@ serve(async (req) => {
             user_id: userId,
             order_id: orderId,
             transaction_id: txnId,
-            amount_coins: totalCoins,
+            amount_coins: totalDiamonds,
             metadata: { reason: "Gateway credentials not found for AamarPay verification" },
           });
         }
@@ -241,7 +241,7 @@ serve(async (req) => {
     const returnOrigin = normalizeReturnOrigin((order.payment_details as any)?.origin_url);
     assertSamePayment(order, {
       userId,
-      totalCoins,
+      totalDiamonds,
       paymentMethodId,
       txnId,
       amount: validationData.amount,
@@ -258,7 +258,7 @@ serve(async (req) => {
 
     if (status === "VALID") {
       // ═══ PAYMENT VERIFIED — ATOMIC HELPER CREDIT ═══
-      console.log(`[IPN] ✅ Payment verified! Completing helper-backed top-up for ${totalCoins} → user ${userId}`);
+      console.log(`[IPN] ✅ Payment verified! Completing helper-backed top-up for ${totalDiamonds} → user ${userId}`);
 
       const { data: creditResult, error: creditError } = await supabaseAdmin.rpc("complete_gateway_helper_topup", {
         p_order_id: orderId,
@@ -310,8 +310,8 @@ serve(async (req) => {
         amount: order.amount_usd,
         usd_amount: order.amount_usd,
         currency: "USD",
-        coins_amount: totalCoins,
-        coins_received: totalCoins,
+        diamonds_amount: totalDiamonds,
+        diamonds_received: totalDiamonds,
         status: "completed",
         completed_at: new Date().toISOString(),
         purchase_source: gatewayType,
@@ -327,7 +327,7 @@ serve(async (req) => {
 
       // First recharge bonus (schema-aligned)
       const orderDetails = order.payment_details as any;
-      if (orderDetails?.is_first_recharge && (orderDetails.bonus_coins || 0) > 0) {
+      if (orderDetails?.is_first_recharge && (orderDetails.bonus_diamonds || 0) > 0) {
         const { data: bonusRow } = await supabaseAdmin
           .from("first_recharge_bonus")
           .select("id")
@@ -338,8 +338,8 @@ serve(async (req) => {
           const { error: claimErr } = await supabaseAdmin.from("first_recharge_claims").insert({
             user_id: userId,
             bonus_id: bonusRow.id,
-            original_amount: orderDetails.base_coins || (totalCoins - (orderDetails.bonus_coins || 0)),
-            bonus_amount: orderDetails.bonus_coins || 0,
+            original_amount: orderDetails.base_coins || (totalDiamonds - (orderDetails.bonus_diamonds || 0)),
+            bonus_amount: orderDetails.bonus_diamonds || 0,
           });
           if (claimErr) console.error("[IPN] first_recharge_claims insert error:", claimErr);
         }
@@ -350,14 +350,14 @@ serve(async (req) => {
         user_id: userId,
         type: "recharge_success",
         title: "💎 Diamonds Added!",
-        message: `${totalCoins.toLocaleString()} diamonds added via ${gatewayType === 'sslcommerz' ? 'SSLCommerz' : 'AamarPay'}!`,
-        data: { order_id: orderId, coins: totalCoins, gateway: gatewayType },
+        message: `${totalDiamonds.toLocaleString()} diamonds added via ${gatewayType === 'sslcommerz' ? 'SSLCommerz' : 'AamarPay'}!`,
+        data: { order_id: orderId, coins: totalDiamonds, gateway: gatewayType },
       });
 
-      console.log(`[IPN] ✅ SUCCESS: ${totalCoins} diamonds → user ${userId} (${result.balance_before} → ${result.balance_after})`);
+      console.log(`[IPN] ✅ SUCCESS: ${totalDiamonds} diamonds → user ${userId} (${result.balance_before} → ${result.balance_after})`);
 
       return Response.redirect(
-        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalCoins}`,
+        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalDiamonds}`,
         302
       );
 

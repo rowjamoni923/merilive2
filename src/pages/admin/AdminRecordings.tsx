@@ -51,7 +51,7 @@ interface Recording {
   thumbnail_url: string | null;
   total_viewers: number;
   total_gifts: number;
-  total_coins: number;
+  total_diamonds: number;
   created_at: string;
   host?: {
     id: string;
@@ -420,7 +420,7 @@ export default function AdminRecordings() {
                         </div>
                         <div className="bg-white rounded-lg p-2 text-center">
                           <Diamond className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
-                          <p className="text-slate-900 text-sm font-medium">{recording.total_coins}</p>
+                          <p className="text-slate-900 text-sm font-medium">{recording.total_diamonds}</p>
                           <p className="text-slate-500 text-[10px]">Diamonds</p>
                         </div>
                       </div>

@@ -62,17 +62,17 @@ class FakeDb {
     return null;
   }
 
-  // RPC: coin_trader_transfer_to_user
+  // RPC: diamond_trader_transfer_to_user
   rpcUidTopup(_recipient: string, _amount: number): RpcResult {
     return this.gate() ?? { success: true };
   }
 
-  // RPC: coin_trader_transfer_to_agency
+  // RPC: diamond_trader_transfer_to_agency
   rpcAgencyDeposit(_agency: string, _amount: number): RpcResult {
     return this.gate() ?? { success: true };
   }
 
-  // RPC: coin_trader_self_recharge
+  // RPC: diamond_trader_self_recharge
   rpcSelfDeposit(_amount: number): RpcResult {
     return this.gate() ?? { success: true };
   }

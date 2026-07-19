@@ -1848,7 +1848,7 @@ const Level5HelperDashboard = () => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-emerald-600 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
+                        <p className="text-emerald-600 font-bold">{order.diamond_amount?.toLocaleString()} 💎</p>
                         <p className="text-slate-700 text-xs">
                           {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                         </p>
@@ -1934,8 +1934,8 @@ const Level5HelperDashboard = () => {
                                  p_user_id: order.user_id,
                                  p_type: 'coin_purchase_helper',
                                  p_title: '💎 Diamonds Added!',
-                                 p_message: `${order.coin_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
-                                 p_data: { amount: order.coin_amount, amount_usd: order.amount_usd, source: 'helper' }
+                                 p_message: `${order.diamond_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
+                                 p_data: { amount: order.diamond_amount, amount_usd: order.amount_usd, source: 'helper' }
                                });
 
                               toast({ title: "Success!", description: "Order completed and diamonds credited to user" });
@@ -1974,7 +1974,7 @@ const Level5HelperDashboard = () => {
                                 p_user_id: order.user_id,
                                 p_type: 'order_cancelled',
                                 p_title: '❌ Order Cancelled',
-                                p_message: `Your order for ${order.coin_amount.toLocaleString()} diamonds has been cancelled`,
+                                p_message: `Your order for ${order.diamond_amount.toLocaleString()} diamonds has been cancelled`,
                                 p_data: { order_id: order.id }
                               });
 
@@ -2382,7 +2382,7 @@ const Level5HelperDashboard = () => {
                             </div>
                             <div className="text-right">
                               <p className="text-emerald-600 font-bold text-sm">
-                                {order.coin_amount?.toLocaleString()} 💎
+                                {order.diamond_amount?.toLocaleString()} 💎
                               </p>
                               <p className="text-slate-700 text-xs">
                                 {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}

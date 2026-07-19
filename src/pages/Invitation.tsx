@@ -28,7 +28,7 @@ interface InvitationTier {
   min_invites: number;
   max_invites: number | null;
   reward_beans: number | null;
-  reward_coins: number | null;
+  reward_diamonds: number | null;
   bonus_percentage: number | null;
   badge_color: string;
   is_active: boolean;
@@ -514,7 +514,7 @@ const Invitation = () => {
                               +{(tier.reward_beans ?? 0).toLocaleString('en-US')} Beans
                             </span>
                             <span className="text-[10px] font-semibold bg-violet-100 text-violet-700 border border-violet-300 px-2 py-0.5 rounded-md text-center">
-                              +{(tier.reward_coins ?? 0).toLocaleString('en-US')} Diamonds
+                              +{(tier.reward_diamonds ?? 0).toLocaleString('en-US')} Diamonds
                             </span>
                           </div>
                         )}

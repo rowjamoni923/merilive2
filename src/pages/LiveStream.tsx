@@ -324,7 +324,7 @@ const LiveStream = () => {
   const [isHostCamOff, setIsHostCamOff] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const userCoinsRef = useRef(0);
   const pendingGiftCostRef = useRef(0);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
@@ -357,9 +357,9 @@ const LiveStream = () => {
 
   useEffect(() => {
     if (pendingGiftCostRef.current === 0) {
-      userCoinsRef.current = userCoins;
+      userCoinsRef.current = userDiamonds;
     }
-  }, [userCoins]);
+  }, [userDiamonds]);
   
   // PK Battle States
   const [showPKPanel, setShowPKPanel] = useState(false);
@@ -393,7 +393,7 @@ const LiveStream = () => {
     mvpName?: string | null;
     mvpAvatar?: string | null;
     mvpCoins?: number | null;
-    rewardCoins?: number | null;
+    rewardDiamonds?: number | null;
   } | null>(null);
   // PK Battle Step 4 (P2): keep punishment overlay alive after battle ends.
   const [pkPunishment, setPKPunishment] = useState<{ battleId: string } | null>(null);
@@ -850,7 +850,7 @@ const LiveStream = () => {
     if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
     const viewerCount: number = Number(streamData?.viewer_count ?? 0) || 0;
     const coinCount: number = Number(
-      streamData?.total_coins ?? streamData?.coin_count ?? 0
+      streamData?.total_diamonds ?? streamData?.coin_count ?? 0
     ) || 0;
     const title: string = String(streamData?.title || hostInfo?.name || '').slice(0, 60);
     let cancelled = false;
@@ -862,7 +862,7 @@ const LiveStream = () => {
       } catch { /* noop — web / non-live */ }
     })();
     return () => { cancelled = true; };
-  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_coins, streamData?.coin_count, streamData?.title, hostInfo?.name]);
+  }, [isHost, isHostVerified, id, showLiveEndSummary, streamData?.viewer_count, streamData?.total_diamonds, streamData?.coin_count, streamData?.title, hostInfo?.name]);
 
   // ========== Pkg105: HOST HARD-BLOCK (LiveKit track-subscription permissions) ==========
   // Host-only. Fetches `blocked_users` (where blocker_id = host) on mount + when
@@ -1264,7 +1264,7 @@ const LiveStream = () => {
         // User profile
         cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, is_agency_owner, display_name, avatar_url, user_level, host_level, max_user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
-        stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
+        stream && id ? supabase.from("gift_transactions").select("diamond_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
         !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
         cachedUser ? supabase.from("topup_helpers").select("id").eq("user_id", cachedUser.id).eq("is_active", true).eq("is_verified", true).maybeSingle() : Promise.resolve({ data: null }),
@@ -1301,7 +1301,7 @@ const LiveStream = () => {
         setStreamStartTime(new Date(stream.started_at || stream.created_at).getTime());
         setViewerCount(stream.viewer_count || 0);
         
-        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + Number(tx.receiver_beans ?? tx.coin_amount ?? 0), 0) || 0;
+        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + Number(tx.receiver_beans ?? tx.diamond_amount ?? 0), 0) || 0;
         setTotalBeans(sessionBeans);
         console.log('[LiveStream] Session beans calculated:', sessionBeans, 'from', sessionGiftsRes.data?.length, 'transactions');
         
@@ -1736,7 +1736,7 @@ const LiveStream = () => {
           const lkMark = recentGiftDedupRef.current.get(dedupKey) || 0;
           if (Date.now() - lkMark < 5000) return; // LiveKit fast-path already applied
           // Safety-net apply: top up host bean counter
-          const giftAmount = Number(row.receiver_beans ?? row.total_coins ?? 0);
+          const giftAmount = Number(row.receiver_beans ?? row.total_diamonds ?? 0);
           if (giftAmount > 0 && row.receiver_id === currentUserId) {
             setTotalBeans(prev => prev + giftAmount);
             if (isHost) {
@@ -2901,14 +2901,14 @@ const LiveStream = () => {
         try {
           const { data: sessionGifts } = await supabase
             .from("gift_transactions")
-            .select("coin_amount")
+            .select("diamond_amount")
             .eq("stream_id", id)
             .eq("receiver_id", streamData.host_id);
 
           if (sessionGifts && sessionGifts.length > 0) {
-            const totalCoins = sessionGifts.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
+            const totalDiamonds = sessionGifts.reduce((sum, tx) => sum + (tx.diamond_amount || 0), 0);
             const hostPercent = adminGiftCommission;
-            giftEarnings = Math.floor((totalCoins * hostPercent) / 100);
+            giftEarnings = Math.floor((totalDiamonds * hostPercent) / 100);
           }
 
           const { data: viewers } = await supabase
@@ -3525,13 +3525,13 @@ const LiveStream = () => {
           // (`end_pk_battle` RPC). For 1v1 the local winner gets the full
           // amount. For team modes this is the team pool — kept as a coarse
           // display; per-member split UI is a future polish.
-          const rewardCoins = !isDraw && winnerId === currentUserId
+          const rewardDiamonds = !isDraw && winnerId === currentUserId
             ? Math.max(0, Math.round(loserScore * 0.7))
             : null;
 
           setPKResult((prev) =>
             prev
-              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpCoins, rewardCoins }
+              ? { ...prev, winnerScore, loserScore, mvpName, mvpAvatar, mvpCoins, rewardDiamonds }
               : prev,
           );
         }
@@ -3634,7 +3634,7 @@ const LiveStream = () => {
   const handleSendGift = async (gift: typeof gifts[0]) => {
     if (!currentUserId || !hostInfo || !id) return;
     
-    if (userCoins < gift.coins) {
+    if (userDiamonds < gift.coins) {
       hapticFeedback('error');
       toast.error("Not enough diamonds!");
       return;
@@ -3663,7 +3663,7 @@ const LiveStream = () => {
 
     if (result.success) {
       hapticFeedback('gift');
-      setUserCoins(prev => prev - (result.transaction?.coins_spent || gift.coins));
+      setUserCoins(prev => prev - (result.transaction?.diamonds_spent || gift.coins));
       setShowGiftPanel(false);
     } else {
       hapticFeedback('error');
@@ -4929,7 +4929,7 @@ const LiveStream = () => {
           mvpName={pkResult.mvpName}
           mvpAvatar={pkResult.mvpAvatar}
           mvpCoins={pkResult.mvpCoins}
-          rewardCoins={pkResult.rewardCoins}
+          rewardDiamonds={pkResult.rewardDiamonds}
           onClose={handleClosePKResult}
         />
       )}
@@ -4967,7 +4967,7 @@ const LiveStream = () => {
           hostName={hostInfo.name}
           hostAvatar={hostInfo.avatar}
           hostLevel={hostInfo.level}
-          userCoins={userCoins}
+          userDiamonds={userDiamonds}
         />
       )}
 
@@ -5110,7 +5110,7 @@ const LiveStream = () => {
               // Save gift message to database for other participants
               if (result.success) {
                 const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
-                const finalCost = result.transaction?.coins_spent ?? totalCost;
+                const finalCost = result.transaction?.diamonds_spent ?? totalCost;
                 if (finalBeans !== optimisticReceiverBeans) {
                   const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
                   if (optimistic) {
@@ -5161,7 +5161,7 @@ const LiveStream = () => {
             }
           })();
         }}
-        userCoins={userCoins}
+        userDiamonds={userDiamonds}
       />
       
       {/* Join Notifications moved to chat area - see bottom section */}

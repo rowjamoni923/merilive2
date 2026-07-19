@@ -137,12 +137,12 @@ const isUnlockedByLevel = (requiredLevel: number | null | undefined, effectiveLe
 const isMonetizedAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
-  price_coins?: number | null;
+  price_diamonds?: number | null;
 }): boolean => {
   return Boolean(
     asset.is_premium ||
     (asset.price_diamonds ?? 0) > 0 ||
-    (asset.price_coins ?? 0) > 0,
+    (asset.price_diamonds ?? 0) > 0,
   );
 };
 
@@ -375,7 +375,7 @@ const VIP = () => {
       // Fetch unlocked avatar frames only for the current role/level
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
-        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
+        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_diamonds")
         .eq("is_active", true)
         .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
         .order("min_level", { ascending: true });

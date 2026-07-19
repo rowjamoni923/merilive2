@@ -439,7 +439,7 @@ export function useLiveGameRound({
       // PARALLEL: Atomic deduct coins and save bet history simultaneously
       const [updateResult, betInsertResult] = await Promise.all([
         // Atomic coin deduction (race-condition safe)
-        supabase.rpc('deduct_coins', { p_user_id: user.id, p_amount: betAmount }),
+        supabase.rpc('deduct_diamonds', { p_user_id: user.id, p_amount: betAmount }),
         
         // Save bet to history (fire-and-forget)
         supabase

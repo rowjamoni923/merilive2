@@ -28,7 +28,7 @@ interface LiveRocketRaceGameProps {
   game: any;
   betAmount: number;
   setBetAmount: (amount: number) => void;
-  userCoins: number;
+  userDiamonds: number;
   phase: string;
   timeLeft: number;
   currentRound: any;
@@ -67,7 +67,7 @@ export function LiveRocketRaceGame({
   game,
   betAmount,
   setBetAmount,
-  userCoins,
+  userDiamonds,
   phase: externalPhase,
   timeLeft: externalTimeLeft,
   currentRound,
@@ -260,7 +260,7 @@ export function LiveRocketRaceGame({
 
   const handleSelectRocket = (rocketIndex: number) => {
     if (autoPlayPhase !== 'betting') return;
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
 
     const stake = betAmount;
     setSelectedRocket(rocketIndex);
@@ -506,7 +506,7 @@ export function LiveRocketRaceGame({
           <motion.button
             key={rocket.id}
             onClick={() => handleSelectRocket(i)}
-            disabled={betAmount > userCoins || autoPlayPhase !== 'betting'}
+            disabled={betAmount > userDiamonds || autoPlayPhase !== 'betting'}
             whileHover={{ scale: autoPlayPhase === 'betting' ? 1.05 : 1 }}
             whileTap={{ scale: 0.95 }}
             className={cn(
@@ -514,7 +514,7 @@ export function LiveRocketRaceGame({
               selectedRocket === i 
                 ? `border-white/60 ${rocket.bgColor}` 
                 : "border-white/20 bg-black/40 hover:bg-white/10",
-              (betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-50 cursor-not-allowed"
+              (betAmount > userDiamonds || autoPlayPhase !== 'betting') && "opacity-50 cursor-not-allowed"
             )}
           >
             {/* Active Bet Badge — shows bet placed on this rocket */}

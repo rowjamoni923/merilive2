@@ -340,7 +340,7 @@ serve(async (req) => {
         // 1) Lightweight aggregate query — stats are independent of pagination
         const { data: aggRows, error: aggErr } = await supabase
           .from("gift_transactions")
-          .select("coin_amount, sender_id, receiver_id")
+          .select("diamond_amount, sender_id, receiver_id")
           .gte("created_at", fromIso)
           .limit(10000);
         if (aggErr) throw aggErr;
@@ -354,7 +354,7 @@ serve(async (req) => {
         const senderSet = new Set<string>();
         const receiverSet = new Set<string>();
         (aggRows || []).forEach((r: any) => {
-          stats.total_beans += r.coin_amount || 0;
+          stats.total_beans += r.diamond_amount || 0;
           if (r.sender_id) senderSet.add(r.sender_id);
           if (r.receiver_id) receiverSet.add(r.receiver_id);
         });

@@ -37,7 +37,7 @@ interface RewardTier {
   rank_to: number;
   reward_diamonds: number;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
 }
 
 const PKLeaderboard = () => {
@@ -115,7 +115,7 @@ const PKLeaderboard = () => {
       // Fetch rewards
       const { data: rwds } = await supabase
         .from("pk_competition_rewards")
-        .select("rank_from, rank_to, reward_diamonds, reward_beans, reward_coins")
+        .select("rank_from, rank_to, reward_diamonds, reward_beans, reward_diamonds")
         .eq("competition_id", id)
         .eq("is_active", true)
         .order("rank_from");
@@ -267,8 +267,8 @@ const PKLeaderboard = () => {
                   {r.reward_beans > 0 && (
                     <p className="text-xs font-bold text-green-400">{formatNumber(r.reward_beans)} Beans</p>
                   )}
-                  {r.reward_coins > 0 && (
-                    <p className="text-xs font-bold text-yellow-400">{formatNumber(r.reward_coins)} 💰</p>
+                  {r.reward_diamonds > 0 && (
+                    <p className="text-xs font-bold text-yellow-400">{formatNumber(r.reward_diamonds)} 💰</p>
                   )}
                 </div>
               </div>

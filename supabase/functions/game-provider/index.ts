@@ -539,7 +539,7 @@ serve(async (req) => {
             throw new Error('Missing required bet parameters');
           }
           
-          const { data: profile, error: deductError } = await supabase.rpc('deduct_coins', {
+          const { data: profile, error: deductError } = await supabase.rpc('deduct_diamonds', {
             p_user_id: user_id,
             p_amount: bet_amount
           });

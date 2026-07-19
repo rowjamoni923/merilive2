@@ -23,7 +23,7 @@ interface ClaimRecord {
   current_progress: number;
   task_title: string;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
   target_audience: string;
   user_name: string;
   user_avatar: string;
@@ -36,7 +36,7 @@ interface HostSummary {
   user_avatar: string;
   user_uid: string;
   total_beans: number;
-  total_coins: number;
+  total_diamonds: number;
   total_claims: number;
   claims: ClaimRecord[];
 }
@@ -112,7 +112,7 @@ const AdminRewardClaimsHistory = () => {
       // Fetch task details and user profiles in parallel
       // Use profiles_public view (admin-safe; profiles table has no public SELECT policy)
       const [tasksRes, profilesRes] = await Promise.all([
-        supabase.from('daily_tasks').select('id, title, reward_beans, reward_coins, target_audience').in('id', taskIds),
+        supabase.from('daily_tasks').select('id, title, reward_beans, reward_diamonds, target_audience').in('id', taskIds),
         supabase.from('profiles_public').select('id, display_name, avatar_url, app_uid').in('id', userIds),
       ]);
 
@@ -130,7 +130,7 @@ const AdminRewardClaimsHistory = () => {
           current_progress: claim.current_progress,
           task_title: task?.title || 'Unknown Task',
           reward_beans: task?.reward_beans || 0,
-          reward_coins: task?.reward_coins || 0,
+          reward_diamonds: task?.reward_diamonds || 0,
           target_audience: task?.target_audience || 'all',
           user_name: profile?.display_name || 'Unknown',
           user_avatar: profile?.avatar_url || '',
@@ -161,7 +161,7 @@ const AdminRewardClaimsHistory = () => {
       const existing = map.get(claim.user_id);
       if (existing) {
         existing.total_beans += claim.reward_beans;
-        existing.total_coins += claim.reward_coins;
+        existing.total_diamonds += claim.reward_diamonds;
         existing.total_claims += 1;
         existing.claims.push(claim);
       } else {
@@ -171,7 +171,7 @@ const AdminRewardClaimsHistory = () => {
           user_avatar: claim.user_avatar,
           user_uid: claim.user_uid,
           total_beans: claim.reward_beans,
-          total_coins: claim.reward_coins,
+          total_diamonds: claim.reward_diamonds,
           total_claims: 1,
           claims: [claim],
         });

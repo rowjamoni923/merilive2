@@ -20,8 +20,8 @@ interface CallRecord {
   host_id: string;
   status: string;
   duration_seconds: number | null;
-  coins_spent: number | null;
-  total_coins_deducted?: number | null;
+  diamonds_spent: number | null;
+  total_diamonds_deducted?: number | null;
   host_earned?: number | null;
   host_earnings_amount?: number | null;
   caller_rating: number | null;
@@ -169,7 +169,7 @@ const CallHistory = () => {
         const callsWithProfiles: CallRecord[] = callsData.map(call => {
           const isOutgoing = call.caller_id === user.id;
           const otherUserId = isOutgoing ? call.host_id : call.caller_id;
-          const chargedCoins = Number(call.total_coins_deducted ?? call.coins_spent ?? 0);
+          const chargedCoins = Number(call.total_diamonds_deducted ?? call.diamonds_spent ?? 0);
           const storedHostEarnings = Number(call.host_earned ?? call.host_earnings_amount ?? 0);
           const hostEarnings = storedHostEarnings > 0
             ? storedHostEarnings

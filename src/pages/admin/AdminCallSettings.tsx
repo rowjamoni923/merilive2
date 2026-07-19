@@ -172,12 +172,12 @@ export default function AdminCallSettings() {
       
       const { data: recentCalls } = await supabase
         .from("private_calls")
-        .select("duration_seconds, coins_spent")
+        .select("duration_seconds, diamonds_spent")
         .gte("created_at", thirtyDaysAgo.toISOString())
         .limit(1000);
 
       const totalMinutes = Math.floor((recentCalls?.reduce((acc, c) => acc + (c.duration_seconds || 0), 0) || 0) / 60);
-      const totalEarnings = recentCalls?.reduce((acc, c) => acc + (c.coins_spent || 0), 0) || 0;
+      const totalEarnings = recentCalls?.reduce((acc, c) => acc + (c.diamonds_spent || 0), 0) || 0;
 
       setStats({ total_calls: totalRes.count || 0, active_calls: activeRes.count || 0, total_minutes: totalMinutes, total_earnings: totalEarnings });
     } catch (error) {

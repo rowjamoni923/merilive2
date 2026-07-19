@@ -107,7 +107,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
 
   const { buildGameUrl, loading: tokenLoading } = useGameToken();
   const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(500);
   const [showGameSelector, setShowGameSelector] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
@@ -259,18 +259,18 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
   };
 
   // Step 2 perf: stabilize callbacks via refs so the 5 live-game children
-  // don't re-render every time userCoins/balance ticks or roomId rebinds.
+  // don't re-render every time userDiamonds/balance ticks or roomId rebinds.
   const profileRef = useRef(currentUserProfile);
   const userIdRef = useRef(currentUserId);
   const roomIdRef = useRef(roomId);
   const contextRef = useRef(context);
-  const userCoinsRef = useRef(userCoins);
+  const userCoinsRef = useRef(userDiamonds);
   const phaseRef = useRef(phase);
   useEffect(() => { profileRef.current = currentUserProfile; }, [currentUserProfile]);
   useEffect(() => { userIdRef.current = currentUserId; }, [currentUserId]);
   useEffect(() => { roomIdRef.current = roomId; }, [roomId]);
   useEffect(() => { contextRef.current = context; }, [context]);
-  useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
+  useEffect(() => { userCoinsRef.current = userDiamonds; }, [userDiamonds]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   // Game win notification handler - includes user name and level
@@ -393,7 +393,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
       game: currentGame,
       betAmount,
       setBetAmount,
-      userCoins,
+      userDiamonds,
       phase,
       timeLeft,
       currentRound,
@@ -711,7 +711,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {presetBets.map((amount) => {
               const isActive = betAmount === amount;
-              const tooHigh = amount > userCoins;
+              const tooHigh = amount > userDiamonds;
               return (
                 <motion.button
                   key={amount}

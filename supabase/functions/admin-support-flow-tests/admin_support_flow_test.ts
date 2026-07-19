@@ -211,7 +211,7 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
           "x-admin-token": token,
         },
         body: JSON.stringify({
-          userId, coinAmount: 1,
+          userId, diamondAmount: 1,
           reason: "Support ticket E2E recovery",
           googleOrderId: orderId,
         }),
@@ -225,7 +225,7 @@ Deno.test({ name: "admin support flow: full E2E (reply, image, report, reward, r
       const dup = await fetch(`${SUPABASE_URL}/functions/v1/admin-verify-purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: ANON_KEY, "x-admin-token": token },
-        body: JSON.stringify({ userId, coinAmount: 1, googleOrderId: orderId }),
+        body: JSON.stringify({ userId, diamondAmount: 1, googleOrderId: orderId }),
       });
       const dupTxt = await dup.text();
       assertEquals(dup.status, 409, `expected duplicate 409, got ${dup.status}: ${dupTxt}`);

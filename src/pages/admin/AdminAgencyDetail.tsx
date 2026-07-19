@@ -147,7 +147,7 @@ export default function AdminAgencyDetail() {
   const [showTransferHostDialog, setShowTransferHostDialog] = useState(false);
   const [selectedHost, setSelectedHost] = useState<AgencyHost | null>(null);
   const [removeReason, setRemoveReason] = useState("");
-  const [coinAmount, setCoinAmount] = useState("");
+  const [diamondAmount, setCoinAmount] = useState("");
   const [coinNote, setCoinNote] = useState("");
   const [newLevel, setNewLevel] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
@@ -218,7 +218,7 @@ export default function AdminAgencyDetail() {
       // Fetch transactions (transfers from this agency owner)
       if (agencyData?.owner_id) {
         const { data: txData } = await supabase
-          .from("coin_transfers")
+          .from("diamond_transfers")
           .select("*")
           .eq("sender_id", agencyData.owner_id)
           .order("created_at", { ascending: false })
@@ -274,13 +274,13 @@ export default function AdminAgencyDetail() {
   };
 
   const handleAddCoins = async () => {
-    if (!agency || !coinAmount) return;
+    if (!agency || !diamondAmount) return;
     
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc("admin_add_agency_coins", {
+      const { error } = await supabase.rpc("admin_add_agency_diamonds", {
         _agency_id: agency.id,
-        _amount: parseFloat(coinAmount),
+        _amount: parseFloat(diamondAmount),
         _note: coinNote || null
       });
 
@@ -988,7 +988,7 @@ export default function AdminAgencyDetail() {
             <Input
               type="number"
               placeholder="Diamond amount"
-              value={coinAmount}
+              value={diamondAmount}
               onChange={(e) => setCoinAmount(e.target.value)}
               className="bg-slate-50 border-slate-200 text-slate-900"
             />
@@ -1001,7 +1001,7 @@ export default function AdminAgencyDetail() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddCoinsDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddCoins} disabled={actionLoading || !coinAmount}>
+            <Button onClick={handleAddCoins} disabled={actionLoading || !diamondAmount}>
               {actionLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Add
             </Button>

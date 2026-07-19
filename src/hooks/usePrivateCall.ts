@@ -367,16 +367,16 @@ export function usePrivateCall(userId: string | null) {
       try {
         const { data: callInfo } = await supabase
           .from('private_calls')
-          .select('total_coins_deducted, host_earned, coins_per_minute')
+          .select('total_diamonds_deducted, host_earned, diamonds_per_minute')
           .eq('id', callId)
           .single();
 
         if (callInfo && !callEndedRef.current && currentCallIdRef.current === callId) {
           setCallState(prev => ({
             ...prev,
-            totalCoinsSpent: callInfo.total_coins_deducted || 0,
+            totalCoinsSpent: callInfo.total_diamonds_deducted || 0,
             hostEarned: callInfo.host_earned || 0,
-            coinsPerMinute: callInfo.coins_per_minute || prev.coinsPerMinute,
+            coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
           }));
         }
       } catch (err) {
@@ -406,7 +406,7 @@ export function usePrivateCall(userId: string | null) {
     }
 
     try {
-      const { data, error } = await supabase.rpc('deduct_call_coins_per_minute', {
+      const { data, error } = await supabase.rpc('deduct_call_diamonds_per_minute', {
         p_call_id: callId,
       });
 
@@ -672,7 +672,7 @@ export function usePrivateCall(userId: string | null) {
 
 
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
-      const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
+      const resolvedCoinsPerMinute = Number(rpcPayload?.diamonds_per_minute ?? callRate);
       const resolvedTimeoutSeconds = Number(
         rpcPayload?.timeout_seconds ?? callSettings.call_timeout_seconds ?? DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS,
       ) || DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS;
@@ -882,7 +882,7 @@ export function usePrivateCall(userId: string | null) {
       const [callDataRes, acceptRes] = await Promise.all([
         supabase
           .from('private_calls')
-          .select('caller_id, coins_per_minute')
+          .select('caller_id, diamonds_per_minute')
           .eq('id', callId)
           .single(),
         supabase.rpc('accept_private_call', { _call_id: callId }),
@@ -909,7 +909,7 @@ export function usePrivateCall(userId: string | null) {
         setCallState(prev => ({
           ...prev,
           remoteUserId: callData.caller_id || prev.remoteUserId,
-          coinsPerMinute: callData.coins_per_minute || prev.coinsPerMinute,
+          coinsPerMinute: callData.diamonds_per_minute || prev.coinsPerMinute,
           hostId: userId || prev.hostId,
         }));
       }
@@ -961,16 +961,16 @@ export function usePrivateCall(userId: string | null) {
         try {
           const { data: callInfo } = await supabase
             .from('private_calls')
-            .select('total_coins_deducted, host_earned, coins_per_minute')
+            .select('total_diamonds_deducted, host_earned, diamonds_per_minute')
             .eq('id', callId)
             .single();
 
           if (callInfo && !callEndedRef.current) {
             setCallState(prev => ({
               ...prev,
-              totalCoinsSpent: callInfo.total_coins_deducted || 0,
+              totalCoinsSpent: callInfo.total_diamonds_deducted || 0,
               hostEarned: callInfo.host_earned || 0,
-              coinsPerMinute: callInfo.coins_per_minute || prev.coinsPerMinute,
+              coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
             }));
           }
         } catch (err) {

@@ -80,7 +80,7 @@ const getNotificationCategory = (type: string): string => {
   if (['call_missed', 'call_received', 'incoming_call'].includes(type)) return 'calls';
   if (['new_follower', 'follow'].includes(type)) return 'social';
   if (['live_started', 'party_invite', 'room_joined'].includes(type)) return 'live';
-  if (['coins_added', 'coin_purchase_helper', 'coin_purchase_direct', 'topup_approved', 'topup_rejected', 'diamonds_credited', 'coins_received', 'payment_completed', 'withdrawal', 'withdrawal_approved', 'withdrawal_rejected', 'beans_exchanged', 'balance_deducted', 'admin_credit', 'admin_debit', 'coin_exchange', 'diamond_sent'].includes(type)) return 'transactions';
+  if (['coins_added', 'coin_purchase_helper', 'coin_purchase_direct', 'topup_approved', 'topup_rejected', 'diamonds_credited', 'diamonds_received', 'payment_completed', 'withdrawal', 'withdrawal_approved', 'withdrawal_rejected', 'beans_exchanged', 'balance_deducted', 'admin_credit', 'admin_debit', 'coin_exchange', 'diamond_sent'].includes(type)) return 'transactions';
   if (['level_up', 'reward', 'task_completed', 'daily_bonus'].includes(type)) return 'rewards';
   if (['admin_message', 'admin_message_reply', 'system', 'security'].includes(type)) return 'system';
   if (type.startsWith('agency_')) return 'agency';
@@ -99,7 +99,7 @@ const getNotificationIcon = (type: string): string => {
     new_follower: '👤', follow: '👤',
     level_up: '🎉', level_upgrade: '🎉', level_upgrade_approved: '🎉', level_upgrade_rejected: '❌',
     coins_added: '💎', coin_purchase_helper: '💎', coin_purchase_direct: '💎', diamonds_credited: '💎', admin_credit: '💰', admin_debit: '⚠️',
-    coins_received: '💎', diamond_received: '💎', diamond_sent: '💎',
+    diamonds_received: '💎', diamond_received: '💎', diamond_sent: '💎',
     withdrawal_approved: '✅', withdrawal_rejected: '❌', withdrawal: '⏳', withdrawal_commission: '💎',
     host_approved: '🎉', host_rejected: '❌',
     live_started: '🔴', party_invite: '🎉',

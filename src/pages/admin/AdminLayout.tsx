@@ -2234,7 +2234,7 @@ export default function AdminLayout() {
       'helper_orders', 'live_bans', 'live_face_violations', 'host_conversion_requests',
       'chat_moderation_logs', 'host_contact_violations', 'helper_withdrawal_requests', 'notifications',
       'rating_reward_claims', 'leaderboard_reward_history', 'consumption_return_history',
-      'agency_earnings_transfers', 'coin_transfers', 'admin_users', 'admin_section_permissions'
+      'agency_earnings_transfers', 'diamond_transfers', 'admin_users', 'admin_section_permissions'
     ]);
 
     // Synthetic broadcast events from useAdminBroadcastSync (Pkg37) carry only

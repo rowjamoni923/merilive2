@@ -32,7 +32,7 @@ interface Recording {
   expires_at: string | null;
   total_viewers: number | null;
   total_gifts: number | null;
-  total_coins: number | null;
+  total_diamonds: number | null;
 }
 
 interface DayGroup {
@@ -43,7 +43,7 @@ interface DayGroup {
   totalDuration: number;
   totalViewers: number;
   totalGifts: number;
-  totalCoins: number;
+  totalDiamonds: number;
 }
 
 interface HostReport {
@@ -55,7 +55,7 @@ interface HostReport {
   totalDuration: number;
   totalViewers: number;
   totalGifts: number;
-  totalCoins: number;
+  totalDiamonds: number;
 }
 
 export default function AdminRecordings() {
@@ -135,7 +135,7 @@ export default function AdminRecordings() {
           totalDuration: recs.reduce((s, r) => s + (r.duration_seconds || 0), 0),
           totalViewers: recs.reduce((s, r) => s + (r.total_viewers || 0), 0),
           totalGifts: recs.reduce((s, r) => s + (r.total_gifts || 0), 0),
-          totalCoins: recs.reduce((s, r) => s + (r.total_coins || 0), 0),
+          totalDiamonds: recs.reduce((s, r) => s + (r.total_diamonds || 0), 0),
         };
       });
 
@@ -148,7 +148,7 @@ export default function AdminRecordings() {
       totalDuration: filtered.reduce((s, r) => s + (r.duration_seconds || 0), 0),
       totalViewers: filtered.reduce((s, r) => s + (r.total_viewers || 0), 0),
       totalGifts: filtered.reduce((s, r) => s + (r.total_gifts || 0), 0),
-      totalCoins: filtered.reduce((s, r) => s + (r.total_coins || 0), 0),
+      totalDiamonds: filtered.reduce((s, r) => s + (r.total_diamonds || 0), 0),
     };
   }, [recordings, searchQuery]);
 
@@ -175,7 +175,7 @@ export default function AdminRecordings() {
         totalDuration: recs.reduce((s, r) => s + (r.duration_seconds || 0), 0),
         totalViewers: recs.reduce((s, r) => s + (r.total_viewers || 0), 0),
         totalGifts: recs.reduce((s, r) => s + (r.total_gifts || 0), 0),
-        totalCoins: recs.reduce((s, r) => s + (r.total_coins || 0), 0),
+        totalDiamonds: recs.reduce((s, r) => s + (r.total_diamonds || 0), 0),
       }));
   }, [recordings, searchQuery]);
 
@@ -290,7 +290,7 @@ export default function AdminRecordings() {
                           <span>{formatDuration(rec.duration_seconds || 0)}</span>
                           {rec.total_viewers ? <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{rec.total_viewers}</span> : null}
                           {rec.total_gifts ? <span className="flex items-center gap-1"><Gift className="w-3 h-3 text-pink-400" />{rec.total_gifts}</span> : null}
-                          {rec.total_coins ? <span className="flex items-center gap-1"><Diamond className="w-3 h-3 text-cyan-400" />{rec.total_coins}</span> : null}
+                          {rec.total_diamonds ? <span className="flex items-center gap-1"><Diamond className="w-3 h-3 text-cyan-400" />{rec.total_diamonds}</span> : null}
                           <span>{formatFileSize(rec.file_size_bytes)}</span>
                         </div>
                       </div>
@@ -384,7 +384,7 @@ export default function AdminRecordings() {
                   </div>
                   <div className="bg-white/15 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
                     <p className="text-white/70 text-[10px]">Total Diamonds</p>
-                    <p className="text-white font-bold text-xl">{hostReport.totalCoins}</p>
+                    <p className="text-white font-bold text-xl">{hostReport.totalDiamonds}</p>
                   </div>
                 </div>
               </CardContent>

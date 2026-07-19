@@ -14,7 +14,7 @@ interface CallConfirmModalProps {
   hostName: string;
   hostAvatar: string | null;
   hostLevel?: number;
-  userCoins: number;
+  userDiamonds: number;
 }
 
 export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModalProps>(function CallConfirmModal({
@@ -25,7 +25,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
   hostName,
   hostAvatar,
   hostLevel = 1,
-  userCoins,
+  userDiamonds,
 }, _ref) {
   const navigate = useNavigate();
   
@@ -35,7 +35,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
 
   // Check if rate is configured and user has enough coins
   const rateConfigured = callRate !== null && callRate > 0;
-  const hasEnoughCoins = rateConfigured && userCoins >= callRate;
+  const hasEnoughCoins = rateConfigured && userDiamonds >= callRate;
 
   // Handle call or redirect to recharge
   const handleAction = () => {

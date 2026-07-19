@@ -73,7 +73,7 @@ interface HelperMethod {
 
 interface MatchedPackage {
   id: string;
-  coins_amount: number;
+  diamonds_amount: number;
   price_usd: number;
 }
 
@@ -422,12 +422,12 @@ function CampaignFloatingButton() {
 
   const fetchMatchedPackage = useCallback(async (activeCampaign: Campaign) => {
     const { data } = await supabase
-      .from('coin_packages')
-      .select('id, coins_amount, price_usd')
+      .from('diamond_packages')
+      .select('id, diamonds_amount, price_usd')
       .eq('is_active', true);
 
     const matched = (data || []).find((pkg: any) => (
-      Number(pkg.coins_amount) === Number(activeCampaign.diamonds_amount) &&
+      Number(pkg.diamonds_amount) === Number(activeCampaign.diamonds_amount) &&
       Math.abs(Number(pkg.price_usd) - Number(activeCampaign.original_price_usd)) < 0.01
     ));
 
@@ -789,7 +789,7 @@ function CampaignFloatingButton() {
           helper_id: currentMethod.helper_id,
           user_id: userId,
           customer_id: userId,
-          coin_amount: campaign.diamonds_amount,
+          diamond_amount: campaign.diamonds_amount,
           diamond_amount: campaign.diamonds_amount,
           amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
           total_price_usd: campaign.offer_price_usd || campaign.original_price_usd,
@@ -1584,7 +1584,7 @@ function CampaignFloatingButton() {
           onOpenChange={(open) => setShowSwiftPayModal(open)}
           packages={matchedPackage ? [{
             id: matchedPackage.id,
-            coins: matchedPackage.coins_amount,
+            coins: matchedPackage.diamonds_amount,
             price_usd: matchedPackage.price_usd,
           }] : []}
           userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}

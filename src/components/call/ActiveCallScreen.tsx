@@ -120,7 +120,7 @@ export function ActiveCallScreen({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [remoteStreamReady, setRemoteStreamReady] = useState(false);
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
   const [isSwapped, setIsSwapped] = useState(false);
@@ -272,8 +272,8 @@ export function ActiveCallScreen({
   const endingRef = useRef(false);
 
   useEffect(() => {
-    userCoinsRef.current = userCoins;
-  }, [userCoins]);
+    userCoinsRef.current = userDiamonds;
+  }, [userDiamonds]);
   
   // ✅ REAL-TIME: Fetch and subscribe to gift commission
   useEffect(() => {
@@ -1745,7 +1745,7 @@ export function ActiveCallScreen({
         isOpen={showGiftPanel}
         onClose={() => setShowGiftPanel(false)}
         onSendGift={handleSendGift}
-        userCoins={userCoins}
+        userDiamonds={userDiamonds}
       />
       
       {/* Flying Gift Animations */}

@@ -12,7 +12,7 @@ export type NotificationType =
   | 'coin_purchase_helper'
   | 'coin_purchase_direct'
   | 'coins_added'
-  | 'coins_received'
+  | 'diamonds_received'
   | 'withdrawal'
   | 'withdrawal_approved'
   | 'withdrawal_rejected'
@@ -104,19 +104,19 @@ export const sendGiftNotification = async (
   senderName: string,
   senderId: string,
   giftName: string,
-  coinAmount: number,
+  diamondAmount: number,
   streamId?: string
 ) => {
   return sendNotification({
     userId: receiverId,
     type: 'gift_received',
     title: `🎁 ${senderName} sent you a gift!`,
-    message: `${giftName} (${coinAmount} Diamonds)`,
+    message: `${giftName} (${diamondAmount} Diamonds)`,
     data: {
       sender_id: senderId,
       sender_name: senderName,
       gift_name: giftName,
-      coin_amount: coinAmount,
+      diamond_amount: diamondAmount,
       stream_id: streamId
     }
   });

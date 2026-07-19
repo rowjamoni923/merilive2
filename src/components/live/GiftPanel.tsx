@@ -71,7 +71,7 @@ interface GiftPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSendGift: (gift: GiftData, count: number) => void;
-  userCoins?: number; // Optional - will fetch from DB if not provided
+  userDiamonds?: number; // Optional - will fetch from DB if not provided
 }
 
 // Pkg306 audit: accept URLs with query strings (cache-busters, signed Supabase URLs).
@@ -122,11 +122,11 @@ const getOptimizedGiftIconUrl = (iconUrl?: string | null, animationUrl?: string 
   return normalizedIconUrl && !VIDEO_OR_GIF_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl)) ? normalizedIconUrl : null;
 };
 
-export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(function GiftPanel({ isOpen, onClose, onSendGift, userCoins: propUserCoins }, _ref) {
+export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(function GiftPanel({ isOpen, onClose, onSendGift, userDiamonds: propUserCoins }, _ref) {
   const [activeCategory, setActiveCategory] = useState(0);
   const [selectedGift, setSelectedGift] = useState<GiftData | null>(null);
   const [count, setCount] = useState(1);
-  const [userCoins, setUserCoins] = useState(propUserCoins || 0);
+  const [userDiamonds, setUserCoins] = useState(propUserCoins || 0);
   const [displayCoins, setDisplayCoins] = useState(propUserCoins || 0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gifts, setGifts] = useState<GiftData[]>([]);
@@ -141,7 +141,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const COMBO_WINDOW_MS = 3000;
   const containerRef = useRef<HTMLDivElement>(null);
   // Pkg306 audit: synchronous balance mirror so rapid combo taps cannot overdraw
-  // between renders. Closure `userCoins` lags by one render in combo bursts.
+  // between renders. Closure `userDiamonds` lags by one render in combo bursts.
   const userCoinsRef = useRef<number>(propUserCoins || 0);
   const { isLandscape, isVerySmallHeight } = useMobileOrientation();
 
@@ -168,7 +168,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     },
     () => { /* Navigate to recharge */ },
     gifts,
-    userCoins
+    userDiamonds
   );
 
   // Animation state for panel open/close (CSS-based for performance)
@@ -185,7 +185,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   }, [isOpen]);
 
   // Sync prop-supplied coin balance whenever the parent updates it.
-  // Without this, GiftPanel's local `userCoins` stays frozen at the
+  // Without this, GiftPanel's local `userDiamonds` stays frozen at the
   // value captured on mount until the balance subscription fires.
   useEffect(() => {
     if (typeof propUserCoins === 'number' && propUserCoins >= 0) {
@@ -238,9 +238,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         name: gift.name,
         nameBn: gift.name,
         emoji: '', // No defaults - only DB assets
-        coins: gift.coin_value,
+        coins: gift.diamond_value,
         category: gift.category || 'wall',
-        animationType: getAnimationType(gift.coin_value),
+        animationType: getAnimationType(gift.diamond_value),
         icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
         animation_url: normalizeGiftAssetUrl(gift.animation_url),
         animation_format: (gift as any).animation_format || null,
@@ -293,33 +293,33 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   }, [isOpen]);
 
   // Determine animation type based on coin value
-  const getAnimationType = (coinValue: number): 'basic' | 'premium' | 'luxury' | 'legendary' => {
-    if (coinValue >= 10000) return 'legendary';
-    if (coinValue >= 1000) return 'luxury';
-    if (coinValue >= 100) return 'premium';
+  const getAnimationType = (diamondValue: number): 'basic' | 'premium' | 'luxury' | 'legendary' => {
+    if (diamondValue >= 10000) return 'legendary';
+    if (diamondValue >= 1000) return 'luxury';
+    if (diamondValue >= 100) return 'premium';
     return 'basic';
   };
 
   // Real-time coin update animation
   useEffect(() => {
-    if (displayCoins !== userCoins) {
+    if (displayCoins !== userDiamonds) {
       setIsAnimating(true);
-      const diff = userCoins - displayCoins;
+      const diff = userDiamonds - displayCoins;
       const step = diff > 0 ? Math.ceil(diff / 10) : Math.floor(diff / 10);
       const interval = setInterval(() => {
         setDisplayCoins(prev => {
           const next = prev + step;
-          if ((step > 0 && next >= userCoins) || (step < 0 && next <= userCoins)) {
+          if ((step > 0 && next >= userDiamonds) || (step < 0 && next <= userDiamonds)) {
             clearInterval(interval);
             setIsAnimating(false);
-            return userCoins;
+            return userDiamonds;
           }
           return next;
         });
       }, 30);
       return () => clearInterval(interval);
     }
-  }, [userCoins]);
+  }, [userDiamonds]);
 
   // Get gifts for current category
   const getCategoryGifts = useCallback((categoryId: string) => {
@@ -407,8 +407,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   }, [selectedGift, resetCombo, effectiveUserLevel]);
 
 
-  // Keep ref in sync with userCoins (mirror, not state-source).
-  useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
+  // Keep ref in sync with userDiamonds (mirror, not state-source).
+  useEffect(() => { userCoinsRef.current = userDiamonds; }, [userDiamonds]);
 
   // Combo-aware send: each tap fires the currently-selected `count` and bumps combo.
   // Optimistically deduct the cost from local balance so that rapid combo taps
@@ -496,7 +496,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     return VIDEO_OR_GIF_PATTERN.test(url);
   }, []);
 
-  const hasBalance = selectedGift ? userCoins >= selectedGift.coins * count : false;
+  const hasBalance = selectedGift ? userDiamonds >= selectedGift.coins * count : false;
 
   // Don't render if not open OR if native is active
   if (!isOpen || isNative) return null;
@@ -768,7 +768,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 {/* Combo Presets: 1, 11, 37, 77 — Chamet style */}
                 <div className="flex gap-1 flex-1 justify-between">
                   {COMBO_PRESETS.map((n) => {
-                    const canAfford = userCoins >= selectedGift.coins * n;
+                    const canAfford = userDiamonds >= selectedGift.coins * n;
                     const isActive = count === n;
                     return (
                       <button

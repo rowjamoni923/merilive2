@@ -21,7 +21,7 @@ interface DailyTask {
   requirement_type: string;
   requirement_value: number;
   reward_beans: number;
-  reward_coins: number;
+  reward_diamonds: number;
   icon_name: string;
   icon_color: string;
   display_order: number;
@@ -77,7 +77,7 @@ const AdminTasksSettings = () => {
     requirement_type: 'first_live',
     requirement_value: 1,
     reward_beans: 50,
-    reward_coins: 10,
+    reward_diamonds: 10,
     icon_name: 'star',
     icon_color: '#FFB800',
     display_order: 0,
@@ -273,7 +273,7 @@ const AdminTasksSettings = () => {
           requirement_type: formData.requirement_type || 'first_live',
           requirement_value: formData.requirement_value || 1,
           reward_beans: formData.reward_beans || 0,
-          reward_coins: formData.reward_coins || 0,
+          reward_diamonds: formData.reward_diamonds || 0,
           icon_name: formData.icon_name || 'star',
           icon_color: formData.icon_color || '#FFB800',
           display_order: formData.display_order || 0,
@@ -335,7 +335,7 @@ const AdminTasksSettings = () => {
       requirement_type: 'first_live',
       requirement_value: 1,
       reward_beans: 50,
-      reward_coins: 10,
+      reward_diamonds: 10,
       icon_name: 'star',
       icon_color: '#FFB800',
       display_order: tasks.length,
@@ -592,8 +592,8 @@ const AdminTasksSettings = () => {
                   <Label>💎 Diamonds Reward</Label>
                   <Input
                     type="number"
-                    value={formData.reward_coins || 0}
-                    onChange={(e) => setFormData({ ...formData, reward_coins: parseInt(e.target.value) })}
+                    value={formData.reward_diamonds || 0}
+                    onChange={(e) => setFormData({ ...formData, reward_diamonds: parseInt(e.target.value) })}
                   />
                 </div>
               </div>
@@ -708,7 +708,7 @@ const AdminTasksSettings = () => {
                         +{task.reward_beans} Beans
                       </span>
                       <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                        +{task.reward_coins} Coins
+                        +{task.reward_diamonds} Coins
                       </span>
                       {(task as any).show_in_live && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">

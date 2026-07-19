@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { CoinFlyAnimation, useFlyingCoins, WinCelebration, LossDisplay, BetAreaCoins } from "./CoinFlyAnimation";
+import { DiamondFlyAnimation, useFlyingCoins, WinCelebration, LossDisplay, BetAreaCoins } from "./DiamondFlyAnimation";
 
 interface GameSetting {
   id: string;
@@ -63,7 +63,7 @@ const formatBet = (amount: number): string => {
 const MiniDragonTiger = ({
   betAmount,
   setBetAmount,
-  userCoins,
+  userDiamonds,
   phase,
   timeLeft,
   onPlaceBet,
@@ -120,7 +120,7 @@ const MiniDragonTiger = ({
   };
 
   const handlePlaceBet = async (type: 'dragon' | 'tiger' | 'tie') => {
-    if (phase !== 'betting' || betAmount > userCoins) return;
+    if (phase !== 'betting' || betAmount > userDiamonds) return;
     setSelectedBet(type);
     await onPlaceBet('dragon_tiger', type);
   };
@@ -217,7 +217,7 @@ const MiniDragonTiger = ({
 };
 
 // Ultra Compact Crash/Aviator Game
-const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
+const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userDiamonds, onWin }: any) => {
   const [multiplier, setMultiplier] = useState(1.00);
   const [crashed, setCrashed] = useState(false);
   const [cashedOut, setCashedOut] = useState(false);
@@ -253,7 +253,7 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) 
     e.preventDefault();
     e.stopPropagation();
     if (isPlacingBet || hasBet) return;
-    if (betAmount > userCoins) {
+    if (betAmount > userDiamonds) {
       toast.error('Not enough diamonds!');
       return;
     }
@@ -316,10 +316,10 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) 
           <motion.button 
             whileTap={{ scale: 0.95 }} 
             onClick={handlePlaceBet} 
-            disabled={betAmount > userCoins || isPlacingBet}
+            disabled={betAmount > userDiamonds || isPlacingBet}
             className={cn(
               "px-4 py-1.5 rounded-lg text-white font-bold text-xs shadow",
-              betAmount > userCoins 
+              betAmount > userDiamonds 
                 ? "bg-gray-500 cursor-not-allowed" 
                 : "bg-gradient-to-r from-green-500 to-emerald-600"
             )}
@@ -353,7 +353,7 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) 
 };
 
 // Ultra Compact Lucky 28 Game
-const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
+const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userDiamonds, onWin }: any) => {
   const [selectedBet, setSelectedBet] = useState<'big' | 'small' | 'odd' | 'even' | null>(null);
   const [dice1, setDice1] = useState(1);
   const [dice2, setDice2] = useState(1);
@@ -406,7 +406,7 @@ const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) =>
   }, [phase, selectedBet]);
 
   const handleBet = async (type: 'big' | 'small' | 'odd' | 'even') => {
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
     setSelectedBet(type);
     await onPlaceBet('lucky_28', type);
   };
@@ -463,7 +463,7 @@ const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) =>
 };
 
 // Ultra Compact Plinko Game
-const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
+const MiniPlinko = ({ phase, onPlaceBet, betAmount, userDiamonds, onWin }: any) => {
   const [hasBet, setHasBet] = useState(false);
   const [ballPosition, setBallPosition] = useState({ x: 50, y: 0 });
   const [isDropping, setIsDropping] = useState(false);
@@ -506,7 +506,7 @@ const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => 
   };
 
   const handleBet = async () => {
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
     setHasBet(true);
     await onPlaceBet('plinko', 'drop');
   };
@@ -553,7 +553,7 @@ const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => 
 };
 
 // Ultra Compact Andar Bahar Game
-const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
+const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userDiamonds, onWin }: any) => {
   const [selectedSide, setSelectedSide] = useState<'andar' | 'bahar' | null>(null);
   const [jokerCard, setJokerCard] = useState<string | null>(null);
   const [andarCards, setAndarCards] = useState<string[]>([]);
@@ -601,7 +601,7 @@ const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any)
   };
 
   const handleBet = async (side: 'andar' | 'bahar') => {
-    if (betAmount > userCoins) return;
+    if (betAmount > userDiamonds) return;
     setSelectedSide(side);
     await onPlaceBet('andar_bahar', side);
   };
@@ -659,7 +659,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || 'dragon_tiger');
   const [loading, setLoading] = useState(true);
-  const [userCoins, setUserCoins] = useState(0);
+  const [userDiamonds, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [isExpanded, setIsExpanded] = useState(true);
   const [showGamePicker, setShowGamePicker] = useState(false);
@@ -760,13 +760,13 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   };
 
   const handlePlaceBet = async (betType?: string, betValue?: string) => {
-    console.log('handlePlaceBet called:', { phase, betAmount, userCoins, betType, betValue });
+    console.log('handlePlaceBet called:', { phase, betAmount, userDiamonds, betType, betValue });
     
     if (phase !== 'betting') {
       console.log('Not in betting phase');
       return { success: false, error: 'Betting is closed' };
     }
-    if (betAmount > userCoins) { 
+    if (betAmount > userDiamonds) { 
       toast.error('Not enough diamonds'); 
       return { success: false, error: 'Not enough diamonds' }; 
     }
@@ -809,7 +809,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
     const props = {
       betAmount,
       setBetAmount,
-      userCoins,
+      userDiamonds,
       phase,
       timeLeft,
       onPlaceBet: handlePlaceBet,
@@ -906,7 +906,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       {/* Win/Loss Animations */}
       <WinCelebration show={showWin} amount={winAmount} onComplete={() => setShowWin(false)} />
       <LossDisplay show={showLoss} amount={lossAmount} onComplete={() => setShowLoss(false)} />
-      <CoinFlyAnimation coins={flyingCoins} />
+      <DiamondFlyAnimation coins={flyingCoins} />
       
       <motion.div
         initial={{ y: 100, opacity: 0 }}
@@ -1015,11 +1015,11 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
             <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded text-[10px]">
               <Coins className="w-2.5 h-2.5 text-amber-400" />
               <span className="text-amber-300 font-bold">
-                {userCoins >= 1000000 
-                  ? `${(userCoins / 1000000).toFixed(1)}M` 
-                  : userCoins >= 1000 
-                    ? `${(userCoins / 1000).toFixed(0)}K` 
-                    : userCoins}
+                {userDiamonds >= 1000000 
+                  ? `${(userDiamonds / 1000000).toFixed(1)}M` 
+                  : userDiamonds >= 1000 
+                    ? `${(userDiamonds / 1000).toFixed(0)}K` 
+                    : userDiamonds}
               </span>
             </div>
 
@@ -1074,12 +1074,12 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
                 key={amount}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setBetAmount(amount)}
-                disabled={amount > userCoins}
+                disabled={amount > userDiamonds}
                 className={cn(
                   "flex-1 py-1 rounded text-[11px] font-bold transition-all",
                   betAmount === amount
                     ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/20"
-                    : amount > userCoins
+                    : amount > userDiamonds
                       ? "bg-white/5 text-white/20"
                       : "bg-white/10 text-white/70"
                 )}

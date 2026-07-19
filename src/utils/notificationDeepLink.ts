@@ -75,7 +75,7 @@ export function getNotificationPath(data: NotificationData | null | undefined): 
   ) {
     return "/recharge-history";
   }
-  if (type === "coins_added" || type === "coins_received" || type === "diamonds_credited") {
+  if (type === "coins_added" || type === "diamonds_received" || type === "diamonds_credited") {
     return "/profile";
   }
   if (type === "coin_exchange" || type === "diamond_sent") return "/agency-coin-exchange";
