@@ -355,7 +355,7 @@ const VIP = () => {
       // Fetch unlocked avatar frames only for the current role/level
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
-        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_diamonds")
+            .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds")
         .eq("is_active", true)
         .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
         .order("min_level", { ascending: true });
