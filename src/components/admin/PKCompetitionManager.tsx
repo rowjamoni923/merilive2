@@ -520,7 +520,7 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
         {numInput("reward_diamonds")}
       </div>
       <div>
-        <Label className="text-white/50 text-[10px]">Coins</Label>
+        <Label className="text-white/50 text-[10px]">Diamonds (legacy)</Label>
         {numInput("reward_coins")}
       </div>
       <div className="col-span-1 flex items-end justify-end">
