@@ -13,7 +13,6 @@ const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolea
 const isFreeAsset = (asset: {
   is_premium?: boolean | null;
   price_diamonds?: number | null;
-  price_diamonds?: number | null;
 }) => {
   return !asset.is_premium && (asset.price_diamonds ?? 0) <= 0 && (asset.price_diamonds ?? 0) <= 0;
 };

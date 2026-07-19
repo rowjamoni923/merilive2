@@ -684,13 +684,11 @@ const blurOnEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
 const DailyLoginRewardRow = ({ reward, onCommit }: { reward: any; onCommit: (field: string, value: any) => void }) => {
   const [draft, setDraft] = useState({
     reward_diamonds: String(reward.reward_diamonds ?? 0),
-    reward_diamonds: String(reward.reward_diamonds ?? 0),
     bonus_label: reward.bonus_label || "",
   });
 
   useEffect(() => {
     setDraft({
-      reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
       bonus_label: reward.bonus_label || "",
     });

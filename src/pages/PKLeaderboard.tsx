@@ -37,7 +37,6 @@ interface RewardTier {
   rank_to: number;
   reward_diamonds: number;
   reward_beans: number;
-  reward_diamonds: number;
 }
 
 const PKLeaderboard = () => {

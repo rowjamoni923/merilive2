@@ -790,7 +790,6 @@ function CampaignFloatingButton() {
           user_id: userId,
           customer_id: userId,
           diamond_amount: campaign.diamonds_amount,
-          diamond_amount: campaign.diamonds_amount,
           amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
           total_price_usd: campaign.offer_price_usd || campaign.original_price_usd,
           amount_local: localAmount,

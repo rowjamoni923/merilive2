@@ -122,7 +122,6 @@ const hi = {
     level: "लेवल",
     diamonds: "Diamonds",
     beans: "बीन्स",
-    diamonds: "डायमंड",
     wallet: "वॉलेट",
     myAgency: "मेरी एजेंसी",
     becomeHost: "होस्ट बनें",

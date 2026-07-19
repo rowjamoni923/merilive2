@@ -33,7 +33,6 @@ export default function MatchCall() {
   const [profile, setProfile] = useState<{
     id: string;
     diamonds: number;
-    diamonds?: number | null;
     vip_tier: number | null;
     current_vip_tier_id?: string | null;
   } | null>(null);

@@ -45,7 +45,6 @@ interface PKRewardTier {
   rank_to: number;
   reward_diamonds: number;
   reward_beans: number;
-  reward_diamonds: number;
   reward_badge: string | null;
   is_active: boolean;
 }
@@ -163,7 +162,6 @@ const PKCompetitionManager = () => {
           rank_to: t.to,
           reward_diamonds: 0,
           reward_beans: 0,
-          reward_diamonds: 0,
           is_active: true,
         }))
       );
@@ -466,7 +464,6 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
     rank_to: String(reward.rank_to ?? 1),
     reward_beans: String(reward.reward_beans ?? 0),
     reward_diamonds: String(reward.reward_diamonds ?? 0),
-    reward_diamonds: String(reward.reward_diamonds ?? 0),
   });
 
   useEffect(() => {
@@ -474,7 +471,6 @@ const PKRewardTierRow = ({ reward, onCommit, onDelete }: PKRewardTierRowProps) =
       rank_from: String(reward.rank_from ?? 1),
       rank_to: String(reward.rank_to ?? 1),
       reward_beans: String(reward.reward_beans ?? 0),
-      reward_diamonds: String(reward.reward_diamonds ?? 0),
       reward_diamonds: String(reward.reward_diamonds ?? 0),
     });
   }, [reward.id, reward.rank_from, reward.rank_to, reward.reward_beans, reward.reward_diamonds, reward.reward_diamonds]);

@@ -129,7 +129,6 @@ const en = {
     level: "Level",
     diamonds: "Diamonds",
     beans: "Beans",
-    diamonds: "Diamonds",
     wallet: "Wallet",
     myAgency: "My Agency",
     becomeHost: "Become Host",
