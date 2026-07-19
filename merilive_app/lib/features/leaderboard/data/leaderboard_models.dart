@@ -103,20 +103,17 @@ class RankingEntry {
 class RewardTier {
   final int rankFrom;
   final int rankTo;
-  final int rewardCoins;
   final int rewardDiamonds;
   final int rewardBeans;
   const RewardTier({
     required this.rankFrom,
     required this.rankTo,
-    required this.rewardCoins,
     required this.rewardDiamonds,
     required this.rewardBeans,
   });
   factory RewardTier.fromJson(Map<String, dynamic> j) => RewardTier(
         rankFrom: (j['rank_from'] as num?)?.toInt() ?? 0,
         rankTo: (j['rank_to'] as num?)?.toInt() ?? 0,
-        rewardCoins: (j['reward_coins'] as num?)?.toInt() ?? 0,
         rewardDiamonds: (j['reward_diamonds'] as num?)?.toInt() ?? 0,
         rewardBeans: (j['reward_beans'] as num?)?.toInt() ?? 0,
       );
@@ -127,7 +124,7 @@ class RewardTier {
     final parts = <String>[];
     if (rewardBeans > 0) parts.add('${_fmt(rewardBeans)}B');
     if (rewardDiamonds > 0) parts.add('${_fmt(rewardDiamonds)}💎');
-    if (rewardCoins > 0) parts.add('${_fmt(rewardCoins)}💰');
+
     return parts.join(' + ');
   }
 }

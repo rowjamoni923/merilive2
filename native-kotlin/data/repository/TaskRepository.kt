@@ -243,8 +243,8 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun getWithdrawalHistory(): List<WithdrawalHistoryData> {
         val userId = getCurrentUserId() ?: return emptyList()
-        // coin_transfers uses sender_id, not user_id
-        return postgrest.from("coin_transfers")
+        // diamond_transfers uses sender_id, not user_id
+        return postgrest.from("diamond_transfers")
             .select {
                 filter { eq("sender_id", userId) }
                 order("created_at", Order.DESCENDING)
@@ -258,7 +258,7 @@ class TaskRepositoryImpl @Inject constructor(
     ): Boolean {
         val userId = getCurrentUserId() ?: return false
         return try {
-            // Use RPC since coin_transfers doesn't have payment_method/account columns
+            // Use RPC since diamond_transfers doesn't have payment_method/account columns
             postgrest.rpc("submit_user_withdrawal", buildJsonObject {
                 put("_user_id", userId)
                 put("_amount", amount)
@@ -300,7 +300,7 @@ data class DailyTaskData(
     val requirement_type: String? = null,
     val requirement_value: Int? = null,
     val reward_beans: Int? = null,
-    val reward_coins: Int? = null,
+    val reward_diamonds: Int? = null,
     val icon_name: String? = null,
     val icon_color: String? = null,
     val display_order: Int? = null,
@@ -321,7 +321,7 @@ data class TaskProgressData(
 data class ClaimResult(
     val success: Boolean = false,
     val beans_earned: Int = 0,
-    val coins_earned: Int = 0,
+    val diamonds_earned: Int = 0,
 )
 
 @Serializable
@@ -331,7 +331,7 @@ data class InvitationTierData(
     val min_invites: Int? = null,
     val max_invites: Int? = null,
     val reward_beans: Int? = null,
-    val reward_coins: Int? = null,
+    val reward_diamonds: Int? = null,
     val bonus_percentage: Double? = null,
     val badge_color: String? = null,
     val is_active: Boolean? = null,
@@ -350,7 +350,7 @@ data class ConsumptionTierData(
     val min_spend: Int? = null,
     val max_spend: Int? = null,
     val return_percentage: Double? = null,
-    val max_return_coins: Int? = null,
+    val max_return_diamonds: Int? = null,
     val period_type: String? = null,
 )
 

@@ -82,7 +82,7 @@ object NumberUtils {
 
     fun formatCurrency(value: Long, symbol: String = "💎"): String = "$symbol ${formatCompact(value)}"
     
-    fun formatCoins(coins: Long): String = formatCurrency(coins, "💎")
+    fun formatDiamonds(diamonds: Long): String = formatCurrency(diamonds, "💎")
     fun formatBeans(beans: Long): String = formatCurrency(beans, "🫘")
     fun formatDiamonds(diamonds: Long): String = formatCurrency(diamonds, "💎")
 }

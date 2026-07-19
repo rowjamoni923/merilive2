@@ -16,7 +16,7 @@ class DailyRewardManager(
         val canClaim: Boolean = false,
         val currentDay: Int = 1,
         val streak: Int = 0,
-        val rewardCoins: Long = 0,
+        val rewardDiamonds: Long = 0,
         val rewardDiamonds: Long = 0,
     )
 

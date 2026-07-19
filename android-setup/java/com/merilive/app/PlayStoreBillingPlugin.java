@@ -42,9 +42,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * ╠══════════════════════════════════════════════════════════════╣
  * ║                                                              ║
  * ║  Features:                                                   ║
- * ║   ✅ In-App Products (coins) purchase flow                  ║
+ * ║   ✅ In-App Products (diamonds) purchase flow                  ║
  * ║   ✅ Product details query with caching                     ║
- * ║   ✅ Auto acknowledge + consume (coins = re-purchasable)    ║
+ * ║   ✅ Auto acknowledge + consume (diamonds = re-purchasable)    ║
  * ║   ✅ Purchase restoration                                   ║
  * ║   ✅ Exponential backoff retry (max 3 attempts)             ║
  * ║   ✅ Pending purchases auto-processing                      ║
@@ -407,7 +407,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
         String productId = purchase.getProducts().get(0);
         Log.i(TAG, "✅ Purchase successful: " + productId);
 
-        // Consume (coins are re-purchasable)
+        // Consume (diamonds are re-purchasable)
         ConsumeParams consumeParams = ConsumeParams.newBuilder()
             .setPurchaseToken(purchase.getPurchaseToken())
             .build();
