@@ -12778,7 +12778,7 @@ export type Database = {
           deletion_scheduled_at: string | null
           device_fingerprints: Json
           device_id: string | null
-          diamonds: number | null
+          diamonds: number
           display_name: string | null
           email: string | null
           email_notifications: boolean | null
@@ -12909,7 +12909,7 @@ export type Database = {
           deletion_scheduled_at?: string | null
           device_fingerprints?: Json
           device_id?: string | null
-          diamonds?: number | null
+          diamonds?: number
           display_name?: string | null
           email?: string | null
           email_notifications?: boolean | null
@@ -13040,7 +13040,7 @@ export type Database = {
           deletion_scheduled_at?: string | null
           device_fingerprints?: Json
           device_id?: string | null
-          diamonds?: number | null
+          diamonds?: number
           display_name?: string | null
           email?: string | null
           email_notifications?: boolean | null
@@ -22922,7 +22922,7 @@ export type Database = {
           deletion_scheduled_at: string | null
           device_fingerprints: Json
           device_id: string | null
-          diamonds: number | null
+          diamonds: number
           display_name: string | null
           email: string | null
           email_notifications: boolean | null
