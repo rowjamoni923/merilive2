@@ -137,6 +137,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/vip-management': () => import('@/pages/admin/AdminVIPManagement'),
   '/admin/game-management': () => import('@/pages/admin/AdminGameManagement'),
   '/admin/party-management': () => import('@/pages/admin/AdminPartyManagement'),
+  '/admin/diamond-trader-hub': () => import('@/pages/admin/AdminCoinTraderHub'),
   '/admin/coin-trader-hub': () => import('@/pages/admin/AdminCoinTraderHub'),
   '/admin/app-settings-hub': () => import('@/pages/admin/AdminAppSettingsHub'),
   '/admin/host-feed-ranking': () => import('@/pages/admin/AdminHostFeedRanking'),
