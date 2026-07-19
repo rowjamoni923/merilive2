@@ -192,20 +192,20 @@ export default function AdminRandomCallSettings() {
                 </div>
                 <Switch checked={s.auto_convert_to_private} onCheckedChange={(v) => update("auto_convert_to_private", v)} />
               </div>
-              <Field label="Host revenue split (0–1)" hint="0.60 = host gets 60% of charged coins as beans (applies to the spawned private call).">
+              <Field label="Host revenue split (0–1)" hint="0.60 = host gets 60% of charged diamonds as beans (applies to the spawned private call).">
                 <Input type="number" step="0.01" min={0.2} max={0.8} value={s.host_split_pct} onChange={(e) => update("host_split_pct", Number(e.target.value))} />
               </Field>
-              <Field label="Default host rate (coins/min)" hint="Fallback per-minute rate when host has none set on their profile.">
+              <Field label="Default host rate (diamonds/min)" hint="Fallback per-minute rate when host has none set on their profile.">
 
                 <Input type="number" value={s.default_host_rate_coins_per_min} onChange={(e) => update("default_host_rate_coins_per_min", NUM(e.target.value))} />
               </Field>
-              <Field label="Host rate FLOOR (coins/min)" hint="Lowest price a host can set.">
+              <Field label="Host rate FLOOR (diamonds/min)" hint="Lowest price a host can set.">
                 <Input type="number" value={s.host_min_rate_coins_per_min} onChange={(e) => update("host_min_rate_coins_per_min", NUM(e.target.value))} />
               </Field>
-              <Field label="Host rate CEILING (coins/min)" hint="Highest price a host can set.">
+              <Field label="Host rate CEILING (diamonds/min)" hint="Highest price a host can set.">
                 <Input type="number" value={s.host_max_rate_coins_per_min} onChange={(e) => update("host_max_rate_coins_per_min", NUM(e.target.value))} />
               </Field>
-              <Field label="Pre-auth hold (minutes)" hint="Coins held before caller enters queue (insufficient balance = rejected).">
+              <Field label="Pre-auth hold (minutes)" hint="Diamonds held before caller enters queue (insufficient balance = rejected).">
                 <Input type="number" min={1} max={10} value={s.preauth_minutes_hold} onChange={(e) => update("preauth_minutes_hold", NUM(e.target.value))} />
               </Field>
               <Field label="Price-change cooldown (seconds)" hint="Lock-out after host adjusts rate. 3600 = 1 hour.">
