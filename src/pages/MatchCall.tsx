@@ -98,7 +98,7 @@ export default function MatchCall() {
       const { data: u } = await supabase.auth.getUser();
       if (u?.user) {
         const { data: p } = await supabase.from("profiles")
-          .select("id, coins, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
+          .select("id, diamonds, vip_tier, current_vip_tier_id").eq("id", u.user.id).maybeSingle();
         if (p) setProfile(p as any);
       }
       await refreshHostsCount();
