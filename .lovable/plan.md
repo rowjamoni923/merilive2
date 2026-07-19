@@ -1,75 +1,71 @@
-## Managed Banners System — Central Admin Control
+# Zero-Coin Wave — One Currency Diamond + Beans
 
-সমস্ত static banners, guideline cards, welcome popups গুলোকে admin panel থেকে edit করার একটা centralized system তৈরি করব। যেকোনো time admin থেকে text / image / CTA / colors change করলে instantly app-এ reflect হবে (Realtime subscription)।
+## Honest current state (verified)
 
-### 1. Database (single source of truth)
+- DB fact: `profiles.coins` is already `GENERATED ALWAYS AS (diamonds) STORED` (DU-5A live). It is **not** a second wallet — it is literally the same number as `diamonds`.
+- All spend RPCs (call/gift/game/shop/PK) write to `diamonds` only. Verified `deduct_call_coins_per_minute` reads/writes `diamonds`; `start_private_call` uses `GREATEST(coins, diamonds)` which equals `diamonds`.
+- So the "call fails despite Diamonds" symptom is **not** a real dual-wallet mismatch anymore — it is either a client stale cache (`useUserBalance` cache) or an Android APK still on pre-DU5 code path. Will verify with owner-account reproduction in Phase 0.
+- What is still true and must be fixed: **68 DB columns**, **4 tables**, **~1280 client identifier hits**, **10+ RPC parameter names**, and **5 route/file names** still carry the word `coin`. Owner mandate: purge all of them.
 
-নতুন table `managed_banners`:
-- `slug` (unique key, e.g. `agency_dashboard_guideline`, `payroll_helper_welcome`, `new_agency_popup`, `agency_policy_hero`, `agency_commission_hero`, `agency_activation_warning`, `agency_closed_notice`, `create_agency_intro`, `agency_signup_intro`)
-- `title`, `subtitle`, `body_md` (rich text/markdown)
-- `image_url` (optional hero image)
-- `cta_text`, `cta_url` (optional button)
-- `theme` (json: bg gradient, accent color, icon name)
-- `bullets` (jsonb array of {icon, title, description})
-- `is_active`, `updated_at`, `updated_by`
+## Scope (nothing skipped)
 
-Realtime enabled + admin-only write RLS + public read.
+40 tables with `coin*` columns (e.g. `coins_amount`, `coins_per_minute`, `coin_price`, `reward_coins`, `coin_rate_per_min`, `total_coins_*`, `bonus_coins`, `coin_cost`, `coin_value`).
+4 tables named `coin_packages`, `coin_transactions`, `coin_transfers`, `coin_trader_transfers`.
+5 file/route pairs: `/admin/coins`, `/admin/coin-traders`, `/admin/coin-trader-hub`, `/agency-coin-exchange`, `/agency-coin-trader`.
+10+ RPCs (`deduct_call_coins_per_minute`, and all functions consuming the renamed columns).
+Locale keys `coins`, `coinsPerMin`, `coinsSent` (already return "Diamonds" text, but keys still say `coins`).
 
-### 2. Seed all existing banners
+## Phased execution (each phase = one approved migration/PR, verified before next)
 
-Initial rows for প্রত্যেকটা জায়গা:
-1. **Agency Dashboard Guideline Helper** (`agency_dashboard_guideline`)
-2. **Payroll Helper Welcome Popup** (`payroll_helper_welcome`) — `PayrollHelperWelcomeModal`
-3. **New Agency Created Popup** (`new_agency_popup`)
-4. **Agency Activation Warning** (`agency_activation_warning`) — `AgencyActivationBanner`
-5. **Agency Closed Notice** (`agency_closed_notice`)
-6. **Agency Policy Hero** (`agency_policy_hero`) — `AgencyPolicy.tsx`
-7. **Agency Commission Hero** (`agency_commission_hero`) — `About.tsx`
-8. **Create Agency Intro** (`create_agency_intro`)
-9. **Agency Signup Intro** (`agency_signup_intro`)
-10. **Payroll Helper Guide Hero** (`payroll_helper_guide_hero`)
-11. **Policy Documents Intro** (`policy_intro`)
+### Phase 0 — Repro the call bug (today)
+- Log in as owner test account, attempt a private call with Diamond balance > rate.
+- Read `private_call_diag` to see actual error string.
+- If error is `insufficient_balance` while `diamonds > rate`: fix in Phase 1a as a hotfix (force `useUserBalance` + `usePrivateCall` to read `diamonds` and ignore `coins` entirely on client).
+- Otherwise report actual error and fix it before continuing.
 
-(commission % / tier data আগের মতোই `agency_level_tiers` থেকে dynamic — এই banner system শুধু copy/design control করে)
+### Phase 1 — Client Diamond-only reads (safe, no DB change)
+- `usePrivateCall.ts`, `MatchCall.tsx`, `ProfileDetail.tsx`, `useUserBalance.ts`: read only `diamonds`, drop all `Math.max(coins, diamonds)` and `profile.coins` fallbacks.
+- Rename internal TS variables/props (`coinsPerMinute` → `diamondsPerMinute`, `callerRemainingCoins` → `callerRemainingDiamonds`, etc.) in call/gift/wallet hooks and pages.
+- Rename `useAdminSettingsRealtime.ts` field `coins` (diamond package rows) → `diamonds`.
+- Update `adminTopupHistory.ts`, `notificationDeepLink.ts` enum string literals via a compatibility map (accept both `coins`/`diamonds`, emit `diamonds`).
+- Locales: add `diamonds`, `diamondsPerMin`, `diamondsSent` keys; keep old `coins*` keys as aliases for one release then delete.
+- No DB change in this phase — safe rollback.
 
-### 3. Admin UI — নতুন menu tab
+### Phase 2 — DB column rename migration (one big migration, transactional)
+Order (all in a single transaction so RPCs recompile atomically):
+1. Add new columns as generated aliases of old columns for every rename (e.g. `ALTER TABLE recharge_transactions ADD COLUMN diamonds_amount bigint GENERATED ALWAYS AS (coins_amount) STORED`). This is the DU-5A pattern proven safe.
+2. Rewrite every RPC/function that reads or writes the old columns to use the new names. Full list generated from `pg_proc` scan.
+3. Rewrite triggers, views, RLS policies that reference old columns.
+4. Verify with `pg_get_functiondef` diff that no function still references old column names.
 
-**Route:** `/admin/managed-banners`  
-**Menu label:** "Banners & Guidelines" (Content section এ)
+### Phase 3 — DB drop legacy names (after Phase 2 soak)
+- Drop generated aliases; rename real columns to Diamond names (`coins_amount` → `diamonds_amount`, etc.).
+- Rename tables: `coin_packages` → `diamond_packages`, `coin_transactions` → `diamond_transactions`, `coin_transfers` → `diamond_transfers`, `coin_trader_transfers` → `diamond_trader_transfers`.
+- Drop `profiles.coins` generated column.
+- Rename RPC `deduct_call_coins_per_minute` → `deduct_call_diamonds_per_minute` (add wrapper that redirects one release).
 
-Features:
-- Grid list of all banners with preview thumbnail + section label
-- Click → editor drawer: title / subtitle / body / image upload / CTA / theme picker / bullets editor
-- Live preview panel দেখায় ঠিক যেভাবে user side এ দেখাবে
-- Toggle `is_active` (hide/show)
-- "Reset to default" button
-- Search + filter by section
+### Phase 4 — Client file/route rename with 301 redirects
+- Rename files: `AdminCoins.tsx` → `AdminDiamonds.tsx`, `AdminCoinTraders.tsx` → `AdminDiamondTraders.tsx`, `AdminCoinTraderHub.tsx` → `AdminDiamondTraderHub.tsx`, `AgencyCoinExchange.tsx` → `AgencyDiamondExchange.tsx`, `AgencyCoinTrader.tsx` → `AgencyDiamondTrader.tsx`.
+- Routes: new `/admin/diamonds`, `/admin/diamond-traders`, `/agency-diamond-exchange`, etc. Old routes render a `<Navigate>` redirect for 30 days.
+- Update every sidebar/menu/link to the new routes.
+- Update generated Supabase `types.ts` (auto after Phase 3 migration approval).
+- Final grep to confirm zero `coin` product-identifier hits outside comments/tests.
 
-### 4. Frontend hook
+### Phase 5 — Android parity handoff
+- Produce a Flutter/Android rename cheat sheet (column names, RPC names, route paths, JSON keys) so the Android agent can mirror the exact identifiers in the next APK.
 
-`useManagedBanner(slug)` — একটা reusable hook যা DB থেকে fetch করে + Realtime subscribe করে। Existing components গুলো এটা use করবে fallback default সহ, যাতে DB row না থাকলেও কিছু ভাঙে না।
+## Risk & rollback
+- Phase 1 is pure client — hot-reversible.
+- Phase 2 is additive (generated aliases) — reversible by dropping new columns.
+- Phase 3 is destructive — requires 48h soak after Phase 2 with wallet-audit query paste before we run it.
+- Phase 4 is client-only after Phase 3 types regen.
+- No parallel edits to old migration files. Every DB change is a new migration.
 
-### 5. Components refactor
+## What I need from owner before I run migrations
+- Green light per phase (each phase = separate migration approval).
+- Confirmation to keep the 30-day redirect window on old admin/agency routes, or drop old routes immediately.
 
-- `AgencyActivationBanner.tsx` → hook থেকে title/body pull
-- `PayrollHelperWelcomeModal.tsx` → hero image, title, subtitle, benefits, key advantages সব DB থেকে
-- `CreateAgency.tsx`, `AgencySignup.tsx`, `AgencyDashboard.tsx`, `AgencyPolicy.tsx`, `PayrollHelperGuide.tsx`, `About.tsx` → hero/intro banner sections DB থেকে
-
-Default fallback content = current hardcoded content, তাই কিছু break হবে না।
-
-### Technical notes
-- Realtime channel per slug
-- Admin write via `service_role` through existing `adminSupabase` client
-- Image upload uses existing `banners` storage bucket
-- No breaking DB migration — additive only
-
----
-
-**Deliverables:**
-- 1 migration (table + RLS + seed rows)
-- 1 admin page (`AdminManagedBanners.tsx`) + menu entry
-- 1 hook (`useManagedBanner.ts`)
-- Refactor of ~7 banner-hosting components to consume the hook
-- Zero visual regression — defaults = current design
-
-Confirm করলে implement start করব।
+## Not in scope
+- Renaming Beans (stays as earn wallet).
+- Gift animation payload shape (`gift.coins` field name) — that ships with Phase 2 as `gift.diamonds` but native VAP/SVGA dispatcher only reads the number; no visual change.
+- No time-saving shortcut. Every phase verified with `pg_get_functiondef` diff + owner-account live test before the next.
