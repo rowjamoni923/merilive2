@@ -552,11 +552,12 @@ export function usePrivateCall(userId: string | null) {
       // IMPORTANT: Do NOT auto-reset call status here.
       // Each new call must be created fresh by start_private_call RPC without force-ending any active call.
 
-      // PARALLEL: Fetch user coins, host info, and admin call settings simultaneously
+      // PARALLEL: Fetch user diamonds, host info, and admin call settings simultaneously
       // NOTE: Do NOT query the host's `profiles` row directly — RLS blocks non-owner SELECT.
       // Host busy/blocked/face-verified checks all run server-side inside `start_private_call` RPC.
+      // ZERO-COIN: single spend wallet = diamonds.
       const [userProfileRes, hostProfileRes, callRatesSetting] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', userId).single(),
+        supabase.from('profiles').select('diamonds, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', userId).single(),
         supabase.from('profiles_public').select('display_name, avatar_url, is_online, user_level, host_level, max_user_level, gender, is_host, call_rate_per_minute').eq('id', hostId).maybeSingle(),
         getAppSetting<unknown>('call_rates'),
       ]);
@@ -579,7 +580,8 @@ export function usePrivateCall(userId: string | null) {
         return null;
       }
 
-      if ((userProfile?.coins || 0) < callRate) {
+      const callerDiamonds = Number((userProfile as any)?.diamonds ?? 0);
+      if (callerDiamonds < callRate) {
         toast({
           title: "Insufficient Diamonds",
           description: `You need at least ${callRate} diamonds. Redirecting to recharge...`,
@@ -601,7 +603,7 @@ export function usePrivateCall(userId: string | null) {
         status: 'calling', 
         remoteUserId: hostId,
         hostId: hostId,
-        callerRemainingCoins: userProfile?.coins || 0,
+        callerRemainingCoins: callerDiamonds,
       }));
 
       // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
