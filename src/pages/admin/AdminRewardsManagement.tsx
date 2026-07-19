@@ -329,7 +329,7 @@ const AdminRewardsManagement = () => {
                     onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
                     className="w-full h-9 rounded-md border bg-background px-3 text-sm"
                   >
-                    <option value="coins">Coins</option>
+                    <option value="coins">Diamonds (legacy coins)</option>
                     <option value="diamonds">Diamonds</option>
                     <option value="beans">Beans</option>
                   </select>
