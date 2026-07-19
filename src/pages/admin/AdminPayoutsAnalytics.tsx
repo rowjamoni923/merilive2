@@ -568,7 +568,7 @@ export default function AdminPayoutsAnalytics() {
           <span className="text-slate-900/80 font-semibold">Sources:</span>{" "}
           agency_withdrawals · helper_withdrawal_requests · helper_topup_requests · helper_orders ·
           payroll_requests · agency_earnings_transfers · user_beans_exchanges. Diamond → USD uses the
-          official coin rate (auto-derived from top-up packages).
+          official diamond rate (auto-derived from top-up packages).
         </div>
       </div>
     </div>

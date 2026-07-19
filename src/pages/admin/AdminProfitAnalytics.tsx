@@ -892,9 +892,9 @@ export default function AdminProfitAnalytics() {
 
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-900/60 leading-relaxed space-y-1">
           <div>
-            <span className="text-slate-900/80 font-semibold">Official coin rate:</span>{" "}
+            <span className="text-slate-900/80 font-semibold">Official diamond rate:</span>{" "}
             {coinRate
-              ? `${(1 / coinRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} coins = $1 USD`
+              ? `${(1 / coinRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} diamonds = $1 USD`
               : "loading…"}{" "}
             <span className="text-slate-900/40">
               (auto-computed from active top-up packages)

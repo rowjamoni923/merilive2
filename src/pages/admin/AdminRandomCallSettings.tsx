@@ -147,7 +147,7 @@ export default function AdminRandomCallSettings() {
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-xs">
-          <strong>Random Call rule:</strong> 1st minute = <strong>{s.default_host_rate_coins_per_min ?? 500}💎/min</strong> from caller, host earns <strong>{Math.round((s.default_host_rate_coins_per_min ?? 500) * (s.host_split_pct ?? 0.5))}💎</strong> ({Math.round((s.host_split_pct ?? 0.5) * 100)}% share). Min billable: {s.min_billable_seconds ?? 40}s — calls below this are free. At {s.random_window_seconds ?? 60}s the call auto-converts to a Private Call billed at the <strong>host's own per-minute rate</strong> (level-based). If the caller doesn't have at least <strong>{s.convert_min_balance_seconds ?? 60}s of coins</strong> at conversion, the call ends instantly for both sides. Server-enforced by <code>settle_random_call()</code> + <code>convert_random_to_private()</code>.
+          <strong>Random Call rule:</strong> 1st minute = <strong>{s.default_host_rate_coins_per_min ?? 500}💎/min</strong> from caller, host earns <strong>{Math.round((s.default_host_rate_coins_per_min ?? 500) * (s.host_split_pct ?? 0.5))}💎</strong> ({Math.round((s.host_split_pct ?? 0.5) * 100)}% share). Min billable: {s.min_billable_seconds ?? 40}s — calls below this are free. At {s.random_window_seconds ?? 60}s the call auto-converts to a Private Call billed at the <strong>host's own per-minute rate</strong> (level-based). If the caller doesn't have at least <strong>{s.convert_min_balance_seconds ?? 60}s of diamonds</strong> at conversion, the call ends instantly for both sides. Server-enforced by <code>settle_random_call()</code> + <code>convert_random_to_private()</code>.
         </AlertDescription>
       </Alert>
 
@@ -182,7 +182,7 @@ export default function AdminRandomCallSettings() {
               <Field label="Random free window (seconds)" hint="How long the random call stays free before auto-converting to private. Industry standard: 60.">
                 <Input type="number" min={30} max={180} value={s.random_window_seconds} onChange={(e) => update("random_window_seconds", NUM(e.target.value))} />
               </Field>
-              <Field label="Min balance for convert (seconds-worth)" hint="At the 60s mark, caller must have at least this many seconds of coins at the host's rate, otherwise the call ends. 60 = need one full minute prepaid.">
+              <Field label="Min balance for convert (seconds-worth)" hint="At the 60s mark, caller must have at least this many seconds of diamonds at the host's rate, otherwise the call ends. 60 = need one full minute prepaid.">
                 <Input type="number" min={30} max={300} value={s.convert_min_balance_seconds} onChange={(e) => update("convert_min_balance_seconds", NUM(e.target.value))} />
               </Field>
               <div className="flex items-center justify-between md:col-span-2 p-3 border rounded">

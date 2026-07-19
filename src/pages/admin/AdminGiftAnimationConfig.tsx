@@ -122,7 +122,7 @@ export default function AdminGiftAnimationConfig() {
         <CardHeader>
           <CardTitle className="text-lg text-slate-900">Full-Screen Playback</CardTitle>
           <CardDescription>
-            When a gift's per-unit coin value meets or exceeds the threshold, a full-screen VAP/SVGA/Lottie/MP4
+            When a gift's per-unit diamond value meets or exceeds the threshold, a full-screen VAP/SVGA/Lottie/MP4
             animation plays. Below the threshold, only the compact flying banner appears.
           </CardDescription>
         </CardHeader>
@@ -141,10 +141,10 @@ export default function AdminGiftAnimationConfig() {
 
           <div>
             <Label htmlFor="fs-threshold" className="text-base font-medium text-slate-900">
-              Coin threshold
+              Diamond threshold
             </Label>
             <p className="mb-2 mt-1 text-xs text-slate-500">
-              Gifts costing at least this many coins per unit will trigger a full-screen animation.
+              Gifts costing at least this many diamonds per unit will trigger a full-screen animation.
             </p>
             <Input
               id="fs-threshold"
@@ -162,7 +162,7 @@ export default function AdminGiftAnimationConfig() {
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
               <b>Live preview:</b> current settings — threshold{' '}
-              <span className="font-mono font-semibold">{threshold}</span> coins,{' '}
+              <span className="font-mono font-semibold">{threshold}</span> diamonds,{' '}
               <span className="font-semibold">{enabled ? 'ENABLED' : 'DISABLED'}</span>.
               {lastUpdated && (
                 <span className="ml-2 text-blue-700/70">

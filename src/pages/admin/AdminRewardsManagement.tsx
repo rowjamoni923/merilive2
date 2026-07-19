@@ -329,7 +329,7 @@ const AdminRewardsManagement = () => {
                     onChange={(e) => setWeeklyDraft((d) => ({ ...d, reward_type: e.target.value }))}
                     className="w-full h-9 rounded-md border bg-background px-3 text-sm"
                   >
-                    <option value="coins">Diamonds (legacy coins)</option>
+                    <option value="coins">Diamonds</option>
                     <option value="diamonds">Diamonds</option>
                     <option value="beans">Beans</option>
                   </select>
@@ -407,7 +407,7 @@ const AdminRewardsManagement = () => {
                         value={firstRechargeConfig.bonus_multiplier}
                         onChange={(e) => setFirstRechargeConfig({ ...firstRechargeConfig, bonus_multiplier: parseFloat(e.target.value) || 2 })}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">e.g. 2.0 = double coins, 3.0 = triple</p>
+                      <p className="text-xs text-muted-foreground mt-1">e.g. 2.0 = double diamonds, 3.0 = triple</p>
                     </div>
                     <div>
                       <Label>Bonus Label</Label>
@@ -589,7 +589,7 @@ const AdminRewardsManagement = () => {
                     <Input
                       value={newOffer.description}
                       onChange={(e) => setNewOffer({ ...newOffer, description: e.target.value })}
-                      placeholder="Get extra coins on recharge!"
+                      placeholder="Get extra diamonds on recharge!"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">

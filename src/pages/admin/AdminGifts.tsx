@@ -934,7 +934,7 @@ export default function AdminGifts() {
 
                     {/* Price */}
                     <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold border-amber-300 mb-2 md:mb-3 text-[10px] md:text-xs shadow-sm">
-                      {gift.coin_value?.toLocaleString()} coins
+                      {gift.coin_value?.toLocaleString()} 💎
                     </Badge>
 
                     {/* Animation Type - Hide on mobile */}

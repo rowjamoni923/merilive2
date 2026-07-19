@@ -324,7 +324,7 @@ const AdminLevelTiers = () => {
       <Card className={adminStyles.statsCardPurple}>
         <CardContent className="p-4">
           <p className="text-sm text-purple-800">
-            <strong>User Levels:</strong> Based on top-up amount (coins purchased)<br />
+            <strong>User Levels:</strong> Based on top-up amount (diamonds purchased)<br />
             <strong>Host Levels:</strong> Based on earnings (gifts received)
           </p>
         </CardContent>
