@@ -129,9 +129,7 @@ export default function AdminAiImageStudio() {
     setBroadcasting(url);
     try {
       const { error } = await supabase.functions.invoke("send-push-notification", {
-        body: {
           title: eventName,
-          body: `${eventName} — tap to see more!`,
           imageUrl: url,
           type: "broadcast",
         },

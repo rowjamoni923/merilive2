@@ -59,7 +59,6 @@ interface HelperOrder {
   created_at: string;
   user_country_code: string | null;
   helper?: {
-    user_id: string;
     wallet_balance: number;
     user?: {
       display_name: string;
@@ -67,10 +66,6 @@ interface HelperOrder {
       app_uid: string;
     };
   };
-  user?: {
-    display_name: string;
-    avatar_url: string;
-    app_uid: string;
   };
 }
 
@@ -150,7 +145,6 @@ const AdminHelperOrders = () => {
           helper: helper
             ? {
                 ...helper,
-                user: helper.user_id ? profileMap.get(helper.user_id) || null : null,
               }
             : null,
         };
@@ -182,16 +176,11 @@ const AdminHelperOrders = () => {
       if (error) throw error;
 
       toast({
-        title: "Status Updated",
-        description: `Order marked as ${newStatus}`,
       });
       fetchOrders();
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorUpdatingOrder", message: formatAdminError(error)});
       toast({
-        title: "Error",
-        description: "Failed to update order status",
-        variant: "destructive"
       });
     }
   };

@@ -178,38 +178,12 @@ export default function AdminPartyBanners() {
 
   const resetForm = () => {
     setFormData({
-      banner_type: 'big_win',
-      title: '',
-      subtitle: '',
-      amount: 0,
-      icon_emoji: '💎',
-      gradient_from: '#8B5CF6',
-      gradient_to: '#EC4899',
-      link_type: 'game',
-      link_url: '',
-      is_active: true,
-      display_order: 0,
-      min_room_level: 0,
-      room_types: ['audio', 'video', 'game'],
     });
   };
 
   const startEdit = (banner: PartyBanner) => {
     setEditingBanner(banner);
     setFormData({
-      banner_type: banner.banner_type,
-      title: banner.title,
-      subtitle: banner.subtitle || '',
-      amount: banner.amount,
-      icon_emoji: banner.icon_emoji,
-      gradient_from: banner.gradient_from,
-      gradient_to: banner.gradient_to,
-      link_type: banner.link_type || 'game',
-      link_url: banner.link_url || '',
-      is_active: banner.is_active,
-      display_order: banner.display_order,
-      min_room_level: banner.min_room_level,
-      room_types: banner.room_types,
     });
     setIsCreating(false);
   };
@@ -417,7 +391,6 @@ export default function AdminPartyBanners() {
                   <div 
                     className="backdrop-blur-sm rounded-xl px-3 py-2"
                     style={{
-                      background: `linear-gradient(to right, ${formData.gradient_from}E6, ${formData.gradient_to}E6)`
                     }}
                   >
                     <div className="flex flex-col items-center">
@@ -461,7 +434,6 @@ export default function AdminPartyBanners() {
                   <div 
                     className="px-3 py-2 rounded-xl"
                     style={{
-                      background: `linear-gradient(to right, ${banner.gradient_from}, ${banner.gradient_to})`
                     }}
                   >
                     <div className="flex items-center gap-2">

@@ -745,7 +745,7 @@ export const useAutoRefresh = <T>(
 export const useUserRealtime = (
   userId: string | null,
   onProfileUpdate?: (profile: any) => void,
-  onBalanceUpdate?: (coins: number) => void,
+  onBalanceUpdate?: (diamonds: number) => void,
   onNotification?: (notification: any) => void
 ) => {
   useEffect(() => {

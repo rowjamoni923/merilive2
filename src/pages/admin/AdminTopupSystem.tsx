@@ -48,7 +48,6 @@ interface UserProfile {
   display_name: string;
   avatar_url: string;
   app_uid: string;
-  coins: number;
   diamonds: number;
   is_host: boolean;
   is_verified: boolean;
@@ -442,9 +441,6 @@ const AdminTopupSystem = () => {
       setHelpers(data || []);
       setStats(prev => ({
         ...prev,
-        totalHelpers: (data || []).length,
-        activeHelpers: (data || []).filter((h: any) => h.is_active && h.is_verified).length,
-        totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
       }));
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
@@ -513,11 +509,6 @@ const AdminTopupSystem = () => {
     setIsTransferring(true);
     try {
       const { data, error } = await supabase.rpc('admin_adjust_balance', {
-        _target_type: 'helper',
-        _target_id: selectedHelper.id,
-        _field: 'wallet_balance',
-        _delta: amt,
-        _reason: transferNote || `Admin transfer: ${amt} diamonds`,
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Transfer failed');
@@ -544,7 +535,6 @@ const AdminTopupSystem = () => {
     setUpgradingLevel(true);
     try {
       const { data, error } = await supabase.rpc('admin_set_topup_helper_level', {
-        _helper_id: levelUpHelper.id,
         _level: newLevel,
       });
       if (error) throw error;

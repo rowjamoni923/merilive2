@@ -142,7 +142,6 @@ serve(async (req) => {
       const { data: userData, error: userErr } = await supabase.auth.getUser(token);
       if (userErr || !userData?.user?.id) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
@@ -151,7 +150,6 @@ serve(async (req) => {
 
     if (!imageBase64) {
       return new Response(JSON.stringify({ error: "No image provided" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -160,7 +158,6 @@ serve(async (req) => {
       : String(imageBase64);
     if (cleanBase64.length > 6_500_000) {
       return new Response(JSON.stringify({ error: "Image too large" }), {
-        status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -291,15 +288,12 @@ serve(async (req) => {
     console.log(`[face-check] Stream: ${streamId}, Face: ${faceDetected}, Eyes: ${analysis.eyesOpen}(${analysis.eyesOpenConfidence.toFixed(0)}%), Light: ${analysis.goodLighting}, FrameOK: ${analysis.goodFraming}, Lying: ${analysis.lyingDown}, Pose: Y${analysis.pose.yaw.toFixed(1)} P${analysis.pose.pitch.toFixed(1)} R${analysis.pose.roll.toFixed(1)}, Sleep: ${analysis.sleepScore}, Violations: ${analysis.violations.join(",") || "none"}`);
 
     return new Response(JSON.stringify(analysis), {
-      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("[face-check] Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

@@ -140,10 +140,6 @@ describe('Pkg132 reactions', () => {
     window.addEventListener('livekit-reaction', () => detail());
 
     const env = buildEnvelope('reactions', 'reaction', {
-      scope: 'party',
-      id: 'r1',
-      senderId: 'x',
-      emoji: '🔥',
     });
     f.emit(encodeEnvelope(env));
     expect(detail).not.toHaveBeenCalled();
@@ -165,10 +161,6 @@ describe('Pkg132 reactions', () => {
 
       act(() => {
         const env = buildEnvelope('reactions', 'reaction', {
-          scope: 'live',
-          id: 'r2',
-          senderId: 'peer-2',
-          emoji: '👍',
         });
         f.emit(encodeEnvelope(env));
       });
@@ -192,10 +184,6 @@ describe('Pkg132 reactions', () => {
 
     const long = '🔥'.repeat(50);
     const env = buildEnvelope('reactions', 'reaction', {
-      scope: 'live',
-      id: 'r3',
-      senderId: 'peer',
-      emoji: long,
     });
     f.emit(encodeEnvelope(env));
     expect(detail).toHaveBeenCalledTimes(1);

@@ -272,8 +272,6 @@ const Invitation = () => {
                 const profile = profileMap.get(inv.invitee_id!);
                 return profile ? {
                   id: profile.id,
-                  display_name: profile.display_name || 'User',
-                  avatar_url: profile.avatar_url,
                   created_at: inv.created_at,
                 } : null;
               })

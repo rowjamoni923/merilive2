@@ -20,7 +20,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
     accentColor: "from-purple-500 to-indigo-600",
     sections: [
       {
-        title: "Who Can Become a Host?",
         icon: "👤",
         items: [
           "Must be 18 years or older",
@@ -31,9 +30,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Host Benefits",
-        icon: "🎁",
-        items: [
           "Earn diamonds from video calls and gifts",
           "Weekly withdrawal (every Wednesday)",
           "Access to beauty filters & AR stickers",
@@ -43,9 +39,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Host Responsibilities",
-        icon: "📋",
-        items: [
           "Maintain a minimum of 2 hours daily online time",
           "Respond to calls within 30 seconds",
           "Keep profile photo updated and approved",
@@ -55,9 +48,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Earnings Structure",
-        icon: "💰",
-        items: [
           "1 Diamond = 1 Bin (internal currency unit)",
           "Video call earnings: Based on call duration",
           "Gift earnings: 100% of received gift value",
@@ -69,15 +59,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "party-room": {
-    id: "party-room",
-    title: "Party Room Policy",
-    subtitle: "Rules and guidelines for party rooms",
-    accentColor: "from-pink-500 to-rose-600",
-    sections: [
       {
-        title: "Party Room Rules",
-        icon: "🎉",
-        items: [
           "Maximum 9 seats per party room",
           "Room owner controls mic and seat access",
           "No hate speech, abuse, or harassment",
@@ -86,9 +68,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Room Owner Benefits",
-        icon: "👑",
-        items: [
           "Earn diamonds from gifts sent in your room",
           "Custom room themes and decorations",
           "Ability to assign co-hosts and moderators",
@@ -97,9 +76,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Prohibited Activities",
-        icon: "🚫",
-        items: [
           "No sharing of external links or apps",
           "No promoting other platforms",
           "No religious or political discussions",
@@ -112,15 +88,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "host-registration": {
-    id: "host-registration",
-    title: "Host Registration Policy",
-    subtitle: "Step-by-step registration process",
-    accentColor: "from-blue-500 to-cyan-600",
-    sections: [
       {
-        title: "Registration Steps",
-        icon: "📝",
-        items: [
           "Step 1: Download MeriLive app from Play Store",
           "Step 2: Create account with phone number",
           "Step 3: Contact an approved agency for invitation",
@@ -131,9 +99,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Required Documents",
-        icon: "📄",
-        items: [
           "Clear selfie photo (no filters)",
           "Government-issued ID (NID/Passport/Driving License)",
           "ID must match face verification",
@@ -141,9 +106,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "After Approval",
-        icon: "✅",
-        items: [
           "You'll receive host badge on your profile",
           "Access to host dashboard and earnings tracker",
           "Start receiving video calls immediately",
@@ -155,15 +117,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "photo-approval": {
-    id: "photo-approval",
-    title: "Photo Approval Standards",
-    subtitle: "Guidelines for profile photo approval",
-    accentColor: "from-amber-500 to-orange-600",
-    sections: [
       {
-        title: "Approved Photo Requirements",
-        icon: "📸",
-        items: [
           "Clear, well-lit face photo",
           "No heavy filters or face-altering effects",
           "Face must be clearly visible (no masks/sunglasses)",
@@ -173,9 +127,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Reasons for Rejection",
-        icon: "❌",
-        items: [
           "Blurry or low-quality image",
           "Heavy beauty filters applied",
           "Face not clearly visible",
@@ -186,9 +137,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Re-submission Policy",
-        icon: "🔄",
-        items: [
           "You can re-submit up to 3 times per day",
           "Wait at least 1 hour between submissions",
           "Read rejection reason before re-submitting",
@@ -199,15 +147,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "number-sharing-penalty": {
-    id: "number-sharing-penalty",
-    title: "Number Sharing Penalties",
-    subtitle: "Strict policy against sharing personal numbers",
-    accentColor: "from-red-500 to-red-700",
-    sections: [
       {
-        title: "What is Number Sharing?",
-        icon: "📱",
-        items: [
           "Sharing your phone number with users during calls",
           "Asking users for their phone numbers",
           "Displaying phone number on screen or in chat",
@@ -216,9 +156,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Penalties",
-        icon: "⚠️",
-        items: [
           "1st Offense: Warning + 7-day diamond freeze",
           "2nd Offense: 30-day suspension from platform",
           "3rd Offense: Permanent ban + diamond forfeiture",
@@ -227,9 +164,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Detection Methods",
-        icon: "🔍",
-        items: [
           "AI-powered chat monitoring system",
           "User reports and complaints",
           "Random call auditing by moderators",
@@ -241,15 +175,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "contact-sharing-rules": {
-    id: "contact-sharing-rules",
-    title: "Contact Sharing Rules",
-    subtitle: "Policies for protecting user privacy",
-    accentColor: "from-orange-500 to-amber-600",
-    sections: [
       {
-        title: "Prohibited Sharing",
-        icon: "🚫",
-        items: [
           "Phone numbers (yours or users')",
           "Social media accounts (Facebook, Instagram, etc.)",
           "WhatsApp or Telegram numbers",
@@ -259,9 +185,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Why This Rule Exists",
-        icon: "🛡️",
-        items: [
           "Protects user safety and privacy",
           "Prevents harassment outside the platform",
           "Ensures fair earnings through the platform",
@@ -270,9 +193,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Reporting Violations",
-        icon: "📢",
-        items: [
           "Use the in-app report button during calls",
           "Screenshot evidence will strengthen your report",
           "Reports are reviewed within 24 hours",
@@ -284,15 +204,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "agency-policy": {
-    id: "agency-policy",
-    title: "Agency Policy & Commission",
-    subtitle: "Complete agency management guide",
-    accentColor: "from-indigo-500 to-purple-600",
-    sections: [
       {
-        title: "Agency Requirements",
-        icon: "🏢",
-        items: [
           "Minimum 5 active hosts to maintain agency status",
           "Agency owner must have valid identity verification",
           "Must maintain at least 80% host activity rate",
@@ -301,9 +213,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Commission Structure",
-        icon: "💎",
-        items: [
           "Agency earns commission from all host earnings",
           "Commission rate depends on agency level (A1-A5)",
           "Higher levels = higher commission rates",
@@ -312,9 +221,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Agency Responsibilities",
-        icon: "📋",
-        items: [
           "Recruit and train new hosts",
           "Monitor host performance and compliance",
           "Handle host issues and disputes",
@@ -327,15 +233,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "agency-commission": {
-    id: "agency-commission",
-    title: "Agency Commission Tiers (A1-A5)",
-    subtitle: "Detailed breakdown of commission levels",
-    accentColor: "from-emerald-500 to-teal-600",
-    sections: [
       {
-        title: "Commission Tiers",
-        icon: "📊",
-        items: [
           "A1 (Bronze): 3% commission — Weekly income $50–$200",
           "A2 (Silver): 5% commission — Weekly income $201–$1,000",
           "A3 (Gold): 10% commission — Weekly income $1,001–$2,000",
@@ -344,9 +242,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "How to Level Up",
-        icon: "📈",
-        items: [
           "Increase total host count with active members",
           "Maintain high host engagement rates",
           "Achieve consistent weekly income targets",
@@ -355,9 +250,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Bonus Rewards",
-        icon: "🏆",
-        items: [
           "A3+ agencies get priority support",
           "A4+ agencies can create sub-agencies",
           "A5 agencies get featured in agency directory",
@@ -369,15 +261,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "sub-agency": {
-    id: "sub-agency",
-    title: "Sub-Agency Commission",
-    subtitle: "Earn from your sub-agency network",
-    accentColor: "from-violet-500 to-purple-600",
-    sections: [
       {
-        title: "Sub-Agency System",
-        icon: "🌐",
-        items: [
           "A4+ agencies can invite sub-agencies",
           "Earn 3-5% commission from sub-agency earnings",
           "No limit on number of sub-agencies",
@@ -386,9 +270,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Commission Flow",
-        icon: "💸",
-        items: [
           "Host earns diamonds → Agency gets commission",
           "Sub-agency commission → Parent agency gets share",
           "All commissions calculated automatically",
@@ -397,9 +278,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Requirements",
-        icon: "✅",
-        items: [
           "Parent agency must be level A4 or higher",
           "Sub-agency owner must complete verification",
           "Minimum 3 active hosts in sub-agency",
@@ -411,15 +289,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "payroll-policy": {
-    id: "payroll-policy",
-    title: "Payroll Helper Program",
-    subtitle: "Become a trusted payment facilitator",
-    accentColor: "from-sky-500 to-blue-600",
-    sections: [
       {
-        title: "What is a Payroll Helper?",
-        icon: "🤝",
-        items: [
           "Payroll Helpers process local currency payments for hosts",
           "They bridge the gap between platform and local banking",
           "Available in 15+ countries worldwide",
@@ -428,9 +298,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "How to Become a Helper",
-        icon: "📋",
-        items: [
           "Must have 300,000+ diamonds in account",
           "Complete advanced identity verification",
           "Pass background check and interview",
@@ -440,9 +307,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Helper Responsibilities",
-        icon: "⚡",
-        items: [
           "Process withdrawal requests within 24 hours",
           "Maintain sufficient local currency balance",
           "Upload payment proof screenshots",
@@ -454,15 +318,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "helper-benefits": {
-    id: "helper-benefits",
-    title: "Payroll Helper Benefits",
-    subtitle: "Rewards and perks for helpers",
-    accentColor: "from-amber-500 to-yellow-600",
-    sections: [
       {
-        title: "Diamond Rewards",
-        icon: "💎",
-        items: [
           "Earn 1 Diamond for every 1 Bin processed",
           "Bonus diamonds for high-volume processing",
           "Monthly performance bonuses",
@@ -471,9 +327,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Financial Benefits",
-        icon: "💰",
-        items: [
           "Competitive exchange rates",
           "No platform fees on helper transactions",
           "Weekly bonus for 100% completion rate",
@@ -482,9 +335,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Special Perks",
-        icon: "⭐",
-        items: [
           "Dedicated helper support channel",
           "Direct communication with admin team",
           "Early access to new features",
@@ -496,15 +346,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "helper-diamond-recharge": {
-    id: "helper-diamond-recharge",
-    title: "Helper Diamond Recharge System",
-    subtitle: "How diamond recharging works for helpers",
-    accentColor: "from-cyan-500 to-teal-600",
-    sections: [
       {
-        title: "Recharge Process",
-        icon: "🔄",
-        items: [
           "Helpers can recharge diamonds for agencies/hosts",
           "Recharge requests come through admin dashboard",
           "Process payment and confirm in system",
@@ -513,9 +355,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Recharge Limits",
-        icon: "📊",
-        items: [
           "Daily limit based on helper level",
           "Level 1: Up to $500/day",
           "Level 2: Up to $1,000/day",
@@ -524,9 +363,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Security Measures",
-        icon: "🔒",
-        items: [
           "Two-factor authentication required",
           "Transaction verification via SMS/Email",
           "Suspicious activity auto-flagged",
@@ -538,15 +374,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "helper-withdrawal-processing": {
-    id: "helper-withdrawal-processing",
-    title: "Helper Withdrawal Processing",
-    subtitle: "How to process host withdrawals",
-    accentColor: "from-green-500 to-emerald-600",
-    sections: [
       {
-        title: "Processing Steps",
-        icon: "📝",
-        items: [
           "Step 1: Receive withdrawal assignment notification",
           "Step 2: Verify host's payment details",
           "Step 3: Transfer local currency to host",
@@ -556,9 +384,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Processing Timeline",
-        icon: "⏰",
-        items: [
           "Assignments must be processed within 24 hours",
           "Late processing may affect helper rating",
           "3 consecutive late processes = warning",
@@ -567,9 +392,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Dispute Resolution",
-        icon: "⚖️",
-        items: [
           "Host can report non-receipt within 48 hours",
           "Helper must provide payment proof",
           "Admin mediates all disputes",
@@ -581,15 +403,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "helper-rewards": {
-    id: "helper-rewards",
-    title: "Helper Reward System",
-    subtitle: "1 Bin = 1 Diamond reward structure",
-    accentColor: "from-yellow-500 to-amber-600",
-    sections: [
       {
-        title: "Reward Structure",
-        icon: "💎",
-        items: [
           "Every 1 Bin processed = 1 Diamond reward",
           "Rewards credited after transaction verification",
           "Diamonds can be withdrawn as cash",
@@ -598,9 +412,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Milestone Bonuses",
-        icon: "🏅",
-        items: [
           "10,000 Bins processed: +500 bonus diamonds",
           "50,000 Bins processed: +3,000 bonus diamonds",
           "100,000 Bins processed: +8,000 bonus diamonds",
@@ -609,9 +420,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Monthly Rankings",
-        icon: "🏆",
-        items: [
           "Top 3 helpers get additional cash bonuses",
           "1st Place: $200 bonus",
           "2nd Place: $100 bonus",
@@ -623,15 +431,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "helper-rules": {
-    id: "helper-rules",
-    title: "Helper Rules & Restrictions",
-    subtitle: "Important guidelines for payroll helpers",
-    accentColor: "from-red-500 to-rose-600",
-    sections: [
       {
-        title: "Mandatory Rules",
-        icon: "📜",
-        items: [
           "Process all assignments within 24 hours",
           "Maintain accurate transaction records",
           "Never share user financial information",
@@ -641,9 +441,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Prohibited Actions",
-        icon: "🚫",
-        items: [
           "No direct communication with hosts about payments",
           "No accepting payments outside the platform",
           "No modifying transaction amounts",
@@ -653,9 +450,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Violation Consequences",
-        icon: "⚠️",
-        items: [
           "Minor violation: Written warning",
           "Moderate violation: 7-day suspension",
           "Serious violation: 30-day suspension + review",
@@ -667,15 +461,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "helper-recharge-access": {
-    id: "helper-recharge-access",
-    title: "Helper Recharge Number Access",
-    subtitle: "Access requirements for recharge operations",
-    accentColor: "from-indigo-500 to-blue-600",
-    sections: [
       {
-        title: "Access Requirements",
-        icon: "🔑",
-        items: [
           "Minimum 300,000 diamonds in account",
           "Active helper status for 90+ days",
           "Zero major violations in last 6 months",
@@ -684,9 +470,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "What You Can Do",
-        icon: "✨",
-        items: [
           "Access host recharge number system",
           "Process bulk recharge requests",
           "View detailed transaction analytics",
@@ -695,9 +478,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Maintaining Access",
-        icon: "🔄",
-        items: [
           "Maintain minimum diamond balance at all times",
           "Complete monthly security review",
           "Maintain 95%+ transaction success rate",
@@ -709,15 +489,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "withdrawal": {
-    id: "withdrawal",
-    title: "Withdrawal System",
-    subtitle: "How to withdraw your earnings",
-    accentColor: "from-green-500 to-emerald-600",
-    sections: [
       {
-        title: "Withdrawal Overview",
-        icon: "💸",
-        items: [
           "All hosts and agencies can withdraw weekly",
           "Minimum withdrawal: $10 USD equivalent",
           "Two methods: USDT (Crypto) & Local Currency",
@@ -726,9 +498,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Withdrawal Steps",
-        icon: "📝",
-        items: [
           "Step 1: Go to Wallet → Withdrawal",
           "Step 2: Enter amount to withdraw",
           "Step 3: Select payment method",
@@ -738,9 +507,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Important Notes",
-        icon: "📌",
-        items: [
           "Withdrawals are processed every Wednesday",
           "Ensure your payment details are correct",
           "Incorrect details may cause delays",
@@ -752,15 +518,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "withdrawal-methods": {
-    id: "withdrawal-methods",
-    title: "Withdrawal Methods",
-    subtitle: "USDT & Local Currency options",
-    accentColor: "from-teal-500 to-cyan-600",
-    sections: [
       {
-        title: "USDT (Crypto) Withdrawal",
-        icon: "🪙",
-        items: [
           "Available worldwide — no country restrictions",
           "Supported networks: TRC20 (Tron) recommended",
           "Minimum: $20 USD equivalent",
@@ -770,9 +528,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Local Currency Payment",
-        icon: "🏦",
-        items: [
           "Available in 15 supported countries",
           "Paid directly to your local bank/wallet",
           "Minimum: $10 USD equivalent",
@@ -782,9 +537,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "ePay Global Withdrawal",
-        icon: "🌍",
-        items: [
           "Available when no local Payroll Helper exists",
           "Supports 100+ countries",
           "Processing time: 48-72 hours",
@@ -797,15 +549,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "weekly-withdrawal": {
-    id: "weekly-withdrawal",
-    title: "Weekly Withdrawal Schedule",
-    subtitle: "Settlement timeline and deadlines",
-    accentColor: "from-blue-500 to-indigo-600",
-    sections: [
       {
-        title: "Weekly Schedule",
-        icon: "📅",
-        items: [
           "Earning period: Thursday to Wednesday",
           "Withdrawal window: Wednesday 12:00 PM IST",
           "Request deadline: Tuesday 11:59 PM IST",
@@ -814,9 +558,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Settlement Details",
-        icon: "💳",
-        items: [
           "All earnings from the week are calculated",
           "Agency commission deducted automatically",
           "Platform fee (if any) deducted",
@@ -825,9 +566,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Holiday Schedule",
-        icon: "🗓️",
-        items: [
           "Public holidays may delay processing by 1-2 days",
           "Holiday schedule published monthly in advance",
           "Emergency withdrawals available for urgent cases",
@@ -838,15 +576,7 @@ export const policyDetails: Record<string, PolicyDetail> = {
   },
 
   "multi-currency": {
-    id: "multi-currency",
-    title: "Multi-Currency Withdrawals",
-    subtitle: "Supported currencies and exchange rates",
-    accentColor: "from-purple-500 to-violet-600",
-    sections: [
       {
-        title: "Supported Currencies",
-        icon: "💱",
-        items: [
           "🇮🇳 INR — Indian Rupee",
           "🇵🇰 PKR — Pakistani Rupee",
           "🇵🇭 PHP — Philippine Peso",
@@ -865,9 +595,6 @@ export const policyDetails: Record<string, PolicyDetail> = {
         ],
       },
       {
-        title: "Exchange Rate Policy",
-        icon: "📊",
-        items: [
           "Rates updated daily at 00:00 UTC",
           "Based on market rates with minimal spread",
           "Rate locked at time of withdrawal request",

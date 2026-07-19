@@ -113,76 +113,22 @@ export function SystemHealthCheck() {
           description: 'Host commission percentage from gifts'
         },
         {
-          key: 'call_rates',
-          name: 'Call Rate Settings',
-          icon: <Phone className="w-4 h-4" />,
-          status: settingsMap.call_rates ? 'configured' : 'missing',
-          value: settingsMap.call_rates,
-          description: 'Per-minute call rate and level-based rates'
         },
         {
-          key: 'gift_commission',
-          name: 'Gift Commission Settings',
-          icon: <DollarSign className="w-4 h-4" />,
-          status: settingsMap.gift_commission ? 'configured' : 'warning',
-          value: settingsMap.gift_commission,
-          description: 'Gift commission settings (optional)'
         },
         {
-          key: 'beans_to_usd_rate',
-          name: 'Beans to USD Rate',
-          icon: <DollarSign className="w-4 h-4" />,
-          status: (beansRate.rate ?? settingsMap.beans_to_usd_rate) ? 'configured' : 'warning',
-          value: settingsMap.beans_to_usd_rate,
-          description: 'Beans to USD exchange rate (default: 9000)'
         },
         {
-          key: 'platform_fee_percent',
-          name: 'Platform Fee %',
-          icon: <Settings className="w-4 h-4" />,
-          status: platformFeeConfigured ? 'configured' : 'warning',
-          value: platformFeeDisplay,
-          description: 'Withdrawal platform fee percentage (tiered via withdrawal_settings)'
         },
         {
-          key: 'agency_level_tiers',
-          name: 'Agency Level Tiers',
-          icon: <Building2 className="w-4 h-4" />,
-          status: (agencyTiersCount || 0) > 0 ? 'configured' : 'missing',
-          value: `${agencyTiersCount || 0} tiers`,
-          description: 'Agency levels and commission rates'
         },
         {
-          key: 'helper_levels',
-          name: 'Helper Level Config',
-          icon: <Crown className="w-4 h-4" />,
-          status: (helperLevelsCount || 0) > 0 ? 'configured' : 'missing',
-          value: `${helperLevelsCount || 0} levels`,
-          description: 'Helper/Trader level configuration'
         },
         {
-          key: 'vip_tiers',
-          name: 'VIP Tiers',
-          icon: <Star className="w-4 h-4" />,
-          status: (vipTiersCount || 0) > 0 ? 'configured' : 'warning',
-          value: `${vipTiersCount || 0} tiers`,
-          description: 'VIP subscription tiers'
         },
         {
-          key: 'user_levels',
-          name: 'User Level Tiers',
-          icon: <Crown className="w-4 h-4" />,
-          status: (userLevelsCount || 0) > 0 ? 'configured' : 'warning',
-          value: `${userLevelsCount || 0} levels`,
-          description: 'User and Host level system'
         },
         {
-          key: 'gifts',
-          name: 'Active Gifts',
-          icon: <Gift className="w-4 h-4" />,
-          status: (giftsCount || 0) > 0 ? 'configured' : 'missing',
-          value: `${giftsCount || 0} gifts`,
-          description: 'Active gift items'
         },
       ];
 

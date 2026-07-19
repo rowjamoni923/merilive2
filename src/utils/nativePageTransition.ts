@@ -45,24 +45,12 @@ export const transitionVariants = {
     exit: { x: '-30%', opacity: 0.5 },
   },
   'slide-right': {
-    initial: { x: '-30%', opacity: 0.5 },
-    animate: { x: 0, opacity: 1 },
-    exit: { x: '100%', opacity: 0.8 },
   },
   'slide-up': {
-    initial: { y: '100%', opacity: 0.9 },
-    animate: { y: 0, opacity: 1 },
-    exit: { y: '100%', opacity: 0.9 },
   },
   'fade': {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
   },
   'none': {
-    initial: {},
-    animate: {},
-    exit: {},
   },
 };
 

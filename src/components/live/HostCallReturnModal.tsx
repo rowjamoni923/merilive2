@@ -52,7 +52,6 @@ const HostCallReturnModal = ({ open, onBackToLive, onBackToHome, hostName }: Hos
                 className="w-full py-3 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #a855f7, #ec4899)",
-                  boxShadow: "0 6px 20px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
                 }}
               >
                 <Radio className="w-4 h-4" />

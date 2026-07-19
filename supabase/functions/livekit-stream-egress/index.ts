@@ -145,8 +145,6 @@ Deno.serve(async (req) => {
           roomName,
           { stream: { protocol: 1 /* RTMP */, urls: cleanUrls } as never },
           {
-            layout: layout ?? "speaker",
-            audioOnly: !!audioOnly,
           },
         );
       } catch (e) {

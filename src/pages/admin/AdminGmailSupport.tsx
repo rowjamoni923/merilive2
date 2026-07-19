@@ -201,7 +201,6 @@ const AdminGmailSupport = () => {
         messageId: lastMessage.id,
         to: replyTo,
         subject: selectedEmail.subject?.trim() || '(No Subject)',
-        body: replyBody || '📷 Photo attached',
         imageBase64,
         imageName,
         imageMimeType,
@@ -344,14 +343,11 @@ const AdminGmailSupport = () => {
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate`,
         {
-          method: 'POST',
-          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             'x-admin-token': adminToken,
           },
-          body: JSON.stringify({
             text: plainText.slice(0, 2000),
             targetLanguage: targetLang,
             sourceLanguage: 'auto',

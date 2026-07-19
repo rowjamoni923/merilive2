@@ -33,11 +33,6 @@ const AdminFinance = () => {
       if (error) throw error;
       const r = (data as any) || {};
       setStats({
-        pendingWithdrawals: r.pending_withdrawals || 0,
-        pendingPayroll: 0,
-        todayTransfers: r.today_transfers || 0,
-        totalDeductions: 0,
-        pendingEpay: r.pending_epay || 0,
       });
     } catch (e) {
       recordAdminError({ kind: "rpc", label: "AdminFinance.AdminfinanceStatsError", message: formatAdminError(e)});

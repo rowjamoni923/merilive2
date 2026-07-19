@@ -50,20 +50,8 @@ serve(async (req) => {
         data: { type: 'reengagement', tier: '24h' },
       },
       {
-        name: '3d_inactive',
-        hoursAgo: 72,
-        hoursMax: 80,
-        title: '🔥 New hosts have joined!',
-        body: 'Your favorite hosts are live. Come chat and have fun!',
-        data: { type: 'reengagement', tier: '3d' },
       },
       {
-        name: '7d_inactive',
-        hoursAgo: 168,
-        hoursMax: 180,
-        title: '🎁 A bonus is waiting for you!',
-        body: 'Come back and collect your special reward! Everyone misses you 💕',
-        data: { type: 'reengagement', tier: '7d' },
       },
     ];
 
@@ -117,9 +105,7 @@ serve(async (req) => {
       const notifRows = eligibleUserIds.map(userId => ({
         user_id: userId,
         type: 'reengagement',
-        title: tier.title,
         message: tier.body,
-        data: tier.data,
         is_read: false,
       }));
 

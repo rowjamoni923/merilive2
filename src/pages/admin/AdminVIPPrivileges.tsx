@@ -677,9 +677,6 @@ const AdminVIPPrivileges = () => {
                       }}
                       onChange={(v) => setTierForm(prev => ({
                         ...prev,
-                        animation_url: v.animation_url || null,
-                        animation_format: v.animation_format,
-                        animation_config_url: v.animation_config_url || null,
                       } as any))}
                     />
                   </div>

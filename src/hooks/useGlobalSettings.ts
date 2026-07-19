@@ -256,7 +256,6 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
       console.log('[GlobalSettings] ✅ Settings loaded:', {
         agencyLevels: settings.agencyLevelTiers.length,
         helperLevels: settings.helperLevelConfig.length,
-        vipTiers: settings.vipTiers.length,
         hostCommission: settings.hostCommissionPercent + '%',
       });
     }

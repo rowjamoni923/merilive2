@@ -274,23 +274,17 @@ const VIPEntranceNotification = ({ user }: { user: EntranceUser }) => {
       };
     if (level >= 40)
       return {
-        emoji: '✈️',
         gradient:
           'linear-gradient(135deg, rgba(168,85,247,0.95) 0%, rgba(217,70,239,0.95) 50%, rgba(236,72,153,0.95) 100%)',
-        glow: 'rgba(217,70,239,0.6)',
       };
     if (level >= 30)
       return {
-        emoji: '🏎️',
         gradient:
           'linear-gradient(135deg, rgba(239,68,68,0.95) 0%, rgba(249,115,22,0.95) 100%)',
-        glow: 'rgba(239,68,68,0.6)',
       };
     return {
-      emoji: '🏍️',
       gradient:
         'linear-gradient(135deg, rgba(139,92,246,0.95) 0%, rgba(168,85,247,0.95) 100%)',
-      glow: 'rgba(168,85,247,0.6)',
     };
   };
 

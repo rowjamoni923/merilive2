@@ -670,7 +670,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const [lossAmount, setLossAmount] = useState(0);
   
   // Coin fly animation
-  const { coins: flyingCoins, addCoin } = useFlyingCoins();
+  const { diamonds: flyingCoins, addCoin } = useFlyingCoins();
   const coinDisplayRef = useRef<HTMLDivElement>(null);
 
   const handleWin = async (amount: number) => {
@@ -781,7 +781,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         return { success: false, error: result?.error || 'Bet failed' };
       }
       
-      // Refresh user coins after successful bet
+      // Refresh user diamonds after successful bet
       fetchUserCoins();
       return { success: true };
     } catch (error: any) {
@@ -813,7 +813,6 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       phase,
       timeLeft,
       onPlaceBet: handlePlaceBet,
-      onWin: handleWin,
       currentRound
     };
 
@@ -906,7 +905,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       {/* Win/Loss Animations */}
       <WinCelebration show={showWin} amount={winAmount} onComplete={() => setShowWin(false)} />
       <LossDisplay show={showLoss} amount={lossAmount} onComplete={() => setShowLoss(false)} />
-      <DiamondFlyAnimation coins={flyingCoins} />
+      <DiamondFlyAnimation diamonds={flyingCoins} />
       
       <motion.div
         initial={{ y: 100, opacity: 0 }}
@@ -971,7 +970,6 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       <div 
         className="rounded-xl overflow-hidden shadow-xl"
         style={{
-          background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)',
           boxShadow: '0 -2px 20px rgba(139, 92, 246, 0.3), 0 5px 25px rgba(0,0,0,0.4)'
         }}
       >

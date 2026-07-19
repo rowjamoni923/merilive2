@@ -280,8 +280,6 @@ Deno.test({
       await markVerifiedFemaleHost(id);
       await insertRandomSession(caller.id, id, "active", true);
       cases["rcs-ended-guard"] = {
-        hostId: id, expectBusy: false,
-        label: "random_call_sessions status=active + ended_at NOT NULL",
       };
     }
 

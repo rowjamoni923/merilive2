@@ -239,52 +239,14 @@ export const ChametSettingsPanel = ({
               onChange?: (v: boolean) => void;
             }> = [
               {
-                kind: 'link',
-                key: 'sticker',
-                label: 'Sticker',
-                icon: Smile,
-                iconGrad: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-                iconShadow: '0 6px 18px -4px rgba(245,158,11,0.55)',
-                onClick: () => { onStickerClick(); onClose(); },
               },
               {
-                kind: 'link',
-                key: 'beauty',
-                label: 'Beauty',
-                icon: Sparkles,
-                iconGrad: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
-                iconShadow: '0 6px 18px -4px rgba(168,85,247,0.55)',
-                onClick: () => { onBeautyClick(); onClose(); },
               },
               {
-                kind: 'toggle',
-                key: 'mirror',
-                label: 'Mirror Mode',
-                icon: RefreshCcw,
-                iconGrad: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)',
-                iconShadow: '0 6px 18px -4px rgba(59,130,246,0.55)',
-                checked: mirrorMode,
-                onChange: onMirrorToggle,
               },
               {
-                kind: 'toggle',
-                key: 'cam',
-                label: 'Switch the Camera',
-                icon: RefreshCcw,
-                iconGrad: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
-                iconShadow: '0 6px 18px -4px rgba(16,185,129,0.55)',
-                checked: !isFrontCamera,
-                onChange: onCameraSwitch,
               },
               {
-                kind: 'toggle',
-                key: 'mic',
-                label: 'Microphone',
-                icon: Mic,
-                iconGrad: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
-                iconShadow: '0 6px 18px -4px rgba(139,92,246,0.55)',
-                checked: isMicEnabled,
-                onChange: onMicToggle,
               },
             ];
 
@@ -296,7 +258,6 @@ export const ChametSettingsPanel = ({
                   <div
                     className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
                     style={{
-                      background: r.iconGrad,
                       boxShadow: `${r.iconShadow}, inset 0 1px 0 rgba(255,255,255,0.30)`,
                     }}
                   >
@@ -304,7 +265,6 @@ export const ChametSettingsPanel = ({
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
-                        background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%)',
                         animation: 'giftSendShine 3.2s ease-in-out infinite',
                       }}
                     />
@@ -340,9 +300,7 @@ export const ChametSettingsPanel = ({
                       onClick={r.onClick}
                       className="w-full px-3 py-3 rounded-2xl border border-white/06 text-left"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
                         borderColor: 'rgba(255,255,255,0.06)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
                       }}
                     >
                       {inner}
@@ -351,9 +309,6 @@ export const ChametSettingsPanel = ({
                     <div
                       className="w-full px-3 py-3 rounded-2xl border"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-                        borderColor: 'rgba(255,255,255,0.06)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
                       }}
                     >
                       {inner}

@@ -52,13 +52,6 @@ const ledgerFixture = {
       ],
     },
     {
-      program_day: 1,
-      task_date: "2026-05-17",
-      rows_recorded: 3,
-      completed_hours: 2,
-      day_beans: 1500,
-      cap_exceeded: false,
-      hours: [
         { hour_number: 1, target_minutes: 60, minutes_accumulated: 60, completed: true, claimed: true, claimed_beans: 750, bonus_amount: 750, claimed_at: "2026-05-17T10:01:00Z", last_minute_at: "2026-05-17T10:00:00Z" },
         { hour_number: 2, target_minutes: 60, minutes_accumulated: 60, completed: true, claimed: true, claimed_beans: 750, bonus_amount: 750, claimed_at: "2026-05-17T11:01:00Z", last_minute_at: "2026-05-17T11:00:00Z" },
         { hour_number: 3, target_minutes: 60, minutes_accumulated: 20, completed: false, claimed: false, claimed_beans: 0, bonus_amount: 0, claimed_at: null, last_minute_at: "2026-05-17T12:00:00Z" },

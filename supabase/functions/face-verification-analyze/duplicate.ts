@@ -94,23 +94,12 @@ export function evaluateDuplicateMatches(
 
   if (similarity < minSimilarity) {
     return {
-      kind: "candidate_review",
-      previous_user_id: top.external_user_id as string,
-      previous_display_name: prevName,
-      previous_app_uid: prevUid,
       similarity,
-      other_matches: others.length,
-      reason: "below_hard_threshold",
     };
   }
 
   // R2: another approved account + similarity >= threshold → hard duplicate.
   return {
-    kind: "duplicate",
-    previous_user_id: top.external_user_id as string,
-    previous_display_name: prevName,
-    previous_app_uid: prevUid,
     similarity,
-    other_matches: others.length,
   };
 }

@@ -17,7 +17,7 @@ interface Viewer {
   display_name: string | null;
   avatar_url: string | null;
   user_level: number;
-  coins: number;
+  diamonds: number;
   is_vip?: boolean;
   joined_at: string;
 }
@@ -63,7 +63,7 @@ export const ViewerListPanel = ({
             max_user_level,
             gender,
             is_host,
-            coins
+            diamonds
           )
         `)
         .eq("stream_id", streamId)
@@ -82,7 +82,7 @@ export const ViewerListPanel = ({
           display_name: sv.profiles?.display_name || "Anonymous",
           avatar_url: sv.profiles?.avatar_url,
           user_level: getRequiredDisplayLevel(sv.profiles),
-          coins: sv.profiles?.diamonds || 0,
+          diamonds: sv.profiles?.diamonds || 0,
           is_vip: (sv.profiles?.diamonds || 0) >= 10000,
           joined_at: sv.joined_at,
         }));

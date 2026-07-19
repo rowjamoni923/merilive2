@@ -87,8 +87,6 @@ export const useAdminAccess = () => {
 
   // Fetch admin user record by admin_id (from the dedicated admin session)
   const { data: adminUser, isLoading: isLoadingUser } = useQuery({
-    queryKey: ["admin-user", verifiedAdminId],
-    queryFn: async () => {
       if (!verifiedAdminId) return null;
       const { data, error } = await adminSupabase
         .from("admin_users")
@@ -99,15 +97,10 @@ export const useAdminAccess = () => {
       if (error || !data) return null;
       return data as AdminUser;
     },
-    enabled: !!verifiedAdminId,
-    staleTime: Infinity, // Role/Permissions don't change during active session
-    gcTime: 24 * 60 * 60 * 1000,
   });
 
   // Fetch accessible sections — for sub-admin we look up by admin_user_id directly
   const { data: accessibleSections, isLoading: isLoadingSections } = useQuery({
-    queryKey: ["admin-accessible-sections", verifiedAdminId],
-    queryFn: async () => {
       if (!verifiedAdminId) return [];
       const { data, error } = await adminSupabase
         .from("admin_section_permissions")
@@ -132,9 +125,6 @@ export const useAdminAccess = () => {
           can_edit: !!row.can_edit,
         })) as AccessibleSection[];
     },
-    enabled: !!verifiedAdminId && !!adminUser && adminUser.role !== 'owner',
-    staleTime: Infinity, // Sub-admin permissions are stable for the session
-    gcTime: 24 * 60 * 60 * 1000,
   });
 
   // Admin access loads on mount only. Realtime permission invalidation is disabled

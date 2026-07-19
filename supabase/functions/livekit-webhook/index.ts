@@ -107,7 +107,6 @@ Deno.serve(async (req) => {
   if (eventType === "participant_left" && roomName && participant?.identity) {
     try {
       const { data, error } = await admin.rpc("mark_livekit_participant_left", {
-        _room_name: roomName,
         _identity: String(participant.identity),
       });
       if (error) {
@@ -128,8 +127,6 @@ Deno.serve(async (req) => {
       && /^live_[0-9a-f-]{36}$/i.test(roomName)) {
     try {
       const { data, error } = await admin.rpc("mark_live_stream_live", {
-        _room_name: roomName,
-        _identity: String(participant.identity),
       });
       if (error) {
         console.error("[livekit-webhook] mark_live error:", error.message);

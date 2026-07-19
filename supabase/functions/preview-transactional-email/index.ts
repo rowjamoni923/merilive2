@@ -27,8 +27,6 @@ Deno.serve(async (req) => {
   const token = authHeader?.replace(/^Bearer\s+/i, '')
   if (token !== apiKey) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
@@ -38,7 +36,6 @@ Deno.serve(async (req) => {
     displayName: string
     subject: string
     html: string
-    status: 'ready' | 'preview_data_required' | 'render_failed'
     errorMessage?: string
   }> = []
 
@@ -48,11 +45,7 @@ Deno.serve(async (req) => {
 
     if (!entry.previewData) {
       results.push({
-        templateName: name,
         displayName,
-        subject: '',
-        html: '',
-        status: 'preview_data_required',
       })
       continue
     }
@@ -67,11 +60,8 @@ Deno.serve(async (req) => {
           : entry.subject
 
       results.push({
-        templateName: name,
         displayName,
-        subject: resolvedSubject,
         html,
-        status: 'ready',
       })
     } catch (err) {
       console.error('Failed to render template for preview', {
@@ -79,18 +69,11 @@ Deno.serve(async (req) => {
         error: err,
       })
       results.push({
-        templateName: name,
         displayName,
-        subject: '',
-        html: '',
-        status: 'render_failed',
-        errorMessage: err instanceof Error ? err.message : String(err),
       })
     }
   }
 
   return new Response(JSON.stringify({ templates: results }), {
-    status: 200,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 })

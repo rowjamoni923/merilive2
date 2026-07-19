@@ -429,8 +429,6 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
       if (error) throw error;
 
       toast({
-        title: "Application Submitted! 🎉",
-        description: isPaidLevel
           ? (autoLevelAdjusted
               ? `Deposit $${verifiedAmountUsd} auto-detected → Level ${grantedLevel}. ${diamondsForUpgrade.toLocaleString()} diamonds credited.`
               : `${diamondsForUpgrade.toLocaleString()} diamonds credited to your balance.`)
@@ -530,8 +528,6 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 onClick={() => {
                   if (misconfigured) {
                     toast({
-                      title: "Level not configured",
-                      description: `Admin has not set an upgrade cost for Level ${level.level_number} yet.`,
                       variant: "destructive",
                     });
                     return;
@@ -880,11 +876,6 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         userCustomPriceUsd={effectiveCost}
         userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
         helperApplicationIntent={isPaidLevel ? {
-          selected_level: selectedLevel,
-          contact_whatsapp: contactWhatsapp || null,
-          contact_telegram: contactTelegram || null,
-          reason: reason || null,
-          payroll_requested: selectedLevel === 5 ? payrollRequested : false,
         } : null}
         onCredited={async (_coins, topupId) => {
           setPaidConfirmed(true);

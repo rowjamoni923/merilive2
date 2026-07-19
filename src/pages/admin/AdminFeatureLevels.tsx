@@ -71,13 +71,10 @@ const normalizeFeatureRequirement = (feature: FeatureRequirement): FeatureRequir
 
   return {
     ...feature,
-    feature_name: feature.feature_name ?? fallbackMeta.feature_name,
     feature_description: feature.feature_description ?? feature.description ?? null,
     min_level_user: feature.min_level_user ?? feature.min_level ?? 0,
     min_level_host: feature.min_level_host ?? feature.min_vip_level ?? 0,
     is_active: feature.is_active ?? true,
-    icon_name: feature.icon_name ?? fallbackMeta.icon_name,
-    category: feature.category ?? fallbackMeta.category,
     display_order: feature.display_order ?? 0,
     schemaMode:
       typeof feature.min_level_user === "number" || typeof feature.min_level_host === "number"
@@ -119,7 +116,6 @@ const AdminFeatureLevels = () => {
         : {
             min_level: feature.min_level_user ?? 0,
             min_vip_level: feature.min_level_host ?? 0,
-            is_active: feature.is_active ?? true,
           };
 
       const { error } = await supabase
@@ -138,8 +134,6 @@ const AdminFeatureLevels = () => {
     },
     onError: (error) => {
       toast({
-        title: "❌ Error",
-        description: error.message,
         variant: "destructive",
       });
     },

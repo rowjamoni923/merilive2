@@ -146,7 +146,6 @@ export function useAdminOptimisticMutation<T extends Record<string, any>>() {
     } catch (err) {
       setData(snapshot);
       toast.error(errorMessage, {
-        description: err instanceof Error ? err.message : 'Unknown error',
       });
     } finally {
       pendingOps.current.delete(opKey);
@@ -189,7 +188,6 @@ export function useAdminOptimisticMutation<T extends Record<string, any>>() {
       // Remove temp item
       setData(prev => prev.filter(item => (item as any).id !== tempId));
       toast.error(errorMessage, {
-        description: err instanceof Error ? err.message : 'Unknown error',
       });
     } finally {
       pendingOps.current.delete(opKey);

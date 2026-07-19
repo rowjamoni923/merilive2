@@ -431,7 +431,6 @@ export function LiveRocketRaceGame({
               <div 
                 className="absolute bottom-16 w-full h-[210px] rounded-t-2xl overflow-hidden"
                 style={{
-                  background: `linear-gradient(180deg, rgba(0,0,0,0.3) 0%, ${
                     i === 0 ? 'rgba(239,68,68,0.15)' : 
                     i === 1 ? 'rgba(59,130,246,0.15)' : 
                     'rgba(34,197,94,0.15)'
@@ -467,7 +466,6 @@ export function LiveRocketRaceGame({
                     `bg-gradient-to-t ${rocket.color}`
                   )}
                   style={{
-                    boxShadow: `0 -5px 20px ${
                       i === 0 ? 'rgba(239,68,68,0.4)' : 
                       i === 1 ? 'rgba(59,130,246,0.4)' : 
                       'rgba(34,197,94,0.4)'

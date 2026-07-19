@@ -78,10 +78,8 @@ export interface NativeCallPlugin {
    * unsupported devices.
    */
   reportOutgoingCall(opts: {
-    callId: string;
     calleeId: string;
     calleeName: string;
-    callType?: 'video' | 'audio';
   }): Promise<{ reported: boolean; callId: string }>;
   /** Mark the Telecom connection as connected (media flowing). */
   reportCallConnected(opts: { callId: string }): Promise<{ ok: boolean; callId: string }>;
@@ -102,7 +100,6 @@ export interface NativeCallPlugin {
    * bails out if none is bound.
    */
   openInCallActivity(opts: {
-    callId: string;
     peerId: string;
     peerName?: string;
     peerAvatar?: string | null;
@@ -136,7 +133,6 @@ export interface NativeCallPlugin {
    * No-op when no PrivateCallActivity is running.
    */
   updateInCallBilling(opts: {
-    callId: string;
     balance: number;
     ratePerMinute: number;
   }): Promise<{ ok: boolean }>;
@@ -152,7 +148,6 @@ export interface NativeCallPlugin {
    * to its own React chat overlay.
    */
   pushChatMessage(opts: {
-    callId: string;
     messageId: string;
     userId: string;
     displayName?: string;
@@ -173,8 +168,6 @@ export interface NativeCallPlugin {
    * recharge sheet; the call stays connected behind it.
    */
   addListener(
-    eventName: 'recharge-requested',
-    cb: (e: { callId: string; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
 
   /**
@@ -189,10 +182,6 @@ export interface NativeCallPlugin {
    *   "go_live"      — host tapped "Go live"
    */
   addListener(
-    eventName: 'call-end-action',
-    cb: (e: {
-      callId: string;
-      peerId: string;
       action: 'gift' | 'gift_inline' | 'recharge' | 'rate' | 'close' | 'wallet' | 'go_live';
       rating?: number;
       ts: number;
@@ -207,8 +196,6 @@ export interface NativeCallPlugin {
    * Activity already covers the screen) and skips repainting the call shell.
    */
   addListener(
-    eventName: 'native-call-window',
-    cb: (e: { callId: string; state: 'opened' | 'closed'; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
 
   /**
@@ -218,8 +205,6 @@ export interface NativeCallPlugin {
    * DataPacket transport stays the single source of truth.
    */
   addListener(
-    eventName: 'native-call-chat-send',
-    cb: (e: { callId: string; clientId: string; text: string; ts: number }) => void,
   ): Promise<PluginListenerHandle>;
 
   /**

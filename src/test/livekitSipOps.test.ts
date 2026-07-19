@@ -36,8 +36,6 @@ describe('Pkg138 livekitSipOps', () => {
 
   it('listLiveKitDispatchRules unwraps rules[]', async () => {
     invokeMock.mockResolvedValue({
-      data: { rules: [{ sipDispatchRuleId: 'SDR_1' }] },
-      error: null,
     });
     const out = await listLiveKitDispatchRules();
     expect(out[0].sipDispatchRuleId).toBe('SDR_1');
@@ -52,7 +50,6 @@ describe('Pkg138 livekitSipOps', () => {
     invokeMock.mockResolvedValue({ data: { ok: true }, error: null });
     expect(await deleteLiveKitInboundTrunk('ST_IN_3')).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-sip-ops', {
-      body: { action: 'delete_inbound_trunk', sipTrunkId: 'ST_IN_3' },
     });
   });
 
@@ -60,7 +57,6 @@ describe('Pkg138 livekitSipOps', () => {
     invokeMock.mockResolvedValue({ data: { ok: true }, error: null });
     expect(await deleteLiveKitOutboundTrunk('ST_OUT_5')).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-sip-ops', {
-      body: { action: 'delete_outbound_trunk', sipTrunkId: 'ST_OUT_5' },
     });
   });
 
@@ -74,7 +70,6 @@ describe('Pkg138 livekitSipOps', () => {
     invokeMock.mockResolvedValue({ data: { ok: true }, error: null });
     expect(await deleteLiveKitDispatchRule('SDR_9')).toBe(true);
     expect(invokeMock).toHaveBeenCalledWith('livekit-sip-ops', {
-      body: { action: 'delete_dispatch_rule', sipDispatchRuleId: 'SDR_9' },
     });
   });
 

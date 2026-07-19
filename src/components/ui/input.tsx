@@ -29,47 +29,18 @@ function deriveNativeHints(type: InputType): Partial<React.ComponentProps<"input
       };
     case "tel":
       return {
-        inputMode: "tel",
-        autoComplete: "tel",
-        autoCapitalize: "off",
-        autoCorrect: "off",
-        spellCheck: false,
-        enterKeyHint: "next",
       };
     case "url":
       return {
-        inputMode: "url",
-        autoComplete: "url",
-        autoCapitalize: "off",
-        autoCorrect: "off",
-        spellCheck: false,
-        enterKeyHint: "go",
       };
     case "search":
       return {
-        inputMode: "search",
-        autoComplete: "off",
-        autoCapitalize: "off",
-        autoCorrect: "off",
-        spellCheck: false,
-        enterKeyHint: "search",
       };
     case "number":
       return {
-        inputMode: "decimal",
-        autoComplete: "off",
-        autoCapitalize: "off",
-        autoCorrect: "off",
-        spellCheck: false,
-        enterKeyHint: "next",
       };
     case "password":
       return {
-        autoComplete: "current-password",
-        autoCapitalize: "off",
-        autoCorrect: "off",
-        spellCheck: false,
-        enterKeyHint: "go",
       };
     default:
       return {};

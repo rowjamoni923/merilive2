@@ -182,7 +182,6 @@ export const ChametStyleChatPanel = ({
                         <span
                           className="inline-block text-purple-200/85 text-[11px] px-3 py-1 rounded-full"
                           style={{
-                            background: "rgba(168,85,247,0.12)",
                             border: "1px solid rgba(168,85,247,0.18)",
                           }}
                         >
@@ -202,8 +201,6 @@ export const ChametStyleChatPanel = ({
                         transition={{ duration: 0.32, ease: EASE_OUT }}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-2xl max-w-[92%]"
                         style={{
-                          background: "linear-gradient(90deg, rgba(34,197,94,0.18), rgba(16,185,129,0.08))",
-                          border: "1px solid rgba(74,222,128,0.22)",
                         }}
                       >
                         <span
@@ -230,16 +227,12 @@ export const ChametStyleChatPanel = ({
                         transition={{ duration: 0.3, ease: EASE_OUT }}
                         className="flex items-center gap-2 px-3 py-2 rounded-2xl max-w-[92%] relative overflow-hidden"
                         style={{
-                          background: "linear-gradient(90deg, rgba(236,72,153,0.28), rgba(168,85,247,0.18))",
-                          border: "1px solid rgba(236,72,153,0.35)",
-                          boxShadow: "0 4px 16px rgba(236,72,153,0.18)",
                         }}
                       >
                         {/* Subtle shimmer */}
                         <motion.div
                           className="absolute inset-0 pointer-events-none"
                           style={{
-                            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
                           }}
                           animate={{ x: ["-100%", "200%"] }}
                           transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
@@ -280,10 +273,8 @@ export const ChametStyleChatPanel = ({
                         isSelf ? "ml-auto" : ""
                       )}
                       style={{
-                        background: isSelf
                           ? "linear-gradient(135deg, rgba(168,85,247,0.32), rgba(236,72,153,0.20))"
                           : "rgba(255,255,255,0.06)",
-                        border: isSelf
                           ? "1px solid rgba(168,85,247,0.32)"
                           : "1px solid rgba(255,255,255,0.06)",
                       }}
@@ -331,8 +322,6 @@ export const ChametStyleChatPanel = ({
             <div
               className="px-3 py-3 pb-safe"
               style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06))",
-                borderTop: "1px solid rgba(255,255,255,0.06)",
               }}
             >
               <div className="flex items-center gap-2">
@@ -342,8 +331,6 @@ export const ChametStyleChatPanel = ({
                     "focus-within:[box-shadow:0_0_0_2px_rgba(168,85,247,0.55),0_0_18px_rgba(168,85,247,0.35)]"
                   )}
                   style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06))",
-                    border: "1px solid rgba(255,255,255,0.12)",
                   }}
                 >
                   <input
@@ -375,7 +362,6 @@ export const ChametStyleChatPanel = ({
                     inputValue.trim() && "animate-[giftSendBreathe_2.4s_ease-in-out_infinite]"
                   )}
                   style={{
-                    background: "linear-gradient(135deg, #ec4899, #a855f7, #7c3aed)",
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />

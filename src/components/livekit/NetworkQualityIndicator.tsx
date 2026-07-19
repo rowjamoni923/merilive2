@@ -27,35 +27,15 @@ export const NetworkQualityIndicator: React.FC<NetworkQualityIndicatorProps> = (
         };
       case 'good':
         return {
-          icon: <SignalHigh className="w-3.5 h-3.5 text-blue-400" />,
-          color: "text-blue-400",
-          bg: "bg-blue-500/20",
-          label: "Good",
-          bars: 3
         };
       case 'poor':
         return {
-          icon: <SignalLow className="w-3.5 h-3.5 text-amber-400" />,
-          color: "text-amber-400",
-          bg: "bg-amber-500/20",
-          label: "Poor",
-          bars: 1
         };
       case 'lost':
         return {
-          icon: <WifiOff className="w-3.5 h-3.5 text-destructive" />,
-          color: "text-destructive",
-          bg: "bg-destructive/20",
-          label: "Lost",
-          bars: 0
         };
       default:
         return {
-          icon: <Signal className="w-3.5 h-3.5 text-slate-400" />,
-          color: "text-slate-400",
-          bg: "bg-slate-500/20",
-          label: "Detecting...",
-          bars: 0
         };
     }
   }, [quality]);

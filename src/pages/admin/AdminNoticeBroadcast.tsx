@@ -196,14 +196,9 @@ const AdminNoticeBroadcast = () => {
       setMessage(translatedMessage);
 
       toast({
-        title: `Translated to ${targetLanguage} ✅`,
-        description: "Title and message have been translated",
       });
     } catch (error: any) {
       toast({
-        title: "Translation Failed",
-        description: error.message || "Could not translate the text",
-        variant: "destructive",
       });
     } finally {
       setTranslating(false);
@@ -260,9 +255,6 @@ const AdminNoticeBroadcast = () => {
   const handleSendNotice = async () => {
     if (!title.trim() || !message.trim() || selectedAudiences.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all fields and select at least one audience",
-        variant: "destructive",
       });
       return;
     }
@@ -282,7 +274,6 @@ const AdminNoticeBroadcast = () => {
       const { error } = await supabase
         .from("admin_notices")
         .insert({
-          title: title.trim(),
           message: message.trim(),
           image_url: imageUrls.length > 0 ? imageUrls.join(',') : null,
           target_audience: selectedAudiences,
@@ -294,8 +285,6 @@ const AdminNoticeBroadcast = () => {
       if (error) throw error;
 
       toast({
-        title: "Notice Sent! 📢",
-        description: `Notice has been broadcast to ${selectedAudiences.join(', ')}`,
       });
 
       // Reset form
@@ -308,9 +297,6 @@ const AdminNoticeBroadcast = () => {
       fetchNotices();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
       });
     } finally {
       setSending(false);
@@ -328,16 +314,11 @@ const AdminNoticeBroadcast = () => {
       if (error) throw error;
 
       toast({
-        title: "Notice Deleted",
-        description: "The notice has been removed",
       });
       setDeleteDialog(null);
       fetchNotices();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
       });
     } finally {
       setDeleting(false);
@@ -354,15 +335,10 @@ const AdminNoticeBroadcast = () => {
       if (error) throw error;
 
       toast({
-        title: notice.is_active ? "Notice Deactivated" : "Notice Activated",
-        description: notice.is_active ? "Users will no longer see this notice" : "Notice is now visible to users",
       });
       fetchNotices();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
       });
     }
   };

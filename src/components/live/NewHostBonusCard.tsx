@@ -223,7 +223,6 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
                 }}
                 className="w-full py-3.5 rounded-2xl text-white font-black text-base relative overflow-hidden"
                 style={{
-                  background: "linear-gradient(135deg, #f59e0b, #ec4899, #a855f7)",
                   boxShadow:
                     "0 8px 24px rgba(236,72,153,0.5), inset 0 1px 0 rgba(255,255,255,0.3)",
                 }}
@@ -326,7 +325,6 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
                 className="absolute inset-y-0 left-0 rounded-full"
                 style={{
                   width: `${Math.min(progressPercent, 100)}%`,
-                  background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)",
                 }}
                 animate={{ opacity: [0.8, 1, 0.8] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
@@ -414,8 +412,6 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
               disabled={claimingHour !== null}
               className="px-4 py-1.5 rounded-xl text-white text-[11px] font-bold relative overflow-hidden"
               style={{
-                background: "linear-gradient(135deg, #a855f7, #ec4899)",
-                boxShadow: "0 0 15px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
               }}
             >
               <motion.div

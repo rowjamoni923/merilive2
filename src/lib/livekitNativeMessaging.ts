@@ -57,20 +57,16 @@ async function ensureRpcListener() {
       try {
         const result = await handler({
           method: e.method,
-          requestId: e.requestId,
           callerIdentity: e.callerIdentity,
           payload: e.payload,
           responseTimeout: e.responseTimeout,
         });
         await NativeLiveKit.respondToRpc({
-          requestId: e.requestId,
           result: typeof result === 'string' ? result : JSON.stringify(result ?? ''),
         });
       } catch (err) {
         try {
           await NativeLiveKit.respondToRpc({
-            requestId: e.requestId,
-            errorMessage: err instanceof Error ? err.message : String(err),
           });
         } catch { /* swallow */ }
       }
@@ -127,10 +123,6 @@ export async function tryPerformNativeRpc(opts: {
   const enabled = await isLiveKitEnabled('rpc');
   if (!enabled) throw new Error('rpc_disabled');
   const res = await NativeLiveKit.performRpc({
-    destinationIdentity: opts.destinationIdentity,
-    method: opts.method,
-    payload: opts.payload ?? '',
-    responseTimeout: opts.responseTimeout ?? 15000,
   });
   return res.response;
 }
@@ -220,9 +212,6 @@ export async function trySendNativeText(opts: {
   if (!enabled) return false;
   try {
     const res = await NativeLiveKit.sendText({
-      text: opts.text,
-      topic: opts.topic ?? '',
-      destinationIdentities: opts.destinationIdentities ?? [],
     });
     return !!res.sent;
   } catch (err) {

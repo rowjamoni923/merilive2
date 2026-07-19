@@ -108,8 +108,6 @@ serve(async (req) => {
 
     const { data: appOtpOk, error: appOtpError } = await supabaseAdmin.rpc("consume_agency_app_otp_token", {
       p_user_id: userId,
-      p_verified_token: appVerifiedToken,
-      p_purpose: "sub_agency_verification",
     });
     if (appOtpError) throw appOtpError;
     if (!appOtpOk) {
@@ -254,7 +252,6 @@ serve(async (req) => {
           templateKey: 'agency_approved',
           variables: {
             agency_name: newAgency.name,
-            agency_code: agencyCode
           },
           type: 'agency_approved'
         }
@@ -269,7 +266,6 @@ serve(async (req) => {
         agency: {
           id: newAgency.id,
           code: newAgency.agency_code,
-          name: newAgency.name
         },
         message: "Agency created successfully"
       }),

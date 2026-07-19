@@ -153,13 +153,6 @@ export const ChametStyleViewerPanel = ({
         setRealtimeViewers((prev) => {
           if (prev.some((v) => v.id === userId)) return prev;
           const next: Viewer = {
-            id: userId,
-            displayName: payload.userName || 'Anonymous',
-            avatarUrl: payload.userAvatar,
-            level: payload.userLevel || 1,
-            countryFlag: '🌍',
-            isVIP: false,
-            frameId: undefined,
           };
           return [next, ...prev];
         });

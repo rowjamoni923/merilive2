@@ -27,7 +27,7 @@ const CHIP_VALUES = [500, 1000, 5000, 10000, 20000];
 
 interface UserProfile {
   id: string;
-  coins: number;
+  diamonds: number;
   display_name: string;
 }
 
@@ -155,7 +155,7 @@ export const TeenPattiGame = () => {
       return;
     }
 
-    setProfile(prev => prev ? { ...prev, coins: betResult.newBalance || 0 } : null);
+    setProfile(prev => prev ? { ...prev, diamonds: betResult.newBalance || 0 } : null);
     setBets(prev => ({ ...prev, [hand]: prev[hand] + selectedChip }));
     setAllBets(prev => ({ ...prev, [hand]: prev[hand] + selectedChip }));
     playBetSound();
@@ -177,7 +177,6 @@ export const TeenPattiGame = () => {
     const evalC = evaluateHand(handC);
 
     setHands({
-      A: { cards: handA, ...evalA },
       B: { cards: handB, ...evalB },
       C: { cards: handC, ...evalC }
     });
@@ -209,7 +208,7 @@ export const TeenPattiGame = () => {
           const winResult = await processWin(userId, "teen-patti", "Teen Patti", winAmount, 2);
           
           if (winResult.success) {
-            setProfile(prev => prev ? { ...prev, coins: winResult.newBalance || 0 } : null);
+            setProfile(prev => prev ? { ...prev, diamonds: winResult.newBalance || 0 } : null);
           }
           
           playWinSound();

@@ -127,12 +127,6 @@ const ConversationRow: React.FC<ConversationRowProps> = React.memo(
         // Only react to primary pointer (touch/mouse-left/pen).
         if (e.button !== undefined && e.button !== 0) return;
         dragState.current = {
-          startX: e.clientX,
-          startY: e.clientY,
-          startDx: dx,
-          pointerId: e.pointerId,
-          claimed: false,
-          cancelled: false,
         };
         startPress();
       },

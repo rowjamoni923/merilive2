@@ -153,7 +153,6 @@ async function sendOtpViaResend(args: SendOtpEmailArgs, subject: string, html: s
       subject,
       html,
       text,
-      headers: {
         "Auto-Submitted": "auto-generated",
         Precedence: "transactional",
       },
@@ -189,7 +188,6 @@ async function sendOtpViaBrevo(args: SendOtpEmailArgs, subject: string, html: st
       subject,
       htmlContent: html,
       textContent: text,
-      headers: { "Auto-Submitted": "auto-generated", Precedence: "transactional" },
     }),
   });
 
@@ -338,26 +336,14 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmail
 
   if (Deno.env.get("RESEND_API_KEY") && Deno.env.get("LOVABLE_API_KEY") && providerEligible("resend", cfg)) {
     all.push({
-      name: "resend", dbKey: "resend",
-      priority: cfg["resend"]?.priority ?? 1,
-      run: (sig) => sendOtpViaResend(args, subject, html, text, sig),
-      ctl: new AbortController(),
     });
   }
   if (Deno.env.get("BREVO_API_KEY") && Deno.env.get("BREVO_FROM_EMAIL") && providerEligible("brevo", cfg)) {
     all.push({
-      name: "brevo", dbKey: "brevo",
-      priority: cfg["brevo"]?.priority ?? 2,
-      run: (sig) => sendOtpViaBrevo(args, subject, html, text, sig),
-      ctl: new AbortController(),
     });
   }
   if (Deno.env.get("GMAIL_USER") && Deno.env.get("GMAIL_APP_PASSWORD") && providerEligible("gmail", cfg)) {
     all.push({
-      name: "gmail-smtp", dbKey: "gmail",
-      priority: cfg["gmail"]?.priority ?? 3,
-      run: (_sig) => sendOtpViaGmail(args, subject, html, text),
-      ctl: new AbortController(),
     });
   }
 
@@ -382,8 +368,6 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmail
     try { await supabase.rpc("increment_otp_provider_sent", { _provider: dbKey }); } catch (_e) {}
     try {
       await supabase.from("email_send_log").insert({
-        message_id: messageId, template_name: "otp-code", recipient_email: args.to,
-        status: "sent", metadata: { provider: winner, mode: settings.mode, race: telemetry },
       });
     } catch (_e) {}
     console.log(`[sendOtpEmail] WINNER=${winner} mode=${settings.mode} race=${JSON.stringify(telemetry)}`);
@@ -419,9 +403,6 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<SendOtpEmail
   console.error("[sendOtpEmail] " + errMsg);
   try {
     await supabase.from("email_send_log").insert({
-      message_id: messageId, template_name: "otp-code", recipient_email: args.to,
-      status: "failed", error_message: "ALL_PROVIDERS_FAILED",
-      metadata: { mode: settings.mode, race: telemetry },
     });
   } catch (_e) {}
   return { success: false, error: errMsg, code: "ALL_PROVIDERS_FAILED", status: 503, raceResults: telemetry };

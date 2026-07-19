@@ -76,7 +76,6 @@ export default function AdminDeviceApprovals() {
     try {
       const { data, error } = await adminSupabase.rpc('admin_approve_device' as any, {
         _device_id: id,
-        _owner_admin_id: session.admin_id,
       });
       if (error) throw error;
       if (!(data as any)?.success) throw new Error((data as any)?.error || 'Failed');
@@ -96,8 +95,6 @@ export default function AdminDeviceApprovals() {
     setActioning(id);
     try {
       const { data, error } = await adminSupabase.rpc('admin_revoke_device' as any, {
-        _device_id: id,
-        _owner_admin_id: session.admin_id,
         _reason: reason || null,
       });
       if (error) throw error;

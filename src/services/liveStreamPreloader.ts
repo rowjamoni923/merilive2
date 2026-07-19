@@ -85,10 +85,6 @@ export async function consumePreloadedStream(streamId: string): Promise<{
   if (entry.room.state === ConnectionState.Connected && entry.videoTrack) {
     console.log(`[Preloader] ✅ Consumed preloaded stream: ${streamId}`);
     return {
-      room: entry.room,
-      videoTrack: entry.videoTrack,
-      audioTrack: entry.audioTrack,
-      participant: entry.participant,
     };
   }
 

@@ -18,7 +18,6 @@ export function useLiveStreamFilters(..._args: unknown[]): any {
   return {
     filterState,
     setFilterState,
-    activeFilter: null,
     setActiveFilter: noop,
     setBeautyEnabled: (v: boolean) => setFilterState((s: any) => ({ ...s, beautyEnabled: v })),
     setBeautySettings: (b: BeautySettings) => setFilterState((s: any) => ({ ...s, beautySettings: b })),

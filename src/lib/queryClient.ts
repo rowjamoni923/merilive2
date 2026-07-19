@@ -8,7 +8,6 @@ export const queryClient = new QueryClient({
     onError: (err) => { maybeTriggerAuthGuardFromError(err); },
   }),
   mutationCache: new MutationCache({
-    onError: (err) => { maybeTriggerAuthGuardFromError(err); },
   }),
   defaultOptions: {
     queries: {

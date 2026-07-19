@@ -256,7 +256,6 @@ const AgencyTransferHistory = () => {
 
         setCommissions(commissionData.map(c => ({
           ...c,
-          host_profile: commProfiles?.find(p => p.id === c.host_id) || undefined
         })));
       }
     } catch (error) {
@@ -323,7 +322,6 @@ const AgencyTransferHistory = () => {
   const weeklyCommissions = useMemo(() => {
     const groups: Record<string, {
       host_id: string;
-      host_profile?: { display_name: string | null; avatar_url: string | null };
       total_commission: number;
       total_original: number;
       commission_rate: number;
@@ -344,14 +342,6 @@ const AgencyTransferHistory = () => {
       const key = `${c.host_id}_${weekStart.toISOString()}`;
       if (!groups[key]) {
         groups[key] = {
-          host_id: c.host_id,
-          host_profile: c.host_profile,
-          total_commission: 0,
-          total_original: 0,
-          commission_rate: Number(c.commission_rate) || 0,
-          week_start: weekStart.toISOString(),
-          week_end: weekEnd.toISOString(),
-          count: 0,
         };
       }
       groups[key].total_commission += Number(c.commission_amount) || 0;

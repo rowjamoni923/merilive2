@@ -345,8 +345,6 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
         if (lite.entryNameBarUrl) {
           queueRef.current.push({
             params: lite,
-            rank: rankOf(lite),
-            enqueuedAt: now,
           });
           coalesceIfOverloaded();
           scheduleDrain();
@@ -354,8 +352,6 @@ export function useUnifiedEntryDispatcher(opts: UnifiedEntryDispatcherOptions) {
       } else {
         queueRef.current.push({
           params,
-          rank: rankOf(params),
-          enqueuedAt: now,
         });
         coalesceIfOverloaded();
         scheduleDrain();

@@ -48,30 +48,12 @@ export const PUBLISH_LAYER_PRESETS: Record<PublishLayerTier, PublishLayerConfig>
     simulcastLayers: [],
   },
   medium: {
-    tier: "medium",
-    label: "Medium",
-    description: "720x960 sensor base + 540x720 relay — balanced.",
-    resolution: { width: 720, height: 960, frameRate: 30 },
-    videoEncoding: { maxBitrate: 1_200_000, maxFramerate: 30 },
-    simulcastLayers: [p(540, 720, 24, 500_000)],
   },
   high: {
-    tier: "high",
-    label: "High (recommended)",
-    description: "1080x1440 sensor base + 720x960 relay — HD simulcast.",
-    resolution: { width: 1080, height: 1440, frameRate: 30 },
-    videoEncoding: { maxBitrate: 4_000_000, maxFramerate: 30 },
-    simulcastLayers: [
       p(720, 960, 30, 1_400_000),
     ],
   },
   ultra: {
-    tier: "ultra",
-    label: "Ultra (premium HD)",
-    description: "1440x1920 sensor base + 1080x1440 + 720x960 — premium HD clarity.",
-    resolution: { width: 1440, height: 1920, frameRate: 30 },
-    videoEncoding: { maxBitrate: 6_500_000, maxFramerate: 30 },
-    simulcastLayers: [
       p(1080, 1440, 30, 3_500_000),
       p(720, 960, 30, 1_500_000),
     ],

@@ -118,10 +118,7 @@ export function registerRpcMethod(
       const enabled = await isLiveKitEnabled('rpc');
       if (!enabled) throw new Error('rpc_disabled');
       return handler({
-        callerIdentity: data.callerIdentity ?? data.requestId ?? '',
         method,
-        payload: data.payload ?? '',
-        responseTimeout: data.responseTimeout ?? 15000,
       });
     });
     entry.methods.add(method);
@@ -179,10 +176,6 @@ export async function performRpc(
     }
   }
   return entry.room.localParticipant.performRpc({
-    destinationIdentity: opts.destinationIdentity,
-    method: opts.method,
-    payload: opts.payload ?? '',
-    responseTimeout: opts.responseTimeout ?? 15000,
   });
 }
 

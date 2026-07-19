@@ -82,7 +82,6 @@ const ShootingStar = ({ delay = 0 }: { delay: number }) => {
         duration: 1.5,
         delay,
         repeat: Infinity,
-        repeatDelay: stable.repeatDelay,
       }}
     >
       <div className="absolute w-20 h-0.5 bg-gradient-to-r from-white to-transparent -left-20 top-0" />
@@ -248,8 +247,6 @@ const CreateParty = () => {
           try {
             cameraHandleRef.current?.release();
             cameraHandleRef.current = adoptCameraSession(mediaStream, {
-              video: true,
-              audio: true,
             });
           } catch (e) {
             console.warn('[CreateParty] adoptCameraSession failed (non-fatal):', e);
@@ -264,7 +261,6 @@ const CreateParty = () => {
         // by useProCamera(..., enabled=false) when mode flipped to 'audio'.
         releaseAndroidWebViewCamera('create-party:audio-only');
         const constraints: MediaStreamConstraints = { 
-          audio: { echoCancellation: true, noiseSuppression: true } 
         };
         const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
         setStream(mediaStream);
@@ -736,8 +732,6 @@ const CreateParty = () => {
             key={`sparkle-${i}`}
             className="absolute"
             style={{
-              top: `${Math.random() * 80}%`,
-              left: `${Math.random() * 100}%`,
             }}
             animate={{ 
               scale: [0.5, 1, 0.5], 
@@ -764,7 +758,6 @@ const CreateParty = () => {
       <div 
         className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
         style={{
-          background: 'linear-gradient(to top, rgba(255,255,255,0.2) 0%, transparent 100%)'
         }}
       />
 
@@ -1075,12 +1068,12 @@ const CreateParty = () => {
           <DialogHeader>
             <DialogTitle>Entry Fee</DialogTitle>
             <DialogDescription>
-              Optionally charge an entry fee in coins. The room stays public for everyone.
+              Optionally charge an entry fee in diamonds. The room stays public for everyone.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="room-entry-fee">Entry fee (coins)</Label>
+              <Label htmlFor="room-entry-fee">Entry fee (diamonds)</Label>
               <Input
                 id="room-entry-fee"
                 type="number"
@@ -1175,8 +1168,6 @@ const CreateParty = () => {
             try {
               const claimedStream = await claimAndroidWebViewCameraForStream(
                 () => navigator.mediaDevices.getUserMedia({
-                  video: buildPortraitVideoConstraint({ facingMode: newFacingMode }),
-                  audio: true
                 }),
                 'create-party:switch-camera-new-stream',
               );

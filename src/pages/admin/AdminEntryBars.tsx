@@ -70,13 +70,6 @@ const AdminEntryBars = () => {
 
       const mapped: EntryBarItem[] = (data || []).map(item => ({
         id: item.id,
-        level: item.unlock_level,
-        name: item.name,
-        animation_url: item.animation_url,
-        preview_url: item.preview_url,
-        sound_url: null, // Not in current schema
-        duration_ms: 3500, // Default value
-        is_active: item.is_active,
         created_at: item.created_at
       }));
 
@@ -155,15 +148,6 @@ const AdminEntryBars = () => {
   const openAddDialog = () => {
     setEditingItem(null);
     setFormData({
-      level: 1,
-      name: '',
-      animation_url: '',
-      animation_format: null,
-      animation_config_url: null,
-      preview_url: '',
-      sound_url: '',
-      duration_ms: 3500,
-      is_active: true
     });
     setDialogOpen(true);
   };
@@ -171,15 +155,6 @@ const AdminEntryBars = () => {
   const openEditDialog = (item: EntryBarItem) => {
     setEditingItem(item);
     setFormData({
-      level: item.level,
-      name: item.name,
-      animation_url: item.animation_url || '',
-      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
-      animation_config_url: (item as any).animation_config_url ?? null,
-      preview_url: item.preview_url || '',
-      sound_url: item.sound_url || '',
-      duration_ms: item.duration_ms,
-      is_active: item.is_active
     });
     setDialogOpen(true);
   };
@@ -196,18 +171,9 @@ const AdminEntryBars = () => {
       const payload: any = {
         privilege_type: 'entry_bar',
         unlock_level: formData.level,
-        name: formData.name,
         privilege_name: formData.name,
         description: `Entry Bar for Level ${formData.level}+`,
-        animation_url: formData.animation_url || null,
-        animation_format: formData.animation_format,
-        animation_config_url: formData.animation_config_url,
-        preview_url: formData.preview_url || null,
-        sound_url: formData.sound_url || null,
-        duration_ms: formData.duration_ms,
-        is_active: formData.is_active,
         display_order: formData.level,
-        level: formData.level,
       };
 
       if (editingItem) {
@@ -223,7 +189,6 @@ const AdminEntryBars = () => {
           .from('level_privileges')
           .insert({
             ...payload,
-            created_at: new Date().toISOString()
           });
 
         if (error) throw error;
@@ -499,15 +464,9 @@ const AdminEntryBars = () => {
                 label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
                 folder="entry-bars"
                 value={{
-                  animation_url: formData.animation_url,
-                  animation_format: formData.animation_format,
-                  animation_config_url: formData.animation_config_url,
                 }}
                 onChange={(v) => setFormData(prev => ({
                   ...prev,
-                  animation_url: v.animation_url,
-                  animation_format: v.animation_format,
-                  animation_config_url: v.animation_config_url,
                 }))}
               />
 

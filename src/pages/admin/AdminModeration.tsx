@@ -480,7 +480,6 @@ export default function AdminModeration() {
                 onChange={(e) => 
                   setSettings(prev => ({ 
                     ...prev, 
-                    auto_ban_phone_threshold: parseInt(e.target.value) || 3 
                   }))
                 }
                 className="w-24"
@@ -501,7 +500,6 @@ export default function AdminModeration() {
                 onChange={(e) => 
                   setSettings(prev => ({ 
                     ...prev, 
-                    profile_slideshow_interval: parseInt(e.target.value) || 5 
                   }))
                 }
                 className="w-24"
@@ -522,7 +520,6 @@ export default function AdminModeration() {
                 onChange={(e) => 
                   setSettings(prev => ({ 
                     ...prev, 
-                    max_poster_images: parseInt(e.target.value) || 5 
                   }))
                 }
                 className="w-24"

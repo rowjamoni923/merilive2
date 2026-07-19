@@ -581,7 +581,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 1 }}>
         <Avatar className={cn('shadow-lg', avatarClassName)}
           style={{ 
-            width: sizeConfig.avatar, height: sizeConfig.avatar,
             border: '2.5px solid rgba(255,255,255,0.15)',
           }}>
           <AvatarImage src={effectiveSrc || undefined} className={cn('w-full h-full object-cover object-center', avatarImageClassName)} loading={avatarImageLoading} decoding="async" onError={handleAvatarError} />
@@ -597,7 +596,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       {isOnline && (
         <div className="absolute bg-green-500 rounded-full border-2 border-white"
           style={{ 
-            width: sizeConfig.online, height: sizeConfig.online,
             bottom: 0, right: 0, zIndex: 3,
           }} />
       )}

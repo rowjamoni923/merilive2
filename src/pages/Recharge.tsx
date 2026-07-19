@@ -95,7 +95,6 @@ interface Level5HelperPaymentMethod {
   is_merchant?: boolean;
   additional_info?: any;
   helper?: {
-    id: string;
     user_id: string;
     wallet_balance: number;
     agency_diamond_balance?: number;
@@ -163,10 +162,8 @@ const Recharge = () => {
     userCountry: string | null;
     isLoading: boolean;
     samples: {
-      country: DiagSample[];
       inactive: DiagSample[];
       lowBalance: DiagSample[];
-      tierMin: DiagSample[];
     };
   }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true, samples: { country: [], inactive: [], lowBalance: [], tierMin: [] } });
   const helperRotationPage = 0;
@@ -646,69 +643,24 @@ const Recharge = () => {
           // Use helper_id from country payment method record if available
           const countryHelperId = m.helper_id || `country-${m.id}`;
           return [{
-            id: m.id,
-            helper_id: countryHelperId,
-            country_code: m.country_code,
-            payment_type: m.payment_method_name,
-            method_type: m.method_type || m.payment_type || m.payment_method_name,
-            account_name: m.account_name || m.country_name || m.payment_method_name,
-            account_number: m.account_number || '',
-            bank_name: null,
-            logo_url: m.logo_url || m.icon_url || (m.additional_info as any)?.logo_url || (m.additional_info as any)?.icon_url || null,
             instructions: m.instructions,
-            merchant_number: null,
-            is_merchant: Boolean((m.additional_info as any)?.is_merchant),
-            additional_info: {
               ...(m.additional_info || {}),
               source_table: 'helper_country_payment_methods',
               display_order: m.display_order,
             },
-            source: 'country',
           }];
         }
 
         return matchedLegacy.map((legacy: any) => ({
-        id: m.id,
-          helper_id: legacy.helper_id,
-          country_code: m.country_code,
-          payment_type: m.payment_method_name,
-          method_type: m.payment_type || legacy.method_type || m.payment_method_name,
-          account_name: legacy.account_name,
-          account_number: legacy.account_number,
-          bank_name: legacy.bank_name,
-          logo_url: m.logo_url || m.icon_url || legacy.logo_url || (m.additional_info as any)?.logo_url || (legacy.additional_info as any)?.logo_url || null,
-          instructions: m.instructions,
-          merchant_number: legacy.merchant_number || null,
-          is_merchant: legacy.is_merchant || false,
-          additional_info: {
             ...(legacy.additional_info || {}),
-            source_table: 'helper_country_payment_methods',
-            display_order: m.display_order,
           },
-          source: 'country'
         }));
       });
 
       // Global/Crypto methods (from other countries, shown everywhere)
       const globalNormalized = (globalMethodsData || []).map((m: any) => ({
-        id: m.id,
-        helper_id: `global-${m.id}`,
-        country_code: m.country_code,
-        payment_type: m.payment_method_name,
-        method_type: m.payment_type || m.payment_method_name,
-        account_name: m.country_name || m.payment_method_name,
-        account_number: '',
-        bank_name: null,
-        logo_url: m.logo_url || m.icon_url || (m.additional_info as any)?.logo_url || null,
-        instructions: m.instructions,
-        merchant_number: null,
-        is_merchant: false,
-        additional_info: {
-          source_table: 'helper_country_payment_methods',
           is_global: true,
-          display_order: m.display_order,
         },
-        source: 'global'
       }));
 
       // Deduplicate: if same method already exists from country fetch, skip global duplicate
@@ -756,7 +708,6 @@ const Recharge = () => {
 
       console.log('[Recharge] Combined payment methods:', {
         legacy: legacyNormalized.length,
-        country: countryNormalized.length,
         total: combinedMethodsData.length
       });
 
@@ -868,7 +819,6 @@ const Recharge = () => {
             hasMinBalance,
             isVerified,
             isHelperActive,
-            source: m.source,
             willShow: isLevel5PayrollHelper && hasMinBalance && isVerified && isHelperActive
           });
           
@@ -886,20 +836,7 @@ const Recharge = () => {
           ? m.additional_info.display_method 
           : m.payment_type;
         return {
-          id: m.id,
-          helper_id: m.helper_id,
-          country_code: m.country_code,
           method_name: displayMethodName,
-          method_type: isGateway ? 'auto_gateway' : 'mobile_wallet',
-          account_name: m.account_name,
-          account_number: m.account_number,
-          bank_name: m.bank_name,
-          instructions: `Send to this ${displayMethodName} number`,
-          logo_url: m.logo_url,
-          merchant_number: m.merchant_number || null,
-          is_merchant: m.is_merchant || false,
-          additional_info: m.additional_info || null,
-          helper: m.helper
         };
       });
 
@@ -946,14 +883,6 @@ const Recharge = () => {
       if (sorted.length === 0) {
         try {
           await (supabase as any).rpc('log_helper_payment_visibility', {
-            _country_code: userCountryCode,
-            _stage: 'empty_after_helper_join',
-            _legacy_count: legacyNormalized.length,
-            _country_count: countryNormalized.length,
-            _global_count: globalNormalized.length,
-            _active_helper_count: helpersData?.length || 0,
-            _final_count: 0,
-            _notes: { source: 'Recharge.tsx', combined: combinedMethodsData.length },
           });
         } catch (logErr) {
           console.warn('[Recharge] visibility log failed (non-fatal):', logErr);
@@ -1036,8 +965,6 @@ const Recharge = () => {
               const recovered = await playStoreBilling.retryPendingPurchases(session.user.id);
               if (recovered > 0) {
                 toast({
-                  title: "✅ Purchase Recovered!",
-                  description: `${recovered} pending purchase(s) have been delivered.`,
                 });
               }
             }
@@ -1173,19 +1100,10 @@ const Recharge = () => {
           return true;
         });
         setHelperDiag({
-          rawTotal: helpers.length,
           byCountry,
           byTierMin,
           byInactive,
           byLowBalance,
-          finalCount: filtered.length,
-          userCountry: userCountryCode,
-          isLoading: false,
-          samples: {
-            country: sampleCountry,
-            inactive: sampleInactive,
-            lowBalance: sampleLowBalance,
-            tierMin: sampleTierMin,
           },
         });
 
@@ -1206,7 +1124,6 @@ const Recharge = () => {
             level >= 1 && level <= 5 &&
             traderWalletBalance >= min;
           return {
-            id: user?.id || h.user_id,
             helperId: h.id,
             name: user?.display_name || 'Helper',
             avatar: user?.avatar_url || '',
@@ -1291,8 +1208,6 @@ const Recharge = () => {
               const isAuto = r.method_type === 'auto_gateway';
               const entry: AcceptedMethodLogo = {
                 gateway_id: `${r.helper_id}:${label.toLowerCase()}`,
-                name: label,
-                logo_url: r.logo_url || null,
                 is_integrated: isAuto,
               };
               const arr = byHelperCpm.get(r.helper_id) || [];
@@ -1464,10 +1379,6 @@ const Recharge = () => {
           setFirstRechargeBonusId(bonusConfigRes.data.id);
           setFirstRechargeBonus(Number(bonusConfigRes.data.bonus_multiplier) || 2.0);
           setRechargeBannerConfig({
-            banner_image_url: bonusConfigRes.data.banner_image_url,
-            banner_title: bonusConfigRes.data.banner_title,
-            banner_subtitle: bonusConfigRes.data.banner_subtitle,
-            banner_type: bonusConfigRes.data.banner_type,
           });
         }
       }
@@ -1504,11 +1415,7 @@ const Recharge = () => {
       
       // Map data to include payment_number and payment_instructions from settings
       const mappedGateways: PaymentGateway[] = (_data || []).map((g: any) => ({
-        id: g.id,
-        name: g.name,
         gateway_code: g.gateway_type,
-        description: (g.config as any)?.description || '',
-        logo_url: g.logo_url || (g.config as any)?.logo_url || null,
         country_codes: Array.isArray(g.country_codes) ? g.country_codes : [],
         supported_currencies: g.supported_currencies || [],
         fee_percentage: Number((g.config as any)?.fee_percentage) || 0,
@@ -1583,8 +1490,6 @@ const Recharge = () => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Copied!",
-      description: "Number copied to clipboard",
     });
   };
 
@@ -1610,15 +1515,11 @@ const Recharge = () => {
 
       setPaymentProof(publicUrl);
       toast({
-        title: "Uploaded!",
-        description: "Payment proof uploaded successfully",
       });
     } catch (error: any) {
       console.error('Upload error:', error);
       recordClientError({ label: "Recharge.filePath", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Upload Failed",
-        description: "Could not upload payment proof. Try again.",
         variant: "destructive"
       });
     } finally {
@@ -1634,9 +1535,6 @@ const Recharge = () => {
     }
     if (!selectedPackage || !userId) {
       toast({
-        title: "Select Package",
-        description: "Please select a diamond package first",
-        variant: "destructive"
       });
       return;
     }
@@ -1644,9 +1542,6 @@ const Recharge = () => {
     const productId = playStoreBilling.getProductIdForCoins(selectedPackage.diamonds);
     if (!productId) {
       toast({
-        title: "Product Not Available",
-        description: "This package is not available for Play Store purchase",
-        variant: "destructive"
       });
       return;
     }
@@ -1662,8 +1557,6 @@ const Recharge = () => {
         await fetchUserData();
         
         toast({
-          title: "🎉 Purchase Successful!",
-          description: `${formatNumber(selectedPackage.diamonds)} diamonds added to your account`,
         });
         
         // Mark campaign as purchased if navigated from campaign
@@ -1671,18 +1564,12 @@ const Recharge = () => {
         setSelectedPackageId(null);
       } else {
         toast({
-          title: "Purchase Failed",
-          description: result.error || "Could not complete purchase. Please try again.",
-          variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('[Recharge] Play Store purchase error:', error);
       recordClientError({ label: "Recharge.result", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Purchase Error",
-        description: error.message || "An error occurred during purchase",
-        variant: "destructive"
       });
     } finally {
       setPlayStoreProcessing(false);
@@ -1697,9 +1584,6 @@ const Recharge = () => {
     }
     if (!pkg || !userId) {
       toast({
-        title: "Product Not Available",
-        description: "This package is not available for Play Store purchase",
-        variant: "destructive"
       });
       return;
     }
@@ -1707,9 +1591,6 @@ const Recharge = () => {
     const productId = playStoreBilling.getProductIdForCoins(pkg.diamonds);
     if (!productId) {
       toast({
-        title: "Product Not Available",
-        description: "This package is not available for Play Store purchase",
-        variant: "destructive"
       });
       return;
     }
@@ -1721,23 +1602,15 @@ const Recharge = () => {
       if (result.success) {
         await fetchUserData();
         toast({
-          title: "🎉 Purchase Successful!",
-          description: `${formatNumber(pkg.diamonds)} diamonds added to your account`,
         });
       } else {
         toast({
-          title: "Purchase Failed",
-          description: result.error || "Could not complete purchase. Please try again.",
-          variant: "destructive"
         });
       }
     } catch (err: any) {
       console.error('[Recharge] Play Store purchase error:', err);
       recordClientError({ label: "Recharge.packagePlayStorePurchase", message: err instanceof Error ? err.message : String(err) });
       toast({
-        title: "Purchase Error",
-        description: err?.message || "An error occurred during purchase",
-        variant: "destructive"
       });
     } finally {
       setPlayStoreProcessing(false);
@@ -1780,9 +1653,6 @@ const Recharge = () => {
   const handleStartPayment = () => {
     if (!selectedPackage) {
       toast({
-        title: "Select Package",
-        description: "Please select a diamond package first",
-        variant: "destructive"
       });
       return;
     }
@@ -1805,9 +1675,6 @@ const Recharge = () => {
     // Check if payment method is selected for local payment
     if (!selectedPaymentType && helperPaymentMethods.length > 0) {
       toast({
-        title: "Select Payment Method",
-        description: "Please select a payment method (bKash, Nagad, etc.) first",
-        variant: "destructive"
       });
       return;
     }
@@ -1826,9 +1693,6 @@ const Recharge = () => {
 
       if (!selectedMethod) {
         toast({
-          title: "No Helper Available",
-          description: "No payment helper available for this method.",
-          variant: "destructive"
         });
         return;
       }
@@ -1859,18 +1723,12 @@ const Recharge = () => {
     }
     if (!selectedPackage || !selectedGateway || !userId) {
       toast({
-        title: "Error",
-        description: "Missing required information",
-        variant: "destructive"
       });
       return;
     }
 
     if (!transactionId.trim()) {
       toast({
-        title: "Transaction ID Required",
-        description: "Please enter your payment transaction ID",
-        variant: "destructive"
       });
       return;
     }
@@ -1905,7 +1763,6 @@ const Recharge = () => {
         const { data: helperOrder, error: orderError } = await supabase
           .from('helper_orders')
           .insert({
-            helper_id: helper.id,
             user_id: userId,
             package_id: selectedPackage.id,
             diamond_amount: selectedPackage.diamonds,
@@ -1988,9 +1845,7 @@ const Recharge = () => {
 
         // Notify user
         await supabase.from('notifications').insert({
-          user_id: userId,
           type: 'payment_completed',
-          title: '🎉 Diamonds Added!',
           message: `${formatNumber(totalCoinsToAdd)} diamonds have been added to your account instantly!${bonusDiamonds > 0 ? ` (includes +${bonusDiamonds} first recharge bonus!)` : ''}`,
           data: {
             order_id: helperOrder.id,
@@ -2001,8 +1856,6 @@ const Recharge = () => {
         // Helper notification is handled automatically by DB trigger (notify_helper_on_new_order)
 
         toast({
-          title: "🎉 Instant Success!",
-          description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusDiamonds > 0 ? ` (+${formatNumber(bonusDiamonds)} bonus!)` : ''}`,
         });
 
         // Mark campaign as purchased if navigated from campaign
@@ -2026,9 +1879,6 @@ const Recharge = () => {
       } catch (e: any) {
         recordClientError({ label: 'Recharge.gatewayValidation', message: e?.message || String(e) });
         toast({
-          title: 'Payment Not Allowed',
-          description: e?.message || 'This payment method is not available in your country.',
-          variant: 'destructive',
         });
         return;
       }
@@ -2045,19 +1895,12 @@ const Recharge = () => {
       const { data: transaction, error } = await supabase
         .from('payment_transactions')
         .insert({
-          user_id: userId,
-          gateway_id: selectedGateway.id,
-          package_id: selectedPackage.id,
           transaction_ref: transactionRef,
           external_transaction_id: transactionId.trim(),
-          payment_method: selectedGateway.gateway_code,
           amount: localAmount,
           currency: currencyRate?.currency_code || 'USD',
-          amount_usd: selectedPackage.price_usd,
           diamonds_amount: standardGatewayCoins,
-          status: 'pending',
           gateway_response: {
-            gateway_code: selectedGateway.gateway_code,
             package_coins: selectedPackage.diamonds,
             bonus_percentage: selectedPackage.bonus_percentage,
             is_first_recharge: isFirstRecharge,
@@ -2079,15 +1922,6 @@ const Recharge = () => {
 
       // Create notification for admin about new payment
       await supabase.from('notifications').insert({
-        user_id: userId,
-        type: 'payment_pending',
-        title: '💳 New Payment Pending',
-        message: `Payment of ${convertToLocalCurrency(selectedPackage.price_usd)} for ${formatNumber(selectedPackage.diamonds)} diamonds is awaiting approval.`,
-        data: {
-          transaction_id: transaction.id,
-          amount: localAmount,
-          coins: standardGatewayCoins,
-          gateway: selectedGateway.name
         }
       });
 
@@ -2098,9 +1932,6 @@ const Recharge = () => {
       console.error('Payment error:', error);
       recordClientError({ label: "Recharge.addData", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Payment Failed",
-        description: error.message || "Could not process payment. Please try again.",
-        variant: "destructive"
       });
       setPaymentStep("form");
     } finally {
@@ -2141,16 +1972,11 @@ const Recharge = () => {
 
       setHelperPaymentProof(publicUrl);
       toast({
-        title: "Uploaded!",
-        description: "Payment proof uploaded successfully",
       });
     } catch (error: any) {
       console.error('Upload error:', error);
       recordClientError({ label: "Recharge.filePath", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Upload Failed",
-        description: "Could not upload payment proof. Try again.",
-        variant: "destructive"
       });
     } finally {
       setUploadingHelperProof(false);
@@ -2164,18 +1990,12 @@ const Recharge = () => {
     }
     if (!selectedPackage || !selectedHelperMethod || !userId) {
       toast({
-        title: "Error",
-        description: "Missing required information",
-        variant: "destructive"
       });
       return;
     }
 
     if (!helperTransactionId.trim()) {
       toast({
-        title: "Transaction ID Required",
-        description: "Please enter your payment transaction ID",
-        variant: "destructive"
       });
       return;
     }
@@ -2195,25 +2015,7 @@ const Recharge = () => {
         const { data: order, error: orderError } = await supabase
           .from('helper_orders')
           .insert({
-            helper_id: selectedHelperMethod.helper_id,
-            user_id: userId,
-            diamond_amount: selectedPackage.diamonds,
-            amount_usd: selectedPackage.price_usd,
-            amount_local: localAmount,
-            currency_code: currencyRate?.currency_code || 'USD',
-            payment_method: selectedHelperMethod.method_name,
-            user_country_code: userCountryCode,
-            package_id: selectedPackage.id,
-            user_payment_proof: helperPaymentProof,
-            provider_transaction_id: normalizedHelperTxnId || null,
-            payment_details: {
-              transaction_id: normalizedHelperTxnId,
-              message: helperMessage || null,
-              method_type: selectedHelperMethod.method_type,
-              account_name: selectedHelperMethod.account_name,
-              account_number: selectedHelperMethod.account_number,
             },
-            status: 'pending',
           })
           .select()
           .single();
@@ -2228,8 +2030,6 @@ const Recharge = () => {
 
         setHelperPaymentStep("pending");
         toast({
-          title: "Order Submitted!",
-          description: "Helper will process your order shortly",
         });
       }
 
@@ -2237,9 +2037,6 @@ const Recharge = () => {
       console.error('Helper payment error:', error);
       recordClientError({ label: "Recharge.pollInterval", message: error instanceof Error ? error.message : String(error) });
       toast({
-        title: "Payment Failed",
-        description: error.message || "Could not process payment. Please try again.",
-        variant: "destructive"
       });
       setHelperPaymentStep("form");
     } finally {
@@ -2778,7 +2575,6 @@ const Recharge = () => {
                             Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
                           </p>
                           <div className="mt-1 text-[9px] font-mono text-orange-700 bg-orange-50/80 rounded px-1.5 py-0.5 inline-block">
-                            Filter: is_active === true && is_verified === true
                           </div>
                           {helperDiag.samples.inactive.length > 0 && (
                             <div className="mt-1.5 space-y-0.5">
@@ -2828,7 +2624,6 @@ const Recharge = () => {
                             Traders must hold ≥ 150,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
                           <div className="mt-1 text-[9px] font-mono text-emerald-700 bg-emerald-50/80 rounded px-1.5 py-0.5 inline-block">
-                            Filter: wallet ≥ 150,000 && wallet ≥ tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
                           </div>
                           {(helperDiag.samples.lowBalance.length > 0 || helperDiag.samples.tierMin.length > 0) && (
                             <div className="mt-1.5 space-y-0.5">
@@ -3324,15 +3119,10 @@ const Recharge = () => {
                       if (isAndroid) {
                         // On Android but Play Store plugin not initialized
                         toast({
-                          title: "Play Store Unavailable",
-                          description: "Google Play Store is not available. Please use local payment methods.",
-                          variant: "destructive"
                         });
                       } else {
                         // On Web/iOS - show info that Play Store requires Android app
                         toast({
-                          title: "📲 Download Android App",
-                          description: "Google Play payment requires the Android app. Please download from Play Store for instant payments.",
                         });
                       }
                     }
@@ -3341,9 +3131,6 @@ const Recharge = () => {
                     if (helperPaymentMethods.length > 0) {
                       if (!selectedPaymentType) {
                         toast({
-                          title: "Select Payment Method",
-                          description: "Please select a payment method (bKash, Nagad, etc.) first",
-                          variant: "destructive"
                         });
                         return;
                       }
@@ -3359,16 +3146,12 @@ const Recharge = () => {
                           setStripeProcessing(true);
                           supabase.functions.invoke(edgeFn, {
                             body: { 
-                              package_id: pkg.id, 
                               payment_method_id: selectedMethod.id,
                               origin_url: window.location.origin,
                             },
                           }).then(({ data, error }) => {
                             if (error || data?.error) {
                               toast({
-                                title: "Payment Error",
-                                description: data?.error || error?.message || "Could not start payment",
-                                variant: "destructive"
                               });
                             } else if (data?.url) {
                               import("@/utils/inAppNavigation").then(({ openInApp }) => openInApp(data.url, { useOverlay: true }));
@@ -3391,22 +3174,14 @@ const Recharge = () => {
                         setShowHelperPaymentModal(true);
                       } else {
                         toast({
-                          title: "No Helper Available",
-                          description: "No payment helper available for this method.",
-                          variant: "destructive"
                         });
                       }
                     } else if (adminPaymentMethods.length > 0) {
                       // Fallback to admin payment methods
                       toast({
-                        title: "📋 Manual Payment",
-                        description: "Copy the account number above and send payment. Then submit your transaction details.",
                       });
                     } else {
                       toast({
-                        title: "No Payment Methods",
-                        description: "No payment methods available for your country.",
-                        variant: "destructive"
                       });
                     }
                   }
@@ -4088,11 +3863,7 @@ const Recharge = () => {
             }}
             initialPackageId={mericashInitialPackageId}
             packages={packages.map((p: any) => ({
-              id: p.id,
-              coins: p.diamonds,
-              bonus_percentage: p.bonus_percentage,
               price_usd: Number(p.price ?? p.price_usd ?? 0),
-              name: p.name,
             }))}
           />
         </Suspense>

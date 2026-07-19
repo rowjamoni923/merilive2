@@ -130,11 +130,6 @@ const EntryBannerAnimationInner = memo(({
             // SVGA Entry Name Bar - TRUE FULL SCREEN
             <div
               style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '100%',
-                height: '100%',
                 // Scale up to fill screen like other entry animations
                 transform: 'translate(-50%, -50%) scale(1.5)',
                 transformOrigin: 'center center',
@@ -198,7 +193,6 @@ const EntryBannerAnimationInner = memo(({
                 <motion.div 
                   className="absolute -inset-2 rounded-2xl blur-xl opacity-60"
                   style={{ 
-                    background: `linear-gradient(135deg, ${getLevelColor(userLevel)}, #ec4899)` 
                   }}
                   animate={{ opacity: [0.4, 0.7, 0.4] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -208,7 +202,6 @@ const EntryBannerAnimationInner = memo(({
                 <div 
                   className="relative flex items-center gap-3 px-6 py-3 rounded-xl"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(236, 72, 153, 0.95), rgba(249, 115, 22, 0.9))',
                     boxShadow: '0 8px 32px rgba(139, 92, 246, 0.5), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.2)',
                     border: '2px solid rgba(255,255,255,0.3)'
                   }}
@@ -243,8 +236,6 @@ const EntryBannerAnimationInner = memo(({
                   <span 
                     className="px-2.5 py-1 rounded-lg text-xs font-black text-white shadow-lg"
                     style={{ 
-                      background: `linear-gradient(135deg, ${getLevelColor(userLevel)}, ${getLevelColor(userLevel)}dd)`,
-                      boxShadow: `0 2px 8px ${getLevelColor(userLevel)}80`
                     }}
                   >
                     Lv{userLevel}
@@ -254,7 +245,6 @@ const EntryBannerAnimationInner = memo(({
                   <span 
                     className="text-white font-bold text-base tracking-wide"
                     style={{
-                      textShadow: '0 2px 8px rgba(0,0,0,0.5)'
                     }}
                   >
                     {userName}

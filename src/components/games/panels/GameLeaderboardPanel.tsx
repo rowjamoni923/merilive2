@@ -261,8 +261,6 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
                   active ? "text-white" : "text-white/55 hover:text-white/80 bg-white/[0.04] border border-white/5"
                 )}
                 style={active ? {
-                  background: 'radial-gradient(120% 120% at 30% 20%, #d8b4fe 0%, #a855f7 50%, #6b21a8 100%)',
-                  boxShadow: '0 6px 14px -4px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)'
                 } : undefined}
               >
                 {active && <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />}
@@ -288,8 +286,6 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
                   active ? "text-white" : "text-white/40 hover:text-white/65 bg-white/[0.04] border border-white/5"
                 )}
                 style={active ? {
-                  background: 'radial-gradient(120% 120% at 30% 20%, #fde68a 0%, #f59e0b 50%, #b45309 100%)',
-                  boxShadow: '0 6px 14px -4px rgba(245,158,11,0.5), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)'
                 } : undefined}
               >
                 {active && <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />}

@@ -140,7 +140,6 @@ export function useEntryAnimations() {
         level: params.level,
         animationUrl: fullScreenUrl,
         animationType,
-        soundUrl: params.soundUrl,
       };
       
       console.log('[useEntryAnimations] ➕ Adding full-screen animation:', {
@@ -172,12 +171,6 @@ export function useEntryAnimations() {
       );
     } else {
       const newNameBar: NameBarAnimation = {
-        id: `namebar_${Date.now()}_${params.userId}`,
-        userId: params.userId,
-        displayName: params.displayName,
-        avatarUrl: params.avatarUrl,
-        level: userLevel,
-        animationUrl: params.entryNameBarUrl,
       };
 
       console.log('[useEntryAnimations] 🏷️ Adding NAMEBAR (owned asset) for:', params.displayName);

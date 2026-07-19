@@ -24,7 +24,7 @@ export interface NativeGiftEnqueueOptions {
   /** Optional gift sound URL — routed through the shared GiftAudioMixer. */
   soundUrl?: string;
   /** Coin value (drives priority ordering when ties on `priority`). */
-  coins?: number;
+  diamonds?: number;
   /** Higher wins (default 0). Range -1000..1000. */
   priority?: number;
   /** Watchdog timeout in ms (default 12000, max 60000). */

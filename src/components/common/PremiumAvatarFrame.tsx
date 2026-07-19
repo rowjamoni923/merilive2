@@ -26,39 +26,14 @@ const sizeConfigs = {
     onlineDot: 'w-1.5 h-1.5 bottom-0 right-0'
   },
   sm: { 
-    container: 'w-11 h-11', 
-    avatar: 'w-11 h-11', 
-    frame: 'w-11 h-11',
-    text: 'text-[10px]',
-    onlineDot: 'w-2 h-2 bottom-0 right-0'
   },
   md: { 
-    container: 'w-14 h-14', 
-    avatar: 'w-14 h-14', 
-    frame: 'w-14 h-14',
-    text: 'text-xs',
-    onlineDot: 'w-2.5 h-2.5 bottom-0.5 right-0.5'
   },
   lg: { 
-    container: 'w-[72px] h-[72px]', 
-    avatar: 'w-[72px] h-[72px]', 
-    frame: 'w-[72px] h-[72px]',
-    text: 'text-sm',
-    onlineDot: 'w-3 h-3 bottom-1 right-1'
   },
   xl: { 
-    container: 'w-24 h-24', 
-    avatar: 'w-24 h-24', 
-    frame: 'w-24 h-24',
-    text: 'text-base',
-    onlineDot: 'w-3.5 h-3.5 bottom-1 right-1'
   },
   '2xl': { 
-    container: 'w-[120px] h-[120px]', 
-    avatar: 'w-[120px] h-[120px]', 
-    frame: 'w-[120px] h-[120px]',
-    text: 'text-lg',
-    onlineDot: 'w-4 h-4 bottom-1.5 right-1.5'
   },
 };
 

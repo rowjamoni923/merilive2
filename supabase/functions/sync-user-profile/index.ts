@@ -42,8 +42,6 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await newClient.auth.getUser(token)
     if (userError || !user) {
       return new Response(JSON.stringify({ synced: false, reason: 'unauthorized' }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -84,7 +82,6 @@ Deno.serve(async (req) => {
         profileUpdated: Object.keys(patch).length > 0,
         resolvedName: currentProfile.display_name || currentProfile.username || null,
       }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -103,8 +100,6 @@ Deno.serve(async (req) => {
         .maybeSingle()
       if (bannedDevice?.id) {
         return new Response(JSON.stringify({ synced: false, reason: 'device_banned' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
     }
@@ -123,7 +118,6 @@ Deno.serve(async (req) => {
       app_uid: meta.app_uid || null,
       device_id: metadataDeviceId,
       is_verified: Boolean(user.email_confirmed_at),
-      coins: 0,
       diamonds: 0,
       beans: 0,
       beans_balance: 0,
@@ -146,17 +140,11 @@ Deno.serve(async (req) => {
     console.log(`[sync-user-profile] ✅ Created profile for: ${user.email || user.id}`)
 
     return new Response(JSON.stringify({
-      synced: true,
-      profileUpdated: true,
-      resolvedName: displayName,
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err: any) {
     console.error('[sync-user-profile] Error:', err)
     return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 })

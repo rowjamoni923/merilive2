@@ -293,14 +293,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           toxic: true,
-          toxicityScore: overallToxicity,
-          labels: toxicLabels,
           sentiment,
           sentimentScores,
           severity: isHighlyToxic ? "high" : "medium",
           action: isHighlyToxic ? (isHost ? "auto_deduction" : "warning") : "flagged",
-          autoDeducted: isHighlyToxic && isHost,
-          deductedAmount: isHighlyToxic && isHost ? TOXIC_DEDUCTION_BEANS : 0,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -309,12 +305,8 @@ serve(async (req) => {
     // Clean message
     return new Response(
       JSON.stringify({
-        toxic: false,
-        toxicityScore: overallToxicity,
-        labels: [],
         sentiment,
         sentimentScores,
-        severity: "none",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

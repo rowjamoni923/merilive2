@@ -71,7 +71,6 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -90,7 +89,6 @@ Deno.serve(async (req) => {
 
     if (!adminUser) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -110,7 +108,6 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (!perm?.can_edit) {
           return new Response(JSON.stringify({ error: 'Insufficient permission for user-management' }), {
-            status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
       }
@@ -120,7 +117,6 @@ Deno.serve(async (req) => {
 
     if (!subject || !htmlContent) {
       return new Response(JSON.stringify({ error: 'Subject and content required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -146,7 +142,6 @@ Deno.serve(async (req) => {
 
     if (emails.length === 0) {
       return new Response(JSON.stringify({ error: 'No emails found for target audience' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -202,12 +197,10 @@ Deno.serve(async (req) => {
       failed,
       errors: errors.slice(0, 5),
     }), {
-      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (err: any) {
     console.error('send-bulk-email error:', err);
     return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });

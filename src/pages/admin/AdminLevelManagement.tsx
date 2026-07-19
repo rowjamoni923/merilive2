@@ -29,10 +29,6 @@ const AdminLevelManagement = () => {
     ]);
 
     setStats({
-      userTiers: userTiersRes.count || 0,
-      hostTiers: hostTiersRes.count || 0,
-      privileges: privilegesRes.count || 0,
-      features: featuresRes.count || 0
     });
   };
 

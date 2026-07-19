@@ -96,8 +96,6 @@ Deno.serve(async (req) => {
 
     if (!path || !isValidGiftPath(path)) {
       return new Response(JSON.stringify({ error: "Invalid gift media path" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -116,8 +114,6 @@ Deno.serve(async (req) => {
     const existingPublic = await supabase.storage.from("gifts").download(publicGiftPath);
     if (existingPublic.data && !existingPublic.error) {
       return new Response(null, {
-        status: 302,
-        headers: {
           ...corsHeaders,
           "Location": publicGiftUrl,
           "Cache-Control": "public, max-age=604800, immutable",
@@ -129,8 +125,6 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase.storage.from("chat-media").download(path);
     if (error || !data) {
       return new Response(JSON.stringify({ error: "Gift media not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -149,8 +143,6 @@ Deno.serve(async (req) => {
       });
       if (!uploadResult.error || /already exists|duplicate/i.test(uploadResult.error.message || "")) {
         return new Response(null, {
-          status: 302,
-          headers: {
             ...corsHeaders,
             "Location": publicGiftUrl,
             "Cache-Control": "public, max-age=604800, immutable",
@@ -161,8 +153,6 @@ Deno.serve(async (req) => {
     }
 
     return new Response(body, {
-      status: 200,
-      headers: {
         ...corsHeaders,
         "Content-Type": contentType,
         "Content-Length": String(data.size),
@@ -174,8 +164,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Gift media proxy failed";
     return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

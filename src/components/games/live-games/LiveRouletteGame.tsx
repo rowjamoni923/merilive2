@@ -160,7 +160,6 @@ export function LiveRouletteGame({
   const betAmountsPerOptionRef = useRef<Record<string, number>>({});
   const totalBetPlacedRef = useRef<number>(0);
   const adminMultipliersRef = useRef<Record<string, number>>({
-    zero: 33, red: 2, black: 2, even: 2, odd: 2, low: 2, high: 2,
   });
   
   // Keep refs in sync with state
@@ -515,7 +514,6 @@ export function LiveRouletteGame({
       >
         {/* Casino Table Felt Texture */}
         <div className="absolute inset-0 rounded-2xl opacity-40" style={{
-          backgroundImage: `
             radial-gradient(circle at 50% 30%, rgba(34,197,94,0.3) 0%, transparent 50%),
             radial-gradient(circle at 30% 70%, rgba(34,197,94,0.2) 0%, transparent 40%),
             radial-gradient(circle at 70% 70%, rgba(34,197,94,0.2) 0%, transparent 40%)

@@ -108,7 +108,6 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
                   rotate: [0, 180, 360],
                 }}
                 transition={{
-                  duration: 1,
                   repeat: 1,
                   delay: i * 0.2,
                 }}
@@ -123,20 +122,10 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
                 key={`star-${i}`}
                 className="absolute"
                 initial={{ 
-                  left: "50%", 
-                  top: "50%",
-                  scale: 0 
                 }}
                 animate={{ 
-                  left: `${-20 + i * 40}%`,
-                  top: `${-20 + (i % 2) * 140}%`,
-                  scale: [0, 1, 0],
-                  rotate: [0, 360],
                 }}
                 transition={{
-                  duration: 1.2,
-                  delay: 0.2 + i * 0.1,
-                  repeat: 1,
                   repeatDelay: 1,
                 }}
               >
@@ -149,11 +138,8 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
               <motion.div
                 className="relative"
                 animate={isWin ? { 
-                  rotate: [-5, 5, -5], 
-                  scale: [1, 1.15, 1],
                   y: [0, -5, 0]
                 } : { 
-                  y: [0, 3, 0] 
                 }}
                 transition={{ duration: 0.4, repeat: 2 }}
               >

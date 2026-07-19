@@ -166,7 +166,7 @@ export default function AdminWithdrawals() {
   };
 
   const fetchSettings = async () => {
-    // Fetch coins rate
+    // Fetch diamonds rate
     const { data } = await supabase
       .from('app_settings')
       .select('setting_value')

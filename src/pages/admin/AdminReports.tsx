@@ -61,12 +61,6 @@ export default function AdminReports() {
 
       const payload: any = data || {};
       setStats({
-        totalUsers: Number(payload.total_users || 0),
-        newUsersToday: Number(payload.new_users_today || 0),
-        totalCoinsSpent: Number(payload.total_coins_spent_90d || 0),
-        totalGiftsSent: Number(payload.total_gifts_sent || 0),
-        totalStreams: Number(payload.total_streams || 0),
-        totalCalls: Number(payload.total_calls || 0),
       });
 
       // Slice the 90-day series to selected period
@@ -77,7 +71,7 @@ export default function AdminReports() {
         return {
           date: d.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
           users: Number(row.users || 0),
-          coins: Number(row.diamonds || 0),
+          diamonds: Number(row.diamonds || 0),
           streams: Number(row.streams || 0),
         };
       });
@@ -98,10 +92,10 @@ export default function AdminReports() {
     }
   };
 
-  const formatCoins = (coins: number) => {
-    if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
-    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
-    return coins.toString();
+  const formatCoins = (diamonds: number) => {
+    if (diamonds >= 1000000) return `${(diamonds / 1000000).toFixed(1)}M`;
+    if (diamonds >= 1000) return `${(diamonds / 1000).toFixed(1)}K`;
+    return diamonds.toString();
   };
 
   const StatCard = ({ 
@@ -111,7 +105,6 @@ export default function AdminReports() {
     change, 
     color 
   }: { 
-    icon: any; 
     label: string; 
     value: string | number; 
     change?: number; 
@@ -139,16 +132,11 @@ export default function AdminReports() {
   );
 
   const StatCardNew = ({ 
-    icon: Icon, 
     label, 
     value, 
     change, 
     colorClass 
   }: { 
-    icon: any; 
-    label: string; 
-    value: string | number; 
-    change?: number; 
     colorClass: string;
   }) => (
     <Card className={`${colorClass} border shadow-md`}>

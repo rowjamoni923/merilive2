@@ -100,9 +100,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
             if (!isLiveChatOnline()) {
               const { startStr, endStr } = getSupportHoursLocal();
               await supabase.from("support_messages").insert({
-                ticket_id: ticket.id,
-                sender_id: user.id,
-                sender_type: "admin",
                 content:
                   `🕒 Our Live Chat support is currently offline.\n\n` +
                   `Our live agents are available every day from ${startStr} to ${endStr} (your local time). ` +
@@ -169,8 +166,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
     // Optimistic update
     const optimisticMsg: LiveMessage = {
       id: tempId,
-      sender_type: "user",
-      content: text,
       is_read: false,
       created_at: new Date().toISOString(),
     };
@@ -180,10 +175,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       let lastError: any = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         const { error } = await supabase.from("support_messages").insert({
-          ticket_id: ticketId,
-          sender_id: userId,
-          sender_type: "user",
-          content: text,
         });
         if (!error) {
           lastError = null;
@@ -225,10 +216,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
           );
           if (!recentAuto) {
             await supabase.from("support_messages").insert({
-              ticket_id: ticketId,
-              sender_id: userId, // RLS-safe; sender_type marks it as admin auto-reply
-              sender_type: "admin",
-              content: autoReply,
             });
             await loadMessages(ticketId);
           }
@@ -297,10 +284,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       const { data: ticket, error } = await supabase
         .from("support_tickets")
         .insert({
-          user_id: userId,
-          subject: "Live Chat",
-          category: "live_chat",
-          user_email: (await supabase.auth.getUser()).data.user?.email || null,
         })
         .select("id")
         .single();
@@ -309,17 +292,10 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
         setTicketId(ticket.id);
         setTicketStatus("open");
         await supabase.from("support_messages").insert({
-          ticket_id: ticket.id,
-          sender_id: userId,
-          sender_type: "user",
-          content: "Started a new live chat session",
         });
         if (!isLiveChatOnline()) {
           const { startStr, endStr } = getSupportHoursLocal();
           await supabase.from("support_messages").insert({
-            ticket_id: ticket.id,
-            sender_id: userId,
-            sender_type: "admin",
             content:
               `🕒 Our Live Chat support is currently offline.\n\n` +
               `Our live agents are available every day from ${startStr} to ${endStr} (your local time). ` +

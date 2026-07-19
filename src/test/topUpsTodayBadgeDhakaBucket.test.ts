@@ -78,9 +78,6 @@ describe('Pkg68 — top-ups today badge (Asia/Dhaka day-bucket)', () => {
 
     it('counts an order from 18:00:00Z (== Dhaka 00:00 on the 20th) → today', () => {
       const order: HelperOrder = {
-        helper_id: 'h1',
-        created_at: '2026-05-19T18:00:00Z',
-        status: 'completed',
       };
       expect(isSameDhakaDay(order.created_at, dhakaNoonMay20)).toBe(true);
       expect(dailyCountForHelper('h1', [order], dhakaNoonMay20)).toBe(1);
@@ -99,9 +96,6 @@ describe('Pkg68 — top-ups today badge (Asia/Dhaka day-bucket)', () => {
     it('does not double-count when host machine is on UTC or US-Eastern', () => {
       // Same Dhaka-noon, just expressed via offset strings — bucket is identical.
       const order: HelperOrder = {
-        helper_id: 'h1',
-        created_at: '2026-05-20T00:00:00+06:00', // == 2026-05-19T18:00:00Z
-        status: 'completed',
       };
       expect(dailyCountForHelper('h1', [order], dhakaNoonMay20)).toBe(1);
       // Same instant expressed in UTC must yield the same count.

@@ -48,13 +48,7 @@ describe('Pkg140 livekitWebhookEventsOps', () => {
     expect(r.events).toHaveLength(1);
     expect(r.nextBeforeId).toBe(5);
     expect(invokeMock).toHaveBeenCalledWith('livekit-webhook-events-ops', {
-      body: {
         action: 'list_events',
-        roomName: 'live_x',
-        eventType: 'room_started',
-        participantIdentity: 'u1',
-        limit: 25,
-        beforeId: 100,
       },
     });
   });
@@ -75,13 +69,10 @@ describe('Pkg140 livekitWebhookEventsOps', () => {
 
   it('getLiveKitWebhookEvent returns event payload', async () => {
     invokeMock.mockResolvedValue({
-      data: { event: { id: 42, event: 'participant_joined' } },
-      error: null,
     });
     const e = await getLiveKitWebhookEvent(42);
     expect(e?.id).toBe(42);
     expect(invokeMock).toHaveBeenCalledWith('livekit-webhook-events-ops', {
-      body: { action: 'get_event', eventId: 42 },
     });
   });
 
@@ -93,32 +84,24 @@ describe('Pkg140 livekitWebhookEventsOps', () => {
 
   it('getLiveKitWebhookEventStats sends since when provided', async () => {
     invokeMock.mockResolvedValue({
-      data: { windowMs: 3600000, counts: { room_started: 2 }, total: 2 },
-      error: null,
     });
     const s = await getLiveKitWebhookEventStats(3_600_000);
     expect(s.total).toBe(2);
     expect(s.counts.room_started).toBe(2);
     expect(invokeMock).toHaveBeenCalledWith('livekit-webhook-events-ops', {
-      body: { action: 'stats', since: 3_600_000 },
     });
   });
 
   it('getLiveKitWebhookEventStats omits since when not provided', async () => {
     invokeMock.mockResolvedValue({
-      data: { windowMs: 86400000, counts: {}, total: 0 },
-      error: null,
     });
     await getLiveKitWebhookEventStats();
     expect(invokeMock).toHaveBeenCalledWith('livekit-webhook-events-ops', {
-      body: { action: 'stats' },
     });
   });
 
   it('throws when edge fn returns error field in data', async () => {
     invokeMock.mockResolvedValue({
-      data: { error: 'webhook_events_ops_disabled' },
-      error: null,
     });
     await expect(listLiveKitWebhookEvents()).rejects.toThrow(
       'webhook_events_ops_disabled',

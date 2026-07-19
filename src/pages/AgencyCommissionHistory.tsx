@@ -77,7 +77,7 @@ const AgencyCommissionHistory = () => {
         return;
       }
 
-      // Fetch coins to USD rate (same source as AgencyDashboard for consistency)
+      // Fetch diamonds to USD rate (same source as AgencyDashboard for consistency)
       const { data: settingsData } = await supabase
         .from('app_settings')
         .select('setting_value')
@@ -157,7 +157,6 @@ const AgencyCommissionHistory = () => {
           todayCommission,
           thisWeekCommission,
           thisMonthCommission,
-          totalTransactions: commissionsWithProfiles.length
         });
       }
 

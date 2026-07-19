@@ -40,31 +40,10 @@ export const PremiumJoinBanner: React.FC<PremiumJoinBannerProps> = ({
       particleColor: 'bg-yellow-400',
     };
     if (level >= 30) return {
-      gradient: 'from-purple-600 via-pink-500 to-rose-500',
-      glow: 'shadow-pink-500/50',
-      textColor: 'text-pink-100',
-      icon: Sparkles,
-      iconColor: 'text-pink-300',
-      borderColor: 'border-pink-400/50',
-      particleColor: 'bg-pink-400',
     };
     if (level >= 15) return {
-      gradient: 'from-cyan-500 via-blue-500 to-purple-500',
-      glow: 'shadow-blue-500/50',
-      textColor: 'text-blue-100',
-      icon: Zap,
-      iconColor: 'text-cyan-300',
-      borderColor: 'border-cyan-400/50',
-      particleColor: 'bg-cyan-400',
     };
     return {
-      gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
-      glow: 'shadow-emerald-500/50',
-      textColor: 'text-emerald-100',
-      icon: Star,
-      iconColor: 'text-emerald-300',
-      borderColor: 'border-emerald-400/50',
-      particleColor: 'bg-emerald-400',
     };
   };
 
@@ -111,7 +90,6 @@ export const PremiumJoinBanner: React.FC<PremiumJoinBannerProps> = ({
             x: ['-100%', '200%'],
           }}
           transition={{
-            duration: 1.5,
             repeat: Infinity,
             repeatDelay: 2,
             ease: 'easeInOut',
@@ -127,12 +105,9 @@ export const PremiumJoinBanner: React.FC<PremiumJoinBannerProps> = ({
             animate={{
               opacity: [0, 1, 0],
               y: [-10, -40],
-              x: [0, (i % 2 === 0 ? 10 : -10)],
             }}
             transition={{
-              duration: 2,
               delay: i * 0.3,
-              repeat: Infinity,
             }}
             className={cn(
               'absolute w-1.5 h-1.5 rounded-full',

@@ -46,30 +46,8 @@ const PRESETS: Record<Exclude<PresetKey, "custom">, RankingConfig> = {
     busy_boost: 24,
   },
   strict_quality: {
-    reject_penalty_threshold: 2,
-    reject_penalty_strong_threshold: 4,
-    reject_penalty_amount: 80,
-    reject_penalty_strong_amount: 180,
-    reject_penalty_per_extra_reject: 20,
-    reject_auto_scale_enabled: true,
-    viewer_weight: 8,
-    host_level_weight: 2,
-    live_boost: 70,
-    online_boost: 35,
-    busy_boost: 20,
   },
   growth_mode: {
-    reject_penalty_threshold: 3,
-    reject_penalty_strong_threshold: 6,
-    reject_penalty_amount: 35,
-    reject_penalty_strong_amount: 90,
-    reject_penalty_per_extra_reject: 8,
-    reject_auto_scale_enabled: true,
-    viewer_weight: 10,
-    host_level_weight: 4,
-    live_boost: 90,
-    online_boost: 45,
-    busy_boost: 28,
   },
 };
 
@@ -80,14 +58,8 @@ const PRESET_LABELS: Record<Exclude<PresetKey, "custom">, { name: string; desc: 
     tone: "from-amber-400 to-yellow-500",
   },
   strict_quality: {
-    name: "Strict Quality",
-    desc: "Heavier penalties for rejecting calls. Promotes top performers.",
-    tone: "from-rose-400 to-red-500",
   },
   growth_mode: {
-    name: "Growth Mode",
-    desc: "Forgiving — boosts new hosts and maximises live discovery.",
-    tone: "from-emerald-400 to-teal-500",
   },
 };
 
@@ -185,9 +157,6 @@ const AdminHostFeedRanking = () => {
       toast.success("Host feed ranking saved");
     } catch (error) {
       recordAdminError({
-        kind: "other",
-        label: "AdminHostFeedRanking.save",
-        message: formatAdminError(error),
       });
       toast.error("Failed to save ranking config");
     } finally {

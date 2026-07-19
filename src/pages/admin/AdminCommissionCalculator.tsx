@@ -26,9 +26,7 @@ interface CommissionSettings {
     description: string;
   };
   call_rates: {
-    company_percent: number;
     per_minute_rate: number;
-    description: string;
   };
 }
 
@@ -100,23 +98,18 @@ const AdminCommissionCalculator = () => {
       await saveAppSetting(
         'call_rates',
         {
-          company_percent: callCompanyPercent,
           host_commission_percent: 100 - callCompanyPercent,
           per_minute_rate: callPerMinuteRate,
           default_rate: callPerMinuteRate,
-          description: `Company takes ${callCompanyPercent}%, Host receives ${100 - callCompanyPercent}% at ${callPerMinuteRate} diamonds/min`
         },
         'Call rates and commission settings'
       );
       
       toast({
         title: "✅ Saved!",
-        description: "Commission settings updated successfully"
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
         variant: "destructive"
       });
     } finally {

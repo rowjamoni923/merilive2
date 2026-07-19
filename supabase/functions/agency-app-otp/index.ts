@@ -113,7 +113,6 @@ serve(async (req) => {
       const message = `Your MeriLive ${purpose === "sub_agency_verification" ? "sub-agency" : "agency"} OTP is ${otp}. It expires in 5 minutes.`;
 
       const { error: notificationError } = await supabase.from("notifications").insert({
-        user_id: userId,
         type: "agency_verification",
         title,
         message,

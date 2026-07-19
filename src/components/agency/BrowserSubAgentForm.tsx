@@ -120,7 +120,6 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
           if (match) {
             setAgency({
               id: match.id,
-              name: match.name,
               level: match.level || 'A1',
               logo_url: match.logo_url || null,
               agency_code: match.agency_code
@@ -128,11 +127,6 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
           }
         } else if (data) {
           setAgency({
-            id: data.id,
-            name: data.name,
-            level: data.level || 'A1',
-            logo_url: data.logo_url || null,
-            agency_code: data.agency_code
           });
         }
       } catch (error) {
@@ -190,7 +184,6 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         }
         
         setFoundUser({
-          id: user.id,
           display_name: user.display_name,
           avatar_url: user.avatar_url,
           username: user.username,
@@ -226,7 +219,6 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
         body: {
           action: 'send',
-          userId: foundUser.id,
           purpose: 'sub_agency_verification',
           context: agency?.agency_code || 'Sub-Agent Registration'
         }
@@ -258,11 +250,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
     setVerifyingAppCode(true);
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
-        body: {
-          action: 'verify',
-          userId: foundUser?.id,
           code: appCode,
-          purpose: 'sub_agency_verification'
         }
       });
       if (error) throw error;
@@ -311,10 +299,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         agencyId: agency.id,
         agencyCode: agency.agency_code,
         agencyName: agency.name,
-        userId: foundUser?.id,
         userName: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
         appUid: foundUser?.app_uid,
         createdAt: new Date().toISOString()
       };

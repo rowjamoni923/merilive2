@@ -83,7 +83,6 @@ interface Agency {
   created_at: string | null;
   owner_id: string | null;
   owner?: {
-    id: string;
     display_name: string | null;
     avatar_url: string | null;
     country_flag: string | null;
@@ -97,7 +96,6 @@ interface AgencyHost {
   status: string | null;
   joined_via: string | null;
   host?: {
-    id: string;
     display_name: string | null;
     avatar_url: string | null;
     is_online: boolean | null;
@@ -305,7 +303,6 @@ export default function AdminAgencyDetail() {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc("admin_update_agency_level", {
-        _agency_id: agency.id,
         _level: newLevel
       });
 
@@ -334,8 +331,6 @@ export default function AdminAgencyDetail() {
       
       for (const hostId of activeHostIds) {
         await supabase.rpc("admin_remove_host_from_agency", {
-          _host_id: hostId,
-          _reason: removeReason || "Remove all hosts"
         });
       }
 
@@ -359,8 +354,6 @@ export default function AdminAgencyDetail() {
     try {
       // First remove from current agency
       const { error: removeError } = await supabase.rpc("admin_remove_host_from_agency", {
-        _host_id: selectedHost.host_id,
-        _reason: "Transferred to another agency"
       });
 
       if (removeError) throw removeError;
@@ -477,10 +470,6 @@ export default function AdminAgencyDetail() {
       const { error: hostError } = await supabase
         .from("agency_hosts")
         .insert({
-          agency_id: agency.id,
-          host_id: foundUser.id,
-          status: 'active',
-          joined_via: 'admin_add'
         });
 
       if (hostError) throw hostError;

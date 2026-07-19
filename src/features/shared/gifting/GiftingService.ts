@@ -25,7 +25,7 @@ import { emitLuckyWin } from '@/components/lucky/LuckyGiftHost';
 export interface GiftItem {
   id: string;
   name: string;
-  coins: number;
+  diamonds: number;
   category: string;
   icon_url?: string | null;
   animation_url?: string | null;
@@ -123,7 +123,7 @@ export async function fetchGifts(): Promise<GiftItem[]> {
   giftsCache = (data || []).map(g => ({
     id: g.id,
     name: g.name,
-    coins: g.diamond_value, // Use diamond_value from DB
+    diamonds: g.diamond_value, // Use diamond_value from DB
     category: g.category || 'popular',
     icon_url: normalizeGiftIconUrl(g.icon_url, g.animation_url),
     animation_url: normalizeGiftAssetUrl(g.animation_url),
@@ -146,7 +146,7 @@ export async function getGiftById(giftId: string): Promise<GiftItem | null> {
     return {
       id: prefetched.id,
       name: prefetched.name,
-      coins: prefetched.diamond_value,
+      diamonds: prefetched.diamond_value,
       category: prefetched.category || 'popular',
       icon_url: normalizeGiftIconUrl(prefetched.icon_url, prefetched.animation_url),
       animation_url: normalizeGiftAssetUrl(prefetched.animation_url),
@@ -178,7 +178,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
 
   // ⚡ ZERO-SECOND FANOUT: fire LiveKit envelope IMMEDIATELY (before RPC roundtrip).
   // Receivers see the flying gift + sound + chat row in <50ms instead of 300-650ms.
-  // If the RPC later fails (insufficient coins, block, etc.) the sender's UI shows
+  // If the RPC later fails (insufficient diamonds, block, etc.) the sender's UI shows
   // an error, but the optimistic visual already played for everyone — acceptable
   // Chamet-class trade-off and matches in-call/in-party UX expectations.
   const liveKitScope: 'live' | 'party' | 'call' | null =
@@ -343,18 +343,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             senderLevel,
             receiverId,
             giftId,
-            giftName: gift?.name || 'Gift',
-            giftIconUrl: gift?.icon_url || undefined,
-            giftAnimationUrl: gift?.animation_url || undefined,
-            giftAnimationFormat: hintedFormat,
-            giftAnimationConfigUrl: gift?.animation_config_url || undefined,
-            giftSoundUrl: gift?.sound_url || undefined,
-            count: quantity,
-            giftCoins: gift?.diamonds || 0,
-            totalDiamonds: result.diamondsSpent || 0,
-            receiverBeans: result.hostReceived || 0,
             luckyBonus: result.diamondBonus || 0,
-            timestamp: Date.now(),
           }).catch((err) => console.warn('[Pkg76] fallback publishGiftSent failed:', err));
         } catch (err) {
           console.warn('[GiftingService] fallback broadcast failed (non-fatal):', err);
@@ -366,16 +355,10 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     return {
       success: true,
       transaction: {
-        id: result.transactionId || 'unknown',
-        diamonds_spent: result.diamondsSpent || 0,
-        beans_earned: result.hostReceived || 0,
-        diamond_bonus: result.diamondBonus || 0,
-        is_lucky: !!result.isLucky,
       },
       gift: {
-        id: giftId,
         name: 'Gift',
-        coins: result.diamondsSpent || 0,
+        diamonds: result.diamondsSpent || 0,
         category: 'popular',
       },
     };
@@ -391,14 +374,14 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
 /**
  * Format coin value for display
  */
-export function formatCoinValue(coins: number): string {
-  if (coins >= 1000000) {
-    return (coins / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+export function formatCoinValue(diamonds: number): string {
+  if (diamonds >= 1000000) {
+    return (diamonds / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }
-  if (coins >= 1000) {
-    return (coins / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  if (diamonds >= 1000) {
+    return (diamonds / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   }
-  return coins.toString();
+  return diamonds.toString();
 }
 
 /**

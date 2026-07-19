@@ -70,9 +70,6 @@ export default function PremiumCampaignCard({ percentage, caption = 'BONUS', wid
           <span
             className="font-bold uppercase"
             style={{
-              fontSize: capSize,
-              color: '#fff1c2',
-              letterSpacing: '0.18em',
               textShadow: '0 1px 2px rgba(0,0,0,0.55)',
             }}
           >

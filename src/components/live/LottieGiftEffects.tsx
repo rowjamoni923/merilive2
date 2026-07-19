@@ -16,10 +16,8 @@ const heartBurstAnimation = {
   assets: [],
   layers: [
     {
-      ddd: 0,
       ind: 1,
       ty: 4,
-      nm: "Heart",
       sr: 1,
       ks: {
         o: { a: 1, k: [{ t: 0, s: [100] }, { t: 60, s: [100] }, { t: 90, s: [0] }] },
@@ -29,17 +27,12 @@ const heartBurstAnimation = {
       },
       shapes: [
         {
-          ty: "gr",
           it: [
             {
-              ty: "sh",
-              ks: {
                 a: 0,
                 k: {
                   c: true,
-                  v: [[0, -15], [15, -30], [30, -15], [0, 20], [-30, -15], [-15, -30]],
                   i: [[0, 0], [-8, 0], [0, 10], [10, 0], [0, 10], [8, 0]],
-                  o: [[8, 0], [0, -10], [-10, 0], [0, 10], [-8, 0], [0, -10]]
                 }
               }
             },
@@ -63,10 +56,8 @@ const starShowerAnimation = {
   ddd: 0,
   assets: [],
   layers: Array.from({ length: 8 }).map((_, i) => ({
-    ddd: 0,
     ind: i + 1,
     ty: 4,
-    nm: `Star ${i}`,
     sr: 1,
     ks: {
       o: { a: 1, k: [{ t: i * 10, s: [0] }, { t: i * 10 + 10, s: [100] }, { t: 100, s: [100] }, { t: 120, s: [0] }] },
@@ -82,7 +73,6 @@ const starShowerAnimation = {
     },
     shapes: [
       {
-        ty: "gr",
         it: [
           { ty: "sr", pt: { a: 0, k: 5 }, p: { a: 0, k: [0, 0] }, r: { a: 0, k: 0 }, ir: { a: 0, k: 10 }, or: { a: 0, k: 25 } },
           { ty: "fl", c: { a: 0, k: [1, 0.85, 0, 1] } },
@@ -108,10 +98,8 @@ const confettiExplosionAnimation = {
     const distance = 100 + Math.random() * 80;
     const colors = [[1, 0.4, 0.7, 1], [0.4, 0.8, 1, 1], [1, 0.9, 0.3, 1], [0.6, 1, 0.5, 1], [1, 0.6, 0.3, 1]];
     return {
-      ddd: 0,
       ind: i + 1,
       ty: 4,
-      nm: `Confetti ${i}`,
       sr: 1,
       ks: {
         o: { a: 1, k: [{ t: 0, s: [0] }, { t: 10, s: [100] }, { t: 70, s: [100] }, { t: 90, s: [0] }] },
@@ -128,7 +116,6 @@ const confettiExplosionAnimation = {
       },
       shapes: [
         {
-          ty: "gr",
           it: [
             { ty: "rc", d: 1, s: { a: 0, k: [10, 15] }, p: { a: 0, k: [0, 0] }, r: { a: 0, k: 2 } },
             { ty: "fl", c: { a: 0, k: colors[i % colors.length] } },
@@ -152,10 +139,8 @@ const crownGlowAnimation = {
   assets: [],
   layers: [
     {
-      ddd: 0,
       ind: 1,
       ty: 4,
-      nm: "Glow",
       sr: 1,
       ks: {
         o: { a: 1, k: [{ t: 0, s: [0] }, { t: 30, s: [60] }, { t: 90, s: [60] }, { t: 120, s: [0] }] },
@@ -164,7 +149,6 @@ const crownGlowAnimation = {
       },
       shapes: [
         {
-          ty: "gr",
           it: [
             { ty: "el", s: { a: 0, k: [100, 100] }, p: { a: 0, k: [0, 0] } },
             { ty: "fl", c: { a: 0, k: [1, 0.8, 0.2, 1] } },
@@ -174,30 +158,14 @@ const crownGlowAnimation = {
       ]
     },
     {
-      ddd: 0,
-      ind: 2,
-      ty: 4,
-      nm: "Crown Shape",
-      sr: 1,
-      ks: {
-        o: { a: 1, k: [{ t: 0, s: [0] }, { t: 20, s: [100] }, { t: 100, s: [100] }, { t: 120, s: [0] }] },
         r: { a: 1, k: [{ t: 0, s: [-10] }, { t: 60, s: [10] }, { t: 120, s: [-10] }] },
-        p: { a: 0, k: [100, 100] },
-        s: { a: 1, k: [{ t: 0, s: [0, 0] }, { t: 30, s: [110, 110] }, { t: 60, s: [100, 100] }] }
       },
-      shapes: [
         {
-          ty: "gr",
-          it: [
             {
-              ty: "sh",
-              ks: {
                 a: 0,
                 k: {
                   c: true,
-                  v: [[-30, 20], [-30, 0], [-20, -20], [0, 0], [20, -20], [30, 0], [30, 20]],
                   i: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
-                  o: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
                 }
               }
             },
@@ -223,10 +191,8 @@ const rocketLaunchAnimation = {
   layers: [
     // Smoke trail
     ...Array.from({ length: 10 }).map((_, i) => ({
-      ddd: 0,
       ind: i + 1,
       ty: 4,
-      nm: `Smoke ${i}`,
       sr: 1,
       ks: {
         o: { a: 1, k: [{ t: i * 5, s: [0] }, { t: i * 5 + 10, s: [50] }, { t: i * 5 + 50, s: [0] }] },
@@ -235,7 +201,6 @@ const rocketLaunchAnimation = {
       },
       shapes: [
         {
-          ty: "gr",
           it: [
             { ty: "el", s: { a: 0, k: [30, 30] }, p: { a: 0, k: [0, 0] } },
             { ty: "fl", c: { a: 0, k: [0.8, 0.8, 0.8, 1] } },
@@ -246,29 +211,13 @@ const rocketLaunchAnimation = {
     })),
     // Rocket body
     {
-      ddd: 0,
-      ind: 11,
-      ty: 4,
-      nm: "Rocket Body",
-      sr: 1,
-      ks: {
-        o: { a: 1, k: [{ t: 0, s: [100] }, { t: 100, s: [100] }, { t: 120, s: [0] }] },
-        p: { a: 1, k: [{ t: 0, s: [100, 350] }, { t: 100, s: [100, -50] }] },
-        s: { a: 0, k: [100, 100] }
       },
-      shapes: [
         {
-          ty: "gr",
-          it: [
             {
-              ty: "sh",
-              ks: {
                 a: 0,
                 k: {
                   c: true,
-                  v: [[0, -30], [15, 10], [10, 30], [-10, 30], [-15, 10]],
                   i: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
-                  o: [[10, 0], [0, 0], [0, 0], [0, 0], [-10, 0]]
                 }
               }
             },
@@ -296,10 +245,8 @@ const diamondSparkleAnimation = {
     ...Array.from({ length: 8 }).map((_, i) => {
       const angle = (i / 8) * Math.PI * 2;
       return {
-        ddd: 0,
         ind: i + 1,
         ty: 4,
-        nm: `Sparkle ${i}`,
         sr: 1,
         ks: {
           o: { a: 1, k: [{ t: i * 8, s: [0] }, { t: i * 8 + 15, s: [100] }, { t: i * 8 + 40, s: [0] }] },
@@ -309,7 +256,6 @@ const diamondSparkleAnimation = {
         },
         shapes: [
           {
-            ty: "gr",
             it: [
               { ty: "sr", pt: { a: 0, k: 4 }, p: { a: 0, k: [0, 0] }, r: { a: 0, k: 0 }, ir: { a: 0, k: 3 }, or: { a: 0, k: 10 } },
               { ty: "fl", c: { a: 0, k: [0.4, 0.9, 1, 1] } },
@@ -321,30 +267,13 @@ const diamondSparkleAnimation = {
     }),
     // Diamond shape
     {
-      ddd: 0,
-      ind: 9,
-      ty: 4,
-      nm: "Diamond Shape",
-      sr: 1,
-      ks: {
-        o: { a: 1, k: [{ t: 0, s: [0] }, { t: 20, s: [100] }, { t: 100, s: [100] }, { t: 120, s: [0] }] },
-        r: { a: 1, k: [{ t: 0, s: [-15] }, { t: 60, s: [15] }, { t: 120, s: [-15] }] },
-        p: { a: 0, k: [100, 100] },
-        s: { a: 1, k: [{ t: 0, s: [0, 0] }, { t: 30, s: [120, 120] }, { t: 50, s: [100, 100] }] }
       },
-      shapes: [
         {
-          ty: "gr",
-          it: [
             {
-              ty: "sh",
-              ks: {
                 a: 0,
                 k: {
                   c: true,
-                  v: [[0, -35], [30, 0], [0, 35], [-30, 0]],
                   i: [[0, 0], [0, 0], [0, 0], [0, 0]],
-                  o: [[0, 0], [0, 0], [0, 0], [0, 0]]
                 }
               }
             },
@@ -546,12 +475,9 @@ export const LottieGiftAnimation = ({
                 initial={{
                   x: Math.random() * window.innerWidth,
                   y: window.innerHeight + 50,
-                  scale: 0.5 + Math.random() * 0.5,
                 }}
                 animate={{
-                  y: -100,
                   opacity: [0, 1, 0],
-                  rotate: Math.random() * 360,
                 }}
                 transition={{
                   duration: 2 + Math.random() * 2,

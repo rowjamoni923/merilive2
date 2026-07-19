@@ -371,16 +371,10 @@ function MethodEditDialog({ target, onClose, onSaved }: { target: { kind: "topup
         if (error) throw error;
       } else {
         const { error } = await supabase.rpc("csa_upsert_withdrawal_method", {
-          _id: r.id || null,
           _method_name: form.name,
-          _method_type: form.method_type,
-          _account_name: form.account_name,
           _account_number: form.payment_number,
           _bank_name: form.bank_name,
           _instructions: form.instructions,
-          _logo_url: form.logo_url,
-          _is_active: form.is_active,
-          _display_order: Number(form.display_order) || 0,
         });
         if (error) throw error;
       }

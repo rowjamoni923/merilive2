@@ -270,12 +270,6 @@ export default function AdminProfitAnalytics() {
       string,
       {
         day: string;
-        gross: number;
-        company_cut: number;
-        payouts: number;
-        gateway: number;
-        net: number;
-        txns: number;
       }
     >();
     for (const r of timeline) {
@@ -921,7 +915,6 @@ function KPI({
 }: {
   label: string;
   value: string;
-  icon: React.ElementType;
   accent: string;
   loading: boolean;
   highlight?: boolean;

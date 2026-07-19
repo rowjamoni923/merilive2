@@ -62,11 +62,6 @@ const AdminVIPMedals = () => {
 
       const mapped: VIPMedalItem[] = (data || []).map(item => ({
         id: item.id,
-        level: item.unlock_level,
-        name: item.name,
-        animation_url: item.animation_url,
-        preview_url: item.preview_url,
-        is_active: item.is_active,
         created_at: item.created_at
       }));
 
@@ -166,13 +161,6 @@ const AdminVIPMedals = () => {
   const openAddDialog = () => {
     setEditingItem(null);
     setFormData({
-      level: 1,
-      name: '',
-      animation_url: '',
-      animation_format: null,
-      animation_config_url: '',
-      preview_url: '',
-      is_active: true
     });
     setDialogOpen(true);
   };
@@ -180,13 +168,6 @@ const AdminVIPMedals = () => {
   const openEditDialog = (item: VIPMedalItem) => {
     setEditingItem(item);
     setFormData({
-      level: item.level,
-      name: item.name,
-      animation_url: item.animation_url || '',
-      animation_format: ((item as any).animation_format ?? null) as AnimationFormat | null,
-      animation_config_url: (item as any).animation_config_url || '',
-      preview_url: item.preview_url || '',
-      is_active: item.is_active
     });
     setDialogOpen(true);
   };
@@ -202,16 +183,9 @@ const AdminVIPMedals = () => {
       const payload = {
         privilege_type: 'vip_medal',
         unlock_level: formData.level,
-        name: formData.name,
         privilege_name: formData.name,
         description: `VIP Medal for Level ${formData.level}+`,
-        animation_url: formData.animation_url || null,
-        animation_format: formData.animation_format || null,
-        animation_config_url: formData.animation_config_url || null,
-        preview_url: formData.preview_url || null,
-        is_active: formData.is_active,
         display_order: formData.level,
-        level: formData.level,
       };
 
       if (editingItem) {
@@ -227,7 +201,6 @@ const AdminVIPMedals = () => {
           .from('level_privileges')
           .insert({
             ...payload,
-            created_at: new Date().toISOString()
           });
 
         if (error) throw error;
@@ -402,15 +375,9 @@ const AdminVIPMedals = () => {
               bucket="vip-medals"
               folder="unified"
               value={{
-                animation_url: formData.animation_url,
-                animation_format: formData.animation_format,
-                animation_config_url: formData.animation_config_url || null,
               }}
               onChange={(v) => setFormData(prev => ({
                 ...prev,
-                animation_url: v.animation_url,
-                animation_format: v.animation_format,
-                animation_config_url: v.animation_config_url || '',
               }))}
             />
 

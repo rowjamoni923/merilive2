@@ -443,13 +443,7 @@ export function ChametStyleGameRoom({
 
   const handleSendMessage = (message: string) => {
     const newMessage = {
-      id: Date.now().toString(),
-      userId: currentUserId || 'guest',
-      userName: 'You',
-      userLevel: 15,
       message,
-      type: 'text' as const,
-      timestamp: new Date()
     };
     setChatMessages(prev => [...prev, newMessage]);
   };
@@ -663,7 +657,6 @@ export function ChametStyleGameRoom({
                       <span 
                         className="inline-flex items-center h-4 px-1.5 rounded text-[8px] font-bold text-white shadow-sm"
                         style={{
-                          background: msg.userLevel >= 50 
                             ? 'linear-gradient(135deg, #f59e0b, #ef4444)' 
                             : msg.userLevel >= 30 
                               ? 'linear-gradient(135deg, #fbbf24, #f97316)' 
@@ -817,7 +810,6 @@ export function ChametStyleGameRoom({
             style={{ 
               height: "70%",
               maxHeight: "calc(100vh - 80px)",
-              background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%)',
               paddingBottom: 'env(safe-area-inset-bottom)'
             }}
           >

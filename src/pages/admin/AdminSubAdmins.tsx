@@ -226,7 +226,6 @@ const AdminSubAdmins = () => {
   const handleToggleBlock = async (admin: AdminUser) => {
     try {
       const response = await adminSupabase.functions.invoke("update-sub-admin", {
-        body: {
           admin_user_id: admin.id,
           action: "toggle_block",
         },
@@ -252,9 +251,6 @@ const AdminSubAdmins = () => {
 
     try {
       const response = await adminSupabase.functions.invoke("update-sub-admin", {
-        body: {
-          admin_user_id: selectedAdmin.id,
-          action: "update_password",
           new_password: changePassword,
         },
       });
@@ -277,9 +273,6 @@ const AdminSubAdmins = () => {
 
     try {
       const response = await adminSupabase.functions.invoke("update-sub-admin", {
-        body: {
-          admin_user_id: admin.id,
-          action: "delete",
         },
       });
 
@@ -385,7 +378,6 @@ const AdminSubAdmins = () => {
       try {
         const session = getAdminSession();
         const { data, error } = await adminSupabase.functions.invoke('get-admin-tokens', {
-          body: { admin_id: session?.admin_id },
         });
         if (!error && data?.subadmin_token) {
           setSubAdminTokenForLinks(data.subadmin_token);
@@ -439,7 +431,6 @@ const AdminSubAdmins = () => {
     const session = getAdminSession();
     if (!session?.admin_id || !verifiedOwner) return setPendingDeviceCount(0);
     const { data, error } = await supabase.rpc('admin_list_pending_devices' as any, {
-      _owner_admin_id: session.admin_id,
     });
     if (!error) setPendingDeviceCount(((data as any[]) || []).filter((device) => device.status === 'pending').length);
   });

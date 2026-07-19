@@ -470,7 +470,6 @@ const GoLive = () => {
 
       if (banned) {
         const { data: banData } = await supabase.rpc('get_user_live_ban', {
-          p_user_id: userProfile.id,
         });
         const banInfo = banData?.[0];
         if (banInfo) {
@@ -670,9 +669,6 @@ const GoLive = () => {
             if (alreadyGranted && isMounted) {
               setPermissionsGranted(prev => ({
                 ...prev,
-                camera: true,
-                microphone: true,
-                location: !!status.location,
               }));
               setAutoStartCamera(true);
             }
@@ -1082,12 +1078,10 @@ const GoLive = () => {
 
       // 🚫 Check if user is live banned before allowing stream
       const { data: isBanned } = await supabase.rpc('is_user_live_banned', {
-        p_user_id: user.id,
       });
 
       if (isBanned) {
         const { data: banData } = await supabase.rpc('get_user_live_ban', {
-          p_user_id: user.id,
         });
 
         const banInfo = banData?.[0];
@@ -1186,11 +1180,9 @@ const GoLive = () => {
         isHost: true,
         title: title.trim(),
         hostInfo: userProfile ? {
-          id: userProfile.id,
           name: userProfile.display_name || 'Host',
           avatar: userProfile.avatar_url || '',
           level: getRequiredDisplayLevel(userProfile),
-          gender: userProfile.gender || 'female',
         } : undefined,
       };
       if (liveSession) {
@@ -1324,8 +1316,6 @@ const GoLive = () => {
               <div
                 className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 flex items-center gap-1"
                 style={{
-                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
-                  boxShadow: '0 4px 12px -2px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
                 }}
               >
                 <Check className="w-3 h-3 text-white" />
@@ -1335,8 +1325,6 @@ const GoLive = () => {
                 onClick={() => setShowChametFaceVerification(true)}
                 className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 flex items-center gap-1"
                 style={{
-                  background: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
-                  boxShadow: '0 4px 12px -2px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',
                 }}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
@@ -1384,10 +1372,8 @@ const GoLive = () => {
             whileTap={{ scale: 0.88 }}
             className="absolute right-4 top-4 w-10 h-10 rounded-full flex items-center justify-center border border-white/15"
             style={{
-              background: 'rgba(0,0,0,0.45)',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
             }}
           >
             <X className="w-5 h-5 text-white" />
@@ -1399,10 +1385,6 @@ const GoLive = () => {
           <div
             className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-white/10"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
             }}
           >
             <span className="text-white text-sm font-semibold">
@@ -1476,7 +1458,6 @@ const GoLive = () => {
               className="absolute inset-0 pointer-events-none"
               style={{
                 backgroundColor: ((isNativeAndroid && nativePreviewActive) || previewHasFrame) ? 'transparent' : '#000',
-                transition: 'background-color 200ms ease',
               }}
             />
           </>
@@ -1750,7 +1731,6 @@ const GoLive = () => {
                           
                           setUserProfile(prev => prev ? {
                             ...prev,
-                            avatar_url: prev.face_verification_image || prev.avatar_url
                           } : null);
                           
                           setShowVerifiedAvatarRequired(false);
@@ -1897,16 +1877,9 @@ const GoLive = () => {
               style={
                 beautyEnabled
                   ? {
-                      background: 'linear-gradient(135deg, rgba(236,72,153,0.45) 0%, rgba(168,85,247,0.40) 100%)',
                       borderColor: 'rgba(244,114,182,0.65)',
-                      boxShadow: '0 6px 18px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.20)',
                     }
                   : {
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                      borderColor: 'rgba(255,255,255,0.20)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
                     }
               }
             >
@@ -1915,8 +1888,6 @@ const GoLive = () => {
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.25) 50%, transparent 58%)',
-                    animation: 'giftSendShine 2.8s ease-in-out infinite',
                   }}
                 />
               )}
@@ -1935,16 +1906,8 @@ const GoLive = () => {
               style={
                 stickerActive
                   ? {
-                      background: 'linear-gradient(135deg, rgba(245,158,11,0.45) 0%, rgba(249,115,22,0.40) 100%)',
-                      borderColor: 'rgba(251,191,36,0.65)',
-                      boxShadow: '0 6px 18px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.20)',
                     }
                   : {
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                      borderColor: 'rgba(255,255,255,0.20)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
                     }
               }
             >
@@ -1953,8 +1916,6 @@ const GoLive = () => {
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.25) 50%, transparent 58%)',
-                    animation: 'giftSendShine 2.8s ease-in-out infinite',
                   }}
                 />
               )}
@@ -1971,10 +1932,6 @@ const GoLive = () => {
             <div
               className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
               }}
             >
               <SwitchCamera className="w-6 h-6 text-white/85" />
@@ -1993,16 +1950,8 @@ const GoLive = () => {
               style={
                 isMicEnabled
                   ? {
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                      borderColor: 'rgba(255,255,255,0.20)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
                     }
                   : {
-                      background: 'linear-gradient(135deg, rgba(239,68,68,0.45), rgba(220,38,38,0.35))',
-                      borderColor: 'rgba(248,113,113,0.65)',
-                      boxShadow: '0 6px 18px -4px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.20)',
                     }
               }
             >
@@ -2026,10 +1975,6 @@ const GoLive = () => {
             <div
               className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
               }}
             >
               <Settings className="w-6 h-6 text-white/75" />
@@ -2046,10 +1991,6 @@ const GoLive = () => {
             <div
               className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-white/15"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
               }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
@@ -2066,9 +2007,6 @@ const GoLive = () => {
               (isStarting || isProbing || livekitLoading) && "opacity-70"
             )}
             style={{
-              background: 'linear-gradient(95deg, #f472b6 0%, #ec4899 50%, #f97316 100%)',
-              boxShadow: '0 10px 28px -8px rgba(236,72,153,0.65), 0 4px 12px -2px rgba(249,115,22,0.45), inset 0 1px 0 rgba(255,255,255,0.30)',
-              animation: 'giftSendBreathe 2.4s ease-in-out infinite',
             }}
           >
             <motion.div

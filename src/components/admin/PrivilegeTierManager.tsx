@@ -273,7 +273,6 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
                   onChange={(e) =>
                     setEditing({
                       ...editing,
-                      unlock_level: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)),
                     })
                   }
                   className="bg-white border-slate-300 text-slate-900"
@@ -338,8 +337,6 @@ const PrivilegeTierManager = ({ open, onOpenChange, categoryType, categoryName, 
               onChange={(v) =>
                 setEditing({
                   ...editing,
-                  animation_url: v.animation_url || null,
-                  animation_format: v.animation_format,
                 })
               }
             />

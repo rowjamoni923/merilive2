@@ -94,34 +94,16 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
       }
     : isPremium
     ? {
-        bg: "linear-gradient(135deg, rgba(126,34,206,0.92) 0%, rgba(192,38,211,0.92) 50%, rgba(219,39,119,0.92) 100%)",
-        border: "1.5px solid rgba(244,114,182,0.45)",
-        glow: "0 0 0 1px rgba(244,114,182,0.25), 0 16px 44px -10px rgba(168,85,247,0.65), 0 6px 22px -8px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
-        pulseGlow: [
           "0 0 24px rgba(168,85,247,0.35), 0 0 50px rgba(236,72,153,0.2)",
           "0 0 44px rgba(168,85,247,0.6), 0 0 80px rgba(236,72,153,0.4)",
           "0 0 24px rgba(168,85,247,0.35), 0 0 50px rgba(236,72,153,0.2)",
         ],
-        nameText: "text-white",
-        subText: "text-white/75",
-        receiverText: "text-pink-200",
         countGradient:
           "linear-gradient(180deg, #fef3c7 0%, #fde68a 40%, #fbbf24 100%)",
-        glowColor: "rgba(236,72,153,0.85)",
-        sparkleColor: "#f0abfc",
       }
     : {
-        bg: "linear-gradient(135deg, rgba(30,27,75,0.92) 0%, rgba(15,23,42,0.96) 100%)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        glow: "0 12px 32px -10px rgba(0,0,0,0.6), 0 4px 14px -6px rgba(168,85,247,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
-        pulseGlow: [],
-        nameText: "text-white",
-        subText: "text-white/70",
-        receiverText: "text-pink-300",
         countGradient:
           "linear-gradient(180deg, #fef9c3 0%, #fde68a 50%, #f59e0b 100%)",
-        glowColor: "rgba(168,85,247,0.5)",
-        sparkleColor: "#fde047",
       };
 
   return (
@@ -156,8 +138,6 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
         <motion.div
           className="relative flex items-center gap-3 px-5 py-4 rounded-2xl overflow-hidden"
           style={{
-            background: tier.bg,
-            border: tier.border,
             backdropFilter: "blur(16px) saturate(150%)",
             WebkitBackdropFilter: "blur(16px) saturate(150%)",
             boxShadow: tier.glow,
@@ -236,7 +216,6 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
             <motion.div
               className="text-3xl font-black leading-none tabular-nums"
               style={{
-                background: tier.countGradient,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 filter: `drop-shadow(0 2px 6px ${tier.glowColor}) drop-shadow(0 0 12px ${tier.glowColor})`,
@@ -269,10 +248,6 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
                     opacity: 1,
                   }}
                   animate={{
-                    x: Math.cos((i * 36 * Math.PI) / 180) * (isLegendary ? 90 : 70),
-                    y: Math.sin((i * 36 * Math.PI) / 180) * (isLegendary ? 90 : 70),
-                    scale: [0, 1.8, 0],
-                    opacity: [1, 1, 0],
                   }}
                   transition={{ duration: 0.75, ease: "easeOut", delay: i * 0.02 }}
                   style={{
@@ -280,8 +255,6 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
                     top: "50%",
                     width: i % 2 === 0 ? 8 : 5,
                     height: i % 2 === 0 ? 8 : 5,
-                    background: tier.sparkleColor,
-                    boxShadow: `0 0 12px ${tier.sparkleColor}, 0 0 24px ${tier.glowColor}`,
                   }}
                 />
               ))}
@@ -292,14 +265,8 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
                 animate={{ scale: isLegendary ? 4.5 : 3.5, opacity: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 style={{
-                  left: "50%",
-                  top: "50%",
-                  width: 60,
-                  height: 60,
                   marginLeft: -30,
                   marginTop: -30,
-                  border: `2px solid ${tier.sparkleColor}`,
-                  boxShadow: `0 0 24px ${tier.glowColor}`,
                 }}
               />
             </>

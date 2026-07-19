@@ -453,8 +453,6 @@ serve(async (req) => {
         const { data: userData, error: userErr } = await supabaseUser.auth.getUser(token);
         if (userErr || !userData?.user?.id) {
           return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         userId = userData.user.id;
@@ -464,8 +462,6 @@ serve(async (req) => {
     const { submissionId } = await req.json() as { submissionId?: string };
     if (!submissionId) {
       return new Response(JSON.stringify({ error: "submissionId required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     activeSubmissionId = submissionId;
@@ -499,8 +495,6 @@ serve(async (req) => {
 
     if (rowErr || !row) {
       return new Response(JSON.stringify({ error: "Submission not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     activeUserId = row.user_id as string | null;
@@ -509,8 +503,6 @@ serve(async (req) => {
       userId = row.user_id;
     } else if (row.user_id !== userId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -525,11 +517,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         ok: true,
         already_finalized: true,
-        status: row.status,
         decision: row.status,
       }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -552,14 +541,12 @@ serve(async (req) => {
         await supabaseAdmin
           .from("face_verification_submissions")
           .update({
-            status: "rejected",
             rejection_reason: "Existing host accounts cannot re-verify as a regular user.",
             admin_notes: "[auto-reject] role_mismatch_existing_host",
             updated_at: new Date().toISOString(),
           })
           .eq("id", submissionId);
         return new Response(JSON.stringify({ ok: false, rejected: "role_mismatch_existing_host" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -594,10 +581,6 @@ serve(async (req) => {
         await supabaseAdmin
           .from("face_verification_submissions")
           .update({
-            status: "rejected",
-            rejection_reason: "This identity (face, device, or IP) is permanently restricted due to prior policy violations.",
-            admin_notes: `[auto-reject] banned_identity_reuse face=${faceMatch} device=${deviceMatch} ip=${ipMatch} profile_banned=${subProfile?.is_banned === true}`,
-            updated_at: new Date().toISOString(),
           })
           .eq("id", submissionId);
         try {
@@ -612,7 +595,6 @@ serve(async (req) => {
           });
         } catch (_e) { /* admin_logs schema differences — non-fatal */ }
         return new Response(JSON.stringify({ ok: false, rejected: "banned_identity_reuse" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     } catch (gateErr) {
@@ -653,18 +635,13 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
           ai_analysis: { ...initialAnalysis, upload_pending: false, requires_resubmit: true, retry_required: retryRequired },
-          rejection_reason: null,
           reviewed_at: null,
-          admin_notes: "[needs_retry] Missing live/front face URL; upload incomplete, not rejected.",
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
       await markProfileNeedsRetryUnlessAlreadyApproved(supabaseAdmin, row.user_id);
       return new Response(JSON.stringify({
-        ok: true,
         autoFinalize: { success: false, reason: "upload_incomplete" },
         blocker: null,
         retry_required: retryRequired,
@@ -688,31 +665,16 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
-          ai_analysis: {
             ...existingAnalysis,
             rekognition,
             upload_pending: false,
             requires_resubmit: true,
-            retry_required: {
-              kind: "upload_incomplete",
-              verification_type: String(row.verification_type || "user").trim().toLowerCase() === "host" ? "host" : "user",
-              failed_evidence: [{ label: "live_face_scan", human_name: "Live Face Scan", step: "live_face_scan", score: null, message: "Live scan media could not be read. Please retry the live test." }],
-              steps: ["live_face_scan"],
-              headline: "Live face scan upload incomplete",
-              summary: "Your account is NOT rejected. The live scan media could not be read, so please retry the live face test.",
             },
           },
-          rejection_reason: null,
-          reviewed_at: null,
-          admin_notes: `Rekognition: image fetch failed — ${msg}. Marked needs_retry, not rejected.`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
       return new Response(JSON.stringify({ ok: true, autoFinalize: { success: false, reason: "upload_incomplete" }, retry_required: true, error: msg }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (leftUrl) {
@@ -751,39 +713,21 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
-          ai_analysis: {
             ...existingAnalysis,
             rekognition: { version: 1, front_detect_error: msg },
-            requires_resubmit: true,
-            retry_required: {
-              kind: "evidence_quality",
-              verification_type: String(row.verification_type || "user").trim().toLowerCase() === "host" ? "host" : "user",
-              failed_evidence: [{ label: "live_face_scan", human_name: "Live Face Scan", step: "live_face_scan", score: null, message: "Our scanner could not read your live face image. Please retake the live face scan in good light, holding still, with only your face in frame." }],
-              steps: ["live_face_scan"],
-              headline: "Live face scan unreadable",
-              summary: "Your account is NOT rejected. Please retake the live face scan in better lighting with a steady camera.",
             },
           },
-          rejection_reason: null,
-          reviewed_at: null,
-          admin_notes: `[needs_retry] front detect failed: ${msg}`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
       try {
         await supabaseAdmin.from("notifications").insert({
-          user_id: row.user_id,
           type: "face_verification_retry",
           title: "Face Verification — Please Retry",
-          message: "We could not read your live face scan. Please retake it in good light, holding the phone steady, with only your face in frame.",
           data: { route: "/face-verification", reason: "live_scan_unreadable" },
         });
       } catch (_e) { /* best-effort */ }
       return new Response(JSON.stringify({ ok: true, autoFinalize: { success: false, reason: "live_scan_unreadable" }, retry_required: true, error: msg }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const leftDet = await safeDetect(leftBytes);
@@ -968,7 +912,6 @@ serve(async (req) => {
         } catch (e) {
           return {
             url: hp,
-            score: null,
             skip: `fetch_or_compare_failed:${e instanceof Error ? e.message : "unknown"}`,
           };
         }
@@ -1116,7 +1059,6 @@ serve(async (req) => {
         const frontB64 = uint8ToBase64(frontBytes);
         frontB64ForProvider = frontB64;
         const search = await providerSearchFace(faceProvider, {
-          image_base64: frontB64,
           // Duplicate search is intentionally lower than the hard duplicate
           // cutoff so the server can review likely second accounts even with
           // lighting/compression/camera changes.
@@ -1172,13 +1114,6 @@ serve(async (req) => {
               duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${duplicateSimilarity.toFixed(1)}%. Auto-rejected by one-face-one-account policy.`;
             } else {
               duplicateCandidateReview = {
-                previous_user_id: top.external_user_id,
-                previous_display_name: prevName,
-                previous_app_uid: prevUid,
-                similarity: duplicateSimilarity,
-                other_matches: others.length,
-                indexed_at: top.indexed_at,
-                previous_approved: false,
               };
             }
           }
@@ -1215,14 +1150,10 @@ serve(async (req) => {
             if (candidateFaceCount !== 1) return null;
             const similarity = await compareFaces(candidateBytes, frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
             return {
-              previous_user_id: candidate.id,
-              previous_display_name: candidate.display_name || null,
-              previous_app_uid: candidate.app_uid || null,
               previous_avatar: candidate.avatar_url || null,
               previous_face_image: (candidate as any).face_verification_image || null,
               similarity,
               source: "rekognition_legacy_approved_profile_scan",
-              previous_approved: true,
             };
           } catch (_candidateErr) {
             // Skip one bad historical avatar; never block the whole analysis.
@@ -1249,21 +1180,8 @@ serve(async (req) => {
 
         if (bestLegacyCandidate && Number(bestLegacyCandidate.similarity || 0) >= DUPLICATE_FACE_MIN_SIMILARITY) {
           duplicateFields = {
-            is_duplicate_face: true,
-            duplicate_face_user_id: bestLegacyCandidate.previous_user_id,
-            duplicate_face_name: bestLegacyCandidate.previous_display_name,
-            duplicate_face_uid: bestLegacyCandidate.previous_app_uid,
-            duplicate_face_avatar: bestLegacyCandidate.previous_avatar,
           };
           duplicateBlock = {
-            previous_user_id: bestLegacyCandidate.previous_user_id,
-            previous_display_name: bestLegacyCandidate.previous_display_name,
-            previous_app_uid: bestLegacyCandidate.previous_app_uid,
-            similarity: bestLegacyCandidate.similarity,
-            other_matches: 1,
-            indexed_at: null,
-            source: bestLegacyCandidate.source,
-            previous_approved: true,
           };
           const prevName = (bestLegacyCandidate.previous_display_name as string | null) || null;
           const prevUid = (bestLegacyCandidate.previous_app_uid as string | null) || null;
@@ -1430,11 +1348,8 @@ serve(async (req) => {
     await supabaseAdmin
       .from("face_verification_submissions")
       .update({
-        ai_analysis: mergedAnalysis,
         rekognition_confidence: faceConf,
-        admin_notes: finalNotes,
         ...duplicateFields,
-        updated_at: new Date().toISOString(),
       })
       .eq("id", submissionId);
 
@@ -1474,7 +1389,6 @@ serve(async (req) => {
         const dUid = (duplicateBlock as any).previous_app_uid || "Unknown";
         const dUserId = (duplicateBlock as any).previous_user_id || "";
         const duplicatePayload = JSON.stringify({
-          user_id: dUserId,
           name: dName,
           uid: dUid,
           avatar: (duplicateFields.duplicate_face_avatar as string) || "",
@@ -1491,11 +1405,6 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "rejected",
-          rejection_reason: rReason,
-          reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}${evidenceSummary}\n[auto-reject] ${hardAutoReject}: ${hardAutoReject === "duplicate_face" ? duplicateNote : hardAutoReject === "gender_mismatch" ? `expected=${expectedGender} detected=${rawG} conf=${genderConf.toFixed(1)}%` : "banned face/account reuse"}`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "rejected"]);
@@ -1505,7 +1414,6 @@ serve(async (req) => {
         .update({
           is_face_verified: false,
           face_verification_status: "rejected",
-          updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
 
@@ -1538,16 +1446,10 @@ serve(async (req) => {
         const titledMessage = `[${stageInfo.stage_label} • ${hardAutoReject}] ${publicMessage}`;
 
         await supabaseAdmin.from("notifications").insert({
-          user_id: userId,
-          type: "face_verification_rejected",
-          title: `Face Verification Rejected — ${stageInfo.stage_label}`,
-          message: titledMessage,
-          data: {
             action_url: "/face-verification",
             reason_code: hardAutoReject,
             stage: stageInfo.stage,
             stage_label: stageInfo.stage_label,
-            submission_id: submissionId,
           },
           is_read: false,
         });
@@ -1558,10 +1460,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          ok: true,
           rekognition,
-          autoFinalize: { success: false, reason: hardAutoReject },
-          blocker: hardAutoReject,
           declaredGender,
           expectedGender,
           detectedGender: detectedGenderForDecision,
@@ -1579,40 +1478,20 @@ serve(async (req) => {
     // ────────────────────────────────────────────────────────────────────
     if (evidenceIdentityMismatch) {
       const labelToHumanName: Record<string, string> = {
-        profile_photo: "Profile Photo",
         face_video: "Face Verification Video",
         intro_video: "Intro Video",
       };
       const labelToStep: Record<string, string> = {
-        profile_photo: "photo",
-        face_video: "live_face_scan",
-        intro_video: "intro_video",
       };
       const failedEvidence = evidenceChecks
         .filter((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY)
         .map((c) => ({
-          label: c.label,
-          human_name: labelToHumanName[c.label] || c.label,
-          step: labelToStep[c.label] || c.label,
-          score: typeof c.score === "number" ? Math.round((c.score as number) * 10) / 10 : null,
-          message: `${labelToHumanName[c.label] || c.label} does not match your live face (similarity ${typeof c.score === "number" ? (c.score as number).toFixed(1) + "%" : "unknown"}). Please re-upload a clear ${labelToHumanName[c.label] || c.label} that shows the SAME person as the live scan.`,
         }));
       if (vtForEvidence === "host" && hostPhotosMismatch) {
         failedEvidence.push({
-          label: "host_gallery",
-          human_name: "Host Profile Photos",
-          step: "host_gallery",
-          score: typeof hostPhotosMinScore === "number" ? Math.round(hostPhotosMinScore * 10) / 10 : null,
-          message: `One or more of your host profile photos do not match your live face. Please replace them with photos of the SAME person as the live scan.`,
         });
       }
       const retryRequired = {
-        kind: "identity_mismatch" as const,
-        verification_type: vtForEvidence,
-        failed_evidence: failedEvidence,
-        steps: Array.from(new Set(failedEvidence.map((f) => f.step))),
-        headline: "Your photo, video, and live face scan don't look like the same person.",
-        summary: "We compared your Profile Photo, Verification Video, and Live Face Scan side-by-side and they don't confidently match. Your account is NOT rejected — just tap Retry and re-upload only the item(s) listed below so all three are clearly the SAME person.",
       };
 
       const mergedAnalysisRetry = duplicateBlock
@@ -1622,12 +1501,6 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
-          ai_analysis: mergedAnalysisRetry,
-          rejection_reason: null,
-          reviewed_at: null,
-          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] identity_mismatch: photo_live=${String(rekognition.photo_live_score)} face_video_live=${String(rekognition.face_video_live_score)} intro_video_live=${String(rekognition.intro_video_live_score)} host_min=${hostPhotosMinScore} failed=${failedEvidence.map((f) => f.label).join(",")}`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
@@ -1643,20 +1516,8 @@ serve(async (req) => {
           const stageLabel = "Evidence Quality Check";
           const reasonCode = "identity_mismatch_needs_retry";
           await supabaseAdmin.from("notifications").insert({
-            user_id: userId,
-            type: "face_verification_retry",
-            title: `Verification Needs Retry — ${stageLabel}`,
-            message: `[${stageLabel} • ${reasonCode}] ${retryRequired.headline} Please re-upload: ${itemsList}. Tap to retry.`,
-            data: {
-              action_url: "/face-verification",
-              reason_code: reasonCode,
               stage,
-              stage_label: stageLabel,
-              failed_evidence: failedEvidence.map((f) => f.label),
-              steps: retryRequired.steps,
-              submission_id: submissionId,
             },
-            is_read: false,
           });
         }
       } catch (notifyErr) {
@@ -1666,14 +1527,9 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          ok: true,
           rekognition,
-          autoFinalize: { success: false, reason: "identity_mismatch_needs_retry" },
-          blocker: null,
-          retry_required: retryRequired,
           declaredGender,
           expectedGender,
-          detectedGender: detectedGenderForDecision,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -1689,22 +1545,11 @@ serve(async (req) => {
     // telling them to redo the live scan. Fall through to evidence_quality below.
     if (isPassivePhotoVideoLiveScan && vtForEvidence === "host" && !frontError && details.length === 1 && (hostGalleryMissing || hostGalleryUnreadable)) {
       const retryRequired = {
-        kind: "host_gallery_incomplete" as const,
-        verification_type: vtForEvidence,
-        failed_evidence: [{
-          label: "host_gallery",
-          human_name: "Host Profile Photos",
-          step: "host_gallery",
-          score: typeof hostPhotosMinScore === "number" ? Math.round(hostPhotosMinScore * 10) / 10 : null,
-          message: hostGalleryMissing
             ? `Please upload exactly 3 host profile photos. We received ${hostPhotos.length}/3 photos.`
             : "Please replace your host profile photos with 3 clear photos where your face is visible.",
         }],
-        steps: ["host_gallery"],
-        headline: hostGalleryMissing
           ? `Please upload all 3 host profile photos (${hostPhotos.length}/3 received).`
           : "Please replace unreadable host profile photos.",
-        summary: "Your account is NOT rejected. Your profile photo, video and live face scan can still match, but host verification needs 3 clear host profile photos before approval.",
       };
 
       const mergedAnalysisRetry = duplicateBlock
@@ -1714,12 +1559,6 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
-          ai_analysis: mergedAnalysisRetry,
-          rejection_reason: null,
-          reviewed_at: null,
-          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] host_gallery: count=${hostPhotos.length}/3 unreadable=${hostGalleryUnreadable} min=${hostPhotosMinScore}`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
@@ -1729,16 +1568,7 @@ serve(async (req) => {
       try {
         if (!alreadyApprovedForGalleryRetry) {
           await supabaseAdmin.from("notifications").insert({
-            user_id: userId,
-            type: "face_verification_retry",
-            title: "Verification Needs Retry",
-            message: `${retryRequired.headline} Tap to upload the missing photos.`,
-            data: {
-              action_url: "/face-verification",
-              steps: retryRequired.steps,
-              submission_id: submissionId,
             },
-            is_read: false,
           });
         }
       } catch (notifyErr) {
@@ -1747,14 +1577,9 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          ok: true,
           rekognition,
-          autoFinalize: { success: false, reason: "host_gallery_needs_retry" },
-          blocker: null,
-          retry_required: retryRequired,
           declaredGender,
           expectedGender,
-          detectedGender: detectedGenderForDecision,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -1781,60 +1606,30 @@ serve(async (req) => {
             ? "no clear face was visible in the live scan"
             : "the live face scan was not readable";
         failingSteps.push({
-          label: "live_face_scan",
-          human_name: "Live Face Scan",
-          step: "live_face_scan",
-          message: `Please retake the Live Face Scan — ${reason}. Make sure only YOUR face is in the frame, well-lit, and centered.`,
         });
       }
       for (const k of errKeys) {
         if (k === "profile_photo") {
           failingSteps.push({
-            label: "profile_photo",
-            human_name: "Profile Photo",
-            step: "photo",
-            message: "Please re-upload your Profile Photo. The face must be clearly visible (no sunglasses, no mask, well-lit, centered).",
           });
         } else if (k === "face_video") {
           failingSteps.push({
-            label: "face_video",
-            human_name: "Face Verification Video",
-            step: "live_face_scan",
-            message: "Please re-record the Face Verification Video so your face is clearly visible throughout.",
           });
         } else if (k === "intro_video") {
           failingSteps.push({
-            label: "intro_video",
-            human_name: "Intro Video",
-            step: "intro_video",
-            message: "Please re-record the Intro Video so your face is clearly visible.",
           });
         }
       }
       if (failingSteps.length === 0 && onlyMissingHostGallery) {
         failingSteps.push({
-          label: "host_gallery",
-          human_name: "Host Profile Photos",
-          step: "host_gallery",
-          message: hostGalleryMissing
             ? `Please upload exactly 3 host profile photos. We received ${hostPhotos.length}/3 photos.`
             : "Please replace your host profile photos with 3 clear photos where your face is visible.",
         });
       } else if (failingSteps.length === 0) {
         failingSteps.push({
-          label: "live_face_scan",
-          human_name: "Live Face Scan",
-          step: "live_face_scan",
-          message: "Please retake the Live Face Scan in better lighting with only your face in the frame.",
         });
       }
       const retryRequired = {
-        kind: "evidence_quality" as const,
-        verification_type: vtForEvidence,
-        failed_evidence: failingSteps.map((f) => ({ ...f, score: null })),
-        steps: Array.from(new Set(failingSteps.map((f) => f.step))),
-        headline: "We couldn't read your photo/video/live scan clearly.",
-        summary: "Your account is NOT rejected. Tap Retry and redo only the item(s) below so we can verify you.",
       };
 
       const mergedAnalysisRetry = duplicateBlock
@@ -1844,12 +1639,6 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
-          ai_analysis: mergedAnalysisRetry,
-          rejection_reason: null,
-          reviewed_at: null,
-          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] evidence_quality: front=${frontError || `count=${details.length}`} errors=${JSON.stringify(evidenceErrors)} steps=${retryRequired.steps.join(",")}`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
@@ -1860,16 +1649,7 @@ serve(async (req) => {
         if (!alreadyApprovedForQualityRetry) {
           const itemsList = failingSteps.map((f) => f.human_name).join(", ");
           await supabaseAdmin.from("notifications").insert({
-            user_id: userId,
-            type: "face_verification_retry",
-            title: "Verification Needs Retry",
-            message: `${retryRequired.headline} Please redo: ${itemsList}. Tap to retry.`,
-            data: {
-              action_url: "/face-verification",
-              steps: retryRequired.steps,
-              submission_id: submissionId,
             },
-            is_read: false,
           });
         }
       } catch (notifyErr) {
@@ -1878,14 +1658,9 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          ok: true,
           rekognition,
-          autoFinalize: { success: false, reason: "evidence_quality_needs_retry" },
-          blocker: null,
-          retry_required: retryRequired,
           declaredGender,
           expectedGender,
-          detectedGender: detectedGenderForDecision,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -1977,9 +1752,6 @@ serve(async (req) => {
     } else {
       if (!isDuplicate && faceProvider && frontB64ForProvider && !frontError) {
         faceIndexedForFutureDuplicate = await providerIndexFace(faceProvider, {
-          external_user_id: userId,
-          image_base64: frontB64ForProvider,
-          metadata: { submission_id: submissionId, source: "merilive_main_app", indexed_after_gates_passed: true },
         });
         if (!faceIndexedForFutureDuplicate) {
           // Never keep a clean, new verification stuck in Under Review only
@@ -2006,15 +1778,7 @@ serve(async (req) => {
       try {
         await clearStaleFaceRetryNotifications(supabaseAdmin, userId);
         await supabaseAdmin.from("notifications").insert({
-          user_id: userId,
-          type: "face_verification_approved",
-          title: "Face Verification Approved ✓",
-          message: "Congratulations! Your identity has been verified. You now have full access to the app.",
-          data: {
-            action_url: "/profile",
-            submission_id: submissionId,
           },
-          is_read: false,
         });
       } catch (notifyErr) {
         console.warn("[face-verification-analyze] approve notification failed:", notifyErr instanceof Error ? notifyErr.message : notifyErr);
@@ -2080,18 +1844,7 @@ serve(async (req) => {
       ].filter(Boolean))) as string[];
       const normalizedRetrySteps = retrySteps.length ? retrySteps : ["photo", "live_face_scan"];
       const retryRequired = {
-        kind: "auto_review_retry" as const,
-        verification_type: vtForEvidence,
-        reason: autoReason || "ai_uncertain",
-        steps: normalizedRetrySteps,
-        headline: "Please retry face verification.",
-        summary: "Your account is NOT rejected. We could not safely approve this scan automatically, so please retake the required photo/live scan in good light with only your face visible.",
-        failed_evidence: normalizedRetrySteps.map((step) => ({
-          label: step,
-          human_name: step === "host_gallery" ? "Host Profile Photos" : step === "photo" ? "Profile Photo" : "Live Face Scan",
           step,
-          score: null,
-          message: step === "host_gallery"
             ? "Please upload 3 clear host profile photos where your face is visible."
             : step === "photo"
               ? "Please upload a clear profile photo that shows only your face."
@@ -2101,14 +1854,8 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "needs_retry",
-          rejection_reason: null,
-          reviewed_at: null,
-          ai_analysis: duplicateBlock
             ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock, retry_required: retryRequired }
             : { ...existingAnalysis, rekognition, retry_required: retryRequired },
-          admin_notes: `${summary}${evidenceSummary}\n[needs_retry] ${reviewReason}${flagsLine}`,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
         .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
@@ -2117,17 +1864,7 @@ serve(async (req) => {
       try {
         if (!alreadyApprovedForFallbackRetry) {
           await supabaseAdmin.from("notifications").insert({
-            user_id: userId,
-            type: "face_verification_retry",
-            title: "Verification Needs Retry",
-            message: "We could not safely approve this scan automatically. Please retry with a clear photo and live face scan in good light.",
-            data: {
-              action_url: "/face-verification",
-              reason: autoReason || "ai_uncertain",
-              steps: normalizedRetrySteps,
-              submission_id: submissionId,
             },
-            is_read: false,
           });
         }
       } catch (notifyErr) {
@@ -2137,13 +1874,9 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        ok: true,
         rekognition,
-        autoFinalize: autoResult,
-        blocker: null, // soft flags never block client-side anymore
         declaredGender,
         expectedGender,
-        detectedGender: rawG,
       }),
 
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -2161,21 +1894,11 @@ serve(async (req) => {
         await activeAdmin
           .from("face_verification_submissions")
           .update({
-            status: "needs_retry",
-            rejection_reason: null,
-            reviewed_at: null,
-            admin_notes: `[needs_retry] analyzer crashed: ${msg}`,
-            updated_at: new Date().toISOString(),
           })
           .eq("id", activeSubmissionId)
           .in("status", ["submitted", "pending", "under_review", "needs_retry"]);
         if (activeUserId && !(await hasApprovedFaceState(activeAdmin, activeUserId))) {
           await activeAdmin.from("notifications").insert({
-            user_id: activeUserId,
-            type: "face_verification_retry",
-            title: "Face Verification — Please Retry",
-            message: "We could not process your face verification this time. Please retake your photo, live face scan and intro video in good light and submit again.",
-            data: { route: "/face-verification", reason: "analyzer_error" },
           });
         }
       } catch (healErr) {
@@ -2183,8 +1906,6 @@ serve(async (req) => {
       }
     }
     return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } finally {
     if (workerAcquired && activeAdmin && activeSubmissionId) {

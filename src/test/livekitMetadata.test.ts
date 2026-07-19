@@ -93,8 +93,6 @@ describe('Pkg107 livekitMetadata', () => {
 
   it('safely returns null for unparsable metadata', () => {
     const room = makeFakeRoom({
-      localIdentity: 'local',
-      localMetadata: 'not-json{{{',
     });
     registerMetadataRoom('call', 'c-1', room);
     expect(readParticipantMetadata('call', 'c-1', 'local')).toBeNull();

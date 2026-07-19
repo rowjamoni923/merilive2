@@ -374,8 +374,6 @@ export function usePrivateCall(userId: string | null) {
         if (callInfo && !callEndedRef.current && currentCallIdRef.current === callId) {
           setCallState(prev => ({
             ...prev,
-            totalCoinsSpent: callInfo.total_diamonds_deducted || 0,
-            hostEarned: callInfo.host_earned || 0,
             coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
           }));
         }
@@ -397,7 +395,7 @@ export function usePrivateCall(userId: string | null) {
   // twice, spawning duplicate billing timers and duplicate toasts.
 
 
-  // Function to deduct coins per minute
+  // Function to deduct diamonds per minute
   const deductCoinsPerMinute = useCallback(async (callId: string) => {
     // Don't process if call ended
     if (callEndedRef.current || currentCallIdRef.current !== callId) {
@@ -411,7 +409,7 @@ export function usePrivateCall(userId: string | null) {
       });
 
       if (error) {
-        console.error('Error deducting coins:', error);
+        console.error('Error deducting diamonds:', error);
         return;
       }
 
@@ -420,8 +418,6 @@ export function usePrivateCall(userId: string | null) {
       if (!result.success) {
         if (result.call_ended) {
           toast({
-            title: "Insufficient Diamonds",
-            description: "Call ended due to low balance",
             variant: "destructive",
           });
           resetCallState();
@@ -508,18 +504,12 @@ export function usePrivateCall(userId: string | null) {
     })();
     if (!isNativeAndroidApp() && !isPreviewHostname) {
       toast({
-        title: "Android App Required",
-        description: "Private calls are available only in the MeriLive Android app. Please install/open the app to call.",
-        variant: "destructive",
       });
       return null;
     }
 
     if (!userId) {
       toast({
-        title: "Login Required",
-        description: "Please login to make a call",
-        variant: "destructive",
       });
       return null;
     }
@@ -573,9 +563,6 @@ export function usePrivateCall(userId: string | null) {
 
       if (!callRate || callRate <= 0) {
         toast({
-          title: "Call Rate Not Set",
-          description: "Admin call pricing is not configured yet",
-          variant: "destructive",
         });
         return null;
       }
@@ -583,9 +570,6 @@ export function usePrivateCall(userId: string | null) {
       const callerDiamonds = Number((userProfile as any)?.diamonds ?? 0);
       if (callerDiamonds < callRate) {
         toast({
-          title: "Insufficient Diamonds",
-          description: `You need at least ${callRate} diamonds. Redirecting to recharge...`,
-          variant: "destructive",
         });
         navigate('/recharge');
         return null;
@@ -600,10 +584,8 @@ export function usePrivateCall(userId: string | null) {
       
       setCallState(prev => ({ 
         ...prev, 
-        status: 'calling', 
         remoteUserId: hostId,
         hostId: hostId,
-        callerRemainingCoins: callerDiamonds,
       }));
 
       // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
@@ -661,9 +643,6 @@ export function usePrivateCall(userId: string | null) {
           navigate('/recharge');
         } else {
           toast({
-            title: mapped?.title || 'Call Failed',
-            description: mapped?.description || rpcPayload.message || reason || 'Please try again',
-            variant: 'destructive',
           });
         }
         setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
@@ -691,21 +670,14 @@ export function usePrivateCall(userId: string | null) {
       setCallState(prev => ({
         ...prev,
         callId: resolvedCallId,
-        status: 'calling',
-        remoteUserId: hostId,
-        hostId: hostId,
         remoteUserName: hostProfile?.display_name || 'Host',
         remoteUserAvatar: hostProfile?.avatar_url,
         remoteUserLevel: getRequiredDisplayLevel(hostProfile),
-        coinsPerMinute: resolvedCoinsPerMinute,
-        totalCoinsSpent: 0,
-        hostEarned: 0,
       }));
 
       // Pkg211 — register outgoing call with Telecom (BT End / audio routing / system call log)
       if (isNativeAndroidApp()) {
         NativeCall.reportOutgoingCall({
-          callId: resolvedCallId,
           calleeId: hostId,
           calleeName: hostProfile?.display_name || 'Host',
           callType: 'video',
@@ -721,12 +693,6 @@ export function usePrivateCall(userId: string | null) {
       // for background/killed-app delivery. No Supabase Realtime fallback.
       void (async () => {
         const deliveryBody = {
-          callId: resolvedCallId,
-          calleeId: hostId,
-          callerId: userId,
-          callType: 'video',
-          callerName: userProfile?.display_name || 'User',
-          callerAvatar: userProfile?.avatar_url || '',
         };
         const backoffsMs = [0, 1000, 2500];
         for (let i = 0; i < backoffsMs.length; i++) {
@@ -758,7 +724,6 @@ export function usePrivateCall(userId: string | null) {
             // FIREBASE_SERVICE_ACCOUNT_JSON secret to enable background ringing.)
             if (!fcmConfigured && i === 0) {
               toast({
-                title: 'Push not configured',
                 description:
                   payload.warning ||
                   'Recipient will only ring if their app is open. Admin must enable push.',
@@ -776,8 +741,6 @@ export function usePrivateCall(userId: string | null) {
       })();
 
       toast({
-        title: "Calling...",
-        description: `Calling ${hostProfile?.display_name || 'Host'}`,
       });
 
       const timeoutSeconds = Math.max(15, Math.min(120, resolvedTimeoutSeconds));
@@ -794,8 +757,6 @@ export function usePrivateCall(userId: string | null) {
           }
           resetCallState();
           toast({
-            title: "Call Missed",
-            description: "Host did not answer",
           });
         }
       }, timeoutSeconds * 1000);
@@ -824,9 +785,6 @@ export function usePrivateCall(userId: string | null) {
       }
       
       toast({
-        title: "Call Failed",
-        description: errorMessage,
-        variant: "destructive",
       });
       return null;
     } finally {
@@ -858,15 +816,6 @@ export function usePrivateCall(userId: string | null) {
       setCallState(prev => ({
         ...prev,
         callId,
-        status: 'connected',
-        hostId: userId,
-        remoteUserId: incomingSnapshot?.callerId || prev.remoteUserId || null,
-        remoteUserName: incomingSnapshot?.callerName || prev.remoteUserName || 'User',
-        remoteUserAvatar: incomingSnapshot?.callerAvatar || prev.remoteUserAvatar || null,
-        remoteUserLevel: incomingSnapshot?.callerLevel ?? prev.remoteUserLevel ?? 1,
-        duration: 0,
-        totalCoinsSpent: 0,
-        hostEarned: 0,
       }));
 
       // Pkg211 — promote Telecom connection to active for accepted incoming call
@@ -908,14 +857,11 @@ export function usePrivateCall(userId: string | null) {
       if (callData) {
         setCallState(prev => ({
           ...prev,
-          remoteUserId: callData.caller_id || prev.remoteUserId,
-          coinsPerMinute: callData.diamonds_per_minute || prev.coinsPerMinute,
-          hostId: userId || prev.hostId,
         }));
       }
 
       // Fetch caller profile in background - non-blocking
-      // 🔒 Pkg86 audit fix: cross-user read → profiles_public (RLS-safe, no coins leak)
+      // 🔒 Pkg86 audit fix: cross-user read → profiles_public (RLS-safe, no diamonds leak)
       const callerProfilePromise = callData?.caller_id
         ? supabase
             .from('profiles_public')
@@ -928,9 +874,6 @@ export function usePrivateCall(userId: string | null) {
         if (callerProfile && !callEndedRef.current && currentCallIdRef.current === callId) {
           setCallState(prev => ({
             ...prev,
-            remoteUserName: callerProfile.display_name || 'User',
-            remoteUserAvatar: callerProfile.avatar_url || null,
-            remoteUserLevel: getRequiredDisplayLevel(callerProfile),
           }));
         }
       }).catch(() => {});
@@ -968,9 +911,6 @@ export function usePrivateCall(userId: string | null) {
           if (callInfo && !callEndedRef.current) {
             setCallState(prev => ({
               ...prev,
-              totalCoinsSpent: callInfo.total_diamonds_deducted || 0,
-              hostEarned: callInfo.host_earned || 0,
-              coinsPerMinute: callInfo.diamonds_per_minute || prev.coinsPerMinute,
             }));
           }
         } catch (err) {
@@ -979,8 +919,6 @@ export function usePrivateCall(userId: string | null) {
       }, 10000);
 
       toast({
-        title: "Call Connected",
-        description: "Call connected successfully",
       });
 
       return true;
@@ -1006,7 +944,6 @@ export function usePrivateCall(userId: string | null) {
           // `call_refunded` event guard inside the RPC).
           try {
             await supabase.rpc('refund_call_on_failed_connect' as never, {
-              p_call_id: cleanupCallId,
             } as never);
           } catch { /* refund is best-effort; sweeper retries */ }
         }
@@ -1014,9 +951,6 @@ export function usePrivateCall(userId: string | null) {
 
       resetCallState();
       toast({
-        title: "Call Failed",
-        description: error.message,
-        variant: "destructive",
       });
       return false;
     }
@@ -1045,7 +979,6 @@ export function usePrivateCall(userId: string | null) {
 
       setIncomingCall(null);
       toast({
-        title: reason === 'timeout' ? "Call Missed" : "Call Declined",
       });
 
       return true;
@@ -1056,7 +989,7 @@ export function usePrivateCall(userId: string | null) {
   }, [toast]);
 
   // End the current call - INSTANT response
-  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/coins change every second)
+  // ✅ FIX: Use refs to avoid stale closures from volatile values (duration/diamonds change every second)
   const callStateRef = useRef(callState);
   callStateRef.current = callState;
 
@@ -1099,8 +1032,6 @@ export function usePrivateCall(userId: string | null) {
       // ~1 Realtime channel open + send + close per call hangup.
 
       const rpcPromise = supabase.rpc('end_private_call', {
-        _call_id: callIdToEnd,
-        _end_reason: reason,
       }).then(({ error }) => {
         if (error) console.error('[Call] RPC error:', error);
       });
@@ -1110,7 +1041,6 @@ export function usePrivateCall(userId: string | null) {
       const livekitPromise = publishCallEnded(callIdToEnd, {
         endedBy: userId!,
         reason,
-        duration: finalDuration,
       }).catch(() => false);
 
       // Run RPC + LiveKit in parallel (Pkg78: Supabase broadcast removed)
@@ -1196,7 +1126,7 @@ export function usePrivateCall(userId: string | null) {
   // That can accidentally end a real connected call after resume/remount.
   // Calls should end ONLY by:
   // 1) user/host manual end
-  // 2) insufficient coins billing cutoff
+  // 2) insufficient diamonds billing cutoff
   // 3) explicit timeout/missed flow for unanswered calls
 
   // ============ CHECK FOR PENDING CALLS ON MOUNT/FOCUS ============
@@ -1320,7 +1250,6 @@ export function usePrivateCall(userId: string | null) {
         if (minutesBilled !== null && viewerRate !== null) {
           setCallState(prev => ({
             ...prev,
-            duration: Math.max(prev.duration, minutesBilled * 60),
           }));
         }
       }
@@ -1346,17 +1275,12 @@ export function usePrivateCall(userId: string | null) {
         const endReason = String(row.end_reason || '');
         if (row.caller_id === userId && (finalStatus === 'insufficient_balance' || endReason === 'insufficient_diamonds')) {
           toastRef.current({
-            title: 'Insufficient Diamonds',
-            description: 'Call ended automatically — please recharge to continue',
-            variant: 'destructive',
           });
         }
         softEndCallRef.current?.();
       } else {
         resetCallStateRef.current?.();
         toastRef.current({
-          title: status === 'declined' ? 'Call Declined' : 'Call Missed',
-          description: status === 'declined' ? 'Host declined the call' : 'Host did not answer',
         });
       }
     };
@@ -1426,8 +1350,6 @@ export function usePrivateCall(userId: string | null) {
         }
 
         toastRef.current({
-          title: "Incoming Call",
-          description: "Someone is calling you",
         });
       })();
     };
@@ -1520,7 +1442,6 @@ export function usePrivateCall(userId: string | null) {
       // Backend P1: tell the server to PAUSE billing while we reconnect.
       // bill_call_minute() reads private_calls.is_reconnecting and skips.
       supabase.rpc('mark_call_reconnecting', {
-        p_call_id: activeId,
         p_reconnecting: true,
       }).then(({ error }) => {
         if (error) console.warn('[PrivateCall] mark_call_reconnecting(true) failed:', error.message);
@@ -1537,8 +1458,6 @@ export function usePrivateCall(userId: string | null) {
       } catch (_) {}
       // Backend P1: resume server-side billing.
       supabase.rpc('mark_call_reconnecting', {
-        p_call_id: activeId,
-        p_reconnecting: false,
       }).then(({ error }) => {
         if (error) console.warn('[PrivateCall] mark_call_reconnecting(false) failed:', error.message);
       });

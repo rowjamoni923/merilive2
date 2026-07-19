@@ -229,14 +229,12 @@ serve(async (req) => {
     });
     if (!adminAuth.ok) {
       return new Response(JSON.stringify({ error: adminAuth.error }), {
-        status: adminAuth.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { submissionId } = await req.json().catch(() => ({}));
     if (!submissionId) {
       return new Response(JSON.stringify({ error: "submissionId required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     activeSubmissionId = submissionId;
@@ -249,7 +247,6 @@ serve(async (req) => {
 
     if (subErr || !submission) {
       return new Response(JSON.stringify({ error: "Submission not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -287,7 +284,6 @@ serve(async (req) => {
       if (lockErr) throw lockErr;
       if (lockOk === false) {
         return new Response(JSON.stringify({ ok: false, error: "Analysis is already running or submission is not eligible." }), {
-          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       workerAcquired = true;
@@ -305,7 +301,6 @@ serve(async (req) => {
         })
         .eq("id", submissionId);
       return new Response(JSON.stringify({ ok: false, error: "No live face image to analyze" }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -419,11 +414,9 @@ serve(async (req) => {
     await supabaseAdmin
       .from("face_verification_submissions")
       .update({
-        admin_notes: `${newNote}${submission.admin_notes ? "\n---\n" + submission.admin_notes : ""}`,
         ai_analysis: { ...existingAnalysis, rekognition: rekognitionBlock },
         confidence_score: matchPct,
         rekognition_confidence: Number(face?.Confidence || 0),
-        updated_at: new Date().toISOString(),
       })
       .eq("id", submissionId);
 
@@ -445,14 +438,12 @@ serve(async (req) => {
       autoFinalize,
       note: newNote,
     }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("[admin-rerun-face-verify] error:", err);
     jobDoneSuccess = false;
     jobDoneError = (err as Error)?.message || "Unknown error";
     return new Response(JSON.stringify({ error: (err as Error)?.message || "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } finally {
     if (workerAcquired && activeAdmin && activeSubmissionId) {

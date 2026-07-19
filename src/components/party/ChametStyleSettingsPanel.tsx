@@ -67,40 +67,16 @@ export function ChametStyleSettingsPanel({
     },
     // NEW: Background - replaces Beauty
     {
-      id: 'background',
-      icon: Image,
-      label: 'Background',
-      description: 'Change room background',
-      type: 'link' as const,
-      onClick: onBackgroundClick,
-      gradient: 'from-cyan-400 to-blue-500'
     },
     // NEW: Music Player
     {
-      id: 'music',
-      icon: Music,
-      label: 'Music',
-      description: 'Play background music',
-      type: 'link' as const,
-      onClick: onMusicClick,
-      gradient: 'from-pink-500 to-purple-600'
     },
     {
-      id: 'mirror',
-      icon: FlipHorizontal,
-      label: 'Mirror Mode',
-      type: 'toggle' as const,
       value: isMirrorMode,
       onToggle: onMirrorModeToggle
     },
     // Camera + Switch Camera toggles removed per request (no video icons in call/live/party)
     {
-      id: 'microphone',
-      icon: Mic,
-      label: 'Microphone',
-      type: 'toggle' as const,
-      value: isMicOn,
-      onToggle: onMicToggle
     }
   ];
 
@@ -178,7 +154,6 @@ export function ChametStyleSettingsPanel({
                         : ""
                     )}
                     style={{
-                      background: item.type === 'link'
                         ? 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))'
                         : 'transparent',
                       border: item.type === 'link' ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',

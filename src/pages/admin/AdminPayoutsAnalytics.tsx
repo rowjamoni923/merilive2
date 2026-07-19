@@ -161,8 +161,6 @@ export default function AdminPayoutsAnalytics() {
             Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86_400_000) + 1;
           if (dayDiff <= 92) {
             const { data, error } = await supabase.rpc("compute_payouts_timeline", {
-              p_start: startTs,
-              p_end: endTs,
             });
             if (error) throw error;
             tl = (data as TimelineRow[]) ?? [];
@@ -585,7 +583,6 @@ function KPI({
 }: {
   label: string;
   value: string;
-  icon: React.ElementType;
   accent: string;
   loading: boolean;
   highlight?: boolean;

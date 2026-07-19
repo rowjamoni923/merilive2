@@ -11,7 +11,7 @@ type CheckResult = {
   serviceAccount?: { ok: boolean; clientEmail?: string; projectId?: string; error?: string };
   oauthToken?: { ok: boolean; tokenPrefix?: string; error?: string };
   googlePlayApi?: { ok: boolean; status?: number; bodyPreview?: string };
-  products?: { ok: boolean; total: number; items: Array<{ productId: string; priceUsd: number; resolved: boolean; coins?: number; error?: string }> };
+  products?: { ok: boolean; total: number; items: Array<{ productId: string; priceUsd: number; resolved: boolean; diamonds?: number; error?: string }> };
   recentActivity?: { totalGooglePlayRecharges: number; lastFive: Array<{ id: string; user_id: string; google_product_id: string; diamonds_received: number; status: string; created_at: string }> };
 };
 

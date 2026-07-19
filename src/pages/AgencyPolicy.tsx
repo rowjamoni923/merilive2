@@ -48,7 +48,6 @@ interface PolicyData {
       name: string;
       income_min: number;
       income_max: number | null;
-      rate: number;
     }>;
   };
   host_requirements?: {
@@ -59,16 +58,12 @@ interface PolicyData {
     }>;
   };
   violations?: {
-    violations: Array<{
-      title: string;
       severity: string;
       penalties: string[];
     }>;
   };
   prohibited_content?: {
     items: Array<{
-      title: string;
-      description: string;
     }>;
   };
   call_rules?: {
@@ -80,7 +75,6 @@ interface PolicyData {
     settlement_time_ist: string;
     settlement_time_bd: string;
     payment_methods: Array<{
-      name: string;
       type: string;
     }>;
     timezones: Array<{

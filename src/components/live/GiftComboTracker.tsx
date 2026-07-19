@@ -128,17 +128,7 @@ export const GiftComboTracker = ({ scope, id, receiverName = "Host" }: Props) =>
         <GiftComboDisplay
           key={lane.id}
           combo={{
-            id: lane.id,
-            senderId: lane.senderId,
-            senderName: lane.senderName,
-            senderAvatar: lane.senderAvatar,
-            senderLevel: lane.senderLevel,
             receiverName: lane.receiverName,
-            giftName: lane.giftName,
-            giftEmoji: lane.giftEmoji,
-            giftIcon: lane.giftIcon,
-            count: lane.count,
-            totalValue: lane.totalValue,
           }}
         />
       ))}

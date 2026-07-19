@@ -10,7 +10,7 @@ interface FlyingGiftBannerData {
   giftImageUrl?: string;
   giftAnimationUrl?: string;
   count: number;
-  coins: number;
+  diamonds: number;
 }
 
 /**

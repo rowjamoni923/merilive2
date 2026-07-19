@@ -40,9 +40,6 @@ export default function AdminGameManagement() {
     ]);
 
     setStats({
-      activeGames: gamesRes.count || 0,
-      providers: providersRes.count || 0,
-      serverStatus: "online"
     });
   };
 

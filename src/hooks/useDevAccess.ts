@@ -47,7 +47,6 @@ export function useDevAccess(): {
   }, []);
 
   return {
-    hasAccess: isDevAccessEmail(email),
     loading,
     email,
   };

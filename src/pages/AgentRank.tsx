@@ -232,18 +232,8 @@ const AgentRank = () => {
       label: '🥈', mt: 'mt-6'
     },
     { 
-      idx: 0, order: 'order-0 -mt-4 z-10', size: 'w-[88px] h-[88px]', ringSize: 'p-[3px]',
-      ring: 'from-yellow-300 via-amber-400 to-yellow-500', 
-      badge: 'from-yellow-400 to-orange-500', badgeText: 'text-slate-800',
-      glow: 'shadow-[0_0_30px_rgba(255,215,0,0.5)]',
-      label: '🥇', mt: ''
     },
     { 
-      idx: 2, order: 'order-2', size: 'w-[72px] h-[72px]', ringSize: 'p-[3px]',
-      ring: 'from-amber-500 via-orange-400 to-amber-600', 
-      badge: 'from-amber-500 to-orange-600', badgeText: 'text-slate-800',
-      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.4)]',
-      label: '🥉', mt: 'mt-6'
     },
   ];
 
@@ -551,8 +541,6 @@ const AgentRank = () => {
           initial={{ y: 100 }} animate={{ y: 0 }}
           className="absolute bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/[0.08]"
           style={{ 
-            background: 'linear-gradient(to right, rgba(88,28,135,0.95), rgba(124,58,237,0.95))',
-            paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' 
           }}
         >
           <div className="flex items-center gap-3 px-4 py-2.5">

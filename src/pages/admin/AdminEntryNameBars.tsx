@@ -194,38 +194,12 @@ const AdminEntryNameBars = () => {
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      description: "",
-      animation_url: "",
-      animation_format: null,
-      animation_config_url: null,
-      preview_url: "",
-      min_level: 1,
-      min_vip_tier: 0,
-      price_diamonds: 0,
-      duration_ms: 4000,
-      display_order: 0,
-      is_active: true,
-      is_premium: false
     });
   };
 
   const openEditDialog = (nameBar: EntryNameBar) => {
     setSelectedNameBar(nameBar);
     setFormData({
-      name: nameBar.name,
-      description: nameBar.description || "",
-      animation_url: nameBar.animation_url,
-      animation_format: ((nameBar as any).animation_format ?? null) as AnimationFormat | null,
-      animation_config_url: (nameBar as any).animation_config_url ?? null,
-      preview_url: nameBar.preview_url || "",
-      min_level: nameBar.min_level,
-      min_vip_tier: nameBar.min_vip_tier,
-      price_diamonds: nameBar.price_diamonds,
-      duration_ms: nameBar.duration_ms,
-      display_order: nameBar.display_order,
-      is_active: nameBar.is_active,
-      is_premium: nameBar.is_premium
     });
     setShowEditDialog(true);
   };
@@ -260,15 +234,9 @@ const AdminEntryNameBars = () => {
         label="Animation File * (SVGA / VAP / Lottie / WebP / PNG / GIF / MP4)"
         folder="entry-name-bars"
         value={{
-          animation_url: formData.animation_url,
-          animation_format: formData.animation_format,
-          animation_config_url: formData.animation_config_url,
         }}
         onChange={(v) => setFormData(prev => ({
           ...prev,
-          animation_url: v.animation_url,
-          animation_format: v.animation_format,
-          animation_config_url: v.animation_config_url,
         }))}
       />
 

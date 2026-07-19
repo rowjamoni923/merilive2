@@ -66,7 +66,6 @@ interface HelperPaymentMethod {
   created_at: string;
   additional_info?: any;
   helper?: {
-    id: string;
     user_id: string;
     wallet_balance: number;
     trader_level: number;
@@ -190,19 +189,6 @@ export default function AdminHelperPaymentMethods() {
 
   const resetForm = () => {
     setFormData({
-      helper_id: "",
-      country_code: "",
-      method_name: "",
-      method_type: "mobile_banking",
-      account_name: "",
-      account_number: "",
-      bank_name: "",
-      instructions: "",
-      logo_url: "",
-      min_amount: "",
-      max_amount: "",
-      is_active: true,
-      display_order: "0"
     });
     setEditingMethod(null);
   };
@@ -215,19 +201,6 @@ export default function AdminHelperPaymentMethods() {
   const handleEdit = (method: HelperPaymentMethod) => {
     setEditingMethod(method);
     setFormData({
-      helper_id: method.helper_id,
-      country_code: method.country_code,
-      method_name: method.method_name,
-      method_type: method.method_type,
-      account_name: method.account_name,
-      account_number: method.account_number,
-      bank_name: method.bank_name || "",
-      instructions: method.instructions || "",
-      logo_url: method.logo_url || "",
-      min_amount: method.additional_info?.min_amount?.toString() || "",
-      max_amount: method.additional_info?.max_amount?.toString() || "",
-      is_active: method.is_active,
-      display_order: method.display_order?.toString() || "0"
     });
     setShowAddDialog(true);
   };
@@ -246,22 +219,9 @@ export default function AdminHelperPaymentMethods() {
     const countryName = COUNTRY_OPTIONS.find(c => c.code === formData.country_code)?.name || formData.country_code;
 
     const payload = {
-      helper_id: formData.helper_id,
-      country_code: formData.country_code,
       country_name: countryName,
       payment_method_name: formData.method_name,
-      method_name: formData.method_name,
-      method_type: formData.method_type,
-      account_name: formData.account_name,
-      account_number: formData.account_number,
-      bank_name: formData.bank_name || null,
-      instructions: formData.instructions || null,
-      logo_url: formData.logo_url || null,
-      is_active: formData.is_active,
-      display_order: parseInt(formData.display_order) || 0,
       additional_info: {
-        min_amount: formData.min_amount ? parseFloat(formData.min_amount) : null,
-        max_amount: formData.max_amount ? parseFloat(formData.max_amount) : null,
       }
     };
 
@@ -281,14 +241,9 @@ export default function AdminHelperPaymentMethods() {
 
     if (error) {
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
       });
     } else {
       toast({
-        title: editingMethod ? "Updated" : "Added",
-        description: `Payment method ${editingMethod ? 'updated' : 'added'} successfully`,
       });
       setShowAddDialog(false);
       resetForm();

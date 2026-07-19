@@ -74,7 +74,6 @@ serve(async (req) => {
       
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
-        headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
@@ -86,8 +85,6 @@ serve(async (req) => {
               content: `You are a financial data assistant. Return ONLY a JSON object with current exchange rates against USD. Today's date is ${new Date().toISOString().split('T')[0]}. Be accurate with the latest market rates.`
             },
             {
-              role: "user",
-              content: `Provide the current exchange rates for 1 USD to these currencies: ${currencyList}. 
               
               Return ONLY a JSON object in this exact format (no markdown, no explanation):
               {
@@ -180,12 +177,6 @@ serve(async (req) => {
           const adjustedRate = country.currency === 'USD' ? 1 : Math.max(0.01, rate - 5);
           
           return {
-            code: country.code,
-            currency: country.currency,
-            symbol: country.symbol,
-            name: country.name,
-            marketRate: rate,
-            adjustedRate: Math.round(adjustedRate * 100) / 100,
           };
         }
         return null;
@@ -195,10 +186,6 @@ serve(async (req) => {
       
       return new Response(
         JSON.stringify({ 
-          success: true, 
-          source: 'api',
-          rates: result,
-          fetchedAt: new Date().toISOString()
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -210,7 +197,6 @@ serve(async (req) => {
     console.error("Exchange rate fetch error:", error);
     return new Response(
       JSON.stringify({ 
-        success: false, 
         error: error instanceof Error ? error.message : "Failed to fetch rates" 
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

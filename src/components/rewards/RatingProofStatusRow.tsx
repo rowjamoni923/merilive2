@@ -33,22 +33,10 @@ const STATUS_META: Record<ClaimStatus, {
   pillClass: string;
 }> = {
   pending: {
-    label: "Under Review",
-    Icon: Clock,
-    iconClass: "text-amber-600",
-    pillClass: "bg-amber-50 text-amber-700 border border-amber-200",
   },
   approved: {
-    label: "Approved",
-    Icon: CheckCircle2,
-    iconClass: "text-emerald-600",
-    pillClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   },
   rejected: {
-    label: "Rejected — Retry",
-    Icon: XCircle,
-    iconClass: "text-rose-600",
-    pillClass: "bg-rose-50 text-rose-700 border border-rose-200",
   },
 };
 

@@ -157,7 +157,6 @@ export default function AdminAgentDispatches() {
     setBusyId(row.id);
     const res = await cancelAgentDispatch({
       dispatchId: row.dispatch_id,
-      roomName: row.room_name,
     });
     setBusyId(null);
     if (res.ok) {

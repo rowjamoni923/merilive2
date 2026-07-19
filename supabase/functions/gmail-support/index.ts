@@ -609,12 +609,8 @@ async function sendAutoReply(accessToken: string, originalMessage: GmailMessage)
     await fetch(
       `https://gmail.googleapis.com/gmail/v1/users/me/messages/${originalMessage.id}/modify`,
       {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
           addLabelIds: [],
           removeLabelIds: ['UNREAD'],
         }),

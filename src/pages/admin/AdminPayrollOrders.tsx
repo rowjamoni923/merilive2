@@ -77,10 +77,8 @@ interface PayrollOrder {
   order_type: 'helper_order' | 'agency_withdrawal';
   user?: { display_name: string; avatar_url: string; app_uid: string; id: string };
   helper?: { 
-    id: string;
     wallet_balance: number;
     total_sold: number;
-    user: { display_name: string; avatar_url: string; app_uid: string; id: string } 
   };
   agency?: { name: string; agency_code: string; logo_url?: string; owner_id: string };
 }
@@ -199,14 +197,11 @@ const AdminPayrollOrders = () => {
           amount_local: aw.local_currency_amount || aw.amount,
           currency_code: aw.currency_code || 'USD',
           payment_method: aw.payment_method || 'Agency Withdrawal',
-          payment_details: paymentDetails ? { ...paymentDetails, helper_payment_screenshot_signed: signedProof || undefined } : null,
           user_country_code: aw.country_code || paymentDetails?.country_code || '',
-          user_payment_proof: signedProof,
           status: aw.status,
           helper_notes: helperPaymentNotes,
           created_at: aw.requested_at,
           processed_at: aw.processed_at,
-          order_type: 'agency_withdrawal' as const,
           helper: aw.helper,
           agency: aw.agency
         };
@@ -224,12 +219,6 @@ const AdminPayrollOrders = () => {
       const s = (statsData as any) || {};
 
       setStats({
-        total: s.total || 0,
-        pending: s.pending || 0,
-        processing: s.processing || 0,
-        completed: s.completed || 0,
-        cancelled: s.cancelled || 0,
-        todayTotal: s.todayTotal || 0
       });
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminPayrollOrders", message: formatAdminError(error)});
@@ -275,7 +264,6 @@ const AdminPayrollOrders = () => {
         const { data, error } = await supabase.rpc('process_helper_order_secure' as any, {
           _order_id: order.id,
           _action: action,
-          _notes: `Processed from Admin Payroll Orders: ${action}`,
         });
         const result = data as any;
         if (error || !result?.success) {
@@ -356,7 +344,6 @@ const AdminPayrollOrders = () => {
                 { key: "user_country_code", label: "Country", weight: 0.7 },
               ]}
               meta={{
-                title: "Payroll Orders Report",
                 subtitle: `${orders.length} orders`,
                 fileName: "payroll-orders",
                 summary: [

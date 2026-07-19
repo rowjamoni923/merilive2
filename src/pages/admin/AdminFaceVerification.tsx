@@ -434,8 +434,6 @@ const AdminFaceVerification = () => {
     const reviewedAt = new Date().toISOString();
     const optimisticSubmission: Submission = {
       ...submission,
-      status: nextStatus as Submission['status'],
-      status_bucket: nextStatus as Submission['status_bucket'],
       reviewed_at: reviewedAt,
       rejection_reason: action === 'reject' ? resolvedReason : null,
     };
@@ -500,8 +498,6 @@ const AdminFaceVerification = () => {
         throw new Error((data as any)?.error || 'Failed to process');
       } else {
         toast({
-          title: action === 'approve' ? '✅ Approved!' : '❌ Rejected!',
-          description: action === 'approve' ? 'Face verification approved' : 'Face verification rejected',
         });
       }
 
@@ -525,12 +521,7 @@ const AdminFaceVerification = () => {
     if (!selectedSubmission) return;
 
     await processSubmissionAction({
-      submission: selectedSubmission,
-      action: actionType,
       approveAs,
-      setGender: approveGender,
-      reason: actionReason,
-      closeModals: true,
     });
   };
 
@@ -665,8 +656,6 @@ const AdminFaceVerification = () => {
       const data = await res.json();
       if (!res.ok || data?.error) throw new Error(data?.error || 'Re-run failed');
       toast({
-        title: data.ok ? '✅ AWS Re-run Complete' : '⚠️ Re-run Note Saved',
-        description: typeof data.faceMatchPercentage === 'number'
           ? `Match: ${data.faceMatchPercentage.toFixed(1)}% • Faces: ${data.facesDetected} • Gender: ${data.gender || 'N/A'}`
           : (data.error || 'See admin notes'),
       });
@@ -687,11 +676,6 @@ const AdminFaceVerification = () => {
     );
     if (!reason || !reason.trim()) return;
     await processSubmissionAction({
-      submission: sub,
-      action: 'approve',
-      approveAs: asRole,
-      setGender: asRole === 'host' ? 'female' : 'male',
-      reason: `[OVERRIDE] ${reason.trim()}`,
     });
   };
 
@@ -699,9 +683,6 @@ const AdminFaceVerification = () => {
     const resolvedRole = asRole || (submission.verification_type === 'host' ? 'host' : 'user');
     return processSubmissionAction({
       submission,
-      action: 'approve',
-      approveAs: resolvedRole,
-      setGender: resolvedRole === 'host' ? 'female' : 'male',
     });
   };
 
@@ -784,7 +765,6 @@ const AdminFaceVerification = () => {
     const steps = Array.isArray(rr?.steps) ? (rr!.steps as unknown[]).map(String) : [];
     const failed = Array.isArray(rr?.failed_evidence)
       ? (rr!.failed_evidence as Array<Record<string, unknown>>).map((f) => ({
-          label: String(f.human_name || f.label || f.step || 'Step'),
           message: String(f.message || ''),
           score: (f.score as number | null | undefined) ?? null,
         }))
@@ -1503,10 +1483,6 @@ const AdminFaceVerification = () => {
                         disabled={processing}
                         onClick={() => {
                           processSubmissionAction({
-                            submission: selectedSubmission,
-                            action: 'approve',
-                            approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user',
-                            setGender: selectedSubmission.profile?.gender === 'female' ? 'female' : selectedSubmission.verification_type === 'host' ? 'female' : 'male',
                           });
                         }}
                       >
@@ -1517,9 +1493,6 @@ const AdminFaceVerification = () => {
                         className="flex-1"
                         disabled={processing}
                         onClick={() => processSubmissionAction({
-                          submission: selectedSubmission,
-                          action: 'reject',
-                          reason: actionReason,
                         })}
                       >
                         <XCircle className="w-4 h-4 mr-2" /> Reject
@@ -1777,11 +1750,6 @@ const AdminFaceVerification = () => {
                     onApprove={(role) => {
                       if (!selectedSubmission) return;
                       processSubmissionAction({
-                        submission: selectedSubmission,
-                        action: 'approve',
-                        approveAs: role,
-                        setGender: role === 'host' ? 'female' : 'male',
-                        reason: actionReason,
                       });
                     }}
                   />
@@ -1801,8 +1769,6 @@ const AdminFaceVerification = () => {
                           throw new Error((data as any)?.error || 'Failed to convert');
                         } else {
                           toast({
-                            title: '✅ Converted to User',
-                            description: (data as any)?.detached_from_agency
                               ? 'User was detached from agency and can re-submit face verification.'
                               : 'User can now re-submit face verification.',
                           });

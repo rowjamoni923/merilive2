@@ -237,7 +237,6 @@ export function LiveTeenPattiGame({
     const evalC = evaluateHand(handC);
 
     setHands({
-      A: { cards: handA, ...evalA },
       B: { cards: handB, ...evalB },
       C: { cards: handC, ...evalC }
     });
@@ -349,9 +348,6 @@ export function LiveTeenPattiGame({
     const evalC = evaluateHand(handC);
 
     setHands({
-      A: { cards: handA, ...evalA },
-      B: { cards: handB, ...evalB },
-      C: { cards: handC, ...evalC }
     });
 
     // Reveal cards after delay
@@ -432,9 +428,6 @@ export function LiveTeenPattiGame({
     const evalC = evaluateHand(handC);
 
     setHands({
-      A: { cards: handA, ...evalA },
-      B: { cards: handB, ...evalB },
-      C: { cards: handC, ...evalC }
     });
 
     // Reveal cards after delay
@@ -463,7 +456,7 @@ export function LiveTeenPattiGame({
     }
     
     if (betAmount > userDiamonds) {
-      console.log('[TeenPatti] Not enough coins');
+      console.log('[TeenPatti] Not enough diamonds');
       return;
     }
 
@@ -560,9 +553,6 @@ export function LiveTeenPattiGame({
     onSelect: () => void;
   }) => {
     const labelColors = {
-      A: "text-orange-400",
-      B: "text-orange-500", 
-      C: "text-yellow-400"
     };
 
     return (

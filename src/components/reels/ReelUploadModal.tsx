@@ -249,8 +249,6 @@ export const ReelUploadModal = ({
         const { error: thumbError } = await supabase.storage
           .from('reels')
           .upload(thumbnailFileName, thumbnailBlob, {
-            contentType: 'image/jpeg',
-            upsert: false
           });
 
         if (!thumbError) {
@@ -475,7 +473,7 @@ export const ReelUploadModal = ({
               </div>
               <p className="text-xs text-muted-foreground">
                 ⛔ Uploading 18+ / Adult / Nude / Sexual content is <strong>strictly prohibited</strong>. 
-                Violators will face <strong>permanent account ban</strong>, loss of all coins/diamonds, and level reset to 0.
+                Violators will face <strong>permanent account ban</strong>, loss of all diamonds/diamonds, and level reset to 0.
               </p>
               <label className="flex items-start gap-2 cursor-pointer">
                 <input

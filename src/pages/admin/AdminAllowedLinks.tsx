@@ -65,11 +65,6 @@ const AdminAllowedLinks = () => {
     }
 
     const { error } = await supabase.from('allowed_external_links').insert({
-      url_pattern: newLink.url_pattern.toLowerCase().trim(),
-      link_type: newLink.link_type,
-      label: newLink.label.trim(),
-      description: newLink.description.trim() || null,
-      category: newLink.category,
     });
 
     if (error) {

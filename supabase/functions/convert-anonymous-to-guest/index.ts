@@ -122,7 +122,6 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        converted: true,
         userId: profile.id,
         displayName: profile.display_name,
       }),

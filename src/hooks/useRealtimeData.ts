@@ -34,7 +34,7 @@ export function useRealtimeProfile(userId: string | null) {
 
     fetchProfile();
 
-    // Pkg361: direct Realtime on own profile row — instant coins / beans /
+    // Pkg361: direct Realtime on own profile row — instant diamonds / beans /
     // diamonds / level / host_status / avatar updates across every page.
     const channel = supabase
       .channel(`rt-profile-${userId}-${Math.random().toString(36).slice(2, 8)}`)

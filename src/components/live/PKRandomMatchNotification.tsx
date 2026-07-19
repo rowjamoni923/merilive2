@@ -67,7 +67,6 @@ export const PKRandomMatchNotification = ({
           <motion.div
             className="absolute inset-0 rounded-2xl"
             style={{
-              background: "linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.3), transparent)",
               backgroundSize: "200% 100%",
             }}
             animate={{

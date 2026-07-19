@@ -168,7 +168,6 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("[live-snapshot-cron] fatal", (e as Error)?.message);
     return new Response(JSON.stringify({ error: (e as Error)?.message ?? "error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

@@ -155,8 +155,6 @@ export class NativeDialogs {
       try {
         const { Dialog } = await import('@capacitor/dialog');
         const result = await Dialog.confirm({
-          title: options.title,
-          message: options.message,
           okButtonTitle: options.okButtonTitle || 'Yes',
           cancelButtonTitle: options.cancelButtonTitle || 'No',
         });
@@ -174,10 +172,6 @@ export class NativeDialogs {
       try {
         const { Dialog } = await import('@capacitor/dialog');
         const result = await Dialog.prompt({
-          title: options.title,
-          message: options.message,
-          okButtonTitle: options.okButtonTitle || 'OK',
-          cancelButtonTitle: options.cancelButtonTitle || 'Cancel',
           inputPlaceholder: options.inputPlaceholder,
         });
         return result.cancelled ? null : result.value;
@@ -190,7 +184,6 @@ export class NativeDialogs {
   }
 
   static async actionSheet(
-    title: string,
     options: NativeActionSheetOption[]
   ): Promise<number> {
     if (this.isNative) {
@@ -198,8 +191,6 @@ export class NativeDialogs {
         const { ActionSheet, ActionSheetButtonStyle } = await import('@capacitor/action-sheet');
         const result = await ActionSheet.showActions({
           title,
-          options: options.map(opt => ({
-            title: opt.title,
             style: opt.destructive ? ActionSheetButtonStyle.Destructive : ActionSheetButtonStyle.Default,
           })),
         });
@@ -595,9 +586,6 @@ export class NativeShare {
       try {
         const { Share } = await import('@capacitor/share');
         await Share.share({
-          title: options.title,
-          text: options.text,
-          url: options.url,
           dialogTitle: 'Share',
         });
         return true;

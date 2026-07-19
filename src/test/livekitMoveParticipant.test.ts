@@ -57,10 +57,6 @@ describe('Pkg134 moveParticipant', () => {
     expect(r).toEqual({ success: true, result: { moved: 'u1' } });
     expect(invokeMock).toHaveBeenCalledWith('livekit-move-participant', {
       body: {
-        srcRoom: 'live_a',
-        dstRoom: 'live_b',
-        identity: 'u1',
-        reason: 'pk-handoff',
       },
     });
   });
@@ -70,7 +66,6 @@ describe('Pkg134 moveParticipant', () => {
     invokeMock.mockResolvedValue({ data: { success: true }, error: null });
     await moveParticipant({ srcRoom: 'a', dstRoom: 'b', identity: 'u1' });
     expect(invokeMock).toHaveBeenCalledWith('livekit-move-participant', {
-      body: { srcRoom: 'a', dstRoom: 'b', identity: 'u1' },
     });
   });
 
@@ -84,8 +79,6 @@ describe('Pkg134 moveParticipant', () => {
   it('surfaces server-side success:false', async () => {
     isEnabledMock.mockResolvedValue(true);
     invokeMock.mockResolvedValue({
-      data: { success: false, error: 'not_src_room_host' },
-      error: null,
     });
     const r = await moveParticipant({ srcRoom: 'a', dstRoom: 'b', identity: 'u1' });
     expect(r).toEqual({ success: false, error: 'not_src_room_host' });

@@ -86,7 +86,6 @@ describe('Pkg112 egress webhook finalizer', () => {
 
   it('handles single `file` (not fileResults array)', () => {
     const r = buildRecUpdate({
-      status: 'EGRESS_COMPLETE',
       file: { location: 'https://x/y.mp4', duration: '3000000000', size: '100' },
     });
     expect(r.update.file_url).toBe('https://x/y.mp4');
@@ -96,8 +95,6 @@ describe('Pkg112 egress webhook finalizer', () => {
 
   it('skips numeric fields when invalid', () => {
     const r = buildRecUpdate({
-      status: 'EGRESS_COMPLETE',
-      fileResults: [{ location: 'https://x/y.mp4', duration: '0', size: 'NaN' }],
     });
     expect(r.update.duration_seconds).toBeUndefined();
     expect(r.update.size_bytes).toBeUndefined();

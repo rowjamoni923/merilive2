@@ -945,8 +945,6 @@ const App = () => {
             
             if (accessToken && refreshToken) {
               await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken
               });
             } else {
               const { data } = await supabase.auth.getSession();
@@ -1000,8 +998,6 @@ const App = () => {
                 setSession(refreshed.session);
                 setCachedUser({ id: refreshed.session.user.id, email: refreshed.session.user.email ?? undefined });
                 saveSessionToNative({
-                  access_token: refreshed.session.access_token,
-                  refresh_token: refreshed.session.refresh_token,
                   expires_at: refreshed.session.expires_at,
                 });
               }
@@ -1019,8 +1015,6 @@ const App = () => {
               if (nativeSession?.refresh_token) {
                 console.log('[App] 🔄 Restoring session from native storage...');
                 const { data: restored, error } = await supabase.auth.setSession({
-                  access_token: nativeSession.access_token,
-                  refresh_token: nativeSession.refresh_token,
                 });
                 if (restored?.session?.user && !error) {
                   console.log('[App] ✅ Session restored from native storage!');
@@ -1088,9 +1082,6 @@ const App = () => {
           // 🔒 Save session to native storage so it survives app kills
           if (session.access_token && session.refresh_token) {
             saveSessionToNative({
-              access_token: session.access_token,
-              refresh_token: session.refresh_token,
-              expires_at: session.expires_at,
             });
           }
           scheduleLegacyProfileSync(session.user.id);
@@ -1129,9 +1120,6 @@ const App = () => {
                   setSession(data.session);
                   if (data.session.access_token && data.session.refresh_token) {
                     saveSessionToNative({
-                      access_token: data.session.access_token,
-                      refresh_token: data.session.refresh_token,
-                      expires_at: data.session.expires_at,
                     });
                   }
                 } else if (isInvalidRefreshTokenError(error)) {

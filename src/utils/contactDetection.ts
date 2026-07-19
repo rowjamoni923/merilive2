@@ -447,10 +447,6 @@ export function detectContactInfo(text: string): DetectionResult {
     const matches = normalized.match(pattern);
     if (matches && matches.length > 0) {
       return {
-        hasViolation: true,
-        detectedContent: matches[0],
-        pattern: 'external_link',
-        allMatches: matches,
       };
     }
   }
@@ -462,10 +458,6 @@ export function detectContactInfo(text: string): DetectionResult {
       const matches = normalized.match(pattern);
       if (matches && matches.length > 0) {
         return {
-          hasViolation: true,
-          detectedContent: matches[0],
-          pattern: platform,
-          allMatches: [...new Set(matches)],
         };
       }
     }
@@ -476,10 +468,6 @@ export function detectContactInfo(text: string): DetectionResult {
   for (const { keyword, platform } of SOCIAL_MEDIA_NAME_ONLY) {
     if (lowerText.includes(keyword.toLowerCase()) || normalized.includes(keyword)) {
       return {
-        hasViolation: true,
-        detectedContent: keyword,
-        pattern: platform,
-        allMatches: [keyword],
       };
     }
   }
@@ -491,10 +479,6 @@ export function detectContactInfo(text: string): DetectionResult {
       const hasHandle = /@[a-zA-Z0-9._]+/.test(normalized);
       if (hasNumber || hasHandle) {
         return {
-          hasViolation: true,
-          detectedContent: keyword,
-          pattern: 'contact_intent',
-          allMatches: [keyword],
         };
       }
     }
@@ -505,10 +489,6 @@ export function detectContactInfo(text: string): DetectionResult {
   const consecutiveDigits = processedText.match(/\d{5,}/g);
   if (consecutiveDigits && consecutiveDigits.length > 0) {
     return {
-      hasViolation: true,
-      detectedContent: consecutiveDigits[0],
-      pattern: 'digit_sharing',
-      allMatches: [...new Set(consecutiveDigits)],
     };
   }
 
@@ -547,7 +527,6 @@ export async function processHostViolation(
     }
 
     const result = data as {
-      success: boolean;
       violation_number: number;
       beans_deducted: number;
       is_banned: boolean;
@@ -556,10 +535,6 @@ export async function processHostViolation(
     console.log(`⚠️ Host violation processed: #${result.violation_number}, ${result.beans_deducted} beans deducted, banned: ${result.is_banned}`);
 
     return {
-      success: result.success,
-      violationNumber: result.violation_number,
-      beansDeducted: result.beans_deducted,
-      isBanned: result.is_banned,
     };
   } catch (err) {
     console.error('Exception processing violation:', err);

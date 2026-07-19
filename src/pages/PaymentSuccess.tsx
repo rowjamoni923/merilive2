@@ -50,18 +50,12 @@ const PaymentSuccess = () => {
 
           if (order?.status === 'completed') {
             setResult({
-              success: true,
-              total_diamonds: order.diamond_amount || 0,
-              already_processed: searchParams.get('already') === 'true',
             });
           } else if (order?.status === 'failed') {
             setResult({ success: false, error: 'Payment failed' });
           } else {
             // Still pending — let helper review manually
             setResult({
-              success: true,
-              total_diamonds: 0,
-              needsManualProof: true,
             });
           }
 

@@ -197,7 +197,6 @@ describe("Moderation & Reports — end-to-end instant sync", () => {
     const invalidateSpy = vi.spyOn(qc, "invalidateQueries");
 
     renderHook(() => useAdminBroadcastSync(), {
-      wrapper: ({ children }: { children: React.ReactNode }) => (
         <QueryClientProvider client={qc}>{children}</QueryClientProvider>
       ),
     });

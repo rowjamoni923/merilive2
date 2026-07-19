@@ -33,57 +33,22 @@ const getLevelConfig = (level: number) => {
   }
   if (level >= 50) {
     return {
-      gradient: "from-amber-400 via-yellow-400 to-amber-500",
-      glow: "shadow-[0_0_14px_rgba(251,191,36,0.7),0_2px_8px_rgba(0,0,0,0.4)]",
-      icon: "👑",
-      textGradient: "from-amber-900 via-amber-800 to-amber-900",
-      border: "border-amber-300/60",
-      shimmer: true,
-      innerGlow: "inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.15)",
     };
   }
   if (level >= 40) {
     return {
-      gradient: "from-orange-500 via-orange-400 to-red-500",
-      glow: "shadow-[0_0_12px_rgba(249,115,22,0.6),0_2px_6px_rgba(0,0,0,0.3)]",
-      icon: "🔥",
-      textGradient: "from-orange-100 via-white to-orange-200",
-      border: "border-orange-300/50",
-      shimmer: true,
-      innerGlow: "inset 0 1px 2px rgba(255,255,255,0.35), inset 0 -1px 2px rgba(0,0,0,0.2)",
     };
   }
   if (level >= 30) {
     return {
-      gradient: "from-fuchsia-500 via-purple-500 to-pink-500",
-      glow: "shadow-[0_0_10px_rgba(192,38,211,0.5),0_2px_6px_rgba(0,0,0,0.3)]",
-      icon: "⭐",
-      textGradient: "from-fuchsia-100 via-white to-pink-200",
-      border: "border-fuchsia-300/50",
-      shimmer: true,
-      innerGlow: "inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.2)",
     };
   }
   if (level >= 20) {
     return {
-      gradient: "from-violet-500 via-purple-500 to-violet-600",
-      glow: "shadow-[0_0_8px_rgba(139,92,246,0.45),0_2px_4px_rgba(0,0,0,0.25)]",
-      icon: "💜",
-      textGradient: "from-violet-100 via-white to-violet-200",
-      border: "border-violet-300/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.15)",
     };
   }
   if (level >= 15) {
     return {
-      gradient: "from-cyan-500 via-teal-500 to-cyan-600",
-      glow: "shadow-[0_0_8px_rgba(6,182,212,0.4),0_2px_4px_rgba(0,0,0,0.25)]",
-      icon: "💎",
-      textGradient: "from-cyan-100 via-white to-cyan-200",
-      border: "border-cyan-300/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.15)",
     };
   }
   // Audit-fix (Label #10): levels 11-14 previously fell through to Level-0
@@ -92,137 +57,53 @@ const getLevelConfig = (level: number) => {
   // reflects the user's rank everywhere it renders.
   if (level >= 11) {
     return {
-      gradient: "from-teal-500 via-cyan-500 to-sky-500",
-      glow: "shadow-[0_0_7px_rgba(20,184,166,0.4),0_2px_4px_rgba(0,0,0,0.22)]",
-      icon: "🔷",
-      textGradient: "from-teal-100 via-white to-cyan-200",
-      border: "border-teal-300/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.12)",
     };
   }
 
   // ====== UNIQUE PER-LEVEL DESIGNS (0-10) ======
   if (level === 10) {
     return {
-      gradient: "from-amber-500 via-yellow-400 to-orange-500",
-      glow: "shadow-[0_0_10px_rgba(245,158,11,0.5),0_2px_6px_rgba(0,0,0,0.3)]",
-      icon: "🏆",
-      textGradient: "from-amber-100 via-white to-yellow-200",
-      border: "border-amber-400/60",
-      shimmer: true,
-      innerGlow: "inset 0 1px 3px rgba(255,255,255,0.45), inset 0 -1px 2px rgba(0,0,0,0.2)",
     };
   }
   if (level === 9) {
     return {
-      gradient: "from-rose-500 via-pink-500 to-fuchsia-500",
-      glow: "shadow-[0_0_8px_rgba(236,72,153,0.45),0_2px_4px_rgba(0,0,0,0.25)]",
-      icon: "🌟",
-      textGradient: "from-pink-100 via-white to-rose-200",
-      border: "border-pink-400/50",
-      shimmer: true,
-      innerGlow: "inset 0 1px 2px rgba(255,255,255,0.35), inset 0 -1px 2px rgba(0,0,0,0.2)",
     };
   }
   if (level === 8) {
     return {
-      gradient: "from-violet-600 via-purple-500 to-indigo-600",
-      glow: "shadow-[0_0_8px_rgba(124,58,237,0.45),0_2px_4px_rgba(0,0,0,0.25)]",
-      icon: "💫",
-      textGradient: "from-violet-100 via-white to-purple-200",
-      border: "border-violet-400/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.2)",
     };
   }
   if (level === 7) {
     return {
-      gradient: "from-blue-600 via-indigo-500 to-blue-700",
-      glow: "shadow-[0_0_7px_rgba(79,70,229,0.4),0_2px_4px_rgba(0,0,0,0.25)]",
-      icon: "✨",
-      textGradient: "from-blue-100 via-white to-indigo-200",
-      border: "border-indigo-400/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 1px rgba(0,0,0,0.15)",
     };
   }
   if (level === 6) {
     return {
-      gradient: "from-cyan-500 via-sky-500 to-blue-500",
-      glow: "shadow-[0_0_6px_rgba(14,165,233,0.4),0_2px_4px_rgba(0,0,0,0.2)]",
-      icon: "💠",
-      textGradient: "from-sky-100 via-white to-cyan-200",
-      border: "border-sky-400/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.1)",
     };
   }
   if (level === 5) {
     return {
-      gradient: "from-emerald-500 via-green-500 to-teal-500",
-      glow: "shadow-[0_0_6px_rgba(16,185,129,0.35),0_2px_4px_rgba(0,0,0,0.2)]",
-      icon: "🍀",
-      textGradient: "from-emerald-100 via-white to-green-200",
-      border: "border-emerald-400/50",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.1)",
     };
   }
   if (level === 4) {
     return {
-      gradient: "from-lime-500 via-green-400 to-emerald-500",
-      glow: "shadow-[0_0_5px_rgba(132,204,22,0.3),0_2px_3px_rgba(0,0,0,0.15)]",
-      icon: "🌿",
-      textGradient: "from-lime-100 via-white to-green-200",
-      border: "border-lime-400/40",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.1)",
     };
   }
   if (level === 3) {
     return {
-      gradient: "from-sky-400 via-blue-400 to-cyan-500",
-      glow: "shadow-[0_0_5px_rgba(56,189,248,0.3),0_2px_3px_rgba(0,0,0,0.15)]",
-      icon: "🔹",
-      textGradient: "from-sky-100 via-white to-blue-200",
-      border: "border-sky-300/40",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.1)",
     };
   }
   if (level === 2) {
     return {
-      gradient: "from-teal-400 via-emerald-400 to-cyan-400",
-      glow: "shadow-[0_0_4px_rgba(45,212,191,0.25),0_1px_3px_rgba(0,0,0,0.15)]",
-      icon: "🌊",
-      textGradient: "from-teal-100 via-white to-emerald-200",
-      border: "border-teal-300/40",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.2)",
     };
   }
   if (level === 1) {
     return {
-      gradient: "from-blue-400 via-sky-400 to-blue-500",
-      glow: "shadow-[0_0_4px_rgba(96,165,250,0.25),0_1px_3px_rgba(0,0,0,0.15)]",
-      icon: "💧",
-      textGradient: "from-sky-100 via-white to-blue-200",
-      border: "border-sky-300/40",
-      shimmer: false,
-      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.15)",
     };
   }
 
   // Level 0 / default
   return {
-    gradient: "from-slate-400 via-gray-400 to-zinc-500",
-    glow: "",
-    icon: "🤍",
-    textGradient: "from-gray-200 via-white to-gray-300",
-    border: "border-gray-400/30",
-    shimmer: false,
-    innerGlow: "inset 0 1px 1px rgba(255,255,255,0.1)",
   };
 };
 
@@ -251,17 +132,9 @@ export const LevelBadge = forwardRef<HTMLSpanElement | HTMLDivElement, LevelBadg
   };
 
   const iconSizes = {
-    xs: "text-[8px]",
-    sm: "text-[9px]",
-    md: "text-[11px]",
-    lg: "text-sm"
   };
   
   const imageSizes = {
-    xs: "w-3 h-3",
-    sm: "w-3.5 h-3.5",
-    md: "w-4 h-4",
-    lg: "w-5 h-5"
   };
 
   const badgeContent = (

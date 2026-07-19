@@ -30,8 +30,6 @@ export const useNetworkStatus = (showToasts: boolean = true) => {
         });
       } else if (newStatus.connected && !previousConnected) {
         toast({
-          title: "Back Online",
-          description: "Connection restored",
         });
       }
     }
@@ -48,16 +46,12 @@ export const useNetworkStatus = (showToasts: boolean = true) => {
           // Get initial status
           const initialStatus = await Network.getStatus();
           setStatus({
-            connected: initialStatus.connected,
-            connectionType: initialStatus.connectionType,
           });
 
           // Listen for changes
           const listener = await Network.addListener('networkStatusChange', (newStatus) => {
             handleStatusChange(
               {
-                connected: newStatus.connected,
-                connectionType: newStatus.connectionType,
               },
               status.connected
             );

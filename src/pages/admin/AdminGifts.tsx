@@ -242,14 +242,10 @@ export default function AdminGifts() {
         await supabase.from('lucky_gift_config' as any).update({
           diamond_reward: tier.diamond_reward,
           win_chance_percent: tier.win_chance_percent,
-          is_active: tier.is_active,
         }).eq('id', tier.id);
       } else {
         await supabase.from('lucky_gift_config' as any).insert({
           gift_id: luckyConfigGiftId,
-          diamond_reward: tier.diamond_reward || 1,
-          win_chance_percent: tier.win_chance_percent || 5,
-          display_order: luckyConfigs.length,
         });
       }
       toast.success('Lucky tier saved');
@@ -319,10 +315,6 @@ export default function AdminGifts() {
       
       // Upload part via edge function proxy
       const uploadResponse = await fetch(R2_FUNCTION_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
-        body: JSON.stringify({
-          action: 'upload-part',
           uploadId,
           key,
           partNumber,
@@ -347,10 +339,6 @@ export default function AdminGifts() {
     onProgress?.(98);
     
     const completeResponse = await fetch(R2_FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
-      body: JSON.stringify({
-        action: 'complete-multipart',
         uploadId,
         key,
         parts: uploadedParts,
@@ -448,9 +436,6 @@ export default function AdminGifts() {
           const detectedType = isSVGA ? 'svga' : 'lottie';
           setFormData(prev => ({ 
             ...prev, 
-            icon_url: publicUrl,
-            animation_url: publicUrl,
-            animation_type: detectedType
           }));
           toast.success("Animation uploaded as icon! Emoji removed automatically.");
         } else {
@@ -472,12 +457,7 @@ export default function AdminGifts() {
           const shouldReplaceIcon = !isVideoAnimation && (!prev.icon_url || !prev.icon_url.startsWith('http'));
           return { 
             ...prev, 
-            animation_url: publicUrl, 
-            animation_type: detectedType,
-            animation_format: detectedFormat,
-            animation_config_url: detectedFormat === 'vap' ? prev.animation_config_url : '',
             // Auto-set icon_url to animation_url if icon was emoji
-            icon_url: shouldReplaceIcon ? publicUrl : prev.icon_url
           };
         });
         
@@ -498,8 +478,6 @@ export default function AdminGifts() {
     setMigratingGiftMedia(true);
     try {
       const response = await fetch(ADMIN_MIGRATE_GIFT_MEDIA_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-token": getAdminSessionToken() },
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.success) throw new Error(result.error || "Gift media migration failed");
@@ -546,7 +524,6 @@ export default function AdminGifts() {
 
       setFormData(prev => ({
         ...prev,
-        sound_url: publicUrl
       }));
       toast.success("Sound file uploaded successfully!");
     } catch (error: any) {
@@ -566,21 +543,6 @@ export default function AdminGifts() {
       : (gift.icon_url || "");
     
     setFormData({
-      name: gift.name,
-      diamond_value: gift.diamond_value,
-      icon_url: effectiveIconUrl,
-      animation_type: gift.animation_type || "svga",
-      animation_url: gift.animation_url || "",
-      animation_data: null,
-      animation_format: ((gift as any).animation_format as AnimationFormat) || null,
-      animation_config_url: (gift as any).animation_config_url || "",
-      category: gift.category || "wall",
-      display_order: gift.display_order || 0,
-      is_active: gift.is_active ?? true,
-      sound_url: gift.sound_url || "",
-      sound_duration_ms: gift.sound_duration_ms || 3000,
-      min_level: (gift as any).min_level || 0,
-      is_lucky: (gift as any).is_lucky || false,
     });
     setShowEditDialog(true);
   };
@@ -589,21 +551,6 @@ export default function AdminGifts() {
     setEditingGift(null);
     setSelectedDefaultAnim(null);
     setFormData({
-      name: "",
-      diamond_value: 10,
-      icon_url: "",
-      animation_type: "svga",
-      animation_url: "",
-      animation_data: null,
-      animation_format: null,
-      animation_config_url: "",
-      category: selectedCategory === "all" ? "wall" : selectedCategory,
-      display_order: 0,
-      is_active: true,
-      sound_url: "",
-      sound_duration_ms: 3000,
-      min_level: 0,
-      is_lucky: selectedCategory === "lucky",
     });
     setShowEditDialog(true);
   };
@@ -612,9 +559,6 @@ export default function AdminGifts() {
     setSelectedDefaultAnim(anim);
     setFormData(prev => ({
       ...prev,
-      icon_url: anim.previewEmoji,
-      animation_type: "lottie",
-      animation_data: anim.animationData
     }));
     setShowDefaultAnimations(false);
     toast.success(`${anim.name} animation selected`);
@@ -632,21 +576,7 @@ export default function AdminGifts() {
       await supabase.auth.refreshSession();
       
       const giftData: any = {
-        name: formData.name,
-        diamond_value: formData.diamond_value,
-        icon_url: formData.icon_url || null,
-        animation_type: formData.animation_type,
-        animation_url: formData.animation_url || null,
         // Pkg423 — VAP/SVGA/Lottie unified format
-        animation_format: formData.animation_format || null,
-        animation_config_url: formData.animation_config_url || null,
-        category: formData.category,
-        display_order: formData.display_order,
-        is_active: formData.is_active,
-        sound_url: formData.sound_url || null,
-        sound_duration_ms: formData.sound_duration_ms || 3000,
-        min_level: formData.min_level || 0,
-        is_lucky: formData.is_lucky || false,
       };
 
       if (editingGift) {
@@ -1286,16 +1216,10 @@ export default function AdminGifts() {
               bucket="gifts"
               folder="gifts/pro"
               value={{
-                animation_url: formData.animation_url,
-                animation_format: formData.animation_format,
-                animation_config_url: formData.animation_config_url || null,
               }}
               onChange={(v) =>
                 setFormData((prev) => ({
                   ...prev,
-                  animation_url: v.animation_url,
-                  animation_format: v.animation_format,
-                  animation_config_url: v.animation_config_url || "",
                   // Keep legacy animation_type in sync so existing players keep working
                   animation_type:
                     v.animation_format === 'vap'

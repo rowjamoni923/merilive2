@@ -60,8 +60,6 @@ function applyPermissions(entry: Entry) {
 
     // Default blocklist mode: everyone allowed; listed identities denied.
     const denied = Array.from(entry.blocked).map((identity) => ({
-      participantIdentity: identity,
-      allowAll: false,
     }));
     lp.setTrackSubscriptionPermissions(true, denied);
   } catch (e) {

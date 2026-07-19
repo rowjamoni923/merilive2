@@ -76,134 +76,56 @@ export function describeDisconnectReason(reason: number | undefined): Disconnect
     case DISCONNECT_REASON.DUPLICATE_IDENTITY:
       return {
         reason,
-        code: 'DUPLICATE_IDENTITY',
-        title: 'Signed in elsewhere',
-        message: 'Your account joined this room from another device. Disconnected here.',
-        severity: 'warning',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.SERVER_SHUTDOWN:
       return {
         reason,
-        code: 'SERVER_SHUTDOWN',
-        title: 'Server restarting',
-        message: 'The live server is restarting. Please rejoin in a moment.',
-        severity: 'warning',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.PARTICIPANT_REMOVED:
       return {
         reason,
-        code: 'PARTICIPANT_REMOVED',
-        title: 'Removed from room',
-        message: 'You were removed from this room by the host or a moderator.',
-        severity: 'error',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.ROOM_DELETED:
     case DISCONNECT_REASON.ROOM_CLOSED:
       return {
         reason,
-        code: reason === DISCONNECT_REASON.ROOM_DELETED ? 'ROOM_DELETED' : 'ROOM_CLOSED',
-        title: 'Room closed',
-        message: 'The host ended this live session.',
-        severity: 'info',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.STATE_MISMATCH:
       return {
         reason,
-        code: 'STATE_MISMATCH',
-        title: 'Session out of sync',
-        message: 'Your session went out of sync with the server. Reconnecting…',
-        severity: 'warning',
-        isFinal: false,
-        silent: false,
       };
     case DISCONNECT_REASON.JOIN_FAILURE:
       return {
         reason,
-        code: 'JOIN_FAILURE',
-        title: 'Could not join',
-        message: 'Failed to join the room. Please check your connection and try again.',
-        severity: 'error',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.MIGRATION:
       return {
         reason,
-        code: 'MIGRATION',
-        title: 'Switching servers',
-        message: 'Moving to a faster server… one moment.',
-        severity: 'info',
-        isFinal: false,
-        silent: true,
       };
     case DISCONNECT_REASON.SIGNAL_CLOSE:
       return {
         reason,
-        code: 'SIGNAL_CLOSE',
-        title: 'Connection lost',
-        message: 'Lost connection to the live server. Please rejoin.',
-        severity: 'warning',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.USER_UNAVAILABLE:
       return {
         reason,
-        code: 'USER_UNAVAILABLE',
-        title: 'User unavailable',
-        message: 'The other user is unavailable right now.',
-        severity: 'info',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.USER_REJECTED:
       return {
         reason,
-        code: 'USER_REJECTED',
-        title: 'Call declined',
-        message: 'The other user declined the call.',
-        severity: 'info',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.SIP_TRUNK_FAILURE:
       return {
         reason,
-        code: 'SIP_TRUNK_FAILURE',
-        title: 'Phone line failed',
-        message: 'The phone bridge failed. Please try again.',
-        severity: 'error',
-        isFinal: true,
-        silent: false,
       };
     case undefined:
       return {
         reason,
-        code: 'UNDEFINED',
-        title: 'Disconnected',
-        message: 'Connection ended unexpectedly.',
-        severity: 'warning',
-        isFinal: true,
-        silent: false,
       };
     case DISCONNECT_REASON.UNKNOWN_REASON:
     default:
       return {
         reason,
-        code: 'UNKNOWN_REASON',
-        title: 'Disconnected',
-        message: 'Connection ended unexpectedly. Please rejoin.',
-        severity: 'warning',
-        isFinal: true,
-        silent: false,
       };
   }
 }

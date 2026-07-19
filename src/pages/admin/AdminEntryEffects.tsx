@@ -37,10 +37,6 @@ const AdminEntryEffects = () => {
     }
     const s: any = data;
     setStats({
-      banners: Number(s.banners || 0),
-      bars: Number(s.bars || 0),
-      nameBars: Number(s.name_bars || 0),
-      vehicles: Number(s.vehicles || 0),
     });
   };
 

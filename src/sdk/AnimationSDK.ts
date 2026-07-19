@@ -125,8 +125,6 @@ export class AnimationEngine {
 
   animateMultiple(
     properties: Record<string, { from: number; to: number }>,
-    config: AnimationConfig,
-    onUpdate: (values: Record<string, number>) => void
   ): () => void {
     const {
       duration = 300,
@@ -206,8 +204,6 @@ export class PageTransitions {
     // Animate in
     await to.animate(animations.in, {
       duration,
-      easing: this.getWebEasing(easing),
-      fill: 'forwards',
     }).finished;
   }
 
@@ -218,47 +214,33 @@ export class PageTransitions {
     switch (type) {
       case 'fade':
         return {
-          out: [{ opacity: 1 }, { opacity: 0 }],
-          in: [{ opacity: 0 }, { opacity: 1 }],
         };
       case 'slide-left':
         return {
-          out: [{ transform: 'translateX(0)' }, { transform: 'translateX(-100%)' }],
-          in: [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }],
         };
       case 'slide-right':
         return {
-          out: [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }],
-          in: [{ transform: 'translateX(-100%)' }, { transform: 'translateX(0)' }],
         };
       case 'slide-up':
         return {
-          out: [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
-          in: [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
         };
       case 'slide-down':
         return {
-          out: [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
-          in: [{ transform: 'translateY(-100%)' }, { transform: 'translateY(0)' }],
         };
       case 'scale':
         return {
-          out: [
             { transform: 'scale(1)', opacity: 1 },
             { transform: 'scale(0.8)', opacity: 0 },
           ],
-          in: [
             { transform: 'scale(1.2)', opacity: 0 },
             { transform: 'scale(1)', opacity: 1 },
           ],
         };
       case 'flip':
         return {
-          out: [
             { transform: 'perspective(1000px) rotateY(0deg)' },
             { transform: 'perspective(1000px) rotateY(90deg)' },
           ],
-          in: [
             { transform: 'perspective(1000px) rotateY(-90deg)' },
             { transform: 'perspective(1000px) rotateY(0deg)' },
           ],
@@ -452,8 +434,6 @@ export class MicroInteractions {
       style.textContent = `
         @keyframes ripple-effect {
           to {
-            transform: scale(1);
-            opacity: 0;
           }
         }
       `;
@@ -487,8 +467,6 @@ export class MicroInteractions {
       { transform: 'translateX(10px)' },
       { transform: 'translateX(0)' },
     ], {
-      duration: 400,
-      easing: 'ease-in-out',
     });
   }
 
@@ -500,8 +478,6 @@ export class MicroInteractions {
       { transform: 'scale(1.1)' },
       { transform: 'scale(1)' },
     ], {
-      duration: 500,
-      easing: 'ease-out',
     });
   }
 
@@ -513,8 +489,6 @@ export class MicroInteractions {
       { transform: 'scale(1.3)' },
       { transform: 'scale(1)' },
     ], {
-      duration: 600,
-      easing: 'ease-in-out',
     });
   }
 
@@ -529,9 +503,7 @@ export class MicroInteractions {
       { transform: 'translateY(-10px)' },
       { transform: 'translateY(0)' },
     ], {
-      duration: 2000,
       iterations: Infinity,
-      easing: 'ease-in-out',
     });
   }
 }

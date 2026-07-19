@@ -41,7 +41,6 @@ interface AgencyDetails {
   created_at: string;
   whatsapp_number: string | null;
   owner?: {
-    id: string;
     display_name: string;
     avatar_url: string | null;
     app_uid: string;
@@ -158,7 +157,6 @@ const AgencyDetailsPage = () => {
 
           setHostAgency({
             ...normalizedAgency,
-            whatsapp_number: whatsappNumber,
             owner: ownerData ? {
               ...ownerData,
               avatar_url: ownerData.avatar_url || null,

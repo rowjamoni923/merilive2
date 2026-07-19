@@ -183,7 +183,6 @@ const AdminNotificationTemplates = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -194,11 +193,6 @@ const AdminNotificationTemplates = () => {
   const openEditDialog = (template: NotificationTemplate) => {
     setSelectedTemplate(template);
     setEditForm({
-      title_template: template.title_template,
-      message_template: template.message_template,
-      description: template.description || "",
-      icon_emoji: template.icon_emoji || "",
-      image_url: template.image_url || ""
     });
     setEditDialog(true);
   };
@@ -213,11 +207,6 @@ const AdminNotificationTemplates = () => {
       const { data, error } = await supabase
         .from("notification_templates")
         .update({
-          title_template: editForm.title_template,
-          message_template: editForm.message_template,
-          description: editForm.description || null,
-          icon_emoji: editForm.icon_emoji || null,
-          image_url: editForm.image_url || null,
           updated_at: new Date().toISOString()
         })
         .eq("id", selectedTemplate.id)
@@ -232,8 +221,6 @@ const AdminNotificationTemplates = () => {
       console.log('[AdminNotificationTemplates] Template updated successfully:', data);
 
       toast({
-        title: "Success!",
-        description: "Template updated successfully",
       });
 
       setEditDialog(false);
@@ -242,9 +229,6 @@ const AdminNotificationTemplates = () => {
       console.error('[AdminNotificationTemplates] Error:', error);
       recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: formatAdminError(error) });
       toast({
-        title: "Error",
-        description: error.message || "Failed to save template",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -290,16 +274,11 @@ const AdminNotificationTemplates = () => {
     setBroadcastingKey(template.template_key);
     try {
       const { error } = await supabase.functions.invoke('send-push-notification', {
-        body: {
           target: 'all',
-          title: template.title_template,
-          body: template.message_template,
           imageUrl: template.image_url || undefined,
           type: 'broadcast',
           data: {
             template_key: template.template_key,
-            icon_emoji: template.icon_emoji || getTemplateIcon(template.template_key),
-            image_url: template.image_url || '',
             action_url: '/chat?tab=notifications',
             persist_fallback: 'false'
           }

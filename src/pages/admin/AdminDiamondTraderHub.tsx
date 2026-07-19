@@ -54,11 +54,6 @@ export default function AdminDiamondTraderHub() {
     ]);
 
     setStats({
-      activeHelpers: helpersRes.count || 0,
-      pendingOrders: ordersRes.count || 0,
-      todayTransactions: txnRes.count || 0,
-      paymentMethods: methodsRes.count || 0,
-      helperPaymentMethods: helperMethodsRes.count || 0
     });
   };
 

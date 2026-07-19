@@ -42,7 +42,6 @@ const sheetVariants = cva(
       },
     },
     defaultVariants: {
-      side: "right",
     },
   },
 );
@@ -67,8 +66,6 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
           }
         : side === "left" || side === "right"
           ? {
-              maxHeight: "calc(100dvh - var(--kb-h, 0px))",
-              transition: "max-height 200ms ease-out",
             }
           : {};
     return (

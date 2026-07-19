@@ -248,7 +248,6 @@ Deno.serve(async (req) => {
       
       return new Response(
         JSON.stringify({
-          odersId: queryUserId,
           isOnline: user !== undefined,
           presence: user?.presence || null
         }),

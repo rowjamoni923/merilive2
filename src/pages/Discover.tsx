@@ -72,7 +72,6 @@ interface PartyRoom {
   description: string | null;
   welcome_message: string | null;
   host: {
-    id: string;
     display_name: string | null;
     avatar_url: string | null;
     user_level: number;
@@ -354,8 +353,6 @@ const Discover = () => {
         .single();
       const room: PartyRoom = {
         ...data,
-        host: host || null,
-        current_participants: 0,
         is_private: !!data.password_hash,
       } as PartyRoom;
       setRoomCodeDialogOpen(false);
@@ -434,7 +431,6 @@ const Discover = () => {
       case "video": return "from-success to-success/80";
       case "audio": return "from-info to-info/80";
       case "game": return "from-primary to-secondary";
-      default: return "from-muted-foreground to-muted-foreground/80";
     }
   };
 
@@ -449,7 +445,6 @@ const Discover = () => {
 
   const getGameModeColor = (gameMode: string) => {
     const colorMap: Record<string, string> = {
-      ludo: "from-info to-secondary", lucky28: "from-warning to-danger",
       wheel: "from-secondary to-primary", crash: "from-warning to-accent",
       dice: "from-danger to-primary", coinflip: "from-accent to-warning",
       mines: "from-info to-primary", hilo: "from-success to-success/80",
@@ -495,8 +490,6 @@ const Discover = () => {
               size="icon"
               className="rounded-full text-on-dark h-9 w-9 transition-all hover:-translate-y-0.5 active:translate-y-0"
               style={{
-                background: 'rgba(255,255,255,0.14)',
-                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
               }}
               disabled={refreshing}
               onClick={async () => {
@@ -515,8 +508,6 @@ const Discover = () => {
             <div
               className="relative flex-1 rounded-full"
               style={{
-                background: 'rgba(255,255,255,0.18)',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.18)',
               }}
             >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-dark-faint" />
@@ -539,8 +530,6 @@ const Discover = () => {
               size="icon"
               className="rounded-full h-9 w-9 shrink-0 text-on-dark"
               style={{
-                background: 'rgba(255,255,255,0.22)',
-                boxShadow: '0 6px 14px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)',
               }}
               onClick={() => setRoomCodeDialogOpen(true)}
               title="Join by room code"
@@ -558,8 +547,6 @@ const Discover = () => {
           <TabsList
             className="w-full rounded-full p-1 h-10 border-0"
             style={{
-              background: 'hsl(var(--muted))',
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.08), inset 0 -1px 0 rgba(255,255,255,0.6)',
             }}
           >
             <TabsTrigger

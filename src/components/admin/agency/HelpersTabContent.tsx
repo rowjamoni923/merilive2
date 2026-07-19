@@ -40,7 +40,6 @@ interface HelperData {
     avatar_url: string | null;
     app_uid: string | null;
     is_online: boolean | null;
-    country_code: string | null;
     country_flag: string | null;
     country_name: string | null;
   };

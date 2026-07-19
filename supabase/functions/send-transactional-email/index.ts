@@ -50,24 +50,15 @@ function normalizeEmailSendError(error: unknown): EmailSendFailure {
       }
     case 'no_matching_sender':
       return {
-        code: 'EMAIL_SENDER_DOMAIN_NOT_READY',
-        message: 'Email sender setup is not ready yet. Please try again shortly.',
-        status: 503,
         providerType,
       }
     case 'lovable_api_key_not_registered':
     case 'unauthorized':
       return {
-        code: 'EMAIL_SERVICE_AUTH_FAILED',
-        message: 'Email service is being refreshed. Please try again shortly.',
-        status: 503,
         providerType,
       }
     default:
       return {
-        code: 'EMAIL_DELIVERY_FAILED',
-        message: providerMessage || 'Failed to send email',
-        status: 500,
         providerType: providerType || undefined,
       }
   }
@@ -111,8 +102,6 @@ Deno.serve(async (req) => {
 
   if (!isAuthorizedServiceCall(req, supabaseServiceKey)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
@@ -135,8 +124,6 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ error: 'Invalid JSON in request body' }),
       {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -145,8 +132,6 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ error: 'templateName is required' }),
       {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -161,8 +146,6 @@ Deno.serve(async (req) => {
         error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
       }),
       {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -175,11 +158,8 @@ Deno.serve(async (req) => {
   if (!effectiveRecipient) {
     return new Response(
       JSON.stringify({
-        error: 'recipientEmail is required (unless the template defines a fixed recipient)',
       }),
       {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -196,14 +176,11 @@ Deno.serve(async (req) => {
 
   if (suppressionError) {
     console.error('Suppression check failed — refusing to send', {
-      error: suppressionError,
       effectiveRecipient,
     })
     return new Response(
       JSON.stringify({ error: 'Failed to verify suppression status' }),
       {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -214,15 +191,12 @@ Deno.serve(async (req) => {
       message_id: messageId,
       template_name: templateName,
       recipient_email: effectiveRecipient,
-      status: 'suppressed',
     })
 
     console.log('Email suppressed', { effectiveRecipient, templateName })
     return new Response(
       JSON.stringify({ success: false, reason: 'email_suppressed' }),
       {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -240,21 +214,14 @@ Deno.serve(async (req) => {
 
   if (tokenLookupError) {
     console.error('Token lookup failed', {
-      error: tokenLookupError,
       email: normalizedEmail,
     })
     await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'failed',
       error_message: 'Failed to look up unsubscribe token',
     })
     return new Response(
       JSON.stringify({ error: 'Failed to prepare email' }),
       {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -274,20 +241,12 @@ Deno.serve(async (req) => {
 
     if (tokenError) {
       console.error('Failed to create unsubscribe token', {
-        error: tokenError,
       })
       await supabase.from('email_send_log').insert({
-        message_id: messageId,
-        template_name: templateName,
-        recipient_email: effectiveRecipient,
-        status: 'failed',
-        error_message: 'Failed to create unsubscribe token',
       })
       return new Response(
         JSON.stringify({ error: 'Failed to prepare email' }),
         {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
     }
@@ -302,21 +261,12 @@ Deno.serve(async (req) => {
 
     if (reReadError || !storedToken) {
       console.error('Failed to read back unsubscribe token after upsert', {
-        error: reReadError,
-        email: normalizedEmail,
       })
       await supabase.from('email_send_log').insert({
-        message_id: messageId,
-        template_name: templateName,
-        recipient_email: effectiveRecipient,
-        status: 'failed',
-        error_message: 'Failed to confirm unsubscribe token storage',
       })
       return new Response(
         JSON.stringify({ error: 'Failed to prepare email' }),
         {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
     }
@@ -325,21 +275,14 @@ Deno.serve(async (req) => {
     // Token exists but is already used — email should have been caught by suppression check above.
     // This is a safety fallback; log and skip sending.
     console.warn('Unsubscribe token already used but email not suppressed', {
-      email: normalizedEmail,
     })
     await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'suppressed',
       error_message:
         'Unsubscribe token used but email missing from suppressed list',
     })
     return new Response(
       JSON.stringify({ success: false, reason: 'email_suppressed' }),
       {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
@@ -365,16 +308,11 @@ Deno.serve(async (req) => {
 
   // Log pending BEFORE enqueue so we have a record even if enqueue crashes
   await supabase.from('email_send_log').insert({
-    message_id: messageId,
-    template_name: templateName,
-    recipient_email: effectiveRecipient,
-    status: 'pending',
   })
 
   try {
     await sendLovableEmail(
       {
-      message_id: messageId,
       to: effectiveRecipient,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
@@ -391,7 +329,6 @@ Deno.serve(async (req) => {
   } catch (sendError) {
     const normalizedError = normalizeEmailSendError(sendError)
     console.error('Failed to send email', {
-      error: sendError instanceof Error ? sendError.message : String(sendError),
       code: normalizedError.code,
       providerType: normalizedError.providerType,
       templateName,
@@ -399,28 +336,15 @@ Deno.serve(async (req) => {
     })
 
     await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'failed',
-      error_message: normalizedError.code,
     })
 
     return new Response(JSON.stringify({
       success: false,
-      error: normalizedError.message,
-      code: normalizedError.code,
     }), {
-      status: normalizedError.status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
   await supabase.from('email_send_log').insert({
-    message_id: messageId,
-    template_name: templateName,
-    recipient_email: effectiveRecipient,
-    status: 'sent',
   })
 
   console.log('Transactional email sent', { templateName, effectiveRecipient })
@@ -428,8 +352,6 @@ Deno.serve(async (req) => {
   return new Response(
     JSON.stringify({ success: true, sent: true }),
     {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     }
   )
 })

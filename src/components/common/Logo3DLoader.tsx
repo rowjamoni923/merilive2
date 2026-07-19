@@ -16,10 +16,6 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
   };
 
   const textSizes = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base",
-    xl: "text-lg",
   };
 
   return (
@@ -55,9 +51,6 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
             rotate: 360,
           }}
           transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "linear",
           }}
         />
 
@@ -65,17 +58,12 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
         <motion.div
           className={`absolute inset-2 rounded-full`}
           style={{
-            border: "2px solid transparent",
             borderBottomColor: "#f97316",
             borderLeftColor: "#eab308",
           }}
           animate={{
-            rotate: -360,
           }}
           transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "linear",
           }}
         />
 
@@ -91,9 +79,6 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
             y: [0, -8, 0],
           }}
           transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
           }}
         >
           {/* Logo Image with 3D Effect */}
@@ -105,12 +90,8 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
               filter: "drop-shadow(0 10px 30px rgba(168, 85, 247, 0.4))",
             }}
             animate={{
-              scale: [1, 1.05, 1],
             }}
             transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
             }}
           />
 
@@ -118,15 +99,11 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
           <motion.div
             className="absolute inset-0 rounded-2xl overflow-hidden"
             style={{
-              background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)",
             }}
             animate={{
               x: ["-100%", "200%"],
             }}
             transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
               repeatDelay: 1,
             }}
           />
@@ -138,20 +115,13 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
             key={i}
             className="absolute w-2 h-2 rounded-full"
             style={{
-              background: i % 2 === 0 ? "#a855f7" : "#ec4899",
               left: `${20 + (i * 12)}%`,
               top: `${10 + (i * 15)}%`,
             }}
             animate={{
-              y: [0, -20, 0],
-              opacity: [0, 1, 0],
-              scale: [0.5, 1, 0.5],
             }}
             transition={{
-              duration: 2,
-              repeat: Infinity,
               delay: i * 0.3,
-              ease: "easeInOut",
             }}
           />
         ))}
@@ -176,9 +146,6 @@ const Logo3DLoader = ({ size = "md", showText = true, className = "" }: Logo3DLo
                 className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-400 to-pink-400"
                 animate={{ y: [0, -4, 0] }}
                 transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  delay: i * 0.15,
                 }}
               />
             ))}
