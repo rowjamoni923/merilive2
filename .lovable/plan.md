@@ -69,3 +69,19 @@ Order (all in a single transaction so RPCs recompile atomically):
 - Renaming Beans (stays as earn wallet).
 - Gift animation payload shape (`gift.coins` field name) — that ships with Phase 2 as `gift.diamonds` but native VAP/SVGA dispatcher only reads the number; no visual change.
 - No time-saving shortcut. Every phase verified with `pg_get_functiondef` diff + owner-account live test before the next.
+
+---
+
+# Face Verification — Retry Rows Admin Override Fix
+
+## Professional standard signal
+- Identity/moderation dashboards list verification statuses/events and support human review over automated outcomes; VerifyMyContent documents identity verification rows with status/event visibility in its client dashboard: https://verifymycontentforbusiness.zendesk.com/hc/en-gb/articles/6555970087186-The-VerifyMyContent-Client-Dashboard
+- Hybrid moderation combines AI/ML with human moderators before publication/approval, so admin tooling must expose terminal actions when AI cannot safely auto-approve: https://verifymy.io/identity-verification-content-moderation/content-moderation/
+
+## Current app gap found
+- `/admin/face-verification` placed `needs_retry` rows in the `user_retry` bucket and rendered Approve/Reject only for `pending` rows.
+- Result: completed submissions with AI retry reasons were visible, but owner/admin could not manually approve or reject them from the card/detail review surface.
+
+## Fix applied
+- Manual review actions now render for both `pending` and `user_retry` rows.
+- Approving a retry row routes through the existing manual override flow, requiring an admin reason; rejecting still writes the terminal rejection through the existing RPC.
