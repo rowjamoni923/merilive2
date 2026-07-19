@@ -933,7 +933,7 @@ export default function AdminCommissions() {
                 Diamond Trader Settings
               </CardTitle>
               <CardDescription className="text-slate-600">
-                Set buy/sell rates for agencies trading coins with users
+                Set buy/sell rates for agencies trading diamonds with users
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
