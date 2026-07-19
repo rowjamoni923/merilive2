@@ -342,7 +342,7 @@ export default function AdminGameLeaderboard() {
         // Send notification to user/agency owner about leaderboard reward
         if (!isAgency) {
           const rewardParts = [];
-          if (reward.reward_coins > 0) rewardParts.push(`${reward.reward_coins.toLocaleString()} Coins`);
+          if (reward.reward_coins > 0) rewardParts.push(`${reward.reward_coins.toLocaleString()} Diamonds`);
           if (reward.reward_diamonds > 0) rewardParts.push(`${reward.reward_diamonds.toLocaleString()} Diamonds`);
           if (reward.reward_beans > 0) rewardParts.push(`${reward.reward_beans.toLocaleString()} Beans`);
           await adminSendNotification(entry.id, `🏆 Leaderboard Reward - Rank #${rank}!`, `Congratulations! You earned ${rewardParts.join(' + ')} from ${category} leaderboard`, 'reward')
