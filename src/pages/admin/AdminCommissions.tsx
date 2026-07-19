@@ -454,7 +454,7 @@ export default function AdminCommissions() {
                   </div>
                   <div className="flex items-center justify-center p-4 bg-white/5 rounded-lg">
                     <div className="text-center">
-                      <p className="text-slate-600 text-sm">Preview (1000 coin gift)</p>
+                      <p className="text-slate-600 text-sm">Preview (1000 diamond gift)</p>
                       <div className="flex items-center justify-center gap-4 mt-2">
                         <div>
                           <p className="text-red-400 font-bold text-lg">-1000</p>
