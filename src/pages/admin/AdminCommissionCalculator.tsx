@@ -104,7 +104,7 @@ const AdminCommissionCalculator = () => {
           host_commission_percent: 100 - callCompanyPercent,
           per_minute_rate: callPerMinuteRate,
           default_rate: callPerMinuteRate,
-          description: `Company takes ${callCompanyPercent}%, Host receives ${100 - callCompanyPercent}% at ${callPerMinuteRate} coins/min`
+          description: `Company takes ${callCompanyPercent}%, Host receives ${100 - callCompanyPercent}% at ${callPerMinuteRate} diamonds/min`
         },
         'Call rates and commission settings'
       );
