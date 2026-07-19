@@ -126,7 +126,7 @@ export default function AdminWalletLedger() {
         <StatCard label="Movements" value={totals.count.toLocaleString()} />
         <StatCard label="Net Beans" value={totals.beans.toLocaleString()} tint={totals.beans >= 0 ? "emerald" : "rose"} />
         <StatCard label="Net Diamonds" value={totals.diamonds.toLocaleString()} tint={totals.diamonds >= 0 ? "emerald" : "rose"} />
-        <StatCard label="Net Diamonds (legacy)" value={totals.coins.toLocaleString()} tint={totals.coins >= 0 ? "emerald" : "rose"} />
+        <StatCard label="Net Diamonds (alias)" value={totals.coins.toLocaleString()} tint={totals.coins >= 0 ? "emerald" : "rose"} />
       </div>
 
       <Card className="border-slate-200 shadow-sm">
