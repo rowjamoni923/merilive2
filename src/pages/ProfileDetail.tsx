@@ -424,7 +424,7 @@ const ProfileDetail = () => {
       traderResult,
     ] = await Promise.all([
       // Current user's diamond balance
-      user?.id ? supabase.from("profiles").select("coins").eq("id", user.id).single() : { data: null },
+      user?.id ? supabase.from("profiles").select("diamonds").eq("id", user.id).single() : { data: null },
       // Slideshow interval setting
       supabase.from("app_settings").select("setting_value").eq("setting_key", "profile_slideshow_interval").maybeSingle(),
       // Profile data
