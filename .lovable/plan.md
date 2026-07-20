@@ -85,3 +85,20 @@ Order (all in a single transaction so RPCs recompile atomically):
 ## Fix applied
 - Manual review actions now render for both `pending` and `user_retry` rows.
 - Approving a retry row routes through the existing manual override flow, requiring an admin reason; rejecting still writes the terminal rejection through the existing RPC.
+
+---
+
+# Face Verification — Auto-Approve Gate Audit
+
+## Professional standard signal
+- Identity/KYC systems use automated face/liveness/similarity checks with human fallback when evidence is low confidence or conflicting: https://verifymy.io/identity-verification-content-moderation/content-moderation/
+- Review dashboards must expose status/event evidence so operators can distinguish “AI failed” from “user evidence failed”: https://verifymycontentforbusiness.zendesk.com/hc/en-gb/articles/6555970087186-The-VerifyMyContent-Client-Dashboard
+
+## Current evidence found
+- Last 24h face verification jobs were reaching `face-verification-analyze` and completing with HTTP 200; the analyzer was not globally down.
+- One same-day host submission auto-approved successfully with profile/live/video/host-gallery same-person evidence.
+- Failed/retry cases had concrete AI gates: profile-photo mismatch, host-gallery mismatch/unreadable, or low profile/live similarity.
+
+## Gap fixed
+- The analyzer comment promised “super-strong identity” could override soft host-gallery mismatch, but an earlier `identity_mismatch` retry branch returned before that override could run.
+- The edge function now separates required identity evidence (profile photo + live/video face) from host-gallery soft mismatch, records the override in `ai_analysis.rekognition`, and lets the existing DB service finalize when core identity is super-strong.

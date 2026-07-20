@@ -1318,6 +1318,7 @@ serve(async (req) => {
       .eq("id", submissionId)
       .maybeSingle();
     const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
+    const isPassivePhotoVideoLiveScan = String((existingAnalysis as Record<string, unknown>)?.scan_mode || "") === "passive_photo_video_live";
     const evidenceUrls = ((existingAnalysis.evidence_urls && typeof existingAnalysis.evidence_urls === "object")
       ? existingAnalysis.evidence_urls
       : {}) as Record<string, unknown>;
@@ -1386,19 +1387,28 @@ serve(async (req) => {
       hostPhotos.length === 3 && hostPhotoScores.length === 3 && hostPhotoScores.every((s) => typeof s.score === "number")
     );
     const evidenceComplete = requiredUrlsPresent && !frontError && evidenceChecks.every((c) => typeof c.score === "number") && hostGalleryComplete;
+    const photoLiveScoreNumEarly = Number(evidenceScores.profile_photo ?? profileMatchScore ?? 0);
+    const faceVideoLiveScoreNumEarly = Number(evidenceScores.face_video ?? 0);
+    const coreIdentitySuperStrong = isPassivePhotoVideoLiveScan
+      && photoLiveScoreNumEarly >= 85
+      && faceVideoLiveScoreNumEarly >= 85
+      && (profileMatchScore ?? 0) >= SAME_PERSON_MIN_SIMILARITY;
     // Identity gate: REQUIRED evidence (profile photo) must match the live scan
     // at the owner-approved minimum similarity. Host gallery (3 photos) is also
     // hard-checked separately. Optional video-frame scores are surfaced but never
     // used to fail approval — they were too brittle (frame can land on blink).
-    const evidenceIdentityMismatch = evidenceComplete && (evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY) ||
-      (hostGalleryComplete && hostPhotosMismatch));
+    const requiredEvidenceMismatch = evidenceComplete && evidenceChecks.some((c) => typeof c.score === "number" && (c.score as number) < SAME_PERSON_MIN_SIMILARITY);
+    const hostGalleryMismatchNeedsRetry = evidenceComplete && hostGalleryComplete && hostPhotosMismatch && !coreIdentitySuperStrong;
+    const evidenceIdentityMismatch = requiredEvidenceMismatch || hostGalleryMismatchNeedsRetry;
     const evidenceSamePerson = evidenceComplete &&
       evidenceChecks.every((c) => typeof c.score === "number" && (c.score as number) >= SAME_PERSON_MIN_SIMILARITY) &&
-      (!hostGalleryComplete || !hostPhotosMismatch);
+      (!hostGalleryComplete || !hostPhotosMismatch || coreIdentitySuperStrong);
 
     rekognition.evidence_complete = evidenceComplete;
     rekognition.evidence_same_person = evidenceSamePerson;
     rekognition.identity_mismatch = evidenceIdentityMismatch;
+    rekognition.required_evidence_mismatch = requiredEvidenceMismatch;
+    rekognition.host_gallery_mismatch_overridden_by_super_strong_identity = hostPhotosMismatch && coreIdentitySuperStrong;
     rekognition.photo_live_score = evidenceScores.profile_photo ?? profileMatchScore;
     rekognition.face_video_live_score = evidenceScores.face_video ?? null;
     rekognition.intro_video_live_score = evidenceScores.intro_video ?? null;
@@ -1423,8 +1433,6 @@ serve(async (req) => {
     const mergedAnalysis = duplicateBlock
       ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock }
       : { ...existingAnalysis, rekognition };
-    const isPassivePhotoVideoLiveScan = String((existingAnalysis as Record<string, unknown>)?.scan_mode || "") === "passive_photo_video_live";
-
     const finalNotes = duplicateNote ? `${summary}${evidenceSummary}\n[duplicate-face] ${duplicateNote}` : `${summary}${evidenceSummary}`;
 
     await supabaseAdmin
