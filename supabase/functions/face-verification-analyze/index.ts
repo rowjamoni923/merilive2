@@ -1318,6 +1318,7 @@ serve(async (req) => {
       .eq("id", submissionId)
       .maybeSingle();
     const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
+    const isPassivePhotoVideoLiveScan = String((existingAnalysis as Record<string, unknown>)?.scan_mode || "") === "passive_photo_video_live";
     const evidenceUrls = ((existingAnalysis.evidence_urls && typeof existingAnalysis.evidence_urls === "object")
       ? existingAnalysis.evidence_urls
       : {}) as Record<string, unknown>;
@@ -1432,8 +1433,6 @@ serve(async (req) => {
     const mergedAnalysis = duplicateBlock
       ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock }
       : { ...existingAnalysis, rekognition };
-    const isPassivePhotoVideoLiveScan = String((existingAnalysis as Record<string, unknown>)?.scan_mode || "") === "passive_photo_video_live";
-
     const finalNotes = duplicateNote ? `${summary}${evidenceSummary}\n[duplicate-face] ${duplicateNote}` : `${summary}${evidenceSummary}`;
 
     await supabaseAdmin
