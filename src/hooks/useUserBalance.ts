@@ -206,12 +206,22 @@ export function useUserBalancePrefetch(userId?: string | null): void {
       if (detail?.topic !== 'profiles') return;
 
       const payload = detail.payload || {};
-      if (payload.profile_id && payload.profile_id !== userId) return;
+      // Realtime postgres_changes payload carries the profile row itself; own-row
+      // id is what identifies the current user. `profile_id` is only present on
+      // broadcast events. Applying without an id match caused foreign profile
+      // updates to overwrite the cached balance (or leave own updates ignored).
+      const rowId = payload.id ?? payload.profile_id;
+      if (rowId && rowId !== userId) return;
+      if (!rowId) return; // safety: never apply an unattributed payload
 
       const diamonds = payload.diamonds;
       if (diamonds !== undefined) {
         balanceCache.userId = userId;
         updateCachedBalance(Number(diamonds || 0));
+      } else {
+        // Column missing from payload (partial replica identity) → force a refetch
+        // so admin deductions and other server-side writes reflect instantly.
+        void fetchBalance(userId, true);
       }
 
       if (payload.beans !== undefined && typeof window !== 'undefined') {
