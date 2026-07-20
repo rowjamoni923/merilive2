@@ -618,15 +618,21 @@ const FaceVerification = () => {
 
     const { data: latestSubmission } = await supabase
       .from('face_verification_submissions')
-      .select('id, status, rejection_reason, admin_notes, ai_analysis')
+      .select('id, status, rejection_reason, admin_notes, ai_analysis, full_name, age, language, verification_type')
       .eq('user_id', targetUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
+    const latestAny = latestSubmission as any;
+    const profileAny = resolvedProfile as any;
+    setFullName((prev) => prev || latestAny?.full_name || profileAny?.display_name || profileAny?.full_name || '');
+    setAge((prev) => prev || (latestAny?.age ? String(latestAny.age) : profileAny?.age ? String(profileAny.age) : ''));
+    setLanguage((prev) => prev || latestAny?.language || profileAny?.language || '');
+
     // An orphan submission (no media reached storage and the DB sweeper flagged
     // it) must NOT lock the user on "Under Review" — let them resubmit instead.
-    const ai = (latestSubmission as any)?.ai_analysis || {};
+    const ai = latestAny?.ai_analysis || {};
     const isOrphanResubmit = !!(ai.requires_resubmit || ai.orphan_media || ai.auto_rejected_reason === 'orphan_media_missing');
 
     if (latestSubmission?.status === 'approved') {
@@ -638,10 +644,10 @@ const FaceVerification = () => {
       // etc.) MUST win over the generic orphan-resubmit fallback so the
       // "Contact Support" UI + duplicate-account details render correctly.
       setVerificationStatus('rejected');
-      setRejectionReason((latestSubmission as any).rejection_reason || null);
+      setRejectionReason(latestAny.rejection_reason || null);
       setRetryRequired(null);
     } else if (latestSubmission?.status === 'needs_retry') {
-      const rr = (latestSubmission as any)?.ai_analysis?.retry_required || null;
+      const rr = latestAny?.ai_analysis?.retry_required || null;
       setRetryRequired(rr);
       setVerificationStatus('needs_retry');
       setRejectionReason(null);
@@ -2158,7 +2164,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status, profile_photo_url, video_url, face_image_url, front_url, selfie_url, host_photos, ai_analysis')
         .eq('user_id', userId)
-        .in('status', ['pending', 'submitted', 'under_review'])
+        .in('status', ['pending', 'submitted', 'under_review', 'needs_retry', 'user_retry'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -2408,6 +2414,7 @@ const FaceVerification = () => {
         .maybeSingle();
 
       const existingAi = (existingSubmission as any)?.ai_analysis || {};
+      const existingIsRetry = ['needs_retry', 'user_retry'].includes(String((existingSubmission as any)?.status || '').toLowerCase());
       const existingIsOrphan = !!(existingAi.requires_resubmit || existingAi.orphan_media)
         || (!!existingSubmission
             && !existingSubmission.profile_photo_url
@@ -2416,7 +2423,7 @@ const FaceVerification = () => {
             && !existingSubmission.front_url
             && !existingSubmission.selfie_url);
 
-      if (existingSubmission && !existingIsOrphan) {
+      if (existingSubmission && !existingIsOrphan && !existingIsRetry) {
         lockUnderReviewAndReturn('Your verification is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
@@ -2546,7 +2553,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status, profile_photo_url, video_url, face_image_url, front_url, selfie_url')
         .eq('user_id', userId)
-        .in('status', ['pending','submitted','under_review'])
+        .in('status', ['pending','submitted','under_review','needs_retry','user_retry'])
         .order('created_at', { ascending: false })
         .maybeSingle();
 
@@ -2733,11 +2740,12 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status, ai_analysis, profile_photo_url, video_url, face_image_url, front_url, selfie_url, host_photos')
         .eq('user_id', userId)
-        .in('status', ['pending','submitted','under_review'])
+        .in('status', ['pending','submitted','under_review','needs_retry','user_retry'])
         .order('created_at', { ascending: false })
         .maybeSingle();
 
       const existingHostAi = (existingSubmission as any)?.ai_analysis || {};
+      const existingHostIsRetry = ['needs_retry', 'user_retry'].includes(String((existingSubmission as any)?.status || '').toLowerCase());
       const existingHostIsOrphan = !!(existingHostAi.requires_resubmit || existingHostAi.orphan_media)
         || (!!existingSubmission
             && !existingSubmission.profile_photo_url
@@ -2747,7 +2755,7 @@ const FaceVerification = () => {
             && !existingSubmission.selfie_url
             && !(existingSubmission.host_photos && existingSubmission.host_photos.length));
 
-      if (existingSubmission && !existingHostIsOrphan) {
+      if (existingSubmission && !existingHostIsOrphan && !existingHostIsRetry) {
         lockUnderReviewAndReturn('Your host application is already under review. Returning to profile…', existingSubmission.id);
         return;
       }
@@ -2883,7 +2891,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending','submitted','under_review'])
+        .in('status', ['pending','submitted','under_review','needs_retry','user_retry'])
         .order('created_at', { ascending: false })
         .maybeSingle();
 
