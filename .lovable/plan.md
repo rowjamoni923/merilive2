@@ -102,3 +102,20 @@ Order (all in a single transaction so RPCs recompile atomically):
 ## Gap fixed
 - The analyzer comment promised “super-strong identity” could override soft host-gallery mismatch, but an earlier `identity_mismatch` retry branch returned before that override could run.
 - The edge function now separates required identity evidence (profile photo + live/video face) from host-gallery soft mismatch, records the override in `ai_analysis.rekognition`, and lets the existing DB service finalize when core identity is super-strong.
+
+---
+
+# Face Verification — Photo Mismatch Retry Unlock
+
+## Professional standard signal
+- KYC/identity systems should return a clear retry reason for low-quality or mismatch evidence, not silently trap the user in review; Sumsub documents user-facing resubmission flows for failed/unclear checks: https://docs.sumsub.com/docs/resubmission
+- Hybrid verification pipelines should preserve hard fraud blocks while letting non-fraud evidence mismatch be resubmitted with precise guidance: https://verifymy.io/identity-verification-content-moderation/content-moderation/
+
+## Current app gap found
+- `face-verification-analyze` correctly wrote `status='needs_retry'` plus `ai_analysis.retry_required` for photo/video/live/host-gallery mismatch, but the resubmission RPC only accepted the `pending` bucket.
+- Result: a retry user could see “re-upload required”, but a new upload could remain blocked/re-routed by the old retry row instead of reliably moving back to `under_review` and re-queueing the analyzer.
+
+## Fix applied
+- `complete_face_verification_submission_uploads` now accepts both `pending` and `user_retry` buckets, clears old retry metadata, moves the same row back to `under_review`, deletes the completed retry job, and re-enqueues `face-verification-analyze`.
+- `FaceVerification.tsx` now includes `needs_retry/user_retry` when checking for an existing submission, so retry resubmits heal the retry row instead of treating it as a permanent blocker.
+- Retry screen still explains exactly which evidence failed, while hard fraud gates (duplicate face, banned identity, gender/account mismatch) remain non-retry support flows.
